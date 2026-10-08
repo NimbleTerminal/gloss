@@ -61,26 +61,28 @@ const (
 
 // state is what the server says of itself, and finally of the answer.
 type state struct {
-	Status   string    `json:"status"`
-	URL      string    `json:"url,omitempty"`
-	Dir      string    `json:"dir"`
-	PID      int       `json:"pid,omitempty"`
-	Deadline time.Time `json:"deadline,omitempty"` // After this a waiting server is taken as timed out.
-	Paths    []string  `json:"paths,omitempty"`
-	Message  string    `json:"message,omitempty"`
-	Error    string    `json:"error,omitempty"`
+	Status             string    `json:"status"`
+	URL                string    `json:"url,omitempty"`
+	Dir                string    `json:"dir"`
+	PID                int       `json:"pid,omitempty"`
+	Deadline           time.Time `json:"deadline,omitempty"` // After this a waiting server is taken as timed out.
+	Paths              []string  `json:"paths,omitempty"`
+	Message            string    `json:"message,omitempty"`
+	Error              string    `json:"error,omitempty"`
+	IdleTimeoutSeconds int       `json:"idle_timeout_seconds,omitempty"`
 }
 
 // started is the one object a detached start prints on stdout.
 type started struct {
-	Protocol       int    `json:"protocol" const:"1" doc:"Version of this object's shape."`
-	Status         string `json:"status" enum:"waiting" doc:"Always waiting: the session started, nobody has answered yet."`
-	URL            string `json:"url" doc:"The page for the human: localhost by default, or the advertised host and actual port with --pick-web --listen/--advertise-host. Reachability depends on the network. Its token lets a browser in, and nothing else; treat it as a secret."`
-	Dir            string `json:"dir" doc:"The private folder (mode 0700) where dropped files land."`
-	TimeoutSeconds int    `json:"timeout_seconds" doc:"How long the server lives."`
-	ResumeToken    string `json:"resume_token" doc:"The secret that --resume, --status, and --cancel take; not the token in url."`
-	Resume         string `json:"resume" doc:"The command that collects the answer."`
-	Pick           bool   `json:"pick" doc:"Whether the session asks for files (--pick) or only shows them."`
+	Protocol           int    `json:"protocol" const:"1" doc:"Version of this object's shape."`
+	Status             string `json:"status" enum:"waiting" doc:"Always waiting: the session started, nobody has answered yet."`
+	URL                string `json:"url" doc:"The page for the human: localhost by default, or the advertised host and actual port with --pick-web --listen/--advertise-host. Reachability depends on the network. Its token lets a browser in, and nothing else; treat it as a secret."`
+	Dir                string `json:"dir" doc:"The private folder (mode 0700) where dropped files land."`
+	TimeoutSeconds     int    `json:"timeout_seconds" doc:"Hard session lifetime in seconds; zero when there is only an idle timeout."`
+	IdleTimeoutSeconds int    `json:"idle_timeout_seconds,omitempty" doc:"Viewing inactivity limit; real browser input renews it. Absent for fixed-deadline pick sessions."`
+	ResumeToken        string `json:"resume_token" doc:"The secret that --resume, --status, and --cancel take; not the token in url."`
+	Resume             string `json:"resume" doc:"The command that collects the answer."`
+	Pick               bool   `json:"pick" doc:"Whether the session asks for files (--pick) or only shows them."`
 }
 
 // The folder for drops, and the file for state, are named by a hash of the
@@ -163,10 +165,15 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 		break
 	}
 	timeout := opts.Timeout
+	idle := time.Duration(0)
 	extra := []string{"--serve", "--no-open", "--detached=" + token}
 	if timeout == 0 {
-		timeout = defaultDetachedTimeout
-		extra = append(extra, "--timeout="+timeout.String())
+		if opts.Pick {
+			timeout = defaultDetachedTimeout
+			extra = append(extra, "--timeout="+timeout.String())
+		} else {
+			idle = defaultDetachedTimeout
+		}
 	}
 	// Ahead of the rest, so that nothing after a -- is taken for a flag.
 	child = append(extra, child...)
@@ -174,7 +181,7 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	st := state{Status: statusWaiting, Dir: dir, Deadline: time.Now().Add(timeout + startGrace)}
+	st := state{Status: statusWaiting, Dir: dir, Deadline: time.Now().Add(timeout + idle + startGrace), IdleTimeoutSeconds: int(idle.Seconds())}
 	if err := writeState(file, st); err != nil {
 		return err
 	}
@@ -212,14 +219,15 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 	}
 	failed = false
 	return json.NewEncoder(stdout).Encode(started{
-		Protocol:       protocolVersion,
-		Status:         statusWaiting,
-		URL:            st.URL,
-		Dir:            dir,
-		TimeoutSeconds: int(timeout.Seconds()),
-		ResumeToken:    token,
-		Resume:         "gloss --resume " + token,
-		Pick:           opts.Pick,
+		Protocol:           protocolVersion,
+		Status:             statusWaiting,
+		URL:                st.URL,
+		Dir:                dir,
+		TimeoutSeconds:     int(timeout.Seconds()),
+		IdleTimeoutSeconds: int(idle.Seconds()),
+		ResumeToken:        token,
+		Resume:             "gloss --resume " + token,
+		Pick:               opts.Pick,
 	})
 }
 
@@ -231,6 +239,11 @@ func pruneSessions(now time.Time) {
 	files, _ := filepath.Glob(filepath.Join(os.TempDir(), "gloss-pick-*.json"))
 	for _, file := range files {
 		st, err := readState(file)
+		if err == nil && st.IdleTimeoutSeconds > 0 {
+			if lease, e := readState(filepath.Join(st.Dir, "viewer-lease.json")); e == nil {
+				st.Deadline = lease.Deadline
+			}
+		}
 		if err != nil || st.Deadline.IsZero() || !now.After(st.Deadline.Add(keepSettled)) {
 			continue
 		}
@@ -263,6 +276,9 @@ func conclude(token string, err error, paths []string, pick bool, message string
 		return
 	}
 	st.Dir, st.URL, st.Paths, st.Message = dir, "", nil, ""
+	if lease, err := readState(filepath.Join(dir, "viewer-lease.json")); err == nil && st.IdleTimeoutSeconds > 0 {
+		st.Deadline = lease.Deadline
+	}
 	switch {
 	case err == nil && pick:
 		st.Status, st.Paths, st.Message = statusPicked, paths, message
@@ -331,6 +347,11 @@ func observe(file string, now time.Time) (st state, derived bool, err error) {
 	if err != nil || st.Status != statusWaiting {
 		return st, false, err
 	}
+	if st.IdleTimeoutSeconds > 0 {
+		if lease, err := readState(filepath.Join(st.Dir, "viewer-lease.json")); err == nil {
+			st.Deadline = lease.Deadline
+		}
+	}
 	switch {
 	case !st.Deadline.IsZero() && now.After(st.Deadline):
 		st.Status = statusTimeout
@@ -348,13 +369,14 @@ func observe(file string, now time.Time) (st state, derived bool, err error) {
 
 // sessionStatus is what --status prints: how a pick stands, at once.
 type sessionStatus struct {
-	Protocol    int      `json:"protocol" const:"1" doc:"Version of this object's shape."`
-	State       string   `json:"state" enum:"waiting,picked,declined,timeout,closed,failed" doc:"How the session stands."`
-	Settled     bool     `json:"settled" doc:"False only while waiting."`
-	Paths       []string `json:"paths,omitempty" doc:"The answer, once picked."`
-	Message     string   `json:"message,omitempty" doc:"Optional user-authored message sent with the files by --pick-web (up to 2,000 Unicode characters); present only when picked and nonempty."`
-	Error       string   `json:"error,omitempty" doc:"Why, when failed."`
-	SecondsLeft *int     `json:"seconds_left,omitempty" doc:"About how long the session has, while waiting."`
+	Protocol           int      `json:"protocol" const:"1" doc:"Version of this object's shape."`
+	State              string   `json:"state" enum:"waiting,picked,declined,timeout,closed,failed" doc:"How the session stands."`
+	Settled            bool     `json:"settled" doc:"False only while waiting."`
+	Paths              []string `json:"paths,omitempty" doc:"The answer, once picked."`
+	Message            string   `json:"message,omitempty" doc:"Optional user-authored message sent with the files by --pick-web (up to 2,000 Unicode characters); present only when picked and nonempty."`
+	Error              string   `json:"error,omitempty" doc:"Why, when failed."`
+	SecondsLeft        *int     `json:"seconds_left,omitempty" doc:"About how long the session has, while waiting."`
+	IdleTimeoutSeconds int      `json:"idle_timeout_seconds,omitempty" doc:"When present, seconds_left is the renewable viewing inactivity window, not a hard deadline."`
 }
 
 // status says at once how a pick stands, as one JSON object, and exit status
@@ -372,6 +394,7 @@ func status(opts options, stdout io.Writer) error {
 		return errNoSession
 	}
 	out := sessionStatus{Protocol: protocolVersion, State: st.Status, Settled: st.Status != statusWaiting, Error: st.Error}
+	out.IdleTimeoutSeconds = st.IdleTimeoutSeconds
 	switch st.Status {
 	case statusError:
 		out.State = "failed"
@@ -381,7 +404,11 @@ func status(opts options, stdout io.Writer) error {
 	case statusWaiting:
 		if !st.Deadline.IsZero() {
 			// The deadline allows the server its start-up as well as its run.
-			left := max(0, int(math.Ceil(st.Deadline.Add(-startGrace).Sub(now).Seconds())))
+			deadline := st.Deadline
+			if st.IdleTimeoutSeconds == 0 {
+				deadline = deadline.Add(-startGrace)
+			}
+			left := max(0, int(math.Ceil(deadline.Sub(now).Seconds())))
 			out.SecondsLeft = &left
 		}
 	}

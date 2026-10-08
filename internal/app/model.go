@@ -36,6 +36,8 @@ type Options struct {
 	// Drops delivers files handed over from outside the terminal, as the
 	// page serving the viewer does with what is dropped on it.
 	Drops <-chan []string
+	// OnQuit tells an embedding host that the user deliberately finished.
+	OnQuit func()
 	// Fetch downloads a web address to a file and returns its path. Nil
 	// leaves the network alone, which is the default.
 	Fetch func(address string) (string, error)
@@ -229,6 +231,9 @@ func (m *Model) Err() error { return m.err }
 // quit gives the terminal back. Graphics are taken down with the alternate
 // screen. On the main screen the document is left as it was last seen.
 func (m *Model) quit() tea.Cmd {
+	if m.opts.OnQuit != nil {
+		m.opts.OnQuit()
+	}
 	m.clearSearch()
 	m.stopAnimation()
 	qrCleanup := m.clearQR()

@@ -4,12 +4,58 @@ import { installDrop } from './drop.mjs';
 import { fetchDocument } from './remote.mjs';
 import { upload } from './upload.mjs';
 import { pickFiles, inputPicker } from './pickers.mjs';
+import { sessionNotice, expiryNotice, installActivity } from './viewer-session.mjs';
 
 const status = document.querySelector('#status');
 const hint = document.querySelector('#drop');
 const invitation = hint.textContent;
 const choose = document.querySelector('#choose-files');
 const message = document.querySelector('#message');
+const lifetime = document.querySelector('#lifetime');
+const keepViewing = document.querySelector('#keep-viewing');
+const doneViewing = document.querySelector('#done-viewing');
+const pick = document.body.dataset.pick === 'true';
+let ended = false, removeActivity = () => {};
+function sessionEnded(reason) {
+  // A definitive server reason can follow the websocket disconnect.
+  const notice = sessionNotice(pick, reason);
+  if (reason !== 'disconnected') ended = true;
+  removeActivity();
+  choose.disabled = true;
+  if (doneViewing) doneViewing.disabled = true;
+  keepViewing.hidden = true;
+  lifetime.textContent = notice.cover ? '' : notice.text;
+  status.textContent = notice.text;
+  status.hidden = !notice.cover;
+}
+async function activity() {
+  if (ended) return;
+  try { await fetch('activity', { method: 'POST' }); } catch { /* Session poll reports failure. */ }
+}
+keepViewing.addEventListener('click', activity);
+doneViewing?.addEventListener('click', async () => {
+  try {
+    const response = await fetch('finish', { method: 'POST' });
+    if (response.ok) sessionEnded('closed');
+    else sessionEnded('disconnected');
+  } catch { sessionEnded('disconnected'); }
+});
+async function watchSession() {
+  while (!ended) {
+    try {
+      const response = await fetch('session', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Session unavailable');
+      const state = await response.json();
+      if (state.reason) { sessionEnded(state.reason); return; }
+      const notice = expiryNotice(state);
+      lifetime.textContent = notice.text;
+      keepViewing.hidden = !notice.extend;
+    } catch {
+      if (!ended) sessionEnded('disconnected');
+      return;
+    }
+  }
+}
 let terminal;
 function notice(text) {
 	message.textContent = text;
@@ -29,7 +75,7 @@ async function chosen(names, contents, skipped = []) {
   } catch (error) {
     notice(error.message || String(error));
   } finally {
-    choose.disabled = false;
+    choose.disabled = ended;
   }
   terminal?.focus();
 }
@@ -73,18 +119,20 @@ async function takeExports(open) {
 }
 try {
   terminal = new BoobaTerminal('terminal', { renderer: parseRendererFromURL() });
-  let connected = false, ended = false;
+  let connected = false;
   terminal.onStatusChange = state => {
     if (state === 'connected') {
       connected = true;
       choose.disabled = false;
+      if (doneViewing) doneViewing.disabled = false;
       status.hidden = true;
+      removeActivity();
+      removeActivity = installActivity(window, activity);
+      activity();
+      watchSession();
     } else if (connected && state === 'disconnected') {
       // gloss ends with its viewer, and its server with it.
-      ended = true;
-      status.textContent = 'gloss has finished. You can close this tab.';
-      status.hidden = false;
-      choose.disabled = true;
+      if (!ended) sessionEnded('disconnected');
     }
   };
   terminal.onTitleChange = title => { document.title = title || 'gloss'; };

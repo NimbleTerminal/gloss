@@ -27,6 +27,7 @@ tasks:
       - web/embed.go
       - web/serve.html
       - web/serve.mjs
+      - web/viewer-session.mjs
       - web/drop.mjs
       - web/upload.mjs
       - web/pickers.mjs

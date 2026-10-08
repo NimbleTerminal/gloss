@@ -95,7 +95,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringVar(&opts.AdvertiseHost, "advertise-host", "", "with --pick-web, use this IP or DNS name in the shared URL (no scheme, port, or path); defaults to the specific listen IP")
 	f.BoolVar(&opts.Serve, "serve", false, "show the viewer on a web page, from a temporary server on this machine")
 	f.BoolVar(&opts.NoOpen, "no-open", false, "with --serve, print the page's address without opening a browser")
-	f.DurationVar(&opts.Timeout, "timeout", 0, "with --serve or --pick, give up after this long (as 90s or 10m)")
+	f.DurationVar(&opts.Timeout, "timeout", 0, "hard deadline with --serve or --pick; wait limit with --resume (as 90s or 10m)")
 	f.BoolVarP(&opts.KeepScreen, "no-alt-screen", "X", false, "draw on the main screen: scrollback is kept, and the last view stays after quitting")
 	f.StringVarP(&opts.Output, "output", "o", "", "export one input as PNG; '-' writes PNG to stdout")
 	f.StringVarP(&opts.OutputDir, "output-dir", "O", "", "export each input as a numbered PNG in this directory")
@@ -545,6 +545,20 @@ func served(opts options, stdout, stderr io.Writer) error {
 		return err
 	}
 	defer s.Close()
+	if !opts.PickWeb {
+		idle := time.Duration(0)
+		var save func(time.Time)
+		if opts.Detached != "" && !opts.Pick && opts.Timeout == 0 {
+			idle = defaultDetachedTimeout
+			dir, _ := detachedPaths(opts.Detached)
+			// The lease lives inside the existing private folder. A renewal
+			// cannot recreate the session state removed by --cancel.
+			save = func(deadline time.Time) {
+				_ = writeState(filepath.Join(dir, "viewer-lease.json"), state{Deadline: deadline})
+			}
+		}
+		s.lifetime.configure(opts.Timeout, idle, save)
+	}
 	if opts.Detached != "" {
 		// Drops land in the folder the start made, and its state says where we are.
 		dir, _ := detachedPaths(opts.Detached)

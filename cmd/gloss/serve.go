@@ -73,6 +73,8 @@ type server struct {
 	started, done chan struct{}
 	once, ended   sync.Once
 	logged        io.Writer // Where the process logger wrote before the session.
+	lifetime      *viewerLifetime
+	closeOnce     sync.Once
 
 	mu     sync.Mutex
 	model  *app.Model
@@ -106,6 +108,8 @@ func random() (string, error) {
 func serve(ctx context.Context, opts app.Options) (*server, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	s := &server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, pick: opts.Pick, drops: make(chan []string, 16), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
+	s.lifetime = newViewerLifetime()
+	opts.OnQuit = func() { s.lifetime.finish("closed") }
 	// The browser carries the full request as accessible page text, outside
 	// the terminal's size and line limits.
 	opts.Prompt = ""
@@ -156,6 +160,11 @@ func serve(ctx context.Context, opts app.Options) (*server, error) {
 				go func() {
 					// The session ends when the viewer quits or the tab closes.
 					<-session.Context().Done()
+					reason := "disconnected"
+					if ctx.Err() != nil {
+						reason = "closed"
+					}
+					s.lifetime.finish(reason)
 					s.ended.Do(func() { close(s.done) })
 				}()
 			}
@@ -195,7 +204,7 @@ func serve(ctx context.Context, opts app.Options) (*server, error) {
 	go s.front.Serve(listener)
 	go func() {
 		<-ctx.Done()
-		s.front.Close()
+		s.Close()
 	}()
 	return s, nil
 }
@@ -203,16 +212,41 @@ func serve(ctx context.Context, opts app.Options) (*server, error) {
 // Wait returns the viewer once its session is over. A timeout of zero waits
 // as long as it takes.
 func (s *server) Wait(timeout time.Duration) (*app.Model, error) {
-	var late <-chan time.Time
-	if timeout > 0 {
-		late = time.After(timeout)
+	s.lifetime.configure(timeout, 0, nil)
+	for {
+		s.lifetime.mu.Lock()
+		deadline := s.lifetime.deadline
+		s.lifetime.mu.Unlock()
+		var timer *time.Timer
+		var late <-chan time.Time
+		if !deadline.IsZero() {
+			timer = time.NewTimer(time.Until(deadline))
+			late = timer.C
+		}
+		select {
+		case <-s.done:
+			if timer != nil {
+				timer.Stop()
+			}
+			goto finished
+		case <-s.lifetime.changed:
+			if timer != nil {
+				timer.Stop()
+			}
+			continue
+		case <-late:
+			s.lifetime.mu.Lock()
+			expired := !time.Now().Before(s.lifetime.deadline)
+			s.lifetime.mu.Unlock()
+			if !expired {
+				continue
+			}
+			s.lifetime.finish("timeout")
+			s.Close()
+			return nil, errTimeout
+		}
 	}
-	select {
-	case <-s.done:
-	case <-late:
-		s.Close()
-		return nil, errTimeout
-	}
+finished:
 	s.Close()
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -220,11 +254,21 @@ func (s *server) Wait(timeout time.Duration) (*app.Model, error) {
 }
 
 func (s *server) Close() {
-	s.cancel()
-	s.front.Close()
-	if s.logged != nil {
-		log.SetOutput(s.logged)
-	}
+	s.closeOnce.Do(func() {
+		if s.lifetime != nil {
+			s.lifetime.finish("closed")
+		}
+		s.cancel()
+		if s.lifetime != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			_ = s.front.Shutdown(ctx)
+		}
+		s.front.Close()
+		if s.logged != nil {
+			log.SetOutput(s.logged)
+		}
+	})
 }
 
 // Discard removes what was dropped on the page. Drops are kept only when
@@ -260,6 +304,8 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	case rest == "session" || rest == "activity" || rest == "finish":
+		s.viewerSession(w, r, rest)
 	case rest == "":
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		servePage.Execute(w, struct {
@@ -268,7 +314,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Fetch  bool
 			Accept document.AcceptFilter
 		}{s.prompt, s.pick, s.fetch, s.accept})
-	case rest == "serve.mjs" || rest == "drop.mjs" || rest == "upload.mjs" || rest == "pickers.mjs" || rest == "remote.mjs":
+	case rest == "serve.mjs" || rest == "viewer-session.mjs" || rest == "drop.mjs" || rest == "upload.mjs" || rest == "pickers.mjs" || rest == "remote.mjs":
 		data, err := fs.ReadFile(web.Page, rest)
 		if err != nil {
 			http.NotFound(w, r)

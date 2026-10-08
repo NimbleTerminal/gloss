@@ -210,8 +210,25 @@ prints one JSON object on standard output, exiting 0, with no browser opened
 nothing more. `resume_token` is a different secret, and the only one that
 `--resume`, `--status`, and `--cancel` take. `protocol` is the version of these
 objects' shape; `gloss skill schema` prints their JSON Schema. `dir` is the private folder
-(mode 0700) where dropped files land; `--timeout` defaults to 10 minutes off a
-terminal and bounds the server's life. `gloss --resume <token>` then waits for
+(mode 0700) where dropped files land. Off a terminal, picker sessions have a
+fixed 10-minute default deadline. A show-only `gloss --serve FILE` session
+instead gets a renewable 10-minute idle window when no positive `--timeout`
+is supplied: startup reports `timeout_seconds: 0`, `idle_timeout_seconds: 600`.
+Status also includes `idle_timeout_seconds`; its `seconds_left` is the current
+idle window. Real browser input renews it; animations, polling, and status
+queries do not. A last-minute warning offers **Keep viewing**. Positive
+`--timeout` values remain hard deadlines and cannot be extended from the page.
+Foreground sessions without a timeout still wait indefinitely.
+
+The show-only page opens the supplied document, with **Done viewing** and
+**More → Open another file** instead of file-request instructions. Use
+`--serve FILE` without `--pick` or `--menu` when showing a document. Explicit
+completion (`q`, **Done viewing**, or external cancellation) can cover the
+document with a finished message. Expiration or connection loss instead leaves
+the viewing surface uncovered with a noninteractive notice; this does not
+provide offline navigation or reloading after the server has stopped.
+
+`gloss --resume <token>` then waits for
 the answer and gives it as a terminal pick does: the paths on standard output
 (or `--json`, `{"protocol","status","paths","error"}`) and exit status 0, 2, or 124, from
 any process, whether or not the one that started it is alive.

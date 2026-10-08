@@ -350,7 +350,19 @@ gloss --pick --prompt "The invoice, please" --timeout 10m < /dev/null
   shows the full request as a persistent heading above the viewer. In a
   terminal, use `--prompt-loc top` for prominence; the box defaults to the
   bottom, is capped at four lines, and is hidden if the screen is too small.
-- Off a terminal `--timeout` defaults to 10 minutes; the server never outlives it.
+- To show a document, use `gloss --serve FILE` without `--pick` or `--menu`.
+  The viewing page opens the supplied document, with **Done viewing** and a
+  secondary **Open another file** action. Use picker modes only to request files.
+- Off a terminal, picker sessions default to a fixed 10-minute deadline.
+  Show-only sessions without a positive `--timeout` instead have a renewable
+  10-minute idle window. Startup JSON reports `timeout_seconds: 0` and
+  `idle_timeout_seconds: 600`; status includes `idle_timeout_seconds`, and
+  `seconds_left` reports the current idle window. Real browser input renews it;
+  animation, polling, and `--status` do not. The page warns in the last minute
+  and offers **Keep viewing**. A positive `--timeout` is always a hard deadline.
+  Do not set a short timeout merely because the agent's turn is ending.
+  Expiration or lost connection leaves the viewing surface uncovered with a
+  noninteractive notice; explicit completion or cancellation can cover it.
 - On a terminal `--serve --pick` still blocks and opens the browser; `--no-open`
   prints the address (on stderr) instead. Off a terminal that is the default.
 - The full viewer is on 127.0.0.1 only; the upload-only `--pick-web` page can

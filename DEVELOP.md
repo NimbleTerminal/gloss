@@ -395,6 +395,19 @@ unavailable.
 
 ## Plain web picker
 
+The full `--serve` page distinguishes show-only and pick chrome. Its
+`viewerLifetime` tracks either an explicit hard deadline or, for detached
+show-only sessions, a renewable idle deadline. Token-guarded, same-origin POSTs
+record trusted browser input; long-poll GETs report warnings and settlement
+without renewing anything. Explicit viewer quit uses `Options.OnQuit` to
+distinguish completion from transport loss. Graceful HTTP shutdown lets a
+pending session poll receive the reason before connections close.
+The idle deadline is persisted in `viewer-lease.json` inside the existing
+private session directory. Read-only status/resume observation and pruning
+consult it; renewal never recreates the state file removed by cancellation.
+Startup/status expose an additive `idle_timeout_seconds` field. Picker defaults
+and positive `--timeout` values remain fixed deadlines.
+
 `gloss --pick-web --prompt "Choose a receipt" --timeout 10m` serves the
 experimental HTML/JS upload page, without starting Booba or a terminal model.
 Off a terminal it detaches as usual; open the returned `url`, then use

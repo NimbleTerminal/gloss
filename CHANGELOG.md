@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+  * **Browser viewing sessions**
+    * Show supplied files with viewer controls instead of upload-request chrome
+    * Detached show-only sessions default to renewable 10-minute inactivity
+      limits, with a warning and Keep viewing action; explicit timeouts and
+      picker deadlines stay fixed
+    * Distinguish deliberate completion from expiration or transport loss;
+      interrupted viewing surfaces remain uncovered with a notice
+
   * **Document text search**
     * `/` opens a Unicode-aware literal, case-insensitive query; `n`/`N` visit
       text occurrences/cells/pages and `Esc` clears it

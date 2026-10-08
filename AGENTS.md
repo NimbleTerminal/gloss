@@ -166,7 +166,15 @@ Agent-facing / scriptable surface:
   a terminal. With stdin not a terminal, both `--pick` and `--serve` instead
   detach the server (`cmd/gloss/detach.go`), print one JSON object (`protocol`,
   `status`, `url`, `dir`, `timeout_seconds`, `resume_token`, `resume`, `pick`),
-  exit 0, and open no browser; `--timeout` defaults to 10 minutes. The URL's
+  exit 0, and open no browser. Picks default to a fixed 10-minute deadline;
+  show-only detached viewers without a positive `--timeout` use a renewable
+  10-minute idle window (`timeout_seconds: 0`, `idle_timeout_seconds: 600`).
+  Trusted browser input renews it; output, polling, and status queries do not.
+  The last minute offers Keep viewing; explicit positive timeouts stay fixed.
+  Viewer chrome uses Done viewing and secondary Open another file, while
+  picker chrome asks for uploads. Interrupted/expired views stay uncovered;
+  deliberate completion and picker settlement can cover the viewing surface.
+  The URL's
   token is the server's own; only the resume token names the state file.
   `--resume TOKEN` reads the state file and answers as a pick does (0, 2, 124),
   and leaves the state in place. `--status TOKEN` only looks: it prints one

@@ -66,6 +66,7 @@ gloss --output page.png --page 3 report.pdf   # a PNG, with no terminal
 gloss --text report.docx                      # Markdown on stdout
 gloss --grep '(?i)total' report.pdf           # the PDF pages that match, and where
 gloss --info --json model.3mf                 # what a file says about itself
+gloss --serve report.pdf                      # show a document in a browser
 gloss --serve --pick                          # ask the user for a file in a browser
 gloss --pick-web --prompt "Send a photo and a note" # simple upload page
 ```
