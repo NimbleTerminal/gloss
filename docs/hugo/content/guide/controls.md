@@ -172,6 +172,17 @@ bar shows playback speed separately from zoom. Changing speed preserves pause
 and restarts the current frame's delay; it does not skip frames or restart a
 finished animation. Space restart retains speed. `r` or `R` reloads from the
 start at 1×; opening another GIF also starts at 1×.
+
+The bottom row is a **frame scrubber**: click or drag its bar to seek. **`,` / `.`**
+step backward/forward one frame; **Home / End** select the first/last frame.
+Seeking pauses playback and clamps at the ends. **Space** resumes from the
+selected frame with a fresh loop count, retaining playback speed and zoom.
+The bar represents frame positions, not elapsed time (GIF frame delays vary).
+Rapid dragging keeps only the latest requested position; the old picture stays
+visible while the requested frame is composed. The status bar reports seeking;
+wait for it to finish before exporting that frame. The bar is hidden behind
+help and overlays; arrow keys still pan the image.
+
 `n`/`p` and `[`/`]` still switch files. Zoom and pan apply to every frame, and
 `e` saves the displayed full frame as PNG. Help and the file browser suspend
 playback; list previews and inline images remain still. Large/slow frames play

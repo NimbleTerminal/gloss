@@ -16,6 +16,9 @@
       stack cells instead of losing right-hand columns
 
   * **Animated GIFs**
+    * Click/drag the frame scrubber to seek; `,`/`.` step frames and Home/End
+      select endpoints. Seeking pauses, with cancellable, coalesced composition;
+      Space resumes from the selected frame with a fresh loop count
     * Automatic playback in Kitty and glyph modes with frame transparency,
       disposal, delays, and loop counts; Space pauses/resumes and restarts a
       finished animation

@@ -20,6 +20,9 @@ type animation struct {
 	paused, finished, pending, awaiting bool
 	id, remaining                       int
 	speed                               int // Powers of two: -2..2, default 0 = 1×.
+	seek                                *animationSeek
+	target                              int
+	dragging                            bool
 }
 
 func (a *animation) rate() float64 { return float64(int(1)<<uint(a.speed+2)) / 4 }
@@ -158,6 +161,9 @@ func (m *Model) keepAnimationPicture() tea.Cmd {
 func (m *Model) stopAnimation() {
 	if a := m.animation; a != nil {
 		a.cancelPending()
+		if a.seek != nil {
+			a.seek.cancel()
+		}
 		a.player = nil // A late timer must not retain decoded frames.
 	}
 	m.animation = nil
@@ -187,7 +193,7 @@ func (m *Model) scheduleAnimation() tea.Cmd {
 		}
 		return nil
 	}
-	if a.paused || a.finished || a.pending {
+	if a.paused || a.finished || a.pending || a.seek != nil {
 		return nil
 	}
 	if a.awaiting && m.pic.Mode() == picture.PictureKitty {

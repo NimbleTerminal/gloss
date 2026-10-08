@@ -164,6 +164,17 @@ pause, finished playback, and Kitty transmission backpressure still apply.
 Speed belongs to the loaded animation: resize/zoom and Space restart retain it;
 reload or loading another file starts at 1×. Headless output is unaffected.
 
+`GIFPlayer.Seek` accepts a one-based frame, clamps to the endpoints, resets
+the repeat count, and checks cancellation between frames. Forward seeks copy
+the current position; backward seeks replay from the first frame. Each seek
+reuses at most two private canvases for disposal, without caching full frames.
+`internal/app/scrubber.go` coalesces drag/key requests into one active seek and
+the latest target. Completion messages identify both owner and job; cancelled
+or removed work cannot replace the current picture. Seeking pauses playback,
+preserves speed/zoom, and uses the existing Kitty replacement/cleanup path.
+The frame bar uses the hint row with screen-relative hit testing, so prompts
+and image placement retain their geometry. Arrow keys remain image panning.
+
 `internal/app/animation.go` owns cancellable timers and off-loop composition.
 Messages carry a playback owner and epoch, so pause, reload, navigation, and
 quit invalidate late work. Hidden documents cancel timers. Kitty waits for

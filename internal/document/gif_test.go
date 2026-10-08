@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"image"
@@ -230,4 +231,58 @@ func TestGIFRejectsEmptyAndOutOfBoundsFrames(t *testing.T) {
 			t.Fatal(fmt.Sprint("accepted width ", width))
 		}
 	}
+}
+
+func TestGIFSeekDisposalCancellationAndImmutability(t *testing.T) {
+	_, first, err := decodeGIF(gifTestData(t, 1), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	positions := []*GIFPlayer{first}
+	for len(positions) < 4 {
+		next, _ := positions[len(positions)-1].Next()
+		positions = append(positions, next)
+	}
+	want := [][]int{{1, 1, 1}, {1, 2, 1}, {1, 1, 3}, {4, 1, 0}}
+	for _, from := range positions {
+		for target := 1; target <= 4; target++ {
+			got, err := from.Seek(context.Background(), target)
+			if err != nil || got.Frame() != target {
+				t.Fatalf("seek %d: %v", target, err)
+			}
+			assertGIFPixels(t, got.Image(), want[target-1]...)
+			// Subsequent playback must retain a valid disposal-previous snapshot.
+			if target < 4 {
+				next, _ := got.Next()
+				assertGIFPixels(t, next.Image(), want[target]...)
+			}
+			assertGIFPixels(t, from.Image(), want[from.Frame()-1]...)
+		}
+	}
+	for _, target := range []int{-10, 100} {
+		got, err := first.Seek(context.Background(), target)
+		if err != nil || got.Frame() != max(1, min(target, 4)) {
+			t.Fatal("seek did not clamp")
+		}
+	}
+	last := positions[3]
+	repeated, _ := last.Next()
+	sought, err := repeated.Seek(context.Background(), 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, more := sought.Next(); !more {
+		t.Fatal("seek did not reset finite loop count")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if got, err := first.Seek(ctx, 4); got != nil || err != context.Canceled {
+		t.Fatal("cancelled seek composed a frame")
+	}
+	var wg sync.WaitGroup
+	for _, target := range []int{1, 2, 3, 4} {
+		wg.Go(func() { _, _ = last.Seek(context.Background(), target) })
+	}
+	wg.Wait()
+	assertGIFPixels(t, last.Image(), want[3]...)
 }

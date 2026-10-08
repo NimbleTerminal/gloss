@@ -380,6 +380,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	if _, mouse := msg.(tea.MouseMsg); mouse && m.qr != nil {
 		return m, nil
 	}
+	if mouse, ok := msg.(tea.MouseMsg); ok {
+		if cmd, took := m.scrubberMouse(mouse); took {
+			return m, cmd
+		}
+	}
 	if m.browsing() {
 		if _, ok := msg.(tea.MouseMsg); ok {
 			if m.help || m.opener.find != nil {
@@ -413,6 +418,8 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, m.animationTick(v)
 	case animationFrame:
 		return m, m.animationFrame(v)
+	case animationSeekResult:
+		return m, m.animationSought(v)
 	case animationPresented:
 		if m.animation != nil && m.animation == v.owner && m.picID == v.id && m.pic.Mode() == picture.PictureKitty {
 			return m, m.presentAnimationPicture()

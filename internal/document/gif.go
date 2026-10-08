@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"image"
@@ -42,6 +43,56 @@ func (p *GIFPlayer) Delay() time.Duration {
 }
 
 func (p *GIFPlayer) Restart() *GIFPlayer { return newGIFPlayer(p.data) }
+
+// Seek composes a one-based frame and resets the loop count. It owns its
+// canvases, leaving earlier playback/export positions immutable. Replaying
+// disposal uses at most two canvases, not a cache of every composed frame.
+func (p *GIFPlayer) Seek(ctx context.Context, frame int) (*GIFPlayer, error) {
+	frame = max(1, min(frame, p.Frames()))
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	var n *GIFPlayer
+	if frame >= p.Frame() {
+		copy := *p
+		n = &copy
+		n.repeats = 0
+		n.canvas = image.NewRGBA(p.canvas.Bounds())
+		draw.Draw(n.canvas, n.canvas.Bounds(), p.canvas, image.Point{}, draw.Src)
+		if p.restore != nil {
+			n.restore = image.NewRGBA(p.restore.Bounds())
+			draw.Draw(n.restore, n.restore.Bounds(), p.restore, image.Point{}, draw.Src)
+		}
+	} else {
+		n = newGIFPlayer(p.data)
+	}
+	snapshot := n.restore
+	for n.Frame() < frame {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		switch n.data.Disposal[n.frame] {
+		case gif.DisposalBackground:
+			draw.Draw(n.canvas, n.data.Image[n.frame].Bounds(), image.NewUniform(gifBackground(n.data)), image.Point{}, draw.Src)
+		case gif.DisposalPrevious:
+			if n.restore != nil {
+				draw.Draw(n.canvas, n.canvas.Bounds(), n.restore, image.Point{}, draw.Src)
+			}
+		}
+		n.frame++
+		n.restore = nil
+		if n.data.Disposal[n.frame] == gif.DisposalPrevious {
+			if snapshot == nil {
+				snapshot = image.NewRGBA(n.canvas.Bounds())
+			}
+			draw.Draw(snapshot, snapshot.Bounds(), n.canvas, image.Point{}, draw.Src)
+			n.restore = snapshot
+		}
+		f := n.data.Image[n.frame]
+		draw.Draw(n.canvas, f.Bounds(), f, f.Bounds().Min, draw.Over)
+	}
+	return n, ctx.Err()
+}
 
 // Next honors Go's GIF loop semantics: -1 plays once, 0 repeats forever,
 // and a positive count repeats that many times after the first pass.

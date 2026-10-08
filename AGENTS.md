@@ -53,6 +53,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   HEIC/HEIF via a pure-Go HEVC decoder — no CGO or external converters.
 - **GIF**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
+  `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar
+  supports click/drag seeking. Seeking pauses and resets the loop count;
+  Space resumes at the selected frame. Composition is cancellable and coalesced.
   `r`/`R` reloads, `e` exports the current full frame. Honors
   transparency, frame rectangles, disposal, and loop counts. Canvas up to
   32 MP, at most 1,000 frames and 64 Mi total decoded frame pixels, checked

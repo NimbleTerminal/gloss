@@ -116,6 +116,14 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 	}
 	if a := m.animation; a != nil {
 		switch k {
+		case ",":
+			return m.seekAnimation(a.position() - 1), true
+		case ".":
+			return m.seekAnimation(a.position() + 1), true
+		case "home":
+			return m.seekAnimation(1), true
+		case "end":
+			return m.seekAnimation(a.player.Frames()), true
 		case "space":
 			return m.toggleAnimation(), true
 		case "<":

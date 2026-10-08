@@ -25,6 +25,9 @@ func (m *Model) View() tea.View {
 	}
 	body = m.layered(body, w, h)
 	bar, hint := m.statusLine(w, h)
+	if m.scrubberVisible() {
+		hint, mouse = m.scrubberView(), tea.MouseModeCellMotion
+	}
 	if m.search != nil && m.screen == screenDocument && !m.help && m.layer == layerNone {
 		hint = ansi.Truncate(m.search.status(w), w, "…")
 	}
@@ -102,7 +105,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"m              file menu (v toggles preview)\n" +
 	"o              browse for a file to open\n" +
 	"n / p / Space  next / previous page or file; GIF: Space pauses\n" +
-	"Home / End     first / last PDF page\n" +
+	"Home / End     first / last PDF page or GIF frame\n" +
 	"+ / -          zoom\nh j k l / arrows  pan image / orbit mesh\n" +
 	"f / 0          fit / reset view\ng              toggle Kitty / glyph; tables: u QR of URL\n" +
 	"R              reload file\n" +
@@ -112,7 +115,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"Drop files to open · / search · n/N next/prev match · Esc clear\n" +
 	"Meshes: drag to orbit, Shift-drag to pan, wheel to zoom, 5 orthographic\n" +
 	"Markdown: arrows/wheel scroll, Space/b page, s source\n" +
-	"GIFs: Space pause/play, < slower, > faster, Backspace 1×\n"
+	"GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
 
 // DocsURL is the documentation site.
 const DocsURL = "https://nimblemarkets.github.io/gloss/docs/"
@@ -298,6 +301,9 @@ func (m *Model) detail(w, h int) string {
 			state = "paused"
 		} else if m.animation.finished {
 			state = "finished"
+		}
+		if m.animation.seek != nil {
+			state = fmt.Sprintf("seeking %d", m.animation.target)
 		}
 		detail += fmt.Sprintf(" · %g× speed · frame %d/%d · %s", m.animation.rate(), m.animation.player.Frame(), m.animation.player.Frames(), state)
 	}
