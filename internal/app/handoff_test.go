@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
@@ -116,4 +117,23 @@ func TestHandoffKittyCleanupAndCancellation(t *testing.T) {
 	if raw := collectRaw(cmd); !strings.Contains(raw, "a=d,d=I,i=") || !strings.Contains(m.View().Content, "▀") {
 		t.Fatal("glyph toggle failed to retire Kitty image")
 	}
+}
+
+func TestHandoffPumpWaitsForSlowKittyFrame(t *testing.T) {
+	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+	m, err := NewHandoff(handoffURL, "Send a photo", "kitty", make(chan struct{}), func() {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, cmd := m.Update(tea.WindowSizeMsg{Width: 100, Height: 45})
+	// Force a render command past the helper's timer cutoff, as can happen
+	// under the race detector on a busy CI runner.
+	pump(m, func() tea.Msg {
+		time.Sleep(2 * pumpPatience)
+		return cmd()
+	}, 0)
+	if !strings.ContainsRune(m.View().Content, kitty.Placeholder) {
+		t.Fatal("slow Kitty frame was discarded as a timer")
+	}
+	collectRaw(m.qr.Close())
 }

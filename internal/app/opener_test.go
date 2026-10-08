@@ -12,8 +12,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/gloss/examples"
+	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/charmbracelet/x/ansi/kitty"
 )
 
 // pumpPatience is how long pump waits on one command before taking it for a
@@ -22,7 +24,7 @@ var pumpPatience = 100 * time.Millisecond
 
 // pump runs a command and what follows from it, as the runtime would, but
 // does not wait on timers such as the cursor's blink. A command that is slow
-// rather than a timer is still heard: while a document is loading, pump waits
+// rather than a timer is still heard: while a document or handoff QR is loading, pump waits
 // for the commands it passed over, so a slow machine loads what a fast one does.
 func pump(m tea.Model, cmd tea.Cmd, depth int) {
 	late, waiting := make(chan tea.Msg), 0
@@ -75,8 +77,17 @@ func pump(m tea.Model, cmd tea.Cmd, depth int) {
 		}
 	}
 	run(cmd, depth)
-	pager, _ := m.(*Model)
-	for deadline := time.After(30 * time.Second); pager != nil && pager.loading && waiting > 0; {
+	loading := func() bool {
+		switch model := m.(type) {
+		case *Model:
+			return model.loading
+		case *Handoff:
+			return !model.finished && model.pic.Mode() == picture.PictureKitty && model.qr.Err() == nil &&
+				!strings.ContainsRune(model.qr.View(), kitty.Placeholder)
+		}
+		return false
+	}
+	for deadline := time.After(30 * time.Second); loading() && waiting > 0; {
 		select {
 		case msg := <-late:
 			waiting--
