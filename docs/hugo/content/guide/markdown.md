@@ -81,7 +81,9 @@ In Kitty mode, scrolling and page changes keep the previous image visible until
 the next image is ready, without briefly switching to half-blocks.
 
 The reading width follows the terminal's cell-pixel geometry, bounded to
-192–960 points at a 150-DPI reading scale. Width changes reflow after a 60 ms
+192–960 points at a 150-DPI reading scale. With Kitty graphics the view is
+drawn at the terminal's own pixel size, so high-density and wide terminals get
+sharper text rather than an enlarged picture. Width changes reflow after a 60 ms
 pause; the previous view stays visible while a cancellable job prepares its
 replacement. Reflow anchors the current block where possible. Height changes
 and scrolling reuse the layout and decoded images. Preparation validates all

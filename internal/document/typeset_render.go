@@ -17,6 +17,11 @@ type TypesetRegion = animate.Region
 type TypesetViewport struct {
 	Top, Height, Left, Zoom int
 	End                     bool
+	// Pixels is the size of the picture the viewer will show, in device
+	// pixels. The raster is exactly that size, so the terminal picture is
+	// copied, not resampled; the reading scale is unchanged. Zero rasters
+	// at the layout scale.
+	Pixels image.Point
 }
 
 func (l *Loader) renderTypeset(q Request) (out Result) {
@@ -82,11 +87,6 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		top = min(top, max(0, lay.y+50-height))
 	}
 	left = min(left, max(0, lay.width-width))
-	if q.TypesetView != nil {
-		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom}
-		out.TypesetDone = done
-		out.TypesetExtent = lay.y + 50
-	}
 	scale := float64(max(36, min(q.DPI, 600))) / 150
 	if q.DPI == 0 {
 		scale = 1
@@ -94,11 +94,25 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	if q.MaxEdge > 0 {
 		scale = float64(q.MaxEdge) / float64(max(width, height))
 	}
-	if float64(width)*float64(height)*scale*scale > MaxPixels {
+	var pixels image.Point
+	if q.TypesetView != nil {
+		if p := q.TypesetView.Pixels; p.X > 0 && p.Y > 0 {
+			pixels = p
+			scale = float64(p.X) / float64(width)
+		}
+		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom, Pixels: pixels}
+		out.TypesetDone = done
+		out.TypesetExtent = lay.y + 50
+	}
+	w, h := rasterSize(width, height, scale)
+	if pixels != (image.Point{}) {
+		w, h = pixels.X, pixels.Y
+	}
+	if w > MaxPixels/h {
 		out.Err = fmt.Errorf("typeset raster exceeds %d pixels", MaxPixels)
 		return
 	}
-	out.Image = lay.raster(top, height, left, width, scale)
+	out.Image = lay.rasterTo(top, height, left, width, w, h, scale, false)
 	if q.Animate && !q.Preview {
 		for _, op := range lay.ops {
 			player := lay.p.animations[op.destination]
@@ -112,7 +126,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			}
 		}
 		if len(out.Animated) > 0 {
-			out.AnimationBase = lay.rasterFrame(top, height, left, width, scale, true)
+			out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, true)
 		}
 	}
 	if q.Animate && !q.Preview && (len(out.Animated) > 0 || q.Playback != nil) {

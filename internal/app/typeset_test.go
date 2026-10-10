@@ -2,11 +2,13 @@ package app
 
 import (
 	"fmt"
+	"image"
 	"strings"
 	"testing"
 	"testing/fstest"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
@@ -194,5 +196,41 @@ func TestTextTypesetToggle(t *testing.T) {
 				t.Fatal("did not restore normal text")
 			}
 		})
+	}
+}
+
+// With Kitty graphics the typeset raster is the picture's own cell area in
+// device pixels, so the picture component copies it instead of resampling.
+// Glyph rendering keeps the layout-scale raster.
+func TestTypesetRastersToKittyCellArea(t *testing.T) {
+	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+	files := fstest.MapFS{"page.md": &fstest.MapFile{Data: []byte("# A typeset page\n\n" + strings.Repeat("Café and a paragraph.\n\n", 100))}}
+	m := New(Options{Files: []string{"page.md"}, FilesFS: files, MarkdownMode: "typeset", Render: "kitty", DPI: 150, Page: 1})
+	t.Cleanup(func() { _ = m.Close() })
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 30})
+	drainAnimation(t, m, m.load(false))
+	if m.typeset == nil || m.source == nil || m.pic.Mode() != picture.PictureKitty {
+		t.Fatal("not typeset Markdown under Kitty")
+	}
+	cw, ch := m.pic.CellPixelSize()
+	want := image.Pt(m.width*cw, m.bodyHeight()*ch)
+	if got := m.source.Bounds().Size(); got != want || m.typesetShown == nil || m.typesetShown.Pixels != want {
+		t.Fatalf("raster %v, want the cell area %v (shown %+v)", got, want, m.typesetShown)
+	}
+	if !m.typesetMatches() {
+		t.Fatal("fresh raster should match the viewport")
+	}
+	_, cmd := m.Update(tea.WindowSizeMsg{Width: 60, Height: 24})
+	drainAnimation(t, m, cmd)
+	cw, ch = m.pic.CellPixelSize()
+	if want = image.Pt(m.width*cw, m.bodyHeight()*ch); m.source.Bounds().Size() != want {
+		t.Fatalf("after resize raster %v, want %v", m.source.Bounds().Size(), want)
+	}
+	glyph := New(Options{Files: []string{"page.md"}, FilesFS: files, MarkdownMode: "typeset", Render: "glyph", DPI: 150, Page: 1})
+	t.Cleanup(func() { _ = glyph.Close() })
+	glyph.width, glyph.height = 80, 30
+	drainAnimation(t, glyph, glyph.load(false))
+	if glyph.typesetShown == nil || glyph.typesetShown.Pixels != (image.Point{}) {
+		t.Fatalf("glyph rendering asked for device pixels: %+v", glyph.typesetShown)
 	}
 }

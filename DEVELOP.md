@@ -184,6 +184,10 @@ pictures, PDF pages and QR colors are not transformed.
 
 `Request.TypesetView` supplies a continuous viewport in 150-DPI layout pixels;
 nil requests a headless 1125-pixel slice. `--dpi` scales drawing, not wrapping.
+Under Kitty graphics the viewer also names its picture's device size in
+`TypesetView.Pixels`, and the raster is exactly that size, so the picture
+component shows it as it is instead of resampling it; glyph rendering keeps
+the layout-scale raster.
 The viewer derives width from physical cell geometry, debounces width changes
 for 60 ms, cancels obsolete work and applies only matching generation/revision
 results. It keeps one job in flight and the old bitmap visible. New widths

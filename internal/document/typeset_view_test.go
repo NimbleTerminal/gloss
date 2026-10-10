@@ -3,6 +3,7 @@ package document
 import (
 	"context"
 	"errors"
+	"image"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -60,5 +61,38 @@ func TestTypesetLayoutLimits(t *testing.T) {
 				t.Fatal("accepted oversized layout unit")
 			}
 		})
+	}
+}
+
+// A viewer names the device pixels its picture will fill, so the raster is
+// exactly that size and the terminal picture needs no resample. The reading
+// scale is unchanged: the same layout units fill more or fewer pixels.
+func TestTypesetViewportRastersToRequestedPixels(t *testing.T) {
+	var l Loader
+	l.Files = fstest.MapFS{"x.md": &fstest.MapFile{Data: []byte(strings.Repeat("A paragraph with **bold** text.\n\n", 40))}}
+	defer l.Close()
+	for _, tc := range []struct {
+		pixels image.Point
+		zoom   int
+	}{{image.Pt(2400, 1234), 0}, {image.Pt(1001, 333), 0}, {image.Pt(2400, 1234), 1}} {
+		q := Request{Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Top: 100, Height: 1000, Zoom: tc.zoom, Pixels: tc.pixels}}
+		r := l.Load(q)
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		if got := r.Image.Bounds().Size(); got != tc.pixels {
+			t.Fatalf("pixels %v zoom %d: raster %v", tc.pixels, tc.zoom, got)
+		}
+		if r.TypesetView.Pixels != tc.pixels || r.TypesetView.Zoom != tc.zoom {
+			t.Fatalf("viewport did not echo pixels: %+v", r.TypesetView)
+		}
+	}
+	q := Request{Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Height: 1000}}
+	if r := l.Load(q); r.Err != nil || r.Image.Bounds().Size() != image.Pt(2000, 1000) {
+		t.Fatalf("zero pixels should keep the layout scale: %v", r.Image.Bounds())
+	}
+	q.TypesetView.Pixels = image.Pt(8000, 8000)
+	if r := l.Load(q); r.Err == nil {
+		t.Fatal("raster over the pixel budget was accepted")
 	}
 }

@@ -1,7 +1,10 @@
 package app
 
 import (
+	"image"
+
 	"context"
+	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"math"
 	"time"
 
@@ -49,12 +52,18 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	cw, ch := m.pic.CellPixelSize()
 	width := float64(m.typesetMeasure()) * 150 / 72
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
-	return document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd}
+	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd}
+	if m.pic.Mode() == picture.PictureKitty {
+		// The picture fills the body's cell area; a raster of exactly that
+		// size is shown as it is instead of being resampled.
+		v.Pixels = image.Pt(m.width*max(1, cw), m.bodyHeight()*max(1, ch))
+	}
+	return v
 }
 func (m *Model) typesetMatches() bool {
 	v := m.typesetViewport()
 	shown := m.typesetShown
-	return shown != nil && m.typesetTheme == m.theme && !v.End && m.typesetMeasure() == m.typesetWidth && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height
+	return shown != nil && m.typesetTheme == m.theme && !v.End && m.typesetMeasure() == m.typesetWidth && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
 }
 func (m *Model) queueTypesetReflow() tea.Cmd {
 	if m.typeset == nil || m.isPreview || m.loading {

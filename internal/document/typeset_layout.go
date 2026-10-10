@@ -534,8 +534,21 @@ func (l *layout) raster(top, height, left, width int, scale float64) *image.RGBA
 	return l.rasterFrame(top, height, left, width, scale, false)
 }
 func (l *layout) rasterFrame(top, height, left, width int, scale float64, base bool) *image.RGBA {
+	w, h := rasterSize(width, height, scale)
+	return l.rasterTo(top, height, left, width, w, h, scale, base)
+}
+
+// rasterSize is the raster of a width×height layout region at scale.
+func rasterSize(width, height int, scale float64) (w, h int) {
+	return max(1, int(math.Round(float64(width)*scale))), max(1, int(math.Round(float64(height)*scale)))
+}
+
+// rasterTo draws the layout region into a w×h picture, scaling each
+// operation by scale. The region normally maps onto the picture; a viewer
+// may ask for its picture's exact device size, which can differ from the
+// scaled region by a rounding pixel at the bottom or right edge.
+func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, base bool) *image.RGBA {
 	l.ensure(top + height)
-	w, h := max(1, int(math.Round(float64(width)*scale))), max(1, int(math.Round(float64(height)*scale)))
 	if w > MaxPixels/h {
 		panic("typeset raster exceeds pixel limit")
 	}
