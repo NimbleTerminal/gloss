@@ -236,10 +236,37 @@ type engine struct {
 	renderer   render.Renderer
 	ctx        context.Context
 	theme      string
+	// Rendered glyph masks, keyed by glyph, size, scale and quarter-pixel
+	// position. Drawing every glyph from its outline again on every scroll
+	// step was the raster's largest cost; a mask is drawn with the run's
+	// colour in one blend. Bounded like the shaping cache.
+	glyphs                 map[glyphKey]*glyphMask
+	glyphBytes             int
+	glyphBudget            int
+	glyphHits, glyphMisses int
 }
 
+// glyphKey names a rendered glyph: the face and glyph, the size and raster
+// scale, and the position within a pixel in quarters.
+type glyphKey struct {
+	face   *font.Face
+	gid    font.GID
+	size   int
+	scale  float32
+	fx, fy uint8
+}
+
+// glyphMask is a glyph's coverage, trimmed to its ink, with the offset of the
+// mask's top-left from the glyph origin at an integer position.
+type glyphMask struct {
+	mask   *image.Alpha
+	offset image.Point
+}
+
+const glyphQuanta = 4 // Positions within a pixel a mask is rendered for.
+
 func newEngine() (*engine, error) {
-	e := &engine{cache: map[string]*shaped{}}
+	e := &engine{cache: map[string]*shaped{}, glyphs: map[glyphKey]*glyphMask{}, glyphBudget: 32 << 20}
 	for i := 0; i < 8; i++ {
 		family := "Go"
 		if i&mono != 0 {
@@ -594,29 +621,121 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, bas
 			}
 			xdraw.CatmullRom.Scale(out, r, op.asset, op.asset.Bounds(), draw.Over, nil)
 		case op.run != nil:
-			l.e.renderer.FontSize = float32(op.size)
-			l.e.renderer.PixScale = float32(scale)
-			l.e.renderer.Color = palette.Foreground
+			ink := palette.Foreground
 			if op.ink.A != 0 {
-				l.e.renderer.Color = op.ink
+				ink = op.ink
 			}
 			if l.e.theme == "dark" && op.darkInk.A != 0 {
-				l.e.renderer.Color = op.darkInk
+				ink = op.darkInk
 			}
-			// render allocates its rasterizer to the destination's dimensions.
-			// Give each run a small transparent tile, not the entire viewport.
-			pad := max(1, int(math.Ceil(float64(op.size)*scale)))
-			tile := image.NewRGBA(image.Rect(0, 0, max(1, r.Dx())+2*pad, r.Dy()+2*pad))
-			l.e.renderer.DrawShapedRunAt(*op.run, tile, pad, pad+int(math.Round(float64(op.baseline-top)*scale))-r.Min.Y)
-			dst := tile.Bounds().Add(r.Min.Sub(image.Pt(pad, pad)))
-			draw.Draw(out, dst, tile, image.Point{}, draw.Over)
+			baseline := int(math.Round(float64(op.baseline-top) * scale))
+			l.e.drawRun(out, op.run, op.size, scale, r.Min.X, baseline, r.Dy(), ink)
 			if op.style&strike != 0 {
 				y := int(math.Round(float64(op.baseline-top-op.size/3) * scale))
-				draw.Draw(out, image.Rect(r.Min.X, y, r.Max.X, y+1), image.NewUniform(l.e.renderer.Color), image.Point{}, draw.Src)
+				draw.Draw(out, image.Rect(r.Min.X, y, r.Max.X, y+1), image.NewUniform(ink), image.Point{}, draw.Src)
 			}
 		}
 	}
 	return out
+}
+
+// drawRun draws a shaped run with its origin at x on the baseline, each glyph
+// from a cached mask blended in ink. Positions follow go-text's own: offsets
+// and advances in 26.6 units scaled by the raster scale, accumulated in
+// float32. A run holding a glyph that is not an outline is drawn by go-text.
+func (e *engine) drawRun(out *image.RGBA, run *shaping.Output, size int, scale float64, x, baseline, height int, ink color.RGBA) {
+	for _, g := range run.Glyphs {
+		if _, ok := run.Face.GlyphData(g.GlyphID).(font.GlyphOutline); !ok {
+			e.drawRunDirect(out, run, size, scale, x, baseline, height, ink)
+			return
+		}
+	}
+	pixScale := float32(scale)
+	src := image.NewUniform(ink)
+	pos := float32(x)
+	for _, g := range run.Glyphs {
+		gx := pos + float32(g.XOffset)/64*pixScale
+		gy := float32(baseline) - float32(g.YOffset)/64*pixScale
+		pos += float32(g.Advance) / 64 * pixScale
+		ix, fx := quantize(gx)
+		iy, fy := quantize(gy)
+		m := e.glyph(glyphKey{run.Face, g.GlyphID, size, pixScale, fx, fy}, g, run.Face, height)
+		if m == nil {
+			continue
+		}
+		b := m.mask.Bounds()
+		dst := image.Rect(ix+m.offset.X, iy+m.offset.Y, ix+m.offset.X+b.Dx(), iy+m.offset.Y+b.Dy())
+		draw.DrawMask(out, dst, src, image.Point{}, m.mask, b.Min, draw.Over)
+	}
+}
+
+// quantize splits a position into its integer part and quarter within it.
+func quantize(v float32) (int, uint8) {
+	i := int(math.Floor(float64(v)))
+	q := int(math.Round(float64(v-float32(i)) * glyphQuanta))
+	if q == glyphQuanta {
+		return i + 1, 0
+	}
+	return i, uint8(q)
+}
+
+// glyph is the rendered mask for key, drawing it with go-text on a miss: the
+// glyph alone, in white on a clear tile at its quarter-pixel position, kept
+// trimmed to its ink. The cache is emptied when it passes its budget.
+func (e *engine) glyph(key glyphKey, g shaping.Glyph, face *font.Face, height int) *glyphMask {
+	if m, ok := e.glyphs[key]; ok {
+		e.glyphHits++
+		return m
+	}
+	e.glyphMisses++
+	pad := max(1, int(math.Ceil(float64(key.size)*float64(key.scale))))
+	advance := int(math.Ceil(float64(g.Advance) / 64 * float64(key.scale)))
+	tile := image.NewRGBA(image.Rect(0, 0, max(1, advance)+2*pad, max(1, height)+2*pad))
+	e.renderer.FontSize, e.renderer.PixScale, e.renderer.Color = float32(key.size), key.scale, color.RGBA{255, 255, 255, 255}
+	single := shaping.Output{Face: face, Glyphs: []shaping.Glyph{g}}
+	// The quarter-pixel position goes through the glyph's own offsets, which
+	// go-text scales by PixScale, so divide it out here.
+	single.Glyphs[0].XOffset = fixed.Int26_6(math.Round(float64(g.XOffset) + float64(key.fx)/glyphQuanta/float64(key.scale)*64))
+	single.Glyphs[0].YOffset = fixed.Int26_6(math.Round(float64(g.YOffset) - float64(key.fy)/glyphQuanta/float64(key.scale)*64))
+	e.renderer.DrawShapedRunAt(single, tile, pad, pad)
+	bounds := image.Rectangle{Min: image.Pt(tile.Rect.Max.X, tile.Rect.Max.Y)}
+	for y := 0; y < tile.Rect.Dy(); y++ {
+		for x := 0; x < tile.Rect.Dx(); x++ {
+			if tile.Pix[y*tile.Stride+x*4+3] != 0 {
+				bounds = bounds.Union(image.Rect(x, y, x+1, y+1))
+			}
+		}
+	}
+	var m *glyphMask
+	if !bounds.Empty() {
+		mask := image.NewAlpha(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
+		for y := 0; y < bounds.Dy(); y++ {
+			for x := 0; x < bounds.Dx(); x++ {
+				mask.Pix[y*mask.Stride+x] = tile.Pix[(bounds.Min.Y+y)*tile.Stride+(bounds.Min.X+x)*4+3]
+			}
+		}
+		m = &glyphMask{mask: mask, offset: bounds.Min.Sub(image.Pt(pad, pad))}
+		if e.glyphBytes+len(mask.Pix) > e.glyphBudget {
+			e.glyphs = map[glyphKey]*glyphMask{}
+			e.glyphBytes = 0
+		}
+		e.glyphBytes += len(mask.Pix)
+	}
+	e.glyphs[key] = m
+	return m
+}
+
+// drawRunDirect draws a run with go-text, on a transparent tile the run's size.
+func (e *engine) drawRunDirect(out *image.RGBA, run *shaping.Output, size int, scale float64, x, baseline, height int, ink color.RGBA) {
+	e.renderer.FontSize, e.renderer.PixScale, e.renderer.Color = float32(size), float32(scale), ink
+	pad := max(1, int(math.Ceil(float64(size)*scale)))
+	width := 0
+	for _, g := range run.Glyphs {
+		width += int(math.Ceil(float64(g.Advance) / 64 * scale))
+	}
+	tile := image.NewRGBA(image.Rect(0, 0, max(1, width)+2*pad, max(1, height)+2*pad))
+	e.renderer.DrawShapedRunAt(*run, tile, pad, pad)
+	draw.Draw(out, tile.Bounds().Add(image.Pt(x-pad, baseline-pad)), tile, image.Point{}, draw.Over)
 }
 
 // The loader serializes this engine; each job supplies its own cancellation.

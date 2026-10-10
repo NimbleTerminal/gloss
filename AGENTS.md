@@ -99,7 +99,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   128 MiB combined image input. Layout caps: 32,768 AST nodes/blocks/drawing
   operations, 16,384 runes per paragraph/code line, 8,192 lines per code block,
   262,144 glyphs, 15 seconds, 10,000 export slices, 32 Mi raster pixels.
-  The shaping cache has a 32 MiB estimated-entry budget. See the Markdown guide
+  The shaping cache has a 32 MiB estimated-entry budget, and rendered glyph
+  masks (`engine.glyph` in `typeset_layout.go`) another 32 MiB. See the Markdown guide
   for the supported subset and limits.
 - **Plain text and source**: readable text is accepted even without a known
   extension; source is syntax-highlighted. `--typeset` or `t` switches text, source

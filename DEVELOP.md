@@ -165,8 +165,11 @@ before wrapping: go-text's whitespace trimming mutates their advances. Chroma
 runs during preparation, recording GitHub light and dark foreground colors,
 plain fallback, and exact source preservation. Both colors participate in the
 shaping cache key; font styles come from the light theme for stable metrics.
-Rasterization draws runs into small temporary tiles before composing one
-viewport image; allocating a viewport-sized rasterizer per run is expensive.
+Rasterization draws each glyph from a cached mask, rendered once by go-text
+at the glyph's size, raster scale and quarter-pixel position and trimmed to
+its ink, blended in the run's colour; drawing every glyph from its outline on
+every scroll step was the raster's largest cost. The mask cache has a 32 MiB
+budget. A run holding a bitmap or SVG glyph is drawn by go-text on a tile.
 There is no terminal graphics composition and no new graphics protocol.
 
 `internal/theme` owns two palettes shared by Glamour and the direct renderer.

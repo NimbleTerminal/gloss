@@ -154,7 +154,8 @@ and 128 MiB combined encoded image input. SVGs reserve 1600×1600 pixels each;
 duplicate destinations reuse the same decoded image. Further bounds are 32,768
 AST nodes/blocks, 16,384 runes per text paragraph or code line, 8,192 lines per
 code block, 262,144 laid-out glyphs, 32,768 drawing operations, and 10,000 export
-slices. The shaping cache has a 32 MiB estimated-entry budget. Layout jobs have a
+slices. The shaping cache has a 32 MiB estimated-entry budget, and the cache of
+rendered glyph masks another 32 MiB. Layout jobs have a
 15-second deadline, and accumulated layout work is also capped at 15 seconds.
 Each raster is limited to 32 Mi pixels. Exceeding a limit reports an error;
 the viewer keeps the previous image if a reflow or scroll fails.
