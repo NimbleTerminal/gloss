@@ -4,6 +4,7 @@
 
   * Open HTTP(S) links and linked figures on click in native Markdown text and
     typeset views, preserving wheel scrolling and terminal OSC 8 links.
+    Preview typeset link URLs in the status bar on hover.
 
   * Adopt NimbleTerminal/ntqrcode v0.2.0 at `nimbleterminal.dev/ntqrcode`
     in native and browser builds; update local workspace paths.

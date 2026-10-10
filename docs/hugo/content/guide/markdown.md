@@ -28,6 +28,11 @@ still works. Opening a link does not download it into gloss and does not require
 `--fetch`. Dragging does not activate links. Relative file links, heading anchors,
 and other URL schemes are not handled by this click action.
 
+Hover over a typeset link to preview its URL in the status bar. Moving away,
+scrolling, or pressing a key restores the usual status. This requires a terminal
+that reports mouse movement without a held button; normal text keeps the
+terminal's own OSC 8 hover behavior.
+
 Normal Markdown also retains OSC 8 links for the terminal's own opener. With
 mouse reporting enabled, your terminal may require a modifier: Kitty supports
 Shift-click or Ctrl-Shift-click. The browser demo and `--serve` do not launch a

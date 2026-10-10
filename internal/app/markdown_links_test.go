@@ -195,6 +195,63 @@ func TestTypesetLinkHitGeometry(t *testing.T) {
 	}
 }
 
+func TestTypesetLinkHover(t *testing.T) {
+	const address = "https://example.org/"
+	m := New(Options{Files: []string{"doc.md"}, Typeset: true, Render: "glyph"})
+	defer m.Close()
+	m.width, m.height = 40, 12
+	m.kind = "markdown"
+	m.typeset = &document.Markdown{}
+	m.typesetWidth = m.typesetMeasure()
+	v := m.typesetViewport()
+	v.Height = max(1, v.Height>>v.Zoom)
+	m.typesetShown, m.typesetTheme = &v, m.theme
+	m.source = image.NewRGBA(image.Rect(0, 0, 320, 160))
+	m.typesetLinks = []document.TypesetLink{{Rect: image.Rect(40, 16, 80, 48), URL: address}}
+	if m.View().MouseMode != tea.MouseModeAllMotion {
+		t.Fatal("typeset links need hover events")
+	}
+	hover := tea.MouseMotionMsg{X: 6, Y: 1, Button: tea.MouseNone}
+	preview := func() bool {
+		bar, _ := m.documentStatus(m.width, m.bodyHeight())
+		return strings.Contains(ansi.Strip(bar), "Link: "+address)
+	}
+	m.Update(hover)
+	if !preview() {
+		t.Fatal("missing preview without browser opener")
+	}
+	m.Update(tea.MouseMotionMsg{X: 0, Y: 0})
+	if preview() {
+		t.Fatal("preview remained outside link")
+	}
+	for _, msg := range []tea.Msg{
+		tea.MouseWheelMsg{Button: tea.MouseWheelDown}, tea.KeyPressMsg{Code: 'j'},
+		tea.WindowSizeMsg{Width: 40, Height: 12}, tea.BlurMsg{},
+		tea.MouseMotionMsg{X: 6, Y: 1, Button: tea.MouseLeft},
+	} {
+		m.linkMouse(hover)
+		m.linkMouse(msg)
+		if preview() {
+			t.Fatalf("preview survived %T", msg)
+		}
+	}
+	m.linkMouse(hover)
+	m.presentation.Awaiting = true
+	if preview() {
+		t.Fatal("preview used pending image regions")
+	}
+	m.presentation.Awaiting = false
+	m.help = true
+	if preview() || m.View().MouseMode == tea.MouseModeAllMotion {
+		t.Fatal("hover active under help")
+	}
+	m.help = false
+	m.typeset = nil
+	if preview() || m.View().MouseMode == tea.MouseModeAllMotion {
+		t.Fatal("hover active outside typeset")
+	}
+}
+
 func TestMarkdownLinkPromptOffsetAndHostBoundary(t *testing.T) {
 	const address = "https://example.org/"
 	m := searchDocument(t, "[link]("+address+")")

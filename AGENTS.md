@@ -79,6 +79,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
 - **Markdown**: native text/typeset views open HTTP(S) links and linked figures
   in the default browser on click, preserving wheel scrolling. The host supplies
   `Options.OpenLink`; browser/serve hosts leave it nil. Normal text retains OSC 8.
+  Typeset links preview their URL in the status bar on hover using all-motion
+  mouse reporting; normal text retains the terminal's own hover behavior.
   Visible embedded GIF blocks animate in both renderers, with
   eight distinct destinations and 64 MiB total decoded frame storage; excess
   GIFs stay on frame one and are counted in info. Offscreen/help/source/menu

@@ -100,6 +100,16 @@ func (m *Model) linkAt(x, y int) string {
 	return ""
 }
 func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
+	// Keep hover independent of the host's browser opener. Resolve the URL
+	// against the displayed viewport in View, never retain stale link targets.
+	switch v := msg.(type) {
+	case tea.MouseMotionMsg:
+		m.hoverLinkPoint = image.Pt(v.X, v.Y)
+		m.hoverLinkActive = m.typeset != nil && v.Button == tea.MouseNone
+	case tea.MouseClickMsg, tea.MouseReleaseMsg, tea.MouseWheelMsg,
+		tea.KeyPressMsg, tea.WindowSizeMsg, tea.BlurMsg:
+		m.hoverLinkActive = false
+	}
 	if m.opts.OpenLink == nil {
 		return nil, false
 	}

@@ -662,6 +662,9 @@ blocks retain their parent link. Typeset spans carry destinations into drawing
 operations and `Result.Links` reports clipped raster-pixel rectangles, including
 linked images. Link destinations stay out of the shaping cache. Hit testing
 inverts picture's integer FitContain mapping and rejects stale/pending viewports.
+Typeset views with links request all-motion mouse reporting and use the same
+hit test for a status-bar URL preview. Hover does not need a host opener and
+never fetches a destination. Normal Markdown retains cell-motion reporting.
 
 A left-button press/release on the same cell and URL calls `Options.OpenLink`
 outside the event loop. Movement, scrolling, source view and overlays cancel or
