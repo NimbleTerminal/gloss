@@ -18,9 +18,9 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/gloss/internal/app"
-	"github.com/NimbleMarkets/gloss/internal/document"
-	"github.com/NimbleMarkets/gloss/skills"
+	"github.com/NimbleTerminal/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/skills"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/pflag"

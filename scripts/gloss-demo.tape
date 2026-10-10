@@ -1,10 +1,10 @@
 # Run from the gloss repository root after `GOWORK=off task build`:
-#   env -u NO_COLOR sigmamax scripts/gloss-demo.tape
+#   env -u NO_COLOR ntrecord scripts/gloss-demo.tape
 # Local development build:
-#   env -u NO_COLOR ../sigmamax/bin/sigmamax scripts/gloss-demo.tape
+#   env -u NO_COLOR ../ntrecord/bin/ntrecord scripts/gloss-demo.tape
 # Realtime capture is required for GIF playback and mesh auto-rotation.
 # Menlo ships with macOS; on other systems choose an installed monospace font
-# with box-drawing glyphs, or use sigmamax's bundled "Go Mono".
+# with box-drawing glyphs, or use ntrecord's bundled "Go Mono".
 
 Output dist/gloss-demo.gif
 Output dist/gloss-demo.txt
@@ -27,9 +27,9 @@ Set CursorBlink false
 
 # A brief title card. No build logs or personal shell configuration on screen.
 Hide
-Type@1ms `unset NO_COLOR; PS1='demo> '; export PS1; printf '\033[2J\033[H\n  \033[1;38;2;167;215;177mgloss\033[0m\n\n  A visual pager for your terminal.\n\n  Images   GIFs   PDFs   3D   Markdown   Tables\n\n  Real Kitty graphics, recorded with sigmamax.\n'`
+Type@1ms `unset NO_COLOR; PS1='demo> '; export PS1; printf '\033[2J\033[H\n  \033[1;38;2;167;215;177mgloss\033[0m\n\n  A visual pager for your terminal.\n\n  Images   GIFs   PDFs   3D   Markdown   Tables\n\n  Real Kitty graphics, recorded with ntrecord.\n'`
 Enter
-Wait+Screen /Real Kitty graphics, recorded with sigmamax\./
+Wait+Screen /Real Kitty graphics, recorded with ntrecord\./
 Show
 Sleep 2s
 
@@ -141,7 +141,7 @@ Hide
 Escape
 Type "q"
 Wait+Line /demo>\s*$/
-Type@1ms `printf '\033[2J\033[H\n  \033[1;38;2;167;215;177mgloss\033[0m\n\n  One pager. Many formats.\n\n  github.com/NimbleMarkets/gloss\n\n  Recorded with sigmamax\n  github.com/NimbleMarkets/sigmamax\n'`
+Type@1ms `printf '\033[2J\033[H\n  \033[1;38;2;167;215;177mgloss\033[0m\n\n  One pager. Many formats.\n\n  github.com/NimbleTerminal/gloss\n\n  Recorded with ntrecord\n  github.com/NimbleTerminal/ntrecord\n'`
 Enter
 Wait+Screen /One pager\. Many formats\./
 Show

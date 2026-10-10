@@ -11,7 +11,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/gloss/examples"
+	"github.com/NimbleTerminal/gloss/examples"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"

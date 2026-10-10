@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/app"
 )
 
 // figurePDF writes a PDF whose pages draw what contents say, with Helvetica

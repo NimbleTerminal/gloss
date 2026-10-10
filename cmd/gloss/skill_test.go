@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/skills"
+	"github.com/NimbleTerminal/gloss/skills"
 )
 
 func TestSkillInstall(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/NimbleMarkets/gloss/examples"
+	"github.com/NimbleTerminal/gloss/examples"
 	"image"
 	"image/color"
 	"image/gif"

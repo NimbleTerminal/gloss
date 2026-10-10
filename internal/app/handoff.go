@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts-qrcode/qrcode"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/ntqrcode/qrcode"
 )
 
 // Handoff displays the already-running web picker's URL. The CLI owns the

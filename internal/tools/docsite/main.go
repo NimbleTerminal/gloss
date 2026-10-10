@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-const repo = "https://github.com/NimbleMarkets/gloss"
+const repo = "https://github.com/NimbleTerminal/gloss"
 
 func main() {
 	out := flag.String("o", "docs/hugo/content/guide", "directory to write the pages into")
@@ -65,7 +65,7 @@ func links(body string) string {
 		case target == "skills/gloss/SKILL.md":
 			return image + "[" + text + "](../for-llms/)"
 		case image != "":
-			return "![" + text + "](https://raw.githubusercontent.com/NimbleMarkets/gloss/main/" + strings.TrimPrefix(target, "./") + ")"
+			return "![" + text + "](https://raw.githubusercontent.com/NimbleTerminal/gloss/main/" + strings.TrimPrefix(target, "./") + ")"
 		}
 		return "[" + text + "](" + repo + "/blob/main/" + strings.TrimPrefix(target, "./") + ")"
 	})

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
 func TestSkipUnsupportedBeforeSizeLimit(t *testing.T) {

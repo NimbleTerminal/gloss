@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
 type animationSeek struct {

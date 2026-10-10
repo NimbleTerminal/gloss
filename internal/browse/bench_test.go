@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/internal/browse"
-	"github.com/NimbleMarkets/gloss/internal/browse/browsetest"
+	"github.com/NimbleTerminal/gloss/internal/browse"
+	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
 )
 
 // huge is a folder of n files beside one with a few, as a photo dump is.

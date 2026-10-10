@@ -1,22 +1,21 @@
-module github.com/NimbleMarkets/gloss
+module github.com/NimbleTerminal/gloss
 
 go 1.26.8
 
 require (
 	charm.land/bubbles/v2 v2.2.1
-	charm.land/bubbletea/v2 v2.0.10
+	charm.land/bubbletea/v2 v2.1.0
 	charm.land/glamour/v2 v2.0.1
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/NimbleMarkets/go-booba v0.7.0
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
-	github.com/NimbleMarkets/ntcharts-qrcode v0.1.1
 	github.com/NimbleMarkets/ntcharts-svg v0.3.0
-	github.com/NimbleMarkets/ntcharts/v2 v2.4.0
+	github.com/NimbleMarkets/ntcharts/v2 v2.7.2
 	github.com/NimbleMarkets/ntcharts3d v0.2.1
 	github.com/alecthomas/chroma/v2 v2.27.0
-	github.com/charmbracelet/ultraviolet v0.0.0-20260928045949-bbf040aedf25
-	github.com/charmbracelet/x/ansi v0.11.8
+	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4
+	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/coder/websocket v1.8.15
 	github.com/dustin/go-humanize v1.0.1
@@ -27,8 +26,9 @@ require (
 	github.com/rivo/uniseg v0.4.7
 	github.com/spf13/pflag v1.0.10
 	github.com/yuin/goldmark v1.8.2
-	golang.org/x/image v0.46.0
+	golang.org/x/image v0.47.0
 	golang.org/x/net v0.59.0
+	nimbleterminal.dev/ntqrcode v0.2.0
 )
 
 require (
@@ -63,10 +63,10 @@ require (
 	github.com/klippa-app/go-pdfium v1.21.0 // indirect
 	github.com/lrstanley/bubblezone/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
-	github.com/mattn/go-runewidth v0.0.30 // indirect
+	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
-	github.com/piglig/go-qr/v2 v2.3.0 // indirect
+	github.com/piglig/go-qr/v2 v2.6.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.63.0 // indirect
 	github.com/quic-go/webtransport-go v0.13.0 // indirect
@@ -76,8 +76,8 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

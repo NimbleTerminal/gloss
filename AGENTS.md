@@ -5,7 +5,7 @@
 A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3MF
 meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
-Written in Go (module `github.com/NimbleMarkets/gloss`, Go 1.26.8+) on Bubble
+Written in Go (module `github.com/NimbleTerminal/gloss`, Go 1.26.8+) on Bubble
 Tea, NTCharts, NTCharts SVG, NTCharts PDF, and NTCharts3d. The README is the
 short introduction; the user reference is the guide on the documentation site
 (`docs/hugo/content/guide`); DEVELOP.md is for working on gloss. Keep them and
@@ -28,7 +28,7 @@ this file consistent with the code.
   `internal/app/animation.go` owns cancellable timers and asynchronous composition
   in the existing event loop, including Kitty transmission pacing and cleanup.
 - `internal/app/qr.go`: table URL overlay using the external
-  `github.com/NimbleMarkets/ntcharts-qrcode/qrcode` component. Gloss provides
+  `nimbleterminal.dev/ntqrcode/qrcode` component. Gloss provides
   capability, cell geometry, and fresh image IDs. `u` opens, `Esc` closes,
   and `e` exports. The library owns encoding, the four-module quiet zone,
   Kitty rendering, direct half-block fallback, fit errors, and image cleanup.
@@ -259,7 +259,7 @@ Uses [Task](https://taskfile.dev/); without it, `go build -o gloss ./cmd/gloss`.
   macOS/Linux/Windows amd64/arm64 archives, `.deb` packages, and the Homebrew
   cask (`.goreleaser.yaml`; `task release-check` validates it). Pushing a
   `v*` tag publishes them via GitHub Actions, the cask to
-  `NimbleMarkets/homebrew-tap`.
+  `NimbleTerminal/homebrew-tap`.
 - `task gen-assets` — regenerates the original PNG/HEIC/PDF/STL fixtures, and
   the Grist ones (needs `python3`).
 

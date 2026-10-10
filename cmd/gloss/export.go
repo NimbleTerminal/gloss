@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NimbleMarkets/gloss/internal/app"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 )
 

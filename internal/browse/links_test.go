@@ -3,8 +3,8 @@ package browse_test
 import (
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/internal/browse"
-	"github.com/NimbleMarkets/gloss/internal/browse/browsetest"
+	"github.com/NimbleTerminal/gloss/internal/browse"
+	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
 )
 
 // quiet leaves out the places, which the chooser would describe too.

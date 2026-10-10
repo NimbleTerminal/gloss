@@ -5,7 +5,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"context"
 	"errors"
-	"github.com/NimbleMarkets/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/app"
 	"io"
 	"os"
 	"testing"

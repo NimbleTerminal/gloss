@@ -7,7 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -118,7 +118,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
 
 // DocsURL is the documentation site.
-const DocsURL = "https://nimblemarkets.github.io/gloss/docs/"
+const DocsURL = "https://nimbleterminal.github.io/gloss/docs/"
 
 // helpScreen is the help, ending on a line that points at the documentation:
 // the address is a hyperlink where the terminal makes them, as the addresses in

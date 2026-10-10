@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/examples"
+	"github.com/NimbleTerminal/gloss/examples"
 )
 
 func gristNotes(t testing.TB) []byte {

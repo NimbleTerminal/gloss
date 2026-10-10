@@ -19,7 +19,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/NimbleMarkets/gloss/web"
+	"github.com/NimbleTerminal/gloss/web"
 )
 
 const maxWebPickFiles = 200

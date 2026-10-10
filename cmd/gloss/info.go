@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 )
 

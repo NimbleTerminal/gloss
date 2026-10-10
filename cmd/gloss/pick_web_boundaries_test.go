@@ -14,7 +14,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/app"
 )
 
 func TestWebPickSecurityHeaders(t *testing.T) {

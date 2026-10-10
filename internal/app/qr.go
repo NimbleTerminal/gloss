@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts-qrcode/qrcode"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/ntqrcode/qrcode"
 )
 
 type qrOverlay struct {

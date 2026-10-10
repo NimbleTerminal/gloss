@@ -392,7 +392,7 @@ For a document reachable at a CORS-allowing http(s) address, you can instead
 hand the user a browser link — no local gloss needed:
 
 ```
-https://nimblemarkets.github.io/gloss/app.html?src=<url-encoded-address>
+https://nimbleterminal.github.io/gloss/app.html?src=<url-encoded-address>
 ```
 
 The page fetches the document in the user's browser; nothing is uploaded

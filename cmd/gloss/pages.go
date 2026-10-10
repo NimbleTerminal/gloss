@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
 // pageRange is what --page asks for: one page, some, or all. The viewer

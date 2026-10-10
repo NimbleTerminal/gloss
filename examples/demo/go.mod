@@ -1,11 +1,11 @@
-module github.com/NimbleMarkets/gloss/examples/demo
+module github.com/NimbleTerminal/gloss/examples/demo
 
 go 1.26.8
 
 require (
-	charm.land/bubbletea/v2 v2.0.10
-	github.com/NimbleMarkets/gloss v0.0.0
+	charm.land/bubbletea/v2 v2.1.0
 	github.com/NimbleMarkets/go-booba v0.7.0
+	github.com/NimbleTerminal/gloss v0.0.0
 	github.com/spf13/pflag v1.0.10
 )
 
@@ -18,9 +18,8 @@ require (
 	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
 	github.com/NimbleMarkets/go-gpuimage v0.1.0 // indirect
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1 // indirect
-	github.com/NimbleMarkets/ntcharts-qrcode v0.1.1 // indirect
 	github.com/NimbleMarkets/ntcharts-svg v0.3.0 // indirect
-	github.com/NimbleMarkets/ntcharts/v2 v2.4.0 // indirect
+	github.com/NimbleMarkets/ntcharts/v2 v2.7.2 // indirect
 	github.com/NimbleMarkets/ntcharts3d v0.2.1 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
@@ -28,8 +27,8 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260928045949-bbf040aedf25 // indirect
-	github.com/charmbracelet/x/ansi v0.11.8 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
+	github.com/charmbracelet/x/ansi v0.11.9 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -53,11 +52,11 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0 // indirect
 	github.com/lrstanley/bubblezone/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
-	github.com/mattn/go-runewidth v0.0.30 // indirect
+	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa // indirect
-	github.com/piglig/go-qr/v2 v2.3.0 // indirect
+	github.com/piglig/go-qr/v2 v2.6.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
@@ -65,14 +64,15 @@ require (
 	github.com/yuin/goldmark v1.8.2 // indirect
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/image v0.46.0 // indirect
+	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/net v0.59.0 // indirect
-	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
+	nimbleterminal.dev/ntqrcode v0.2.0 // indirect
 )
 
-replace github.com/NimbleMarkets/gloss => ../..
+replace github.com/NimbleTerminal/gloss => ../..
 
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20260928192001-1b36865b418a
 

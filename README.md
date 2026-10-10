@@ -4,24 +4,24 @@ A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3M
 meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel, Grist,
 and CSV files.
 
-[**Try gloss in your browser →**](https://nimblemarkets.github.io/gloss/) — starts with a sample image, including on phone-width screens.
+[**Try gloss in your browser →**](https://nimbleterminal.github.io/gloss/) — starts with a sample image, including on phone-width screens.
 
-[![gloss showing images, GIF playback, PDFs, 3D meshes, Markdown search, tables, and QR codes](docs/assets/gloss-demo.gif)](https://nimblemarkets.github.io/gloss/)
+[![gloss showing images, GIF playback, PDFs, 3D meshes, Markdown search, tables, and QR codes](docs/assets/gloss-demo.gif)](https://nimbleterminal.github.io/gloss/)
 
-Recorded with [sigmamax](https://github.com/NimbleMarkets/sigmamax), including real
+Recorded with [ntrecord](https://github.com/NimbleTerminal/ntrecord), including real
 Kitty graphics. [Demo tape](scripts/gloss-demo.tape).
 
 ## Install
 
 ```sh
-brew install --cask nimblemarkets/tap/gloss     # macOS or Linux
+brew install --cask nimbleterminal/tap/gloss     # macOS or Linux
 ```
 
 On Debian or Ubuntu, download the `.deb` from the
-[latest release](https://github.com/NimbleMarkets/gloss/releases/latest) and run
+[latest release](https://github.com/NimbleTerminal/gloss/releases/latest) and run
 `sudo apt install ./gloss_*_linux_amd64.deb` (or `_arm64`). The release also has
 archives for macOS, Linux, and Windows: one binary, nothing else to install. With
-Go, `go install github.com/NimbleMarkets/gloss/cmd/gloss@latest` builds it from
+Go, `go install github.com/NimbleTerminal/gloss/cmd/gloss@latest` builds it from
 source.
 
 ## Use
@@ -53,7 +53,7 @@ cat drawing.svg | gloss                # read from a pipe
 
 Pictures use Kitty graphics where the terminal has them, and colored half-blocks
 where it does not. Drag files onto the terminal to open them; add `--fetch`
-to open a dropped web URL. The [file browser](https://nimblemarkets.github.io/gloss/docs/guide/browser/)
+to open a dropped web URL. The [file browser](https://nimbleterminal.github.io/gloss/docs/guide/browser/)
 offers list, columns, and places layouts, with filtering and Tab completion.
 
 ## From a script or an agent
@@ -76,7 +76,7 @@ immediately; `gloss --resume TOKEN` waits for the chosen paths, `--status`
 looks without waiting, and `--cancel` ends the session. `gloss skill schema`
 prints the JSON Schema of everything gloss writes as JSON. Add
 `--accept 'image/*'` to require images, including SVG. See
-[handing files over](https://nimblemarkets.github.io/gloss/docs/guide/handoff/).
+[handing files over](https://nimbleterminal.github.io/gloss/docs/guide/handoff/).
 
 `--pick-web` lets a person send files and an optional reply (`message` in
 status/resume JSON). Add `--listen IP:port` and, for a wildcard bind,
@@ -91,15 +91,15 @@ the agents on your machine, from the binary or from the repository:
 
 ```sh
 gloss skill install                           # from the binary, so it matches its flags
-npx skills add NimbleMarkets/gloss            # or from the repository, for every agent it finds
+npx skills add NimbleTerminal/gloss            # or from the repository, for every agent it finds
 ```
 
-Read it on the site, [For LLMs](https://nimblemarkets.github.io/gloss/docs/guide/for-llms/),
+Read it on the site, [For LLMs](https://nimbleterminal.github.io/gloss/docs/guide/for-llms/),
 or as [`SKILL.md`](skills/gloss/SKILL.md).
 
 ## Documentation
 
-The [documentation](https://nimblemarkets.github.io/gloss/docs/) has the rest: the
+The [documentation](https://nimbleterminal.github.io/gloss/docs/) has the rest: the
 controls, the formats gloss opens and their limits, exporting for vision models,
 handing files over, and every option, grouped by what it is for. `gloss --help`
 lists the options, and `man gloss` and tab completion for bash, zsh, and fish work

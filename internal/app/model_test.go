@@ -9,7 +9,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 )

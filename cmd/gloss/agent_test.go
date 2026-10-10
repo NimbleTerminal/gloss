@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/gloss/internal/app"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
 // The headless contract for agents: stdout carries the answer, in the

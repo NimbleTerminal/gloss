@@ -8,12 +8,12 @@ bookToC: false
 
 A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3MF meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel, Grist, and CSV files.
 
-[**Try it in your browser →**](https://nimblemarkets.github.io/gloss/) The live terminal runs the actual Go pager as WebAssembly, with one sample of every kind.
+[**Try it in your browser →**](https://nimbleterminal.github.io/gloss/) The live terminal runs the actual Go pager as WebAssembly, with one sample of every kind.
 
 ## Quick start
 
 ```sh
-brew install --cask nimblemarkets/tap/gloss
+brew install --cask nimbleterminal/tap/gloss
 
 gloss photo.png report.pdf model.stl      # page through them
 gloss --menu *.png                        # a menu to choose among files
@@ -31,4 +31,4 @@ The man page, `gloss(1)`, ships in the release archives and the Debian package.
 
 ## Source
 
-gloss is MIT-licensed and built in Go on [NTCharts](https://github.com/NimbleMarkets/ntcharts). The source, issues, and releases are on [GitHub](https://github.com/NimbleMarkets/gloss).
+gloss is MIT-licensed and built in Go on [NTCharts](https://github.com/NimbleMarkets/ntcharts). The source, issues, and releases are on [GitHub](https://github.com/NimbleTerminal/gloss).

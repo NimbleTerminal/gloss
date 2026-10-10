@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
 // A pick asked for with no terminal to answer it must not hold its caller.

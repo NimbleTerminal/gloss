@@ -5,7 +5,7 @@ and [NTCharts](https://github.com/NimbleMarkets/ntcharts), with
 [NTCharts SVG](https://github.com/NimbleMarkets/ntcharts-svg),
 [NTCharts PDF](https://github.com/NimbleMarkets/ntcharts-pdf), and
 [NTCharts3d](https://github.com/NimbleMarkets/ntcharts3d). The user
-documentation is on the [documentation site](https://nimblemarkets.github.io/gloss/docs/);
+documentation is on the [documentation site](https://nimbleterminal.github.io/gloss/docs/);
 this file is for working on gloss itself. [AGENTS.md](AGENTS.md) is the same
 ground for coding agents.
 
@@ -49,7 +49,7 @@ cross-compiled and vetted (`task cross-windows`), not tested.
 ## Recording the showcase
 
 `scripts/gloss-demo.tape` is a VHS-language showcase recorded by
-[sigmamax](https://github.com/NimbleMarkets/sigmamax), including actual Kitty
+[ntrecord](https://github.com/NimbleTerminal/ntrecord), including actual Kitty
 graphics, GIF playback, PDF paging, mesh rotation, Markdown search, tables, and
 the URL QR overlay. It uses only the original fixtures in this repository and
 does not fetch files or start a handoff server.
@@ -58,9 +58,9 @@ Run from the repository root:
 
 ```sh
 GOWORK=off task build
-env -u NO_COLOR sigmamax validate scripts/gloss-demo.tape
-env -u NO_COLOR sigmamax scripts/gloss-demo.tape
-# With the sibling development checkout, use ../sigmamax/bin/sigmamax instead.
+env -u NO_COLOR ntrecord validate scripts/gloss-demo.tape
+env -u NO_COLOR ntrecord scripts/gloss-demo.tape
+# With the sibling development checkout, use ../ntrecord/bin/ntrecord instead.
 ```
 
 The tape writes `dist/gloss-demo.gif`, a text transcript, and scene screenshots.
@@ -69,7 +69,7 @@ again replaces them, so copy aside any take you want to keep. Use realtime mode
 (the default): deterministic mode does not advance application animation timers.
 The tape waits for loaded views and hides startup/loading time. It uses Menlo,
 included with macOS; elsewhere set `FontFamily` to an installed monospace font
-with box-drawing glyphs, or to sigmamax's bundled `Go Mono`. Keep `NO_COLOR` unset
+with box-drawing glyphs, or to ntrecord's bundled `Go Mono`. Keep `NO_COLOR` unset
 so Kitty placeholder colors survive. The mesh uses software rendering and does
 not require a GPU.
 
@@ -100,7 +100,7 @@ separate browser-demo module:
   component of its own (see below); `internal/browse/browsetest` is its test
   harness.
 - `internal/document`: bounded loaders, renderers, and vision image sizing.
-- `internal/app/qr.go`: table URL overlay using the external ntcharts-qrcode component.
+- `internal/app/qr.go`: table URL overlay using the external ntqrcode component.
 - `examples`: small runnable fixtures.
 - `scripts`: site building and fixture generation.
 - `docs/hugo`: the documentation site, published at `/docs/` beside the demo.
@@ -205,15 +205,15 @@ they must not use the generic test pump's timer heuristic to discard slow render
 ## QR component
 
 The reusable encoder and terminal component live in
-[ntcharts-qrcode](https://github.com/NimbleMarkets/ntcharts-qrcode), imported as
-`github.com/NimbleMarkets/ntcharts-qrcode/qrcode`. Gloss pins a repository
-revision in `go.mod`; there is no local replacement or copied implementation.
+[ntqrcode](https://github.com/NimbleTerminal/ntqrcode), imported as
+`nimbleterminal.dev/ntqrcode/qrcode`. Gloss pins a tagged
+release in `go.mod`; there is no local replacement or copied implementation.
 The library owns module/image generation, quiet zones, Kitty and half-block
 rendering, bounds, fit errors, and image cleanup. Its decoder and lifecycle
 unit tests live with the component. See its README and DEVELOP for the API,
 encoder assessment, and NTCharts exact-size rendering contract.
 
-The pinned release (`v0.1.1`) uses `piglig/go-qr/v2 v2.3.0`. Gloss uses the
+The pinned release (`v0.2.0`) uses `piglig/go-qr/v2 v2.6.0`. Gloss uses the
 default options: medium error correction or higher, boosted when a stronger
 level fits without increasing the symbol version. Numeric, alphanumeric, byte,
 and Kanji segments are optimized to fit the content. Non-ASCII payloads include
@@ -236,8 +236,8 @@ and localhost URLs do not become reachable from another device.
 For joint local development with sibling checkouts, run:
 
 ```sh
-go work init . ../ntcharts-qrcode
-(cd examples/demo && go work init . ../.. ../../../ntcharts-qrcode)
+go work init . ../ntqrcode
+(cd examples/demo && go work init . ../.. ../../../ntqrcode)
 ```
 
 If a workspace already exists, use `go work use` to add the same paths.
@@ -388,7 +388,7 @@ task docs:hugo:build            # the site, in docs/hugo/public
 Pushing a `v*` tag runs checks, and [GoReleaser](https://goreleaser.com)
 packages macOS, Linux, and Windows amd64 and arm64 binaries: archives, `.deb`
 packages, and SHA-256 checksums go to a GitHub Release, and a cask to the
-[Homebrew tap](https://github.com/NimbleMarkets/homebrew-tap). Locally,
+[Homebrew tap](https://github.com/NimbleTerminal/homebrew-tap). Locally,
 `task release` produces the same in `dist/` as a snapshot, without publishing.
 Release binaries use software STL rendering when native GPU support is
 unavailable.
@@ -518,7 +518,7 @@ has it, and by the software renderer where it does not.
 Embed the standalone terminal on another site:
 
 ```html
-<iframe src="https://nimblemarkets.github.io/gloss/demo.html?sample=field-guide.pdf"
+<iframe src="https://nimbleterminal.github.io/gloss/demo.html?sample=field-guide.pdf"
         title="gloss live terminal" width="100%" height="560"
         style="border:0" loading="lazy"></iframe>
 ```

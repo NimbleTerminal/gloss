@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/spf13/pflag"
 )
 

@@ -8,7 +8,7 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/charmbracelet/x/term"
 )
 

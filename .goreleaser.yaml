@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # gloss .goreleaser.yaml
 # One pure-Go binary (CGO_ENABLED=0) for macOS, Linux, and Windows: archives,
-# Debian packages, and a Homebrew cask in NimbleMarkets/homebrew-tap.
+# Debian packages, and a Homebrew cask in NimbleTerminal/homebrew-tap.
 # Try it without publishing: task release
 
 version: 2
@@ -63,7 +63,7 @@ nfpms:
     formats:
       - deb
     vendor: Neomantra Corp
-    homepage: https://nimblemarkets.github.io/gloss/
+    homepage: https://nimbleterminal.github.io/gloss/
     maintainer: Evan Wies <evan@neomantra.net>
     description: |-
       Visual pager for the terminal
@@ -101,7 +101,7 @@ changelog:
 
 release:
   github:
-    owner: NimbleMarkets
+    owner: NimbleTerminal
     name: gloss
   prerelease: auto
 
@@ -128,14 +128,14 @@ homebrew_casks:
     ids:
       - default
     repository:
-      owner: NimbleMarkets
+      owner: NimbleTerminal
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: goreleaserbot
       email: goreleaserbot@nimble.markets
-    homepage: https://nimblemarkets.github.io/gloss/
+    homepage: https://nimbleterminal.github.io/gloss/
     description: Visual pager for the terminal, like less with pictures
     license: MIT
     skip_upload: auto

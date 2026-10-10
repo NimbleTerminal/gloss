@@ -1,4 +1,4 @@
-baseURL = "https://nimblemarkets.github.io/gloss/docs/"
+baseURL = "https://nimbleterminal.github.io/gloss/docs/"
 title = "gloss"
 theme = "hugo-book"
 contentDir = "content"
@@ -16,7 +16,7 @@ enableGitInfo = false
   # one say bookToC: false in their front matter.
   BookToC = true
   BookSection = "*"
-  BookRepo = "https://github.com/NimbleMarkets/gloss"
+  BookRepo = "https://github.com/NimbleTerminal/gloss"
   BookEditPath = "edit/main/docs/hugo"
   BookDateFormat = "January 2, 2006"
   BookSearch = true

@@ -13,12 +13,12 @@ var guideDir = filepath.Join("..", "..", "..", "docs", "hugo", "content", "guide
 func TestLinksWorkFromTheSite(t *testing.T) {
 	got := links("[doc](docs/x.md) ![pic](examples/a.png) [web](https://example.com) [here](#there) [s](skills/gloss/SKILL.md) [a](AGENTS.md)")
 	for _, want := range []string{
-		"[doc](https://github.com/NimbleMarkets/gloss/blob/main/docs/x.md)",
-		"![pic](https://raw.githubusercontent.com/NimbleMarkets/gloss/main/examples/a.png)",
+		"[doc](https://github.com/NimbleTerminal/gloss/blob/main/docs/x.md)",
+		"![pic](https://raw.githubusercontent.com/NimbleTerminal/gloss/main/examples/a.png)",
 		"[web](https://example.com)",
 		"[here](#there)",
 		"[s](../for-llms/)",
-		"[a](https://github.com/NimbleMarkets/gloss/blob/main/AGENTS.md)",
+		"[a](https://github.com/NimbleTerminal/gloss/blob/main/AGENTS.md)",
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("missing %q in\n%s", want, got)

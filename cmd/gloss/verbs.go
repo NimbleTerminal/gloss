@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/NimbleMarkets/gloss/skills"
+	"github.com/NimbleTerminal/gloss/skills"
 )
 
 // gloss has one default verb, view, and a few others. A verb is recognized

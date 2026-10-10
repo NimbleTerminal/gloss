@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleMarkets/gloss/internal/app"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/app"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/coder/websocket"
 )
 

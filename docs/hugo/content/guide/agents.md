@@ -20,7 +20,7 @@ Or, with Node, the [skills CLI](https://github.com/vercel-labs/skills) installs
 it from the repository for every agent it finds:
 
 ```sh
-npx skills add NimbleMarkets/gloss
+npx skills add NimbleTerminal/gloss
 ```
 
 ## Images for vision models

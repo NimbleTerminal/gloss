@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+  * Move gloss, its documentation site, and Homebrew tap to NimbleTerminal;
+    update recording references to NimbleTerminal/ntrecord. Other dependencies
+    remain pinned under their existing NimbleMarkets module paths.
+
+  * Adopt NimbleTerminal/ntqrcode v0.2.0 at `nimbleterminal.dev/ntqrcode`
+    in native and browser builds; update local workspace paths.
+
   * **Browser viewing sessions**
     * Show supplied files with viewer controls instead of upload-request chrome
     * Detached show-only sessions default to renewable 10-minute inactivity
@@ -185,7 +192,7 @@
   * `gloss --skill` prints the skill that teaches agents to use gloss, so an
     installed binary can write out `SKILL.md` for the version it is;
     `gloss --skill --install` puts it where the agents on the machine look for
-    skills, and `npx skills add NimbleMarkets/gloss` does the same with Node
+    skills, and `npx skills add NimbleTerminal/gloss` does the same with Node
 
   * **The viewer**
     * `B` opens a background color picker for meshes; the choice survives
@@ -265,12 +272,12 @@ meshes, Markdown, and documents of many kinds.
     * A skill for agents in `skills/gloss/SKILL.md`
   * **On the web**
     * A live demo, with a sample of every format, running the real pager as
-      WebAssembly at <https://nimblemarkets.github.io/gloss/>
+      WebAssembly at <https://nimbleterminal.github.io/gloss/>
     * An app page for your own files, kept in the browser's storage and never
       uploaded; `?src=` opens a document from an address that allows it
   * **Install**
-    * `brew install --cask nimblemarkets/tap/gloss`
+    * `brew install --cask nimbleterminal/tap/gloss`
     * `.deb` packages for amd64 and arm64
     * Archives for macOS, Linux, and Windows
-    * `go install github.com/NimbleMarkets/gloss/cmd/gloss@latest`
+    * `go install github.com/NimbleTerminal/gloss/cmd/gloss@latest`
   * MIT licensed; the licenses of linked modules are in `THIRD_PARTY_NOTICES.md`

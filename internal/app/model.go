@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
