@@ -192,7 +192,7 @@ Under Kitty graphics the viewer also names its picture's device size in
 component shows it as it is instead of resampling it; glyph rendering keeps
 the layout-scale raster.
 The viewer derives width from physical cell geometry, debounces width changes
-for 60 ms, cancels obsolete work and applies only matching generation/revision
+for 30 ms, cancels obsolete work and applies only matching generation/revision
 results. It keeps one job in flight and the old bitmap visible. New widths
 anchor the current block; scroll and height changes reuse layout. Preparation
 still parses/validates all input, and layout is incremental by block. There is

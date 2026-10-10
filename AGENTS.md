@@ -87,7 +87,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Glamour by default; `s` toggles source and `t` switches text/typeset.
   `--typeset` uses go-text, embedded Go fonts and Chroma directly,
   without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
-  width after a 60 ms debounce, cancels stale jobs and keeps the old image
+  width after a 30 ms debounce, cancels stale jobs and keeps the old image
   visible. Fonts/images/shaped text are cached; layout advances by block as
   needed. `/` opens source search. `e` exports the visible viewport; headless
   exports use fixed-width numbered 1125-pixel slices at 150 DPI (`--page`,

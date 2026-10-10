@@ -12,7 +12,10 @@ import (
 	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
-const typesetResizeDelay = 60 * time.Millisecond
+// typesetResizeDelay coalesces a burst of width changes before reflowing. It
+// was 60 ms when a reflow cost ten times what it does now; at 30 ms a resize
+// feels live and still folds a drag's events together.
+const typesetResizeDelay = 30 * time.Millisecond
 
 // typesetSettleDelay is how long a page view stays unchanged before its
 // animated regions get their overlays. A scroll or resize burst then costs
