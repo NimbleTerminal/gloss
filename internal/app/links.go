@@ -70,28 +70,13 @@ func (m *Model) linkAt(x, y int) string {
 		}
 		return oscLinkAt(md.lines[row].text, x)
 	}
-	if m.typeset == nil || m.source == nil || !m.typesetMatches() || m.typesetActive != 0 || m.presentation.Awaiting {
+	if m.typeset == nil || m.source == nil || !m.typesetViewMatches() || m.typesetActive != 0 || m.presentation.Awaiting {
 		return ""
 	}
-	// Match picture's FitContain geometry, including its integer letterboxing.
-	cw, ch := m.pic.CellPixelSize()
-	tw, th := m.width*cw, m.bodyHeight()*ch
-	b := m.source.Bounds()
-	sw, sh := b.Dx(), b.Dy()
-	if tw <= 0 || th <= 0 || sw <= 0 || sh <= 0 {
+	at, ok := m.typesetPixel(x, y, false)
+	if !ok {
 		return ""
 	}
-	iw, ih := tw, sh*tw/sw
-	if sw*th < sh*tw {
-		ih = th
-		iw = sw * th / sh
-	}
-	iw, ih = max(1, iw), max(1, ih)
-	px, py := x*cw+cw/2-(tw-iw)/2, y*ch+ch/2-(th-ih)/2
-	if px < 0 || py < 0 || px >= iw || py >= ih {
-		return ""
-	}
-	at := image.Pt(b.Min.X+px*sw/iw, b.Min.Y+py*sh/ih)
 	for _, link := range m.typesetLinks {
 		if at.In(link.Rect) {
 			return webLink(link.URL)

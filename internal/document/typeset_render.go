@@ -28,6 +28,9 @@ type TypesetViewport struct {
 	// copied, not resampled; the reading scale is unchanged. Zero rasters
 	// at the layout scale.
 	Pixels image.Point
+	// Width is the page width the picture shows, set on a result: with Top,
+	// Left and Height it maps a picture pixel back to the page.
+	Width int
 }
 
 func (l *Loader) renderTypeset(q Request) (out Result) {
@@ -43,7 +46,12 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	defer func() {
 		if p := recover(); p != nil {
 			out.Err = typesetError(p)
-			l.direct = nil
+			// A cancelled request leaves a consistent layout behind, which
+			// the next request takes up where it was; a layout that failed
+			// of itself is not kept.
+			if ctx.Err() == nil {
+				l.direct = nil
+			}
 		}
 	}()
 	width := int(math.Round(float64(out.TypesetWidth) * 150 / 72))
@@ -106,7 +114,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			pixels = p
 			scale = float64(p.X) / float64(width)
 		}
-		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom, Pixels: pixels}
+		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom, Pixels: pixels, Width: width}
 		out.TypesetDone = done
 		out.TypesetExtent = lay.y + 50
 	}
@@ -130,6 +138,15 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			if r.Overlaps(viewport) {
 				out.Animated = append(out.Animated, TypesetRegion{Rect: r, Player: player, Destination: op.destination})
 			}
+		}
+	}
+	if q.TypesetSelect != nil {
+		asked := *q.TypesetSelect
+		out.TypesetAsked = &asked
+		if sel, ok := lay.resolve(asked); ok {
+			lay.sel = &sel
+			defer func() { lay.sel = nil }()
+			out.TypesetSelection, out.TypesetSelected = &sel.places, lay.selected(sel)
 		}
 	}
 	if len(out.Animated) > 0 {

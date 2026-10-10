@@ -351,6 +351,10 @@ type operation struct {
 	asset                 image.Image
 	destination           string
 	fill                  color.Color
+	// A text run's place: the paragraph's runes, and which paragraph of
+	// which block it is, the same at every width.
+	text        []rune
+	block, para int
 }
 type layout struct {
 	starts         []int
@@ -360,6 +364,8 @@ type layout struct {
 	p              *prepared
 	width, y, next int
 	ops            []operation
+	para           int        // Paragraphs laid out of the current block.
+	sel            *selection // Text to draw a highlight behind, while rastering.
 }
 
 func (e *engine) layout(p *prepared, width int) *layout {
@@ -403,6 +409,8 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 			hrefs = append(hrefs, sp.href)
 		}
 	}
+	para := l.para
+	l.para++
 	if len(s.text) == 0 {
 		return nil, size * 3 / 2
 	}
@@ -445,7 +453,7 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 				ink = s.inks[r.Runes.Offset]
 				darkInk = s.darkInks[r.Runes.Offset]
 			}
-			ops = append(ops, operation{rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline})
+			ops = append(ops, operation{rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline, text: s.text, block: l.next - 1, para: para})
 			advance += r.Advance
 		}
 		y += height
@@ -470,9 +478,26 @@ func (l *layout) ensure(bottom int) {
 		if len(l.ops) > 32768 || l.y > 1125*MaxPages {
 			panic("typeset layout exceeds display-list limit")
 		}
+		l.block()
+	}
+}
+
+// block lays out the next block. If that is given up part-way, by a
+// cancelled request or a limit, the layout is left as it was before the
+// block, so that the next request can take it up again.
+func (l *layout) block() {
+	starts, ops, y, next, glyphs := len(l.starts), len(l.ops), l.y, l.next, l.glyphs
+	defer func() {
+		if p := recover(); p != nil {
+			l.starts, l.ops, l.y, l.next, l.glyphs = l.starts[:starts], l.ops[:ops], y, next, glyphs
+			panic(p)
+		}
+	}()
+	{
 		l.starts = append(l.starts, l.y)
 		b := l.p.blocks[l.next]
 		l.next++
+		l.para = 0
 		x := 50 + b.indent
 		width := max(32, l.width-50-x)
 		size := b.size
@@ -605,7 +630,7 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, bas
 	out := image.NewRGBA(image.Rect(0, 0, w, h))
 	palette := theme.Get(l.e.theme)
 	draw.Draw(out, out.Bounds(), image.NewUniform(palette.Background), image.Point{}, draw.Src)
-	for _, op := range l.ops {
+	for i, op := range l.ops {
 		l.e.check()
 		r := op.rect.Sub(image.Pt(left, top))
 		r = image.Rect(int(math.Round(float64(r.Min.X)*scale)), int(math.Round(float64(r.Min.Y)*scale)), int(math.Round(float64(r.Max.X)*scale)), int(math.Round(float64(r.Max.Y)*scale)))
@@ -627,6 +652,10 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, bas
 			}
 			if l.e.theme == "dark" && op.darkInk.A != 0 {
 				ink = op.darkInk
+			}
+			if x0, x1, ok := l.sel.span(i, &op); ok {
+				hr := image.Rect(int(math.Round(float64(x0-left)*scale)), r.Min.Y, int(math.Round(float64(x1-left)*scale)), r.Max.Y)
+				draw.Draw(out, hr, image.NewUniform(palette.Selection), image.Point{}, draw.Src)
 			}
 			baseline := int(math.Round(float64(op.baseline-top) * scale))
 			l.e.drawRun(out, op.run, op.size, scale, r.Min.X, baseline, r.Dy(), ink)

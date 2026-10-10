@@ -122,9 +122,21 @@ Reload with `R` after editing the source or its pictures.
 | End / `G` | Lay out the remaining document and go to the bottom |
 | `/` | Open source view and search Markdown text |
 | `e` | Export the visible rendered viewport as PNG |
+| Drag | Select text; Shift-drag is the terminal's own selection |
+| `y` | Copy the selected text to the clipboard |
+| `Esc` | Clear the selection |
 
 Search currently uses the source viewer's matches and highlights; it does not
 highlight text on the typeset image. `s` returns from source to the typeset view.
+
+The page is a picture, so the terminal cannot select text from it. Drag over
+it instead: the text between the two ends is highlighted, and `y` copies it,
+through the terminal's clipboard (OSC 52), as the source text in reading
+order, with a line break between paragraphs, a blank line between blocks and
+a tab between table cells. Each end of the selection is a place in the text,
+so it keeps through scrolling, zooming and reflowing; `Esc`, a click, or
+another drag clears it, as does leaving the file. The highlight is part of
+the picture, so `e` exports it too.
 
 ```sh
 gloss --typeset examples/typeset.md

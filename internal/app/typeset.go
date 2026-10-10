@@ -73,20 +73,42 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	}
 	return v
 }
+
+// typesetMatches says the shown picture is the one the viewer's state asks
+// for; typesetViewMatches, only that it shows the same part of the page,
+// which is what mapping a cell onto the page needs.
 func (m *Model) typesetMatches() bool {
-	v := m.typesetViewport()
-	shown := m.typesetShown
-	return shown != nil && m.typesetTheme == m.theme && !v.End && m.typesetMeasure() == m.typesetWidth && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+	return m.typesetViewMatches() && selectionsEqual(m.typesetSelect, m.typesetSelectShown)
 }
-func (m *Model) queueTypesetReflow() tea.Cmd {
+func (m *Model) typesetViewMatches() bool {
+	return m.viewportAsked(m.typesetShown, m.typesetWidth, m.typesetTheme)
+}
+
+// viewportAsked says a rendered part of the page, at a measure and in a
+// theme, is the one the viewer's state asks for now.
+func (m *Model) viewportAsked(shown *document.TypesetViewport, width int, theme string) bool {
+	v := m.typesetViewport()
+	return shown != nil && theme == m.theme && !v.End && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+}
+
+// queueTypesetReflow asks for the page as the viewer's state now wants it,
+// giving up a job in flight for an older state. queueTypesetSelection does
+// the same for a change of selection alone, but lets the job finish: its
+// page is the right part of the document with an earlier selection, which
+// is shown on the way, so a drag is followed rather than waited for.
+func (m *Model) queueTypesetReflow() tea.Cmd    { return m.queueTypeset(true) }
+func (m *Model) queueTypesetSelection() tea.Cmd { return m.queueTypeset(false) }
+func (m *Model) queueTypeset(cancel bool) tea.Cmd {
 	if m.typeset == nil || m.isPreview || m.loading {
 		return nil
 	}
 	if m.typesetMatches() && m.typesetActive == 0 {
 		return nil
 	}
-	m.presentation.CancelPending()
-	m.stopTypeset()
+	if cancel {
+		m.presentation.CancelPending()
+		m.stopTypeset()
+	}
 	m.typesetRevision++
 	msg := typesetResize{m.kittyID, m.typesetRevision}
 	if m.typesetWidth == m.typesetMeasure() {
@@ -112,7 +134,8 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 	if m.typesetActive == v.Generation {
 		m.typesetActive = 0
 	}
-	if v.Generation != m.generation || msg.revision != m.typesetRevision || m.typeset == nil {
+	stale := v.Generation != m.generation || msg.revision != m.typesetRevision
+	if m.typeset == nil || (stale && (v.Err != nil || !m.viewportAsked(v.TypesetView, v.TypesetWidth, v.Theme))) {
 		return m.queueTypesetReflow()
 	}
 	if v.Err != nil {
@@ -123,6 +146,10 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 	m.source, m.fields = v.Image, v.Info
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
 	overlays := m.acceptTypesetView(v)
+	if stale {
+		// The part of the page is right; only the selection is behind.
+		overlays = tea.Batch(overlays, m.queueTypesetReflow())
+	}
 	if m.markdown != nil {
 		return overlays
 	}
@@ -134,6 +161,22 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 // picture stays still; otherwise the composite page animates as a whole.
 func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	m.typesetLinks = v.Links
+	m.typesetSelectShown, m.typesetSelected = v.TypesetSelection, v.TypesetSelected
+	// When the result answers the selection as it is now, that becomes the
+	// placed one, both ends in the text, or nothing when the text has no
+	// such place. A drag that has closed on nothing is no selection.
+	if selectionsEqual(v.TypesetAsked, m.typesetSelect) {
+		m.typesetSelect = nil
+		if v.TypesetSelection != nil {
+			// A copy: the shown one must stay what the picture has while a
+			// drag moves this one on.
+			placed := *v.TypesetSelection
+			m.typesetSelect = &placed
+		}
+		if m.typesetSelected == "" && !m.typesetDragging {
+			m.typesetSelect, m.typesetSelectShown = nil, nil
+		}
+	}
 	m.typesetPlayback = v.Playback
 	overlays := m.stopTypesetOverlays()
 	m.typesetPending = nil

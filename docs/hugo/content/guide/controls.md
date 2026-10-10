@@ -44,6 +44,7 @@ bookToC: false
 | `B` | Pick the background color behind a mesh, with the same picker as `C`: `r` restores the default, `Enter` chooses the swatch you have moved to and closes, `Esc` undoes |
 | Click, in the `C` / `B` picker | Click a tab, swatch, or slider bar; a swatch applies at once and a second click on it chooses it and closes; drag along a slider |
 | Drag / Shift-drag / wheel | Mesh (STL, 3MF) orbit / pan / zoom |
+| Drag, then `y` | Typeset text: select, then copy to the clipboard; `Esc` clears |
 | Drop files, or paste their paths | Add files to the list; one opens at once, several open the menu |
 
 At a PDF boundary, page navigation stays on that page. Use `[` and `]` to change
@@ -196,6 +197,14 @@ more slowly rather than building a rendering backlog.
 In native Markdown views, click an HTTP(S) link or linked image to open it in
 the default browser. This also works in typeset mode; wheel scrolling remains
 available. Dragging, source view, and overlays do not activate links.
+
+Text screens take the mouse for the wheel and for clicks, so select text on
+them with your terminal's override, usually Shift held while dragging. A
+typeset page is a picture, which the terminal cannot select from: drag over
+it to select text, `y` copies the selection through the terminal's clipboard
+(OSC 52, which the terminal must allow; most do), and `Esc` clears it. The
+selection follows the text through scrolling, zooming and resizing, and a
+plain click or another drag replaces it. Shift-drag is still the terminal's.
 
 In a table, select a cell containing an http(s) URL and press `u` to show its QR
 code. This does not fetch the URL and needs no `--fetch`. The original cell

@@ -110,6 +110,12 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			}
 		}
 	}
+	if k == "esc" && m.typeset != nil && m.markdown == nil {
+		// A selection on the page goes before the page does.
+		if cmd, ok := m.typesetSelectKey(k); ok {
+			return cmd, true
+		}
+	}
 	if k == "esc" {
 		if cmd, ok := m.closeFetched(); ok {
 			return cmd, true
@@ -191,6 +197,9 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		return tea.Sequence(m.clearPicture(), m.layoutMarkdown()), true
 	}
 	if m.typeset != nil && m.markdown == nil && !m.loading {
+		if cmd, ok := m.typesetSelectKey(k); ok {
+			return cmd, true
+		}
 		if cmd, ok := m.typesetKey(k); ok {
 			return cmd, true
 		}

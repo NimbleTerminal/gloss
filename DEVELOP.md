@@ -193,7 +193,10 @@ component shows it as it is instead of resampling it; glyph rendering keeps
 the layout-scale raster.
 The viewer derives width from physical cell geometry, debounces width changes
 for 30 ms, cancels obsolete work and applies only matching generation/revision
-results. It keeps one job in flight and the old bitmap visible. New widths
+results. It keeps one job in flight and the old bitmap visible. A cancelled
+request leaves the layout as it was before the block it was in (`layout.block`
+restores it), and the next request takes it up from there; only a layout that
+failed of itself is dropped. New widths
 anchor the current block; scroll and height changes reuse layout. Preparation
 still parses/validates all input, and layout is incremental by block. There is
 no speculative background completion; scrolling advances the display list,
@@ -672,3 +675,29 @@ suppress activation. The native CLI supplies its browser launcher; `--serve` and
 browser embeddings leave the callback nil so remote clicks never launch a browser
 on the server. Only absolute HTTP(S) URLs without credentials/control characters
 reach the callback. This action does not use document fetching or `--fetch`.
+
+## Typeset text selection
+
+A typeset page is a picture, so the terminal cannot select from it, while the
+text screens keep the mouse only for the wheel and clicks and leave selection
+to the terminal's Shift override. `internal/app/typeset_select.go` follows a
+plain left drag over the page: the press is a page point, each motion asks
+for a reflow with `Request.TypesetSelect` holding the two ends, and the
+result's picture has the text between them highlighted behind the glyphs
+(`layout.rasterTo`, `Palette.Selection`). `internal/document/typeset_select.go`
+resolves an end to a caret, a text operation and a rune offset, from a point
+(nearest line, then the glyph cluster's nearer edge, from the run's glyph
+advances) or from a place. Every text operation carries its paragraph's
+runes and which paragraph of which block it is, which is the same at every
+width, so the result gives both ends back as `TypesetPlace`s and the viewer
+keeps those: a scroll, zoom, reflow or theme change re-highlights the same
+text. A drag does not cancel the job in flight, as a scroll does: a finished
+job for an earlier point of the drag shows the right part of the page with
+the selection behind, so it is shown and the current selection asked for
+(`typesetReflowed`); its placed ends are adopted only when `TypesetAsked` is
+the selection as it is now. `Result.TypesetSelected` is the text in reading order: a wrapped line
+is a space, a paragraph a line break, a table cell a tab, a block a blank
+line. `y` sends it with `tea.SetClipboard`, OSC 52, which works through SSH
+and in the browser build and needs no clipboard package; `Esc`, a click or a
+new drag clears it. Shift and Alt drags are not taken. The glyph fallback
+maps cells through the same fitted geometry as links do.

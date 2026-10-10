@@ -91,6 +91,11 @@ type meshState struct {
 // view to return to when a fetched file closes.
 type textState struct {
 	typesetLinks            []document.TypesetLink
+	typesetSelect           *document.TypesetSelection // The text selected, or being selected, on the typeset page.
+	typesetSelectShown      *document.TypesetSelection // The selection the shown picture highlights.
+	typesetSelected         string                     // The shown selection's text.
+	typesetDragging         bool                       // A left button is down on the typeset page.
+	typesetDragFrom         image.Point                // Where it went down, on the page.
 	pressedLink             string
 	hoverLinkPoint          image.Point
 	hoverLinkActive         bool
@@ -307,6 +312,11 @@ func (m *Model) request(reload bool) document.Request {
 			view.Top = (m.page - 1) * 1125
 		}
 		q.TypesetView = &view
+		if m.typesetSelect != nil {
+			// The loader reads its copy off the event loop; a drag moves ours.
+			sel := *m.typesetSelect
+			q.TypesetSelect = &sel
+		}
 	}
 	if m.opts.IsStdin(q.Path) {
 		q.BaseDir = m.opts.MarkdownBase
@@ -391,6 +401,8 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.typesetTop, m.typesetLeft, m.typesetEnd, m.typesetShown = 0, 0, false, nil
 	m.typeset = nil
 	m.typesetLinks = nil
+	m.clearTypesetSelection()
+	m.typesetSelectShown = nil
 	m.pressedLink = ""
 	m.hoverLinkActive = false
 	m.typesetPlayback = nil
@@ -477,8 +489,9 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 	}
 	msg = m.onBody(msg)
-	if cmd, handled := m.linkMouse(msg); handled {
-		return m, cmd
+	selectCmd, selecting := m.typesetSelectMouse(msg)
+	if cmd, handled := m.linkMouse(msg); handled || selecting {
+		return m, tea.Batch(cmd, selectCmd)
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok && m.listing() {
 		if m.help {

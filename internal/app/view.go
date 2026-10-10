@@ -135,7 +135,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"C / B          mesh color / background color\n" +
 	"Drop files to open · / search · n/N next/prev match · Esc clear\n" +
 	"Meshes: drag to orbit, Shift-drag to pan, wheel to zoom, 5 orthographic\n" +
-	"Text: t text/typeset, s source/view; text: arrows scroll, Space/b page\n" +
+	"Text: t text/typeset, s source; select: Shift-drag in text, drag + y in typeset\n" +
 	"Standalone GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
 
 // DocsURL is the documentation site.
@@ -407,6 +407,9 @@ func (m *Model) hints() string {
 	switch {
 	case m.typeset != nil && m.markdown == nil:
 		keys = " q quit · ↑/↓/wheel scroll · Space/b screen · +/- zoom · f fit width · s source · t text · e export"
+		if m.typesetSelected != "" {
+			keys = " y copy selection · Esc clear · ↑/↓/wheel scroll · +/- zoom · e export · q quit"
+		}
 	case m.typeset != nil:
 		keys = " q quit · m files · ↑/↓ scroll · Space/b scroll · s typeset view · t text"
 	case m.animation != nil:

@@ -97,7 +97,12 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Kitty graphics the page is one still picture and each GIF plays in an
   overlay picture the size of its cells (`internal/app/typeset_overlay.go`),
   so a frame is the GIF's area, not the viewport; glyph rendering animates
-  the composite page. Preflight: 2 MiB UTF-8, 32 image references, 16 Mi decoded pixels,
+  the composite page. A left drag over the page selects text
+  (`internal/app/typeset_select.go`, `internal/document/typeset_select.go`):
+  the loader highlights it in the raster and returns its text, with each end
+  placed as block/paragraph/rune so it survives reflow; `y` copies it with
+  `tea.SetClipboard` (OSC 52, no clipboard dependency), `Esc` clears it.
+  Text screens have no selection of their own: the terminal's Shift override. Preflight: 2 MiB UTF-8, 32 image references, 16 Mi decoded pixels,
   128 MiB combined image input. Layout caps: 32,768 AST nodes/blocks/drawing
   operations, 16,384 runes per paragraph/code line, 8,192 lines per code block,
   262,144 glyphs, 15 seconds, 10,000 export slices, 32 Mi raster pixels.

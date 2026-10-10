@@ -134,27 +134,28 @@ func rasterSignature(b []byte) bool {
 const MaxPages = 10000
 
 type Request struct {
-	Playback     *animate.CompositeSource
-	Context      context.Context
-	TypesetView  *TypesetViewport
-	Path, Type   string
-	MarkdownMode string
-	Typeset      bool
-	Theme        string
-	TypesetWidth int // Reading width in points; zero uses the fixed export measure.
-	Page, DPI    int
-	Generation   uint64
-	Reload       bool
-	MaxEdge      int         // Export raster target; zero keeps interactive defaults.
-	Animate      bool        // Decode bounded GIF playback; still exports and previews leave this false.
-	TextOnly     bool        // The text layer of a PDF page is wanted, not a picture of it.
-	Preview      bool        // A small, quick rendering is wanted: a thumbnail will do.
-	Parts        PartFilter  // The parts of a 3MF to show; empty shows them all.
-	Shown        []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
-	Color        *color.RGBA // Paint for the faces of a mesh that its file left plain.
-	PaintAll     bool        // Paint every face, not only the plain ones.
-	Stdin        bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
-	BaseDir      string      // Relative Markdown assets; empty uses the source directory.
+	Playback      *animate.CompositeSource
+	Context       context.Context
+	TypesetView   *TypesetViewport
+	TypesetSelect *TypesetSelection // Text to highlight, and to return as TypesetSelected.
+	Path, Type    string
+	MarkdownMode  string
+	Typeset       bool
+	Theme         string
+	TypesetWidth  int // Reading width in points; zero uses the fixed export measure.
+	Page, DPI     int
+	Generation    uint64
+	Reload        bool
+	MaxEdge       int         // Export raster target; zero keeps interactive defaults.
+	Animate       bool        // Decode bounded GIF playback; still exports and previews leave this false.
+	TextOnly      bool        // The text layer of a PDF page is wanted, not a picture of it.
+	Preview       bool        // A small, quick rendering is wanted: a thumbnail will do.
+	Parts         PartFilter  // The parts of a 3MF to show; empty shows them all.
+	Shown         []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
+	Color         *color.RGBA // Paint for the faces of a mesh that its file left plain.
+	PaintAll      bool        // Paint every face, not only the plain ones.
+	Stdin         bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
+	BaseDir       string      // Relative Markdown assets; empty uses the source directory.
 	// Exactly what was asked for: a page or part that is not there is an
 	// error, not the nearest one. The viewer turns pages and keeps within
 	// them; an export or a text must not answer for another page.
@@ -162,33 +163,36 @@ type Request struct {
 }
 
 type Result struct {
-	Links         []TypesetLink
-	TypesetView   *TypesetViewport
-	Animated      []TypesetRegion
-	AnimationBase image.Image
-	Playback      *animate.CompositeSource
-	TypesetDone   bool
-	Theme         string
-	TypesetExtent int
-	Generation    uint64
-	Kind          string
-	Page, Pages   int
-	Image         image.Image
-	Animation     *GIFPlayer
-	Mesh          *Mesh
-	Parts         []Part                      // What a 3MF build places, for choosing among.
-	Shown         []bool                      // Which of them the mesh holds; nil for all.
-	Assemble      func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
-	Markdown      *Markdown
-	TypesetWidth  int
-	Typeset       *Markdown      // Terminal text/source representation of a typeset image.
-	Text          string         // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
-	Sheet         *Sheet         // One sheet of a workbook; Page and Pages count sheets.
-	Layer         *TextLayer     // How much of a PDF page its text is, when the text was asked for.
-	Camera        *charts.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
-	Views         []View         // Export views of a mesh: several make a sheet. None uses the default camera.
-	CPU           bool           // Export a mesh without trying the GPU.
-	Info          []Field        // What the file says about itself, for the info panel.
+	Links            []TypesetLink
+	TypesetView      *TypesetViewport
+	TypesetAsked     *TypesetSelection // The selection as the request asked for it.
+	TypesetSelection *TypesetSelection // The same with both ends placed in the text; nil when a place is not in it.
+	TypesetSelected  string            // Its text.
+	Animated         []TypesetRegion
+	AnimationBase    image.Image
+	Playback         *animate.CompositeSource
+	TypesetDone      bool
+	Theme            string
+	TypesetExtent    int
+	Generation       uint64
+	Kind             string
+	Page, Pages      int
+	Image            image.Image
+	Animation        *GIFPlayer
+	Mesh             *Mesh
+	Parts            []Part                      // What a 3MF build places, for choosing among.
+	Shown            []bool                      // Which of them the mesh holds; nil for all.
+	Assemble         func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
+	Markdown         *Markdown
+	TypesetWidth     int
+	Typeset          *Markdown      // Terminal text/source representation of a typeset image.
+	Text             string         // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
+	Sheet            *Sheet         // One sheet of a workbook; Page and Pages count sheets.
+	Layer            *TextLayer     // How much of a PDF page its text is, when the text was asked for.
+	Camera           *charts.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
+	Views            []View         // Export views of a mesh: several make a sheet. None uses the default camera.
+	CPU              bool           // Export a mesh without trying the GPU.
+	Info             []Field        // What the file says about itself, for the info panel.
 	// What Image is when it stands in for the document, as a 3MF's
 	// thumbnail does for a mesh too large to show: empty otherwise.
 	Standin string
