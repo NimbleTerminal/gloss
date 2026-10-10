@@ -220,7 +220,7 @@ func (a *Animator) Update(msg tea.Msg) (tea.Cmd, bool) {
 		}
 		var cleanup tea.Cmd
 		if a.Front != nil && a.Front.ID != a.ID {
-			cleanup = a.ClearFront()
+			cleanup = retired(a.ClearFront())
 		}
 		img := a.image
 		if a.Source != nil {
@@ -252,6 +252,22 @@ func (a *Animator) Transmission(msg tea.Msg, cmd tea.Cmd) tea.Cmd {
 		return Presented{a, id}
 	})
 }
+
+// RetireDelay is how long a replaced front picture is kept after the one
+// replacing it is presented. Its cells are blank from the moment it is
+// deleted until the frame naming the new picture is drawn, and Bubble Tea
+// writes a tick's raw output before its frame: deleted at once, the old
+// picture flashes blank on every replacement, which a drag makes a flicker.
+// Deleted after the frame has gone out, it is simply gone. Tests set zero.
+var RetireDelay = 50 * time.Millisecond
+
+func retired(cmd tea.Cmd) tea.Cmd {
+	if cmd == nil || RetireDelay <= 0 {
+		return cmd
+	}
+	return tea.Tick(RetireDelay, func(time.Time) tea.Msg { return cmd() })
+}
+
 func retire(f *Placement, cmd tea.Cmd) {
 	if f != nil && f.Active.Load() {
 		f.cleanup = cmd
