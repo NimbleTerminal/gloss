@@ -14,6 +14,7 @@ require (
 	github.com/NimbleMarkets/ntcharts/v2 v2.7.2
 	github.com/NimbleMarkets/ntcharts3d v0.2.1
 	github.com/alecthomas/chroma/v2 v2.27.0
+	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/term v0.2.2
@@ -41,7 +42,6 @@ require (
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/x/conpty v0.2.0 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
