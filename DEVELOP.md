@@ -256,7 +256,9 @@ path: keep the previous Kitty image until the replacement is transmitted, or
 show Preparing image on the first draw. Explicit glyph mode is unchanged.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
-clipped to the viewport so it cannot wrap or displace the status bar. Obsolete
+clipped to the viewport so it cannot wrap or displace the status bar. A grid
+that still matches the viewport is the body as it is, with no frame around it:
+measuring its cells to pad nothing was the largest cost of each View. Obsolete
 resize completions cannot present over the latest layout; pause is preserved.
 At most a visible front picture and a pending replacement are retained; leaving
 or explicitly choosing glyphs cleans up both. Keep-screen quit retains the

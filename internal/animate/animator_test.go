@@ -5,10 +5,13 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	"github.com/charmbracelet/x/ansi"
+	"github.com/charmbracelet/x/ansi/kitty"
 )
 
 func TestAnimatorClockEpochAndVisibility(t *testing.T) {
@@ -163,5 +166,63 @@ func TestClipStorageBudget(t *testing.T) {
 	c.Frames = append(c.Frames, c.Frames[0])
 	if _, err := NewPlayer(c); err == nil {
 		t.Fatal("accepted over-budget RGBA clip")
+	}
+}
+
+// A presented Kitty grid is the placement's exact size; View returns it as it
+// is and says so, and only a later size change makes it cut the grid down.
+func TestAnimatorViewExactGrid(t *testing.T) {
+	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
+	defer picture.ForceKittyCapability(picture.KittyCapabilityUnknown)
+	pic := picture.NewWithConfig(picture.Config{CellPixelWidth: 8, CellPixelHeight: 16})
+	pic.Toggle()
+	a := New(&pic, Config{NextID: func() int { return 7 }})
+	a.SetSize(20, 5)
+	img := image.NewRGBA(image.Rect(0, 0, 160, 80))
+	a.Show(img)
+	if a.Exact(20, 5) {
+		t.Fatal("exact before anything was presented")
+	}
+	frame := a.Picture.SetImage(img)()
+	a.Picture.Update(frame)
+	a.Update(Presented{a, a.ID})
+	if a.Front == nil {
+		t.Fatal("not presented")
+	}
+	// The front shows a placeholder grid, as a Kitty frame leaves it.
+	var grid strings.Builder
+	for y := 0; y < 5; y++ {
+		grid.WriteString("\x1b[38;2;0;0;7m")
+		for x := 0; x < 20; x++ {
+			grid.WriteRune(kitty.Placeholder)
+			grid.WriteRune(kitty.Diacritic(y))
+			grid.WriteRune(kitty.Diacritic(x))
+		}
+		grid.WriteString("\x1b[39m")
+		if y < 4 {
+			grid.WriteByte('\n')
+		}
+	}
+	a.Front.View = grid.String()
+	if a.View() != grid.String() || !a.Exact(20, 5) || a.Exact(19, 5) || a.Exact(20, 6) {
+		t.Fatal("presented grid is not reported exact at its own size")
+	}
+	a.SetSize(10, 3)
+	if !a.Exact(10, 3) || a.Exact(20, 5) {
+		t.Fatal("a cut grid is exact at the new size, not the old")
+	}
+	if v := a.View(); strings.Count(v, "\n") != 2 || strings.Count(strings.SplitN(v, "\n", 2)[0], string(kitty.Placeholder)) != 10 || ansi.StringWidth(strings.SplitN(v, "\n", 2)[0]) != 10 {
+		t.Fatalf("resized view not cut to 10×3: %q", v)
+	}
+	a.SetSize(30, 8)
+	if v := a.View(); strings.Count(v, "\n") != 7 || ansi.StringWidth(strings.SplitN(v, "\n", 2)[0]) != 30 || ansi.StringWidth(strings.Split(v, "\n")[7]) != 30 || !a.Exact(30, 8) {
+		t.Fatalf("resized view not padded to 30×8: %q", v)
+	}
+	glyph := picture.New()
+	g := New(&glyph, Config{NextID: func() int { return 8 }})
+	g.SetSize(20, 5)
+	g.Show(img)
+	if g.Exact(20, 5) {
+		t.Fatal("glyph rendering reported exact")
 	}
 }

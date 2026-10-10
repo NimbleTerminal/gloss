@@ -54,7 +54,8 @@ func (m *Model) View() tea.View {
 func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	var body string
 	mouse := tea.MouseModeNone
-	plain := true // Cut to the viewport; graphics keep their escapes whole.
+	plain := true  // Cut to the viewport; graphics keep their escapes whole.
+	exact := false // The body is already w×h: a frame would measure every cell to pad nothing.
 	switch {
 	case m.help:
 		body = helpScreen()
@@ -75,6 +76,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		}
 	case m.loading && m.presentation.Front != nil:
 		body, plain = m.pictureView(), false
+		exact = !m.quitting && m.presentation.Exact(w, h)
 	case m.loading:
 		body = "Loading " + safe(filepath.Base(m.opts.Files[m.index])) + "…"
 	case m.err != nil:
@@ -88,6 +90,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body, mouse, plain = m.sheet.view(w, h), tea.MouseModeCellMotion, false
 	default:
 		body, plain = m.pictureView(), false
+		exact = !m.quitting && m.presentation.Exact(w, h)
 		if m.typeset != nil {
 			mouse = tea.MouseModeCellMotion
 		}
@@ -98,6 +101,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 			lines[i] = ansi.Truncate(lines[i], w, "")
 		}
 		body = strings.Join(lines[:min(len(lines), h)], "\n")
+	}
+	if exact {
+		return body, mouse
 	}
 	frame := lipgloss.NewStyle().Width(w).Height(h)
 	if plain || m.markdown != nil {

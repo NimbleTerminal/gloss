@@ -11,6 +11,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/charmbracelet/x/ansi/kitty"
 )
 
 // Wait is injectable for deterministic clocks. It must return promptly on cancel.
@@ -36,15 +37,17 @@ type Presented struct {
 }
 
 type Placement struct {
-	Active  atomic.Bool
-	cleanup tea.Cmd
+	Active     atomic.Bool
+	cleanup    tea.Cmd
+	cols, rows int // The cell area the picture was given, which its grid fills.
 }
 type Front struct {
-	Picture picture.Model
-	ID      int
-	View    string
-	Image   image.Image
-	Flight  *Placement
+	Picture    picture.Model
+	ID         int
+	View       string
+	Image      image.Image
+	Flight     *Placement
+	Cols, Rows int // The size of View, in cells.
 }
 
 // Animator is owned by one event loop. Source snapshots and rendered images
@@ -223,7 +226,7 @@ func (a *Animator) Update(msg tea.Msg) (tea.Cmd, bool) {
 		if a.Source != nil {
 			img = a.Source.Image()
 		}
-		a.Front = &Front{*a.Picture, a.ID, a.Picture.View().Content, img, a.Flight}
+		a.Front = &Front{*a.Picture, a.ID, a.Picture.View().Content, img, a.Flight, a.Flight.cols, a.Flight.rows}
 		a.Awaiting = false
 		return cleanup, true
 	}
@@ -290,7 +293,7 @@ func (a *Animator) Show(img image.Image) tea.Cmd {
 		return cleanup
 	}
 	a.Awaiting = true
-	a.Flight = &Placement{}
+	a.Flight = &Placement{cols: a.width, rows: a.height}
 	a.Flight.Active.Store(true)
 	*a.Picture = picture.NewWithConfig(picture.Config{KittyID: a.ID, KittyZ: -1, Background: a.cfg.Background, CellPixelWidth: cw, CellPixelHeight: ch, KittyResolutionFactor: old.KittyResolutionFactor(), KittyFormat: old.KittyFormat(), KittyMedium: old.KittyMedium()})
 	return tea.Sequence(cleanup, a.Picture.SetSize(a.width, a.height), a.Picture.Toggle(), a.Picture.SetImage(img))
@@ -312,12 +315,62 @@ func (a *Animator) View() string {
 	if a.Front == nil {
 		return ansi.Truncate("Preparing image…", a.width, "")
 	}
-	lines := strings.Split(a.Front.View, "\n")
-	lines = lines[:min(len(lines), a.height)]
-	for i := range lines {
-		lines[i] = ansi.Truncate(lines[i], a.width, "")
+	if a.Front.Cols == a.width && a.Front.Rows == a.height {
+		return a.Front.View // Measuring the grid's graphemes would be the frame's largest cost.
+	}
+	return cutGrid(a.Front.View, a.Front.Cols, a.width, a.height)
+}
+
+// cutGrid is a placeholder grid of cols cells per row fitted to w×h cells:
+// rows are cut or padded with blanks, by cell count rather than by measuring
+// graphemes, and missing rows are blank. A stale grid shown during a resize
+// burst is then as cheap to show as an exact one.
+func cutGrid(grid string, cols, w, h int) string {
+	lines := strings.Split(grid, "\n")
+	lines = lines[:min(len(lines), h)]
+	for i, line := range lines {
+		switch {
+		case cols > w:
+			lines[i] = cutCells(line, w)
+		case cols < w:
+			lines[i] = line + strings.Repeat(" ", w-cols)
+		}
+	}
+	for len(lines) < h {
+		lines = append(lines, strings.Repeat(" ", w))
 	}
 	return strings.Join(lines, "\n")
+}
+
+// cutCells keeps the first w cells of a placeholder row, three runes each after
+// an SGR, and its reset. A row that is not a placeholder grid, as a glyph
+// fallback's is, is measured and cut the slow way.
+func cutCells(line string, w int) string {
+	n, end := 0, -1
+	for i, r := range line {
+		if r != kitty.Placeholder {
+			continue
+		}
+		if n == w {
+			end = i
+			break
+		}
+		n++
+	}
+	if end < 0 {
+		if n == 0 {
+			return ansi.Truncate(line, w, "")
+		}
+		return line
+	}
+	return line[:end] + "\x1b[39m"
+}
+
+// Exact reports whether View returns a picture of exactly w×h cells: a
+// presented Kitty grid, at the placement's own size or cut to it. A host can
+// then show it without a frame that would measure every cell to pad nothing.
+func (a *Animator) Exact(w, h int) bool {
+	return a.Picture.Mode() == picture.PictureKitty && a.Front != nil && a.width == w && a.height == h
 }
 func (a *Animator) Stop() { a.CancelPending(); a.Source = nil; a.Player = nil; a.visible = false }
 func (a *Animator) Clear() tea.Cmd {

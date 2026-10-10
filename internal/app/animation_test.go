@@ -25,7 +25,7 @@ import (
 // the ordered APC, grid, and presentation messages. These tests pause playback
 // (or leave the document) first and drive timers explicitly. Unlike pump, this
 // helper never guesses that a slow encoder is a timer and drops its result.
-func drainAnimation(t *testing.T, m *Model, cmd tea.Cmd) {
+func drainAnimation(t testing.TB, m *Model, cmd tea.Cmd) {
 	t.Helper()
 	remaining := 1000
 	var run func(tea.Cmd)
