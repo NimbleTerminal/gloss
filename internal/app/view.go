@@ -93,6 +93,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		exact = !m.quitting && m.presentation.Exact(w, h)
 		if m.typeset != nil {
 			mouse = tea.MouseModeCellMotion
+			if len(m.typesetLinks) > 0 && !m.isPreview && m.layer == layerNone {
+				mouse = tea.MouseModeAllMotion
+			}
 		}
 	}
 	if plain {
@@ -103,7 +106,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body = strings.Join(lines[:min(len(lines), h)], "\n")
 	}
 	if exact {
-		return body, mouse
+		return m.spliceTypesetOverlays(body), mouse
 	}
 	frame := lipgloss.NewStyle().Width(w).Height(h)
 	if plain || m.markdown != nil {
@@ -303,6 +306,11 @@ func (m *Model) documentStatus(w, h int) (bar, hint string) {
 		status = " No files yet"
 		if m.note != "" {
 			status += " · " + m.note
+		}
+	}
+	if m.hoverLinkActive && m.typeset != nil {
+		if address := m.linkAt(m.hoverLinkPoint.X, m.hoverLinkPoint.Y); address != "" {
+			status = " Link: " + safe(address)
 		}
 	}
 	bar = m.statusStyle().Width(w).Render(ansi.Truncate(status, w, "…"))

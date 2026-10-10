@@ -79,7 +79,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
 - **Markdown**: native text/typeset views open HTTP(S) links and linked figures
   in the default browser on click, preserving wheel scrolling. The host supplies
   `Options.OpenLink`; browser/serve hosts leave it nil. Normal text retains OSC 8.
-   visible embedded GIF blocks animate in both renderers, with
+  Visible embedded GIF blocks animate in both renderers, with
   eight distinct destinations and 64 MiB total decoded frame storage; excess
   GIFs stay on frame one and are counted in info. Offscreen/help/source/menu
   pauses; reflow preserves positions; reload restarts. `e` exports the first
@@ -91,8 +91,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   visible. Fonts/images/shaped text are cached; layout advances by block as
   needed. `/` opens source search. `e` exports the visible viewport; headless
   exports use fixed-width numbered 1125-pixel slices at 150 DPI (`--page`,
-  `--dpi`, `--max-edge`), with `kind: "markdown"`. No network assets or Kitty
-  composition. Preflight: 2 MiB UTF-8, 32 image references, 16 Mi decoded pixels,
+  `--dpi`, `--max-edge`), with `kind: "markdown"`. No network assets. Under
+  Kitty graphics the page is one still picture and each GIF plays in an
+  overlay picture the size of its cells (`internal/app/typeset_overlay.go`),
+  so a frame is the GIF's area, not the viewport; glyph rendering animates
+  the composite page. Preflight: 2 MiB UTF-8, 32 image references, 16 Mi decoded pixels,
   128 MiB combined image input. Layout caps: 32,768 AST nodes/blocks/drawing
   operations, 16,384 runes per paragraph/code line, 8,192 lines per code block,
   262,144 glyphs, 15 seconds, 10,000 export slices, 32 Mi raster pixels.

@@ -118,8 +118,8 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		out.Err = fmt.Errorf("typeset raster exceeds %d pixels", MaxPixels)
 		return
 	}
-	out.Image = lay.rasterTo(top, height, left, width, w, h, scale, false)
 	if q.Animate && !q.Preview {
+		viewport := image.Rect(0, 0, w, h)
 		for _, op := range lay.ops {
 			player := lay.p.animations[op.destination]
 			if op.asset == nil || player == nil {
@@ -127,13 +127,18 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			}
 			r := op.rect.Sub(image.Pt(left, top))
 			r = image.Rect(int(math.Round(float64(r.Min.X)*scale)), int(math.Round(float64(r.Min.Y)*scale)), int(math.Round(float64(r.Max.X)*scale)), int(math.Round(float64(r.Max.Y)*scale)))
-			if r.Overlaps(out.Image.Bounds()) {
+			if r.Overlaps(viewport) {
 				out.Animated = append(out.Animated, TypesetRegion{Rect: r, Player: player, Destination: op.destination})
 			}
 		}
-		if len(out.Animated) > 0 {
-			out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, true)
-		}
+	}
+	if len(out.Animated) > 0 {
+		// The page is drawn once, without its animated images: the composite
+		// puts their current frames in. Drawing them here too would be a second
+		// raster and a resample of each first frame, thrown away.
+		out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, true)
+	} else {
+		out.Image = lay.rasterTo(top, height, left, width, w, h, scale, false)
 	}
 	if q.Animate && !q.Preview && (len(out.Animated) > 0 || q.Playback != nil) {
 		base := out.AnimationBase

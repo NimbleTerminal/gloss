@@ -92,8 +92,13 @@ type meshState struct {
 type textState struct {
 	typesetLinks            []document.TypesetLink
 	pressedLink             string
+	hoverLinkPoint          image.Point
+	hoverLinkActive         bool
 	linkPoint               image.Point
 	typesetPlayback         *animate.CompositeSource
+	typesetOverlays         []*typesetOverlay
+	typesetPending          *document.Result // A page view whose overlays wait for the view to settle.
+	typesetSettle           uint64
 	search                  *textSearch
 	searchWorker            *searchWorker
 	markdown                *markdownView
@@ -277,7 +282,7 @@ func (m *Model) quit() tea.Cmd {
 	if m.markdown != nil {
 		markdownCleanup = m.markdown.keep()
 	}
-	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture()), tea.Quit)
+	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepTypesetOverlays(), m.keepAnimationPicture()), tea.Quit)
 }
 
 // IsStdin says whether path is the file standard input was read into.
@@ -290,6 +295,9 @@ func (m *Model) request(reload bool) document.Request {
 	q.TypesetWidth = m.typesetMeasure()
 	if !reload {
 		q.Playback = m.typesetPlayback
+		if sources := m.typesetOverlaySources(); q.Playback != nil && len(sources) > 0 {
+			q.Playback = q.Playback.WithPositions(sources...)
+		}
 	}
 	if m.opts.typesetEnabled() && !m.isPreview {
 		view := m.typesetViewport()
@@ -382,13 +390,16 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.typeset = nil
 	m.typesetLinks = nil
 	m.pressedLink = ""
+	m.hoverLinkActive = false
 	m.typesetPlayback = nil
+	m.typesetPending = nil
+	overlayCleanup := m.stopTypesetOverlays()
 	m.stopAnimation()
 	m.sheet = nil
 	frontCleanup := m.clearAnimationFront()
 	cleanup := m.pic.SetImage(nil)
 	m.retireAnimationPicture(cleanup)
-	return tea.Batch(frontCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
+	return tea.Batch(frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -434,7 +445,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		if m.pic.Mode() != picture.PictureKitty {
 			cmd = tea.Batch(cmd, m.clearAnimationFront())
 		}
-		cmd = tea.Batch(cmd, m.scheduleAnimation())
+		if m.typeset == nil || m.markdown != nil || m.pic.Mode() != picture.PictureKitty {
+			m.typesetPending = nil
+			cmd = tea.Batch(cmd, m.stopTypesetOverlays())
+		}
+		cmd = tea.Batch(cmd, m.scheduleAnimation(), m.scheduleTypesetOverlays())
 		if m.markdown != nil {
 			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument))
 		}
@@ -485,6 +500,9 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			return m, cmd
 		}
 	}
+	if cmd, handled := m.typesetOverlayMessage(msg); handled {
+		return m, cmd
+	}
 	switch v := msg.(type) {
 	case linkOpened:
 		if v.generation == m.generation && v.err != nil {
@@ -521,6 +539,8 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, nil
 	case typesetResize:
 		return m, m.reflowTypeset(v)
+	case typesetSettled:
+		return m, m.typesetSettled(v)
 	case typesetReflowResult:
 		return m, m.typesetReflowed(v)
 	case tea.WindowSizeMsg:
@@ -652,6 +672,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	if m.markdown != nil {
 		cmds = append(cmds, m.markdown.update(msg), m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
 	}
+	cmds = append(cmds, m.updateTypesetOverlayPictures(msg))
 	_, mouseMessage := msg.(tea.MouseMsg)
 	if m.chart != nil && !((m.help || m.listing()) && mouseMessage) {
 		before := m.chart.Camera()
@@ -696,7 +717,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	cleanup := tea.Batch(animationCleanup, m.clearQR(), m.clearMarkdown(), m.clearChart())
 	m.sheet = nil
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
-	m.acceptTypesetView(v)
+	overlays := m.acceptTypesetView(v)
 	m.kind, m.page, m.pages = v.Kind, v.Page, v.Pages
 	if v.Sheet != nil {
 		m.source, m.sheet = nil, newSheetView(v.Sheet)
@@ -728,7 +749,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 		m.presentation.Paused = false
 		m.animation = &animation{Animator: m.presentation}
 	}
-	return tea.Sequence(cleanup, m.refreshImage(), m.queueTypesetReflow())
+	return tea.Sequence(cleanup, tea.Batch(m.refreshImage(), overlays), m.queueTypesetReflow())
 }
 
 // showMesh puts a loaded mesh on a new chart, at the camera it starts from.
@@ -789,7 +810,7 @@ func (m *Model) refreshImage() tea.Cmd {
 		if !m.typesetMatches() {
 			return m.queueTypesetReflow()
 		}
-		if m.presentation.Source == nil && m.typesetPlayback != nil {
+		if m.presentation.Source == nil && m.typesetPlayback != nil && len(m.typesetOverlays) == 0 && m.typesetPending == nil {
 			m.presentation.SetSource(m.typesetPlayback)
 		}
 		return m.showPicture(m.source)

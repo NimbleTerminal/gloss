@@ -256,8 +256,8 @@ path: keep the previous Kitty image until the replacement is transmitted, or
 show Preparing image on the first draw. Explicit glyph mode is unchanged.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
-clipped to the viewport so it cannot wrap or displace the status bar. A grid
-that still matches the viewport is the body as it is, with no frame around it:
+cut to the viewport by cell count so it cannot wrap or displace the status bar.
+A presented grid, exact or cut, is the body as it is, with no frame around it:
 measuring its cells to pad nothing was the largest cost of each View. Obsolete
 resize completions cannot present over the latest layout; pause is preserved.
 At most a visible front picture and a pending replacement are retained; leaving
@@ -289,6 +289,23 @@ cell geometry, visibility and `nextKittyID`. Hiding cancels the epoch and retire
 placements without discarding the playback position. Typeset results carry full
 region rectangles and a composite snapshot; reflow preserves positions by
 asset destination, and only visible regions advance. Reload starts fresh.
+Under Kitty graphics the page picture stays still and each group of cells the
+regions cover gets an overlay: its own picture and Animator, fed
+`CompositeSource.Window`, the page's base and regions cropped to those cells.
+A frame is then the GIF's cells rather than the whole viewport, and the page
+is not sent again while a GIF plays. A page drawn above a GIF's resolution gets
+its overlay at the GIF's own (the picture's `KittyResolutionFactor`), the base
+under it resampled once, so frames are copied in and the terminal enlarges
+them. The view splices a presented overlay's
+placeholders into the page grid (`spliceCells`); one still in flight leaves
+the page's own pixels. A reflow rebuilds the overlays and carries their
+positions through the request (`WithPositions`); leaving, reload and a switch
+to glyphs stop them, and glyph rendering animates the composite page as a
+whole. Overlays are built only once a view has stood for 120 ms
+(`typesetSettleDelay`): a scroll or resize burst costs the page alone, each
+GIF standing at its current frame, which the page carries. A page with
+regions in view is rastered once, without them; the composite draws their
+frames in. `e` composes the overlays' current frames onto the page.
 Markdown loaders share an eight-destination/64 MiB animation budget and retain
 still first frames when exceeded. The info field reports eligible/total GIFs.
 Normal Markdown `e` snapshots the first visible GIF's full frame; typeset `e`

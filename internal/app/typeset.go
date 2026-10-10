@@ -14,6 +14,16 @@ import (
 
 const typesetResizeDelay = 60 * time.Millisecond
 
+// typesetSettleDelay is how long a page view stays unchanged before its
+// animated regions get their overlays. A scroll or resize burst then costs
+// the page alone, with each GIF standing at its current frame.
+const typesetSettleDelay = 120 * time.Millisecond
+
+type typesetSettled struct {
+	owner    int
+	revision uint64
+}
+
 type typesetResize struct {
 	owner    int
 	revision uint64
@@ -109,16 +119,32 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 	m.note = ""
 	m.source, m.fields = v.Image, v.Info
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
-	m.acceptTypesetView(v)
+	overlays := m.acceptTypesetView(v)
 	if m.markdown != nil {
-		return nil
+		return overlays
 	}
-	return m.showPicture(m.source)
+	return tea.Batch(m.showPicture(m.source), overlays)
 }
-func (m *Model) acceptTypesetView(v document.Result) {
+
+// acceptTypesetView takes a page view over, returning the overlays' commands.
+// Under Kitty graphics the animated regions play in overlays and the page
+// picture stays still; otherwise the composite page animates as a whole.
+func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	m.typesetLinks = v.Links
 	m.typesetPlayback = v.Playback
-	if v.Playback != nil {
+	overlays := m.stopTypesetOverlays()
+	m.typesetPending = nil
+	if m.pic.Mode() == picture.PictureKitty && v.Playback != nil && len(v.Animated) > 0 && v.TypesetView != nil {
+		pending := v
+		m.typesetPending = &pending
+		m.typesetSettle++
+		owner, revision := m.kittyID, m.typesetSettle
+		overlays = tea.Batch(overlays, tea.Tick(typesetSettleDelay, func(time.Time) tea.Msg { return typesetSettled{owner, revision} }))
+	}
+	switch {
+	case m.typesetPending != nil:
+		m.presentation.SetSource(nil) // The overlays will play the regions; the page stands at their current frames.
+	case v.Playback != nil:
 		m.presentation.SetSource(v.Playback)
 		m.presentation.Paused = false
 		m.presentation.SetSpeed(0)
@@ -129,6 +155,17 @@ func (m *Model) acceptTypesetView(v document.Result) {
 		m.typesetTop, m.typesetLeft = v.TypesetView.Top, v.TypesetView.Left
 		m.typesetEnd = false
 	}
+	return overlays
+}
+
+// typesetSettled gives the last page view its overlays, unless it has moved on.
+func (m *Model) typesetSettled(msg typesetSettled) tea.Cmd {
+	if msg.owner != m.kittyID || msg.revision != m.typesetSettle || m.typesetPending == nil || m.typesetActive != 0 || !m.typesetMatches() {
+		return nil
+	}
+	v := *m.typesetPending
+	m.typesetPending = nil
+	return m.layoutTypesetOverlays(v)
 }
 func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
 	step := max(1, 75>>m.zoom)

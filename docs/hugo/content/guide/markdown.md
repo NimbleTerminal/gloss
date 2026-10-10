@@ -49,6 +49,9 @@ pauses playback; returning resumes at the saved position. `r`/`R` reloads and
 restarts. The standalone GIF pause, speed and scrubber controls do not apply:
 Space still scrolls Markdown. Typeset scrolling and reflow preserve playback
 positions, and `e` exports the displayed viewport, including its GIF frames.
+With Kitty graphics a typeset GIF is redrawn in its own area only, so the rest
+of the page is not resent for every frame, and it stands still during a scroll
+or resize burst, resuming once the view settles.
 
 A document can animate up to eight distinct GIF destinations with a combined
 64 MiB of decoded frame storage, checked before full decoding. Duplicate

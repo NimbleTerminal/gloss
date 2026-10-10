@@ -74,7 +74,7 @@ func (m *Model) export() tea.Cmd {
 		view.Camera = &camera
 	}
 	if m.typeset != nil && m.markdown == nil {
-		frame = m.source
+		frame = m.typesetExportFrame()
 	}
 	if m.animation != nil || (m.typeset != nil && m.markdown == nil) {
 		frame = m.source
