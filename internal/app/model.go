@@ -212,7 +212,9 @@ func terminalPicture(render string, fresh bool) (picture.Model, int) {
 		nextModelID.Store(rand.Int64N(8000))
 	}
 	id := nextKittyID()
-	pic := picture.NewWithConfig(picture.Config{KittyID: id, KittyZ: -1, Background: pictureBackground})
+	// Frames go as zlib-compressed raw pixels: PNG's encoder tries every
+	// filter on every row and took three times as long for the same bytes.
+	pic := picture.NewWithConfig(picture.Config{KittyID: id, KittyZ: -1, Background: pictureBackground, KittyFormat: picture.KittyFormatZlib})
 	if render == "kitty" {
 		pic.Toggle()
 	}

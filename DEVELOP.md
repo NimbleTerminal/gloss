@@ -263,6 +263,9 @@ resize completions cannot present over the latest layout; pause is preserved.
 At most a visible front picture and a pending replacement are retained; leaving
 or explicitly choosing glyphs cleans up both. Keep-screen quit retains the
 visible frame, and PNG export snapshots that frame even during encoding.
+Kitty frames are sent as zlib-compressed raw pixels (`KittyFormatZlib`, RGB
+when opaque): PNG's encoder tries every filter on every row and took three
+times as long for the same bytes.
 Fresh image IDs avoid ghostty-web's texture cache, consuming the slots inside
 blocks already reserved by `nextKittyID`. Retired placements receive a second
 ID-specific cleanup if an accepted transmission completes late. Glyphs use

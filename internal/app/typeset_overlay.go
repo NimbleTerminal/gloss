@@ -58,7 +58,7 @@ func (m *Model) layoutTypesetOverlays(v document.Result) tea.Cmd {
 		// The picture prepares frames at these cell pixels; the window must be exactly that size to be shown as it is.
 		opw, oph := max(1, int(float64(cw)*g.factor)), max(1, int(float64(ch)*g.factor))
 		o := &typesetOverlay{cells: cells}
-		o.pic = picture.NewWithConfig(picture.Config{KittyID: nextKittyID(), KittyZ: -1, Background: pictureBackground, CellPixelWidth: cw, CellPixelHeight: ch, KittyResolutionFactor: g.factor})
+		o.pic = picture.NewWithConfig(picture.Config{KittyID: nextKittyID(), KittyZ: -1, Background: pictureBackground, CellPixelWidth: cw, CellPixelHeight: ch, KittyResolutionFactor: g.factor, KittyFormat: picture.KittyFormatZlib})
 		o.pic.Toggle()
 		o.anim = animate.New(&o.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
 		o.anim.SetSource(v.Playback.Window(window, image.Pt(cells.Dx()*opw, cells.Dy()*oph)))

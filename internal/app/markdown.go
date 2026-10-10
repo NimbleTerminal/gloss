@@ -35,7 +35,7 @@ type markdownView struct {
 func newMarkdownView(doc *document.Markdown, id int) *markdownView {
 	m := &markdownView{doc: doc}
 	for i := range doc.Images {
-		m.pictures = append(m.pictures, picture.NewWithConfig(picture.Config{KittyID: id + i, KittyZ: -1}))
+		m.pictures = append(m.pictures, picture.NewWithConfig(picture.Config{KittyID: id + i, KittyZ: -1, KittyFormat: picture.KittyFormatZlib}))
 	}
 	m.animators = make([]*animate.Animator, len(doc.Images))
 	for i, asset := range doc.Images {

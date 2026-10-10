@@ -35,3 +35,20 @@ func TestEachKittyPictureHasItsOwnID(t *testing.T) {
 		t.Fatalf("cell size lost: %d×%d", w, h)
 	}
 }
+
+// Every Kitty picture sends zlib-compressed raw pixels: the page, the Markdown
+// view's inline pictures and a typeset overlay alike.
+func TestKittyPicturesSendZlibFrames(t *testing.T) {
+	m := typesetGIFModel(t, "kitty", 80, 30)
+	if m.pic.KittyFormat() != picture.KittyFormatZlib {
+		t.Fatalf("page format %v", m.pic.KittyFormat())
+	}
+	if len(m.typesetOverlays) == 0 || m.typesetOverlays[0].pic.KittyFormat() != picture.KittyFormatZlib {
+		t.Fatal("overlay format")
+	}
+	cmd, _ := m.documentKey("t") // Normal Markdown rendering, with the GIF as an inline picture.
+	drainStill(t, m, cmd)
+	if m.markdown == nil || len(m.markdown.pictures) == 0 || m.markdown.pictures[0].KittyFormat() != picture.KittyFormatZlib {
+		t.Fatalf("inline picture format: markdown %v", m.markdown != nil)
+	}
+}
