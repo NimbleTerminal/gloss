@@ -18,10 +18,10 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleTerminal/gloss/skills"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/pflag"
 )
@@ -67,6 +67,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.SetOutput(out)
 	f.StringVarP(&opts.Render, "render", "r", "auto", "terminal graphics: auto, kitty, glyph")
 	f.StringVar(&opts.Render3D, "3d", "auto", "mesh renderer for STL and 3MF: auto, software, wireframe")
+	f.StringVar(&opts.Theme, "theme", "auto", "Text and typeset colors: auto, light, dark (auto exports use light)")
+	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, plain text, source code, and JSON as graphics")
+	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
 	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown (or md)")
 	accept := f.String("accept", "", "require these content formats for this session, comma-separated: image/*, pdf, svg, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown")
 	page := f.StringP("page", "p", "1", "PDF page or workbook sheet, from 1; for an export or text into a folder, a range such as 2-5, or all")
@@ -186,6 +189,12 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		if _, err := parsePickNetwork(opts.Listen, opts.AdvertiseHost); err != nil {
 			return opts, false, err
 		}
+	}
+	if !slices.Contains([]string{"auto", "light", "dark"}, opts.Theme) {
+		return opts, false, fmt.Errorf("--theme must be auto, light or dark")
+	}
+	if !slices.Contains([]string{"text", "typeset"}, opts.MarkdownMode) {
+		return opts, false, fmt.Errorf("--markdown must be text or typeset")
 	}
 	if !slices.Contains([]string{"auto", "kitty", "glyph"}, opts.Render) {
 		return opts, false, fmt.Errorf("--render must be auto, kitty, or glyph")

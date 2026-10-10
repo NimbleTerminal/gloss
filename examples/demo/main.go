@@ -8,10 +8,10 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
+	booba "github.com/NimbleMarkets/go-booba"
 	"github.com/NimbleTerminal/gloss/examples"
 	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/NimbleTerminal/gloss/internal/document"
-	booba "github.com/NimbleMarkets/go-booba"
 	"github.com/spf13/pflag"
 )
 

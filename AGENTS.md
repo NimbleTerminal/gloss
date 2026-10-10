@@ -24,9 +24,9 @@ this file consistent with the code.
   (`testdata/scripts`, `task browse:screens`). Change the
   browser by adding a script first.
 - `internal/document`: bounded loaders, renderers, and vision-image sizing.
-  `gif.go` preflights GIF allocations and supplies immutable playback positions;
-  `internal/app/animation.go` owns cancellable timers and asynchronous composition
-  in the existing event loop, including Kitty transmission pacing and cleanup.
+- `internal/animate`: bounded GIF decoding, format-neutral immutable clips and
+  players, per-picture event-loop animators with Kitty pacing/cleanup, and the
+  typeset region compositor. `internal/app/animation.go` adapts standalone controls.
 - `internal/app/qr.go`: table URL overlay using the external
   `nimbleterminal.dev/ntqrcode/qrcode` component. Gloss provides
   capability, cell geometry, and fresh image IDs. `u` opens, `Esc` closes,
@@ -36,6 +36,8 @@ this file consistent with the code.
   Node-tested helpers (`node --test web/*.test.mjs`).
 - `examples`: small original runnable fixtures; `examples/demo` is a separate
   Go module pinning the Bubble Tea WASM fork used by the NTCharts demos.
+- `experiments/typeset`: separate-module comparison of direct go-text Markdown
+  layout with the PDF backend; not part of the viewer or root test suite.
 - `docs/hugo`: the documentation site (Hugo, hugo-book theme as a submodule),
   published at `/docs/` beside the demo. The guide pages (`content/guide`) are
   written by hand, except *For LLMs* and *Development*, which are generated
@@ -59,8 +61,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `r`/`R` reloads, `e` exports the current full frame. Honors
   transparency, frame rectangles, disposal, and loop counts. Canvas up to
   32 MP, at most 1,000 frames and 64 Mi total decoded frame pixels, checked
-  before DecodeAll. Delays under 20 ms use 100 ms. Previews, inline images,
-  and headless PNG exports stay on the first composited frame. Frames are not
+  before DecodeAll. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
   pages; file navigation is unchanged except Space while an animation is open.
 - **SVG**: rasterized by NTCharts' pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.
@@ -75,10 +76,33 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   color-group colors, Bambu-Studio-style filament colors from slicer settings;
   part listing/selection (`c` key, `--parts`, `--partn`); too-large projects
   fall back to the embedded thumbnail.
-- **Markdown**: Glamour-rendered with local raster/SVG images inline; `s`
-  toggles source.
+- **Markdown**: visible embedded GIF blocks animate in both renderers, with
+  eight distinct destinations and 64 MiB total decoded frame storage; excess
+  GIFs stay on frame one and are counted in info. Offscreen/help/source/menu
+  pauses; reflow preserves positions; reload restarts. `e` exports the first
+  visible GIF’s displayed frame in normal Markdown, the viewport in typeset.
+  Glamour by default; `s` toggles source and `t` switches text/typeset.
+  `--typeset` uses go-text, embedded Go fonts and Chroma directly,
+  without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
+  width after a 60 ms debounce, cancels stale jobs and keeps the old image
+  visible. Fonts/images/shaped text are cached; layout advances by block as
+  needed. `/` opens source search. `e` exports the visible viewport; headless
+  exports use fixed-width numbered 1125-pixel slices at 150 DPI (`--page`,
+  `--dpi`, `--max-edge`), with `kind: "markdown"`. No network assets or Kitty
+  composition. Preflight: 2 MiB UTF-8, 32 image references, 16 Mi decoded pixels,
+  128 MiB combined image input. Layout caps: 32,768 AST nodes/blocks/drawing
+  operations, 16,384 runes per paragraph/code line, 8,192 lines per code block,
+  262,144 glyphs, 15 seconds, 10,000 export slices, 32 Mi raster pixels.
+  The shaping cache has a 32 MiB estimated-entry budget. See the Markdown guide
+  for the supported subset and limits.
 - **Plain text and source**: readable text is accepted even without a known
-  extension; source is syntax-highlighted.
+  extension; source is syntax-highlighted. `--typeset` or `t` switches text, source
+  and JSON to the direct graphical typesetter; normal terminal text is the default.
+  Plain text stays literal and proportional; source/JSON are highlighted monospace.
+  `s` and `/` return to normal text for reading/search. Typeset text requires valid
+  UTF-8, at most 2 MiB of source/formatted text, 8,192 lines and an untruncated
+  bounded source view; Markdown shaping/raster limits also apply. Export kinds
+  remain text/json. `--markdown typeset` remains a compatibility alias.
 - **JSON / JSONL / NDJSON**: pretty-printed and highlighted, numbered records
   for line-delimited files, syntax errors reported with line number.
 - **Jupyter notebooks** (nbformat 4): Markdown and code cells with outputs,
@@ -103,6 +127,15 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   are omitted, and no site proxy is used. Browser downloads have a one-minute
   deadline and a streamed 128 MiB limit; URL documents are not saved in the
   public app's persistent library.
+
+Text themes: `--theme auto|light|dark` controls normal text and typeset colors.
+Auto asks for the terminal background through Bubble Tea's event loop, defaults
+to dark without a reply, and rechecks on focus. Explicit themes ignore replies;
+previews inherit the parent. Headless auto always uses light without probing.
+`internal/theme` supplies shared palettes; typeset theme changes only repaint,
+reusing fonts, shaping, layout and local images while keeping scroll position.
+Glamour styled text/search reindexes on changes. Images/PDFs and QR codes keep
+their original colors.
 
 Key viewer features: Kitty graphics with colored half-block glyph fallback;
 alternate screen by default, `-X` for main screen; file menu (`--menu`),

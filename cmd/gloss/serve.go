@@ -30,10 +30,10 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	booba "github.com/NimbleMarkets/go-booba/serve"
 	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleTerminal/gloss/web"
-	booba "github.com/NimbleMarkets/go-booba/serve"
 )
 
 var (

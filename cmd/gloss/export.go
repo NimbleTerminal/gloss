@@ -10,13 +10,17 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
 )
 
 func exportRequest(opts app.Options, path string, generation int) document.Request {
-	return document.Request{Path: path, Type: opts.Type, Page: opts.Page, DPI: opts.DPI, MaxEdge: opts.MaxEdge, Generation: uint64(generation), Parts: opts.Parts, Color: opts.Color, Stdin: opts.IsStdin(path), Strict: true}
+	q := document.Request{Path: path, Type: opts.Type, MarkdownMode: opts.MarkdownMode, Typeset: opts.Typeset, Theme: opts.Theme, Page: opts.Page, DPI: opts.DPI, MaxEdge: opts.MaxEdge, Generation: uint64(generation), Parts: opts.Parts, Color: opts.Color, Stdin: opts.IsStdin(path), Strict: true}
+	if q.Stdin {
+		q.BaseDir = opts.MarkdownBase
+	}
+	return q
 }
 
 // onCPU reports whether meshes are to be drawn without the GPU: --3d names
@@ -156,7 +160,8 @@ func textFiles(opts options, stdout, stderr io.Writer) error {
 		for _, page := range pagesOf(loader, opts, path, &generation) {
 			generation++
 			q := exportRequest(opts.Options, path, generation)
-			q.Page, q.TextOnly = page, true
+			q.Page, q.TextOnly, q.MarkdownMode = page, true, ""
+			q.Typeset = false
 			r := loader.Load(q)
 			entry := made{Path: path, Kind: r.Kind, Page: r.Page, Pages: r.Pages}
 			if r.Layer != nil {
@@ -229,6 +234,10 @@ func pagesOf(loader *document.Loader, opts options, path string, generation *int
 	*generation++
 	q := exportRequest(opts.Options, path, *generation)
 	q.Page, q.TextOnly = 1, opts.Text
+	if opts.Text {
+		q.MarkdownMode = ""
+		q.Typeset = false
+	}
 	r := loader.Load(q)
 	if r.Pages < 1 { // A page without text still counts its siblings.
 		return []int{1} // The failure is reported by the page's own load.
@@ -284,7 +293,7 @@ func targetFor(opts options, i int, path string, r document.Result, ext string) 
 	}
 	suffix := ""
 	switch {
-	case r.Kind == "pdf" && r.Pages > 1:
+	case (r.Kind == "pdf" || r.Typeset != nil) && r.Pages > 1:
 		suffix = fmt.Sprintf("-page-%d", r.Page)
 	case r.Kind == "xlsx" && r.Pages > 1:
 		suffix = fmt.Sprintf("-sheet-%d", r.Page)

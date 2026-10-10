@@ -1,7 +1,9 @@
 package document
 
 import (
+	"context"
 	"fmt"
+	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
 	"io/fs"
 	"net/url"
@@ -23,8 +25,9 @@ const MaxMarkdownImages = 32
 const maxMarkdownImagePixels = 16 << 20
 
 type Markdown struct {
-	Source []byte
-	Images []MarkdownImage
+	GIFs, Animated, AnimationOverBudget int
+	Source                              []byte
+	Images                              []MarkdownImage
 	// The pictures are inside the file, as a notebook's outputs and a Word
 	// document's media are: their links name no file a reader can open.
 	Packaged bool
@@ -75,6 +78,7 @@ func (md *Markdown) Relink(to map[string]string) []byte {
 type MarkdownImage struct {
 	Destination, Alt string
 	Image            image.Image
+	Animation        *animate.Player
 	Err              error
 }
 
@@ -87,26 +91,20 @@ func loadMarkdown(path string, data []byte, baseDir string) (*Markdown, error) {
 	return loadMarkdownFrom(path, data, baseDir, nil)
 }
 
-func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS) (*Markdown, error) {
+func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS, playback ...bool) (*Markdown, error) {
+	return loadMarkdownContext(context.Background(), path, data, baseDir, files, len(playback) > 0 && playback[0])
+}
+func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir string, files fs.FS, play bool) (*Markdown, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	if len(data) > MaxMarkdownBytes {
 		return nil, fmt.Errorf("Markdown exceeds 2 MiB")
 	}
 	if !utf8.Valid(data) {
 		return nil, fmt.Errorf("Markdown must be UTF-8")
 	}
-	// Preserve text whitespace while excluding terminal controls and bidi marks.
-	source := strings.Map(func(r rune) rune {
-		if r == '\n' || r == '\t' {
-			return r
-		}
-		if r == '\r' {
-			return -1
-		}
-		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
-			return '\ufffd'
-		}
-		return r
-	}, string(data))
+	source := cleanMarkdownSource(data)
 	if err := checkMarkdownNesting(source); err != nil {
 		return nil, err
 	}
@@ -115,12 +113,16 @@ func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS) (*M
 		baseDir = filepath.Dir(path)
 	}
 	cache := make(map[string]MarkdownImage)
-	pixels := 0
+	pixels, encodedBytes := 0, 0
+	var animations markdownAnimations
 	root, err := withDeadline(parseDeadline, "reading the Markdown", func() (ast.Node, error) { return MarkdownTree(md.Source), nil })
 	if err != nil {
 		return nil, err
 	}
 	_ = ast.Walk(root, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if err := ctx.Err(); err != nil {
+			return ast.WalkStop, err
+		}
 		img, ok := n.(*ast.Image)
 		if !entering || !ok {
 			return ast.WalkContinue, nil
@@ -141,6 +143,11 @@ func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS) (*M
 				// Reuse the same bounded image/SVG decoders as standalone files.
 				data, err := readFileFrom(files, resolved)
 				asset.Err = err
+				encodedBytes += len(data)
+				if encodedBytes > MaxFileBytes {
+					asset.Err = ErrTooLarge
+					err = ErrTooLarge
+				}
 				if err == nil {
 					kind, err := Detect(resolved, data, "")
 					asset.Err = err
@@ -148,7 +155,9 @@ func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS) (*M
 						switch kind {
 						case "svg":
 							asset.Image, asset.Err = renderSVG(resolved, data, 1600)
-						case "heic", "image", "png", "jpeg", "gif", "webp", "bmp", "tiff":
+						case "gif":
+							asset.Image, asset.Animation, asset.Err = animations.decode(ctx, data, play)
+						case "heic", "image", "png", "jpeg", "webp", "bmp", "tiff":
 							asset.Image, asset.Err = decodeRaster(data)
 						default:
 							asset.Err = fmt.Errorf("embedded format %s is not an image or SVG", kind)
@@ -168,12 +177,19 @@ func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS) (*M
 					}
 				}
 			}
+			if asset.Err != nil {
+				asset.Animation = nil
+			}
 			cache[dest] = asset
 		}
 		asset.Alt = inlineText(img, md.Source)
 		md.Images = append(md.Images, asset)
 		return ast.WalkSkipChildren, nil
 	})
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	animations.apply(md)
 	return md, nil
 }
 
@@ -228,4 +244,20 @@ func localMarkdownPathFrom(base, destination string, files fs.FS) (string, error
 		path = filepath.ToSlash(path)
 	}
 	return path, nil
+}
+
+// cleanMarkdownSource keeps terminal controls out of the source viewer.
+func cleanMarkdownSource(data []byte) string {
+	return strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\t' {
+			return r
+		}
+		if r == '\r' {
+			return -1
+		}
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
+			return '\ufffd'
+		}
+		return r
+	}, string(data))
 }

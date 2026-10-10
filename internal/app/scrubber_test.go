@@ -14,21 +14,21 @@ func TestGIFScrubberKeysAndResume(t *testing.T) {
 		t.Run(render, func(t *testing.T) {
 			m := animated(t, render, -1)
 			a := m.animation
-			a.speed = 1
-			old := animationTick{a, a.epoch}
+			a.Speed = 1
+			old := animationTick{Owner: a.Animator, Epoch: a.Epoch}
 			for _, tt := range []struct {
 				key   string
 				frame int
 			}{{".", 2}, {".", 2}, {",", 1}, {",", 1}, {"end", 2}, {"home", 1}} {
 				_, cmd := m.Update(press(tt.key))
 				drainAnimation(t, m, cmd)
-				if !a.paused || a.finished || a.player.Frame() != tt.frame || a.speed != 1 {
+				if !a.Paused || a.Finished || a.Player.Frame() != tt.frame || a.Speed != 1 {
 					t.Fatalf("%s: wrong seek state", tt.key)
 				}
-				if m.source != a.player.Image() {
+				if m.source != a.Player.Image() {
 					t.Fatal("export source did not follow seek")
 				}
-				if render == "kitty" && (!strings.ContainsRune(m.pictureView(), kitty.Placeholder) || a.awaiting) {
+				if render == "kitty" && (!strings.ContainsRune(m.pictureView(), kitty.Placeholder) || a.Awaiting) {
 					t.Fatal("seek not presented in Kitty")
 				}
 			}
@@ -36,7 +36,7 @@ func TestGIFScrubberKeysAndResume(t *testing.T) {
 				t.Fatal("old timer survived seek")
 			}
 			m.toggleAnimation()
-			if a.paused || m.scheduleAnimation() == nil {
+			if a.Paused || m.scheduleAnimation() == nil {
 				t.Fatal("Space did not resume sought frame")
 			}
 			a.cancelPending()
@@ -62,7 +62,7 @@ func TestGIFScrubberCoalescesAndRejectsLateResults(t *testing.T) {
 	// Resize while seeking must preserve the requested position.
 	m.Update(tea.WindowSizeMsg{Width: 60, Height: 15})
 	drainAnimation(t, m, m.animationSought(next().(animationSeekResult)))
-	if m.animation.player.Frame() != 1 || m.animation.seek != nil {
+	if m.animation.Player.Frame() != 1 || m.animation.seek != nil {
 		t.Fatal("wrong final drag position")
 	}
 	late := m.seekAnimation(2)
@@ -80,17 +80,17 @@ func TestGIFScrubberMouseAndLayout(t *testing.T) {
 		start, cells, _ := m.scrubberGeometry()
 		_, cmd := m.Update(tea.MouseClickMsg{X: start + cells - 1, Y: m.height - 1, Button: tea.MouseLeft})
 		drainAnimation(t, m, cmd)
-		if m.animation.player.Frame() != 2 || !m.animation.paused {
+		if m.animation.Player.Frame() != 2 || !m.animation.Paused {
 			t.Fatal("click did not seek")
 		}
 		_, cmd = m.Update(tea.MouseMotionMsg{X: -20, Y: 0, Button: tea.MouseLeft})
 		drainAnimation(t, m, cmd)
-		if m.animation.player.Frame() != 1 {
+		if m.animation.Player.Frame() != 1 {
 			t.Fatal("drag did not clamp to first frame")
 		}
 		_, cmd = m.Update(tea.MouseReleaseMsg{X: 1000, Y: 0, Button: tea.MouseLeft})
 		drainAnimation(t, m, cmd)
-		if m.animation.player.Frame() != 2 || m.animation.dragging {
+		if m.animation.Player.Frame() != 2 || m.animation.dragging {
 			t.Fatal("release did not settle drag")
 		}
 		for _, width := range []int{8, 25, 50, 100} {

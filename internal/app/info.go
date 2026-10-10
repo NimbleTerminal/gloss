@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -95,6 +95,7 @@ func (m *Model) terminalFields() []document.Field {
 	}
 	return document.Section("Terminal",
 		document.Field{Label: "Size", Value: size},
+		document.Field{Label: "Text theme", Value: m.theme},
 		document.Field{Label: "Pictures", Value: pictures},
 		document.Field{Label: "Kitty graphics", Value: kitty},
 		document.Field{Label: "Meshes", Value: meshes},

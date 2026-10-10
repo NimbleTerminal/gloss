@@ -3,10 +3,13 @@ package document
 
 import (
 	"bytes"
+	"context"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
 	"image/color"
 	"io"
@@ -16,6 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/NimbleMarkets/ntcharts-pdf/pdfview"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
@@ -130,20 +134,27 @@ func rasterSignature(b []byte) bool {
 const MaxPages = 10000
 
 type Request struct {
-	Path, Type string
-	Page, DPI  int
-	Generation uint64
-	Reload     bool
-	MaxEdge    int         // Export raster target; zero keeps interactive defaults.
-	Animate    bool        // Decode bounded GIF playback; still exports and previews leave this false.
-	TextOnly   bool        // The text layer of a PDF page is wanted, not a picture of it.
-	Preview    bool        // A small, quick rendering is wanted: a thumbnail will do.
-	Parts      PartFilter  // The parts of a 3MF to show; empty shows them all.
-	Shown      []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
-	Color      *color.RGBA // Paint for the faces of a mesh that its file left plain.
-	PaintAll   bool        // Paint every face, not only the plain ones.
-	Stdin      bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
-	BaseDir    string      // Relative Markdown assets; empty uses the source directory.
+	Playback     *animate.CompositeSource
+	Context      context.Context
+	TypesetView  *TypesetViewport
+	Path, Type   string
+	MarkdownMode string
+	Typeset      bool
+	Theme        string
+	TypesetWidth int // Reading width in points; zero uses the fixed export measure.
+	Page, DPI    int
+	Generation   uint64
+	Reload       bool
+	MaxEdge      int         // Export raster target; zero keeps interactive defaults.
+	Animate      bool        // Decode bounded GIF playback; still exports and previews leave this false.
+	TextOnly     bool        // The text layer of a PDF page is wanted, not a picture of it.
+	Preview      bool        // A small, quick rendering is wanted: a thumbnail will do.
+	Parts        PartFilter  // The parts of a 3MF to show; empty shows them all.
+	Shown        []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
+	Color        *color.RGBA // Paint for the faces of a mesh that its file left plain.
+	PaintAll     bool        // Paint every face, not only the plain ones.
+	Stdin        bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
+	BaseDir      string      // Relative Markdown assets; empty uses the source directory.
 	// Exactly what was asked for: a page or part that is not there is an
 	// error, not the nearest one. The viewer turns pages and keeps within
 	// them; an export or a text must not answer for another page.
@@ -151,45 +162,65 @@ type Request struct {
 }
 
 type Result struct {
-	Generation  uint64
-	Kind        string
-	Page, Pages int
-	Image       image.Image
-	Animation   *GIFPlayer
-	Mesh        *Mesh
-	Parts       []Part                      // What a 3MF build places, for choosing among.
-	Shown       []bool                      // Which of them the mesh holds; nil for all.
-	Assemble    func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
-	Markdown    *Markdown
-	Text        string         // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
-	Sheet       *Sheet         // One sheet of a workbook; Page and Pages count sheets.
-	Layer       *TextLayer     // How much of a PDF page its text is, when the text was asked for.
-	Camera      *charts.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
-	Views       []View         // Export views of a mesh: several make a sheet. None uses the default camera.
-	CPU         bool           // Export a mesh without trying the GPU.
-	Info        []Field        // What the file says about itself, for the info panel.
+	TypesetView   *TypesetViewport
+	Animated      []TypesetRegion
+	AnimationBase image.Image
+	Playback      *animate.CompositeSource
+	TypesetDone   bool
+	Theme         string
+	TypesetExtent int
+	Generation    uint64
+	Kind          string
+	Page, Pages   int
+	Image         image.Image
+	Animation     *GIFPlayer
+	Mesh          *Mesh
+	Parts         []Part                      // What a 3MF build places, for choosing among.
+	Shown         []bool                      // Which of them the mesh holds; nil for all.
+	Assemble      func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
+	Markdown      *Markdown
+	TypesetWidth  int
+	Typeset       *Markdown      // Terminal text/source representation of a typeset image.
+	Text          string         // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
+	Sheet         *Sheet         // One sheet of a workbook; Page and Pages count sheets.
+	Layer         *TextLayer     // How much of a PDF page its text is, when the text was asked for.
+	Camera        *charts.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
+	Views         []View         // Export views of a mesh: several make a sheet. None uses the default camera.
+	CPU           bool           // Export a mesh without trying the GPU.
+	Info          []Field        // What the file says about itself, for the info panel.
 	// What Image is when it stands in for the document, as a 3MF's
 	// thumbnail does for a mesh too large to show: empty otherwise.
 	Standin string
 	Err     error
 }
 
-// Loader serializes PDF access and shutdown. Commands that complete out of
+// Loader serializes renderer access and shutdown. Commands that complete out of
 // order cannot replace a newer document; Close also covers in-flight loads.
 type Loader struct {
-	Files      fs.FS // Optional read-only embedded assets; nil uses the host filesystem.
-	mu         sync.Mutex
-	closed     bool
-	generation uint64
-	path       string
-	pdf        pdfview.Renderer // Made when the first page is drawn: text alone never needs it.
-	pdfData    []byte
-	pdfReader  *pdf.Reader
-	pdfVersion string
-	file       []Field
-	pages      int
-	book       book   // Kept, like the PDF, for turning between sheets.
-	bookKind   string // xlsx or grist.
+	Files           fs.FS // Optional read-only embedded assets; nil uses the host filesystem.
+	mu              sync.Mutex
+	closed          bool
+	generation      uint64
+	path            string
+	pdf             pdfview.Renderer // Made when the first page is drawn: text alone never needs it.
+	pdfData         []byte
+	typeset         *Markdown
+	typesetEngine   *engine
+	typesetPrepared *prepared
+	direct          *layout
+	typesetBase     string
+	typesetAnimate  bool
+	typesetKind     string
+	typesetText     string
+	typesetInfo     []Field
+	typesetType     string
+	typesetHash     [32]byte
+	pdfReader       *pdf.Reader
+	pdfVersion      string
+	file            []Field
+	pages           int
+	book            book   // Kept, like the PDF, for turning between sheets.
+	bookKind        string // xlsx or grist.
 }
 
 // book is a file of several sheets: a workbook's, or the tables of a Grist
@@ -209,6 +240,9 @@ func (l *Loader) Close() error {
 
 func (l *Loader) closePDF() error {
 	l.path, l.pages = "", 0
+	l.typeset, l.typesetBase = nil, ""
+	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
+	l.direct, l.typesetPrepared, l.typesetEngine = nil, nil, nil
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
 	if l.pdf == nil {
 		return nil
@@ -222,6 +256,22 @@ func (l *Loader) Load(q Request) (out Result) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	out.Generation = q.Generation
+	if q.Typeset {
+		q.MarkdownMode = "typeset"
+	}
+	if q.MarkdownMode == "typeset" {
+		ctx := q.Context
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		var cancel context.CancelFunc
+		q.Context, cancel = context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+		if err := q.Context.Err(); err != nil {
+			out.Err = err
+			return
+		}
+	}
 	defer func() {
 		if p := recover(); p != nil {
 			out.Err = fmt.Errorf("cannot decode document: %v", p)
@@ -234,6 +284,19 @@ func (l *Loader) Load(q Request) (out Result) {
 	l.generation = q.Generation
 	if l.path != q.Path || q.Reload {
 		_ = l.closePDF()
+	}
+	if l.typeset != nil {
+		data, err := readFileFrom(l.Files, q.Path)
+		if err != nil {
+			out.Err = err
+			return out
+		}
+		if q.MarkdownMode != "typeset" || q.BaseDir != l.typesetBase || q.Type != l.typesetType || (q.Animate && !q.Preview) != l.typesetAnimate || sha256.Sum256(data) != l.typesetHash {
+			_ = l.closePDF()
+		}
+	}
+	if l.typeset != nil {
+		return l.renderTypeset(q)
 	}
 	if l.pdfReader != nil {
 		return l.renderPDF(q)
@@ -261,9 +324,34 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Info = append(file, describe(details)...)
 		}
 	}()
+	if q.MarkdownMode == "typeset" && (kind == "text" || kind == "json") {
+		return l.loadTypesetText(q, data, file, kind)
+	}
 	switch kind {
 	case "markdown":
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, data, q.BaseDir, l.Files)
+		if q.MarkdownMode == "typeset" {
+
+			source, root, assets, err := prepareTypeset(q, data, l.Files)
+			if err != nil {
+				out.Err = err
+				return out
+			}
+			eng, err := newEngine()
+			if err != nil {
+				out.Err = err
+				return out
+			}
+			prep := &prepared{images: map[string]image.Image{}, animations: map[string]*animate.Player{}, ctx: q.Context}
+			for name, a := range assets {
+				if a != nil {
+					prep.images[name] = a.image
+					prep.animations[name] = a.animation
+				}
+			}
+			prep.walk(root, data, 0)
+			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, prep)
+		}
+		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview)
 		details = func() []Field { return markdownFields(out.Markdown) }
 	case "pdf":
 		details = func() []Field {

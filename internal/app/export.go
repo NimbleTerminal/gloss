@@ -29,6 +29,9 @@ func (r exportResult) note() string {
 // parts and paint, at export size.
 func (m *Model) exportRequest() document.Request {
 	q := m.request(false)
+	if m.typeset != nil {
+		q.TypesetWidth = m.typesetWidth
+	}
 	q.Preview, q.Animate, q.MaxEdge = false, false, m.opts.MaxEdge
 	if q.MaxEdge == 0 {
 		q.MaxEdge = 1536
@@ -42,8 +45,17 @@ func (m *Model) export() tea.Cmd {
 	if m.loading || m.err != nil || m.kind == "" {
 		return nil
 	}
+	var frame image.Image
 	if m.markdown != nil {
-		m.note = "Markdown cannot be exported as PNG"
+		frame = m.markdown.animatedFrame()
+	}
+	if m.markdown != nil && frame == nil {
+		m.note = "text view cannot be exported as PNG"
+		if m.typeset != nil {
+			m.note += "; press s for typeset"
+		} else if m.canTypeset() {
+			m.note += "; press t for typeset"
+		}
 		return nil
 	}
 	if m.sheet != nil {
@@ -61,11 +73,13 @@ func (m *Model) export() tea.Cmd {
 		camera := m.chart.Camera()
 		view.Camera = &camera
 	}
-	var frame image.Image
-	if m.animation != nil {
+	if m.typeset != nil && m.markdown == nil {
 		frame = m.source
-		if m.animationFront != nil {
-			frame = m.animationFront.source
+	}
+	if m.animation != nil || (m.typeset != nil && m.markdown == nil) {
+		frame = m.source
+		if m.presentation.Front != nil {
+			frame = m.presentation.Front.Image
 		}
 	}
 	loader := m.loader

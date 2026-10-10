@@ -141,15 +141,79 @@ PDFs navigate by page and
 show excerpts, without raster highlights or OCR. The guide's Controls page
 documents these scopes and the temporary `n`/`N` bindings.
 
+## Typeset Markdown
+
+`--typeset` and `t` use the direct renderer in
+`internal/document/typeset_layout.go`, with go-text/typesetting v0.3.5 and
+go-text/render v0.2.1 (BSD-3-Clause), Chroma, and the existing embedded Go TTFs.
+`typeset.go` preflights all local assets before decode; `typeset_render.go`
+connects the cached layout to `Loader`. `typeset_text.go` sends literal text
+directly to line blocks, with Chroma spans for source/JSON; only Markdown is
+parsed as Markdown. Each format retains its original kind. `--markdown typeset`
+is a compatibility alias; `--typeset` and `t` select the shared view mode.
+The production graph no longer uses goldmark-pdf/gopdf; PDF inputs still use
+PDFium. The [comparison experiment](experiments/typeset/README.md) retains a
+frozen PDF adapter in its separate module and its recorded comparison images.
+
+Standalone local images, including image-only links, are composited into the
+typeset viewport; embedded GIF blocks animate when visible. Images mixed with prose
+still appear as labels.
+
+The loader serializes each font/shaping engine. It caches prepared blocks,
+decoded images, shaped runs and the current width's display list. Copy glyphs
+before wrapping: go-text's whitespace trimming mutates their advances. Chroma
+runs during preparation, recording GitHub light and dark foreground colors,
+plain fallback, and exact source preservation. Both colors participate in the
+shaping cache key; font styles come from the light theme for stable metrics.
+Rasterization draws runs into small temporary tiles before composing one
+viewport image; allocating a viewport-sized rasterizer per run is expensive.
+There is no terminal graphics composition and no new graphics protocol.
+
+`internal/theme` owns two palettes shared by Glamour and the direct renderer.
+`--theme auto|light|dark` resolves to light for headless exports. The application
+owns interactive detection: `tea.RequestBackgroundColor` from Init/focus and
+`tea.BackgroundColorMsg` in Update, without blocking reads or extra probes.
+Auto starts dark; explicit themes ignore terminal replies. Previews inherit
+the parent theme and do not query. Theme changes invalidate Glamour's styled
+text cache and reindex existing search; typeset requests carry the resolved
+theme and reuse the font engine, shaped runs and display list. The rasterizer
+selects semantic fill colors and per-run light/dark inks at paint time.
+A theme mismatch schedules a cancellable viewport repaint and preserves scroll.
+The normal generation/revision checks reject stale completions. Embedded
+pictures, PDF pages and QR colors are not transformed.
+
+`Request.TypesetView` supplies a continuous viewport in 150-DPI layout pixels;
+nil requests a headless 1125-pixel slice. `--dpi` scales drawing, not wrapping.
+The viewer derives width from physical cell geometry, debounces width changes
+for 60 ms, cancels obsolete work and applies only matching generation/revision
+results. It keeps one job in flight and the old bitmap visible. New widths
+anchor the current block; scroll and height changes reuse layout. Preparation
+still parses/validates all input, and layout is incremental by block. There is
+no speculative background completion; scrolling advances the display list,
+and End or headless export completes it within the limits documented in the
+guide. Initial input waits for terminal geometry before layout.
+
+`internal/app/typeset.go` owns scroll/zoom requests and cancellation; normal
+picture image IDs, replacement and cleanup remain in `showPicture`. `s` opens
+source; `/` also opens source and uses existing Markdown search/highlights.
+Interactive export snapshots the displayed viewport; headless exports lay out
+all content and return numbered slices, whose boundaries may cut text/images.
+`t` resets search/position and selects the mode for later Markdown files too.
+
+Tests cover no-PDF loading, incremental layout, cancellation, bounds, cache
+invalidation, raster scale, source/search toggles, resize/scroll consistency,
+Chroma colors, exports, and concurrent independent loaders. Actual Kitty/tmux
+resize, scrolling and glyph fallback remain manual checks after renderer work.
+
 ## Animated GIFs
 
-`internal/document/gif.go` scans GIF blocks before `image/gif.DecodeAll` to
+`internal/animate/gif.go` scans GIF blocks before `image/gif.DecodeAll` to
 bound the logical canvas (32 MP), frame count (1,000), and aggregate paletted
 frame pixels (64 Mi). The standard library decodes LZW and palettes. Static
 loads decode only the first frame and composite it onto the logical canvas;
-previews, inline images, and headless exports do not enable animation.
+previews and headless exports do not enable animation.
 
-`GIFPlayer` holds immutable decoded frames and a playback position. `Next`
+`animate.Player` holds immutable decoded frames and a playback position. `Next`
 returns a fresh composed canvas, honoring transparency and the
 [GIF89a disposal rules](https://www.w3.org/Graphics/GIF/spec-gif89a.txt).
 It uses [Go's loop-count semantics](https://pkg.go.dev/image/gif#GIF): -1 plays
@@ -164,7 +228,7 @@ pause, finished playback, and Kitty transmission backpressure still apply.
 Speed belongs to the loaded animation: resize/zoom and Space restart retain it;
 reload or loading another file starts at 1×. Headless output is unaffected.
 
-`GIFPlayer.Seek` accepts a one-based frame, clamps to the endpoints, resets
+`animate.Player.Seek` accepts a one-based frame, clamps to the endpoints, resets
 the repeat count, and checks cancellation between frames. Forward seeks copy
 the current position; backward seeks replay from the first frame. Each seek
 reuses at most two private canvases for disposal, without caching full frames.
@@ -175,13 +239,17 @@ preserves speed/zoom, and uses the existing Kitty replacement/cleanup path.
 The frame bar uses the hint row with screen-relative hit testing, so prompts
 and image placement retain their geometry. Arrow keys remain image panning.
 
-`internal/app/animation.go` owns cancellable timers and off-loop composition.
+`internal/animate.Animator` owns cancellable timers and off-loop composition;
+`internal/app/animation.go` adapts the standalone controls to it.
 Messages carry a playback owner and epoch, so pause, reload, navigation, and
 quit invalidate late work. Hidden documents cancel timers. Kitty waits for
 transmission before starting the next delay; it never builds a frame backlog.
 The last transmitted Kitty picture stays visible while its replacement encodes.
 Only after transmission does the view swap grids and delete the old image, so
 picture's transitional glyph fallback never flashes between animation frames.
+Still images, PDF page changes, and typeset Markdown redraws share this staging
+path: keep the previous Kitty image until the replacement is transmitted, or
+show Preparing image on the first draw. Explicit glyph mode is unchanged.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 clipped to the viewport so it cannot wrap or displace the status bar. Obsolete
@@ -201,6 +269,24 @@ stale work, export, and Kitty pacing/cleanup. `examples/motion.gif` is an
 original generated fixture; `scripts/gen-assets/gif.go` regenerates it.
 GIF lifecycle tests pause playback and drain finite render commands to completion;
 they must not use the generic test pump's timer heuristic to discard slow renders.
+
+The package has no document or application dependencies. `Clip` describes
+immutable paletted/RGBA frames, frame rectangles, blend/disposal, delays and loop
+counts; `NewPlayer` validates 64 MiB of decoded storage (RGBA costs four bytes
+per pixel). `DecodeGIF` is the bounded producer. `Source.Clone` snapshots mutable
+playback state before asynchronous composition. `PlayerSource` drives one clip;
+`CompositeSource` drives independently timed regions over a page raster that
+omits animated images, so transparent frames reveal the original page background.
+
+Each inline Markdown picture owns an Animator; the host supplies capability,
+cell geometry, visibility and `nextKittyID`. Hiding cancels the epoch and retires
+placements without discarding the playback position. Typeset results carry full
+region rectangles and a composite snapshot; reflow preserves positions by
+asset destination, and only visible regions advance. Reload starts fresh.
+Markdown loaders share an eight-destination/64 MiB animation budget and retain
+still first frames when exceeded. The info field reports eligible/total GIFs.
+Normal Markdown `e` snapshots the first visible GIF's full frame; typeset `e`
+snapshots the displayed viewport. There are no inline playback controls.
 
 ## QR component
 

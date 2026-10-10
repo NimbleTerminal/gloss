@@ -32,6 +32,8 @@ func (m *Model) View() tea.View {
 		hint = ansi.Truncate(m.search.status(w), w, "…")
 	}
 	body = m.framed(body)
+	palette := m.palette()
+	hint = lipgloss.NewStyle().Foreground(palette.Muted).Background(palette.Background).Width(w).Render(hint)
 	content := body + "\n" + bar + "\n" + hint
 	if m.quitting {
 		// Keys no longer answer. The frame keeps its height, or Bubble Tea
@@ -43,6 +45,7 @@ func (m *Model) View() tea.View {
 		content = ansi.Truncate("gloss: enlarge terminal", w, "")
 	}
 	v := tea.NewView(content)
+	v.ReportFocus = m.opts.Theme == "" || m.opts.Theme == "auto"
 	v.AltScreen, v.MouseMode = !m.opts.KeepScreen, mouse
 	return v
 }
@@ -70,6 +73,8 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		if m.screen == screenGrid {
 			mouse = tea.MouseModeCellMotion
 		}
+	case m.loading && m.presentation.Front != nil:
+		body, plain = m.pictureView(), false
 	case m.loading:
 		body = "Loading " + safe(filepath.Base(m.opts.Files[m.index])) + "…"
 	case m.err != nil:
@@ -83,6 +88,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body, mouse, plain = m.sheet.view(w, h), tea.MouseModeCellMotion, false
 	default:
 		body, plain = m.pictureView(), false
+		if m.typeset != nil {
+			mouse = tea.MouseModeCellMotion
+		}
 	}
 	if plain {
 		lines := strings.Split(body, "\n")
@@ -92,6 +100,10 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body = strings.Join(lines[:min(len(lines), h)], "\n")
 	}
 	frame := lipgloss.NewStyle().Width(w).Height(h)
+	if plain || m.markdown != nil {
+		p := m.palette()
+		frame = frame.Foreground(p.Foreground).Background(p.Background)
+	}
 	if len(m.opts.Files) == 0 && !m.help && m.screen != screenBrowser {
 		frame = frame.Align(lipgloss.Center, lipgloss.Center)
 	}
@@ -114,8 +126,8 @@ const helpText = "gloss — a visual pager\n\n" +
 	"C / B          mesh color / background color\n" +
 	"Drop files to open · / search · n/N next/prev match · Esc clear\n" +
 	"Meshes: drag to orbit, Shift-drag to pan, wheel to zoom, 5 orthographic\n" +
-	"Markdown: arrows/wheel scroll, Space/b page, s source\n" +
-	"GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
+	"Text: t text/typeset, s source/view; text: arrows scroll, Space/b page\n" +
+	"Standalone GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
 
 // DocsURL is the documentation site.
 const DocsURL = "https://nimbleterminal.github.io/gloss/docs/"
@@ -287,7 +299,7 @@ func (m *Model) documentStatus(w, h int) (bar, hint string) {
 			status += " · " + m.note
 		}
 	}
-	bar = statusStyle.Width(w).Render(ansi.Truncate(status, w, "…"))
+	bar = m.statusStyle().Width(w).Render(ansi.Truncate(status, w, "…"))
 	return bar, ansi.Truncate(m.hints(), w, "")
 }
 
@@ -297,15 +309,15 @@ func (m *Model) detail(w, h int) string {
 	detail := fmt.Sprintf("%s · %dx", m.kind, 1<<m.zoom)
 	if m.animation != nil {
 		state := "playing"
-		if m.animation.paused {
+		if m.animation.Paused {
 			state = "paused"
-		} else if m.animation.finished {
+		} else if m.animation.Finished {
 			state = "finished"
 		}
 		if m.animation.seek != nil {
 			state = fmt.Sprintf("seeking %d", m.animation.target)
 		}
-		detail += fmt.Sprintf(" · %g× speed · frame %d/%d · %s", m.animation.rate(), m.animation.player.Frame(), m.animation.player.Frames(), state)
+		detail += fmt.Sprintf(" · %g× speed · frame %d/%d · %s", m.animation.rate(), m.animation.Player.Frame(), m.animation.Player.Frames(), state)
 	}
 	if m.kind == "pdf" {
 		detail += fmt.Sprintf(" · page %d/%d", m.page, m.pages)
@@ -322,6 +334,8 @@ func (m *Model) detail(w, h int) string {
 		if m.bg != nil {
 			detail += fmt.Sprintf(" · background #%02x%02x%02x", m.bg.R, m.bg.G, m.bg.B)
 		}
+	case m.typeset != nil && m.markdown == nil:
+		detail = map[string]string{"markdown": "Markdown", "text": "Text", "json": "JSON"}[m.kind] + " · typeset"
 	case m.markdown != nil:
 		mode := "rendered"
 		if m.markdown.raw {
@@ -377,10 +391,17 @@ func (m *Model) hints() string {
 	}
 	keys := " q quit · ? help · m files · [/] files · n/p pages · +/- zoom · e export · i info"
 	switch {
+	case m.typeset != nil && m.markdown == nil:
+		keys = " q quit · ↑/↓/wheel scroll · Space/b screen · +/- zoom · f fit width · s source · t text · e export"
+	case m.typeset != nil:
+		keys = " q quit · m files · ↑/↓ scroll · Space/b scroll · s typeset view · t text"
 	case m.animation != nil:
 		keys = " Space pause/play · </> speed · Backspace 1× · +/- zoom · e export frame · ? help · q quit"
 	case m.markdown != nil:
 		keys = " q quit · m files · ↑/↓ scroll · Space/b page · s source · g graphics"
+		if m.canTypeset() {
+			keys += " · t typeset"
+		}
 	case m.sheet != nil:
 		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info"
 		switch {

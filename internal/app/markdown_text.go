@@ -11,6 +11,7 @@ import (
 	"charm.land/glamour/v2/styles"
 	"charm.land/lipgloss/v2"
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/yuin/goldmark/ast"
 	east "github.com/yuin/goldmark/extension/ast"
@@ -59,8 +60,33 @@ func sourceContent(source []byte) *markdownContent {
 // before rendering: naturally sized tables can otherwise allocate rows times
 // the widest cell. Their cells are rendered independently and laid out within
 // the viewport below, without making table borders part of searchable text.
-func logicalRenderer() func([]byte, ast.Node) string {
+func logicalRenderer(themes ...string) func([]byte, ast.Node) string {
+	name := "dark"
+	if len(themes) > 0 && themes[0] == "light" {
+		name = "light"
+	}
 	style := styles.DarkStyleConfig
+	if name == "light" {
+		style = styles.LightStyleConfig
+	}
+	palette := theme.Get(name)
+	foreground, accent := fmt.Sprintf("#%02x%02x%02x", palette.Foreground.R, palette.Foreground.G, palette.Foreground.B), fmt.Sprintf("#%02x%02x%02x", palette.Accent.R, palette.Accent.G, palette.Accent.B)
+	style.Document.Color = &foreground
+	style.Heading.Color = &accent
+	muted := fmt.Sprintf("#%02x%02x%02x", palette.Muted.R, palette.Muted.G, palette.Muted.B)
+	code := fmt.Sprintf("#%02x%02x%02x", palette.Code.R, palette.Code.G, palette.Code.B)
+	for _, heading := range []*gam.StyleBlock{&style.H1, &style.H2, &style.H3, &style.H4, &style.H5, &style.H6} {
+		heading.Color, heading.BackgroundColor = &accent, nil
+	}
+	style.BlockQuote.Color = &muted
+	style.Link.Color, style.LinkText.Color = &accent, &accent
+	style.Code.Color, style.Code.BackgroundColor = &accent, &code
+	style.CodeBlock.Color, style.CodeBlock.BackgroundColor = &foreground, &code
+	style.CodeBlock.Chroma = nil
+	style.CodeBlock.Theme = "github"
+	if name == "dark" {
+		style.CodeBlock.Theme = "github-dark"
+	}
 	zero := uint(0)
 	style.Document.Margin = &zero
 	r := renderer.NewRenderer(renderer.WithNodeRenderers(util.Prioritized(gam.NewRenderer(gam.Options{WordWrap: 0, Styles: style, InlineTableLinks: true}), 100)))
@@ -73,9 +99,9 @@ func logicalRenderer() func([]byte, ast.Node) string {
 	}
 }
 
-func renderedContent(doc *document.Markdown) *markdownContent {
+func renderedContent(doc *document.Markdown, themes ...string) *markdownContent {
 	c := &markdownContent{}
-	renderLogical := logicalRenderer()
+	renderLogical := logicalRenderer(themes...)
 	source := bytes.Clone(doc.Source)
 	root := document.MarkdownTree(source)
 	var images []*ast.Image

@@ -28,6 +28,8 @@ func completers() map[string]completer {
 	return map[string]completer{
 		"render":         {Words: []string{"auto", "kitty", "glyph"}},
 		"3d":             {Words: []string{"auto", "software", "wireframe"}},
+		"theme":          {Words: []string{"auto", "light", "dark"}},
+		"markdown":       {Words: []string{"text", "typeset"}},
 		"type":           {Words: []string{"image", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "md"}},
 		"view":           {Words: []string{"front", "back", "left", "right", "top", "bottom", "iso", "all"}, List: true},
 		"projection":     {Words: []string{"ortho", "perspective"}},

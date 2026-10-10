@@ -62,6 +62,7 @@ func (m *Model) updatePreview() tea.Cmd {
 		// Keep previews inexpensive and independent of the active camera.
 		opts.DPI = min(opts.DPI, 96)
 		m.preview = New(opts)
+		m.preview.theme = m.theme
 		m.preview.isPreview, m.preview.index = true, m.selection
 		_, resize := m.preview.Update(tea.WindowSizeMsg{Width: max(1, m.previewWidth()), Height: m.bodyHeight()})
 		return tea.Sequence(cleanup, tea.Batch(resize, m.preview.Init()))

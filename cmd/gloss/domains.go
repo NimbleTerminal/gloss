@@ -35,7 +35,7 @@ var domains = []domain{
 	{
 		ID: "view", Title: "Opening and viewing",
 		Summary: "How gloss starts and what it draws with: the file menu and preview pane, terminal graphics, the screen it uses, which files it finds, and what it may fetch. gloss never fetches the network on its own.",
-		Flags:   []string{"menu", "preview", "render", "no-alt-screen", "type", "glob", "fetch"},
+		Flags:   []string{"menu", "preview", "render", "theme", "no-alt-screen", "type", "glob", "fetch"},
 		Examples: []example{
 			{"Look at some files, with a menu to choose among them", "gloss --menu photo.png report.pdf model.stl"},
 			{"A menu with a preview pane", "gloss --preview *.png"},
@@ -45,8 +45,8 @@ var domains = []domain{
 	},
 	{
 		ID: "documents", Title: "Documents, pages and tables",
-		Summary: "Choosing the page of a PDF or the sheet of a workbook, how finely a PDF is drawn, and which columns of a table to show.",
-		Flags:   []string{"page", "dpi", "cols", "coln"},
+		Summary: "Choosing the page of a PDF or the sheet of a workbook, how finely a PDF is drawn, typesetting text, and which columns of a table to show.",
+		Flags:   []string{"page", "dpi", "markdown", "typeset", "cols", "coln"},
 		Examples: []example{
 			{"The third page of a PDF", "gloss --page 3 report.pdf"},
 			{"Sharper pages", "gloss --dpi 300 report.pdf"},

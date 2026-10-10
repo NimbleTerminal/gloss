@@ -47,14 +47,28 @@ cat drawing.svg | gloss                # read from a pipe
 | `+` / `-`, arrows | Zoom and pan; orbit a mesh |
 | `i` | Details about the file |
 | `e` | Export what you see as a PNG |
+| `t` on text, source, JSON or Markdown | Toggle normal text / typeset view |
+| `s` on Markdown | Toggle rendered text or typeset view / source |
 | `u` | Show a selected table URL as a QR code |
-| Space, `<` / `>` on a GIF | Pause / resume; slower / faster playback |
-| `,` / `.` on a GIF | Step frames; click or drag the bottom bar to seek |
+| Space, `<` / `>` on a standalone GIF | Pause / resume; slower / faster playback |
+| `,` / `.` on a standalone GIF | Step frames; click or drag the bottom bar to seek |
 
 Pictures use Kitty graphics where the terminal has them, and colored half-blocks
 where it does not. Drag files onto the terminal to open them; add `--fetch`
 to open a dropped web URL. The [file browser](https://nimbleterminal.github.io/gloss/docs/guide/browser/)
 offers list, columns, and places layouts, with filtering and Tab completion.
+
+## Markdown
+
+Markdown uses Glamour by default. Press `t` for typeset Markdown, or run
+`gloss --typeset examples/typeset.md`: embedded fonts, highlighted code,
+tables, and local pictures, drawn directly with go-text. The document reflows to
+the terminal width and scrolls continuously with arrows or the wheel. It looks
+best in Kitty; half-blocks work elsewhere. Use `+`/`-` to zoom, `s` for source,
+and `e` to export the visible viewport as PNG. Plain text, source code and JSON
+also support `--typeset` and `t`; normal terminal text remains the default.
+`--theme auto|light|dark` sets text and typeset colors; auto follows the terminal,
+while headless PNG exports default to light.
 
 ## From a script or an agent
 

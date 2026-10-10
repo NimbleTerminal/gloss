@@ -16,15 +16,15 @@ type animationSeek struct {
 type animationSeekResult struct {
 	owner  *animation
 	job    *animationSeek
-	player *document.GIFPlayer
+	Player *document.GIFPlayer
 	err    error
 }
 
 func (m *Model) seekAnimation(frame int) tea.Cmd {
 	a := m.animation
-	frame = max(1, min(frame, a.player.Frames()))
+	frame = max(1, min(frame, a.Player.Frames()))
 	a.cancelPending()
-	a.paused, a.finished, a.target = true, false, frame
+	a.Paused, a.Finished, a.target = true, false, frame
 	if a.seek != nil {
 		// Only one compositor is in flight. Its completion starts the latest
 		// requested position; intermediate mouse motions never allocate canvases.
@@ -41,7 +41,7 @@ func (m *Model) startAnimationSeek() tea.Cmd {
 	ctx, cancel := context.WithCancel(context.Background())
 	job := &animationSeek{cancel: cancel, target: a.target}
 	a.seek = job
-	player := a.player
+	player := a.Player
 	return func() tea.Msg {
 		p, err := player.Seek(ctx, job.target)
 		return animationSeekResult{a, job, p, err}
@@ -63,8 +63,9 @@ func (m *Model) animationSought(r animationSeekResult) tea.Cmd {
 		return m.startAnimationSeek()
 	}
 	a.cancelPending()
-	a.player, a.target = r.player, 0
-	m.source = r.player.Image()
+	a.SetPlayer(r.Player)
+	a.target = 0
+	m.source = r.Player.Image()
 	return m.refreshImage()
 }
 
@@ -72,7 +73,7 @@ func (a *animation) position() int {
 	if a.target != 0 {
 		return a.target
 	}
-	return a.player.Frame()
+	return a.Player.Frame()
 }
 
 func (m *Model) scrubberVisible() bool {
@@ -91,7 +92,7 @@ func (m *Model) scrubberGeometry() (start, cells int, suffix string) {
 func (m *Model) scrubberView() string {
 	start, cells, suffix := m.scrubberGeometry()
 	a := m.animation
-	at := (a.position() - 1) * (cells - 1) / max(1, a.player.Frames()-1)
+	at := (a.position() - 1) * (cells - 1) / max(1, a.Player.Frames()-1)
 	return strings.Repeat(" ", start-1) + "[" + strings.Repeat("─", at) + "●" + strings.Repeat("─", cells-at-1) + "]" + suffix
 }
 
@@ -125,6 +126,6 @@ func (m *Model) scrubberMouse(msg tea.MouseMsg) (tea.Cmd, bool) {
 		return nil, false
 	}
 	x := max(0, min(cells-1, mouse.X-start))
-	frame := 1 + (x*(a.player.Frames()-1)+(cells-1)/2)/(cells-1)
+	frame := 1 + (x*(a.Player.Frames()-1)+(cells-1)/2)/(cells-1)
 	return m.seekAnimation(frame), true
 }

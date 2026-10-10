@@ -88,8 +88,15 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 	}
 	if m.layer == layerNone {
 		if k == "/" && m.searchable() {
+			var cmd tea.Cmd
+			if m.typeset != nil && m.markdown == nil {
+				m.markdown = newMarkdownView(m.typeset, nextKittyID())
+				m.markdown.raw = m.kind == "markdown"
+				cmd = tea.Sequence(m.clearPicture(), m.layoutMarkdown())
+				m.note = "searching text view"
+			}
 			m.editSearch()
-			return nil, true
+			return cmd, true
 		}
 		if m.search != nil {
 			switch k {
@@ -123,14 +130,14 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		case "home":
 			return m.seekAnimation(1), true
 		case "end":
-			return m.seekAnimation(a.player.Frames()), true
+			return m.seekAnimation(a.Player.Frames()), true
 		case "space":
 			return m.toggleAnimation(), true
 		case "<":
-			a.setSpeed(a.speed - 1)
+			a.setSpeed(a.Speed - 1)
 			return nil, true
 		case ">":
-			a.setSpeed(a.speed + 1)
+			a.setSpeed(a.Speed + 1)
 			return nil, true
 		case "backspace":
 			a.setSpeed(0)
@@ -166,6 +173,26 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		}
 		if k == "enter" && m.sheet.url() != "" {
 			return m.open(m.sheet.url()), true
+		}
+	}
+	if k == "t" && m.canTypeset() {
+		if m.loading {
+			return nil, true
+		}
+		return m.toggleTypeset(), true
+	}
+	if k == "s" && m.typeset != nil {
+		m.clearSearch()
+		if m.markdown != nil {
+			return tea.Sequence(m.clearMarkdown(), m.refreshImage()), true
+		}
+		m.markdown = newMarkdownView(m.typeset, nextKittyID())
+		m.markdown.raw = m.kind == "markdown"
+		return tea.Sequence(m.clearPicture(), m.layoutMarkdown()), true
+	}
+	if m.typeset != nil && m.markdown == nil && !m.loading {
+		if cmd, ok := m.typesetKey(k); ok {
+			return cmd, true
 		}
 	}
 	if m.markdown != nil {
@@ -222,7 +249,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		if m.chart == nil {
 			old := m.pic
 			cmd := m.pic.Toggle()
-			if m.animation != nil {
+			if m.source != nil && m.markdown == nil {
 				if m.pic.Mode() == picture.PictureKitty {
 					return m.refreshImage(), true
 				}

@@ -86,6 +86,12 @@ NTCharts3d software renderer, whose license is among those below.
 	}
 	section(&b, "The Go runtime and standard library", "https://go.dev", text)
 	section(&b, "PDFium", "compiled to WebAssembly by github.com/klippa-app/go-pdfium and embedded in the native binary; the browser app serves @embedpdf/pdfium, which builds it, from the site itself (web/dist/vendor/embedpdf-pdfium, pinned and checked against its published hash)", []byte(pdfiumLicense))
+	if text, err := os.ReadFile(filepath.Join("internal", "document", "fonts", "LICENSE")); err == nil {
+		section(&b, "Go fonts", "embedded typeset Markdown fonts, from golang.org/x/image v0.46.0", text)
+	} else {
+		return err
+	}
+
 	// The site's fonts are served from web/fonts, with their license.
 	if text, err := os.ReadFile(filepath.Join("web", "fonts", "OFL.txt")); err == nil {
 		section(&b, "Open Sans", "the website's Condensed Bold and SemiCondensed faces, in web/fonts", text)

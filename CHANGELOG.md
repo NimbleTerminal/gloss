@@ -2,12 +2,30 @@
 
 ## Unreleased
 
-  * Move gloss, its documentation site, and Homebrew tap to NimbleTerminal;
-    update recording references to NimbleTerminal/ntrecord. Other dependencies
-    remain pinned under their existing NimbleMarkets module paths.
-
   * Adopt NimbleTerminal/ntqrcode v0.2.0 at `nimbleterminal.dev/ntqrcode`
     in native and browser builds; update local workspace paths.
+
+  * Animate embedded GIF figures in normal and typeset Markdown. Pause hidden
+    images, preserve playback across typeset reflow, and export displayed frames.
+    Bound animation to eight destinations and 64 MiB of decoded storage per
+    document, retaining first-frame stills beyond the budget. Share standalone
+    and inline playback through the reusable internal animation package.
+
+  * Add `--theme auto|light|dark` for terminal text and typeset pages, including
+    syntax colors. Auto follows terminal background replies with a dark fallback;
+    headless auto exports use light. Theme changes repaint typeset pages without
+    rebuilding layout or losing scroll position.
+
+  * Add explicit `--typeset` for Markdown, plain text, source code and JSON
+    (`--markdown typeset` remains an alias): embedded-font graphics via go-text,
+    Chroma-highlighted code, local images, continuous scrolling and cancellable
+    width reflow. `t` switches renderer, `s` shows source, `/` opens source search.
+    Glamour stays the default. Interactive `e` saves the visible viewport;
+    headless PNG exports support numbered fixed-width slices with `--page`.
+
+  * Move gloss, its documentation site, and Homebrew tap to NimbleTerminal;
+    update recording references to NimbleTerminal/ntrecord. Other dependencies remain
+    pinned under their existing NimbleMarkets module paths.
 
   * **Browser viewing sessions**
     * Show supplied files with viewer controls instead of upload-request chrome

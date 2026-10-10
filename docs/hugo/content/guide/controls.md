@@ -19,6 +19,9 @@ bookToC: false
 | `n`, `Space`, `PageDown` / `p`, `b`, `PageUp` | Next / previous PDF page, sheet, or Grist table; next / previous file for other formats |
 | `/` | Search text in the current document; `Enter` submits, `Esc` cancels editing |
 | `n` / `N`, while searching | Next / previous result, wrapping at the ends; `Esc` clears the search |
+| `t` on Markdown, text, source or JSON | Toggle normal text / typeset view |
+| `/` in typeset mode | Open the text/source view and search |
+| `s` in typeset mode | Toggle the typeset view and text/source |
 | `Home` / `End`, `G` | First / last PDF page |
 | Arrows, `h j k l` | Move about a spreadsheet by row and column |
 | `x`, `X` | Hide the column under the cursor / show every column |
@@ -165,7 +168,7 @@ number instead. The browser demo, and a page shown with `--serve`, offer the
 PNG as a download instead: what is saved goes where the browser saves, not
 where gloss runs.
 
-Animated GIFs play automatically. **Space** pauses or resumes; after a finite
+Standalone animated GIFs play automatically. **Space** pauses or resumes; after a finite
 animation finishes, Space starts it again. **`<` / `>`** slow down or speed up
 through **0.25×, 0.5×, 1×, 2×, and 4×**; **Backspace** restores 1×. The status
 bar shows playback speed separately from zoom. Changing speed preserves pause
@@ -185,7 +188,9 @@ help and overlays; arrow keys still pan the image.
 
 `n`/`p` and `[`/`]` still switch files. Zoom and pan apply to every frame, and
 `e` saves the displayed full frame as PNG. Help and the file browser suspend
-playback; list previews and inline images remain still. Large/slow frames play
+playback; list previews remain still. Embedded Markdown GIFs play while visible,
+without standalone playback controls; `e` exports the first visible GIF’s current
+frame in normal Markdown or the whole viewport in typeset mode. Large/slow frames play
 more slowly rather than building a rendering backlog.
 
 In a table, select a cell containing an http(s) URL and press `u` to show its QR
@@ -243,3 +248,11 @@ graphics and whether Kitty graphics were found to be supported; how meshes are
 rendered; the terminal program and multiplexer; and which screen is in use.
 With no file open, `i` shows that section alone, so `gloss` then `i` says what
 the terminal can do.
+
+
+### Text colors
+
+`--theme auto|light|dark` selects normal text and typeset colors. Auto follows
+the terminal background, with a dark fallback when no reply arrives, and
+rechecks on terminal focus. Headless exports use light for auto. Explicit themes
+override detection. See [Themes](../markdown/#themes) for details.

@@ -317,6 +317,13 @@ func markdownFields(markdown *Markdown) []Field {
 		}
 		return strconv.Itoa(n)
 	}
-	return Section("Text", Field{"Format", "Markdown"}, Field{"Title", title}, Field{"Lines", strconv.Itoa(lines)}, Field{"Words", strconv.Itoa(words)},
+	animated := ""
+	if markdown.GIFs > 0 {
+		animated = fmt.Sprintf("%d of %d GIFs", markdown.Animated, markdown.GIFs)
+		if markdown.AnimationOverBudget > 0 {
+			animated += fmt.Sprintf("; %d over budget", markdown.AnimationOverBudget)
+		}
+	}
+	return Section("Text", Field{"Animated", animated}, Field{"Format", "Markdown"}, Field{"Title", title}, Field{"Lines", strconv.Itoa(lines)}, Field{"Words", strconv.Itoa(words)},
 		Field{"Headings", count(headings)}, Field{"Links", count(links)}, Field{"Images", count(images)})
 }

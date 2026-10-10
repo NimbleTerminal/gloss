@@ -151,7 +151,8 @@ cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
 - SVG and PDF are rasterized at the requested size.
 - `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown`
   forces the format for extensionless files or stdin.
-- Markdown, plain text, and tables (Excel, Grist, CSV) cannot be exported as PNG:
+- Normal terminal text and tables (Excel, Grist, CSV) cannot be exported as PNG.
+  Use `--typeset` for a visual Markdown/text/source/JSON export; otherwise
   read their text directly, or use `--info`. For a PDF try `--text` first; the
   PNG is for scans, figures, and layout.
 
@@ -416,5 +417,44 @@ anywhere. Say that when you send the link.
 - Use gloss's extraction and rendering when they answer the task. Prefer
   `--text` for document content; add PNGs when appearance matters. Specialized
   analysis or editing may still need other tools.
-- Markdown, plain text, and tables (Excel/Grist/CSV) are for `--text`, not for a
-  picture; gloss refuses to export them as PNG by design.
+- Normal text rendering and tables (Excel/Grist/CSV) use `--text`. For a visual
+  Markdown/text/source/JSON export, select `--typeset`.
+
+### Typeset text and Markdown
+
+For visual layout, use `gloss --typeset --output page.png notes.md`.
+This explicit mode draws embedded fonts, Chroma-highlighted code and local images
+with go-text, without generating a PDF. `--page` selects 1125-pixel-high slices
+at the fixed 800-pixel reading width (150 DPI); `--page all --output-dir pages`
+exports them all. Slice boundaries can cut a text line or image. `--dpi` changes
+raster detail, `--max-edge` bounds the PNG; neither changes line wrapping.
+Plain text, source code and JSON also accept `--typeset`; source uses Chroma,
+plain text stays literal, and JSON is pretty-printed. Results preserve the input
+kind (`markdown`, `text` or `json`). Text/JSON require valid UTF-8, at most 2 MiB
+of source and formatted text, and at most 8,192 lines; the bounded source view
+must fit without truncation. `--text` keeps its usual extraction behavior.
+`--markdown typeset` remains a compatibility alias.
+`--theme auto|light|dark` controls text and typeset colors. Headless auto always
+uses light and performs no terminal query; use `--theme dark` for dark PNGs.
+Interactive auto follows the terminal background with a dark fallback and
+rechecks on focus. Images/PDF pages are not recolored; QR codes stay black/white.
+There is no PDF export. Default Markdown stays
+text, usually preferable for reading content; `--text` preserves the source.
+
+The viewer reflows to its width and scrolls continuously; `t` switches renderer,
+`s` toggles source, `/` opens source search, and `e` exports the visible viewport.
+Headless export lays out the whole document before producing its selected slice.
+Source must be UTF-8 and at most 2 MiB; at most 32 image references, 16 Mi decoded
+image pixels before resizing, and 128 MiB combined image input. Further bounds:
+32,768 AST nodes/blocks/drawing operations, 16,384 runes per paragraph/code line,
+8,192 lines per code block, 262,144 glyphs, 10,000 slices, 15 seconds of layout,
+and 32 Mi raster pixels. Oversized content fails rather than being silently cut.
+Local paths resolve relative to the Markdown file, or cwd for stdin. Missing or
+remote images become placeholders; no images/fonts are fetched. Images alone
+in paragraphs render as blocks; inline images currently appear as labels.
+Visible GIF blocks animate in the interactive Markdown viewer, up to eight
+distinct destinations and 64 MiB total decoded frame storage; excess GIFs keep
+frame one and are reported in info. Headless exports and previews stay on frame
+one. `e` exports the first visible GIF’s displayed frame in normal Markdown,
+or the displayed viewport in typeset mode. Tables
+use simple column sizing. Complex scripts, CJK, emoji and bidi are not guaranteed.

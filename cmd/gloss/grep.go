@@ -9,8 +9,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
+	"github.com/NimbleTerminal/gloss/internal/document"
 )
 
 const (

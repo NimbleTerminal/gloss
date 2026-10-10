@@ -33,7 +33,7 @@ func drainAnimation(t *testing.T, m *Model, cmd tea.Cmd) {
 		if cmd == nil {
 			return
 		}
-		if a := m.animation; a != nil && m.animationVisible() && !a.paused && !a.finished {
+		if a := m.animation; a != nil && m.animationVisible() && !a.Paused && !a.Finished {
 			t.Fatal("pause playback before draining animation commands")
 		}
 		remaining--
@@ -84,16 +84,16 @@ func animated(t *testing.T, render string, loop int) *Model {
 		t.Fatalf("animation missing: %v", m.err)
 	}
 	// Drain only rendering commands: tests drive time explicitly below.
-	m.animation.paused = true
+	m.animation.Paused = true
 	drainAnimation(t, m, cmd)
-	m.animation.paused = false
+	m.animation.Paused = false
 	return m
 }
 
 func stepAnimation(t *testing.T, m *Model) tea.Cmd {
 	t.Helper()
 	a := m.animation
-	cmd := m.animationTick(animationTick{a, a.epoch})
+	cmd := m.animationTick(animationTick{Owner: a.Animator, Epoch: a.Epoch})
 	if cmd == nil {
 		t.Fatal("no compositor command")
 	}
@@ -108,12 +108,12 @@ func TestGIFPlaybackPauseAndFiniteLoops(t *testing.T) {
 	m := animated(t, "glyph", -1)
 	a := m.animation
 	timer := m.scheduleAnimation()
-	if timer == nil || !a.pending || m.scheduleAnimation() != nil {
+	if timer == nil || !a.Pending || m.scheduleAnimation() != nil {
 		t.Fatal("missing or duplicate playback timer")
 	}
-	old := animationTick{a, a.epoch}
+	old := animationTick{Owner: a.Animator, Epoch: a.Epoch}
 	m.Update(tea.KeyPressMsg{Code: ' ', Text: " "})
-	if !a.paused || a.pending {
+	if !a.Paused || a.Pending {
 		t.Fatal("Space did not pause")
 	}
 	if timer() != nil {
@@ -123,18 +123,18 @@ func TestGIFPlaybackPauseAndFiniteLoops(t *testing.T) {
 		t.Fatal("stale tick advanced paused GIF")
 	}
 	m.Update(tea.KeyPressMsg{Code: ' ', Text: " "})
-	if a.paused || !a.pending {
+	if a.Paused || !a.Pending {
 		t.Fatal("Space did not resume")
 	}
 	stepAnimation(t, m)
-	if a.player.Frame() != 2 {
+	if a.Player.Frame() != 2 {
 		t.Fatal("did not advance")
 	}
 	if _, g, _, _ := m.source.At(0, 0).RGBA(); g != 65535 {
 		t.Fatal("wrong frame displayed")
 	}
 	stepAnimation(t, m)
-	if !a.finished || m.scheduleAnimation() != nil {
+	if !a.Finished || m.scheduleAnimation() != nil {
 		t.Fatal("finite loop did not stop")
 	}
 	if !strings.Contains(m.detail(80, 20), "finished") || !strings.Contains(m.hints(), "Space pause/play") {
@@ -142,14 +142,14 @@ func TestGIFPlaybackPauseAndFiniteLoops(t *testing.T) {
 	}
 	cmd := m.toggleAnimation()
 	m.animationFrame(cmd().(animationFrame))
-	if a.finished || a.player.Frame() != 1 {
+	if a.Finished || a.Player.Frame() != 1 {
 		t.Fatal("Space did not restart finished GIF")
 	}
 	// Pause even a frame already being composed; its completion cannot advance.
-	pending := m.animationTick(animationTick{a, a.epoch})
+	pending := m.animationTick(animationTick{Owner: a.Animator, Epoch: a.Epoch})
 	m.toggleAnimation()
 	m.animationFrame(pending().(animationFrame))
-	if a.player.Frame() != 1 {
+	if a.Player.Frame() != 1 {
 		t.Fatal("late composition changed paused frame")
 	}
 }
@@ -160,7 +160,7 @@ func TestGIFHiddenReloadAndReplacementStopOldWork(t *testing.T) {
 			m := animated(t, "glyph", 0)
 			a := m.animation
 			timer := m.scheduleAnimation()
-			pending := m.animationTick(animationTick{a, a.epoch})
+			pending := m.animationTick(animationTick{Owner: a.Animator, Epoch: a.Epoch})
 			switch action {
 			case "help":
 				m.Update(press("?"))
@@ -192,7 +192,7 @@ func TestGIFHiddenReloadAndReplacementStopOldWork(t *testing.T) {
 				if m.scheduleAnimation() == nil {
 					t.Fatal("visible GIF did not resume")
 				}
-			} else if a.player != nil {
+			} else if a.Player != nil {
 				t.Fatal("abandoned timer retained decoded frames")
 			}
 		})
@@ -226,12 +226,12 @@ func TestGIFKittyBackpressureResizeAndCleanup(t *testing.T) {
 	a := m.animation
 	first := m.picID
 	draw := stepAnimation(t, m)
-	if !a.awaiting || m.scheduleAnimation() != nil || m.picID == first {
+	if !a.Awaiting || m.scheduleAnimation() != nil || m.picID == first {
 		t.Fatal("Kitty failed to wait for its fresh frame")
 	}
-	a.paused = true
+	a.Paused = true
 	drainAnimation(t, m, draw)
-	if a.awaiting {
+	if a.Awaiting {
 		t.Fatal("transmission did not acknowledge presentation")
 	}
 	_, resize := m.Update(tea.WindowSizeMsg{Width: 30, Height: 10})
@@ -239,7 +239,7 @@ func TestGIFKittyBackpressureResizeAndCleanup(t *testing.T) {
 	if m.pic.Mode() != picture.PictureKitty {
 		t.Fatal("resize lost renderer")
 	}
-	a.paused = false
+	a.Paused = false
 	if m.scheduleAnimation() == nil {
 		t.Fatal("rendered frame did not start its delay")
 	}
@@ -251,10 +251,10 @@ func TestGIFKittyBackpressureResizeAndCleanup(t *testing.T) {
 		t.Fatal("missing Kitty frame")
 	}
 	accepted := m.animationTransmission(frame, m.pic.Update(frame))
-	flight := m.animationPlacement
+	flight := m.presentation.Flight
 	id := m.picID
 	cleanup := m.clearGraphics()
-	if flight.active.Load() {
+	if flight.Active.Load() {
 		t.Fatal("old placement still active")
 	}
 	drainAnimation(t, m, cleanup)
@@ -295,7 +295,7 @@ func TestGIFImageIDsUseReservedSlots(t *testing.T) {
 	a := m.animation
 	seen := map[int]bool{}
 	for range 2100 {
-		id := a.nextImageID()
+		id := a.NextImageID()
 		if id <= 0 || id >= 1<<24 || seen[id] {
 			t.Fatal("invalid or repeated animation ID")
 		}
@@ -338,7 +338,7 @@ func (m *animationObserver) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.animation != nil && m.pic.Mode() == picture.PictureKitty && glyphs(m.pictureView()) {
 		m.flickered = true
 	}
-	if m.animation != nil && m.animation.player.Frame() >= 3 {
+	if m.animation != nil && m.animation.Player.Frame() >= 3 {
 		m.reached = true
 		return m, m.quit()
 	}
@@ -362,29 +362,29 @@ func TestGIFActualEventLoop(t *testing.T) {
 
 func TestGIFKittyKeepsFrontUntilReplacementIsPresented(t *testing.T) {
 	m := animated(t, "kitty", 0)
-	a, front := m.animation, m.animationFront
+	a, front := m.animation, m.presentation.Front
 	if front == nil || glyphs(m.pictureView()) {
 		t.Fatal("initial Kitty frame was not presented")
 	}
 	draw := stepAnimation(t, m)
-	a.paused = true // Run rendering commands without scheduling another frame.
-	if m.pictureView() != front.view || !front.flight.active.Load() {
+	a.Paused = true // Run rendering commands without scheduling another frame.
+	if m.pictureView() != front.View || !front.Flight.Active.Load() {
 		t.Fatal("discarded visible frame while its replacement was encoding")
 	}
 	// An additional zoom during encoding must replace only the unfinished back
 	// picture, keeping the same front image and rejecting the obsolete result.
-	obsolete := m.animationPlacement
+	obsolete := m.presentation.Flight
 	m.zoom = 1
 	zoom := m.refreshImage()
-	if obsolete.active.Load() || m.animationFront != front || m.pictureView() != front.view {
+	if obsolete.Active.Load() || m.presentation.Front != front || m.pictureView() != front.View {
 		t.Fatal("zoom discarded the front or retained the obsolete back")
 	}
 	drainAnimation(t, m, draw)
-	if m.animationFront != front || m.pictureView() != front.view {
+	if m.presentation.Front != front || m.pictureView() != front.View {
 		t.Fatal("obsolete frame was displayed")
 	}
 	drainAnimation(t, m, zoom)
-	if m.animationFront == front || m.animationFront.id != m.picID || glyphs(m.pictureView()) || front.flight.active.Load() {
+	if m.presentation.Front == front || m.presentation.Front.ID != m.picID || glyphs(m.pictureView()) || front.Flight.Active.Load() {
 		t.Fatal("replacement failed to swap Kitty grids and retire the old image")
 	}
 }
@@ -393,9 +393,9 @@ func TestGIFPendingKittyFrameCleanupAndKeepScreen(t *testing.T) {
 	for _, action := range []string{"quit", "keep", "reload", "menu", "glyph"} {
 		t.Run(action, func(t *testing.T) {
 			m := animated(t, "kitty", 0)
-			front := m.animationFront
+			front := m.presentation.Front
 			draw := stepAnimation(t, m)
-			pending := m.animationPlacement
+			pending := m.presentation.Flight
 			var cleanup tea.Cmd
 			switch action {
 			case "quit":
@@ -407,39 +407,39 @@ func TestGIFPendingKittyFrameCleanupAndKeepScreen(t *testing.T) {
 				m.load(true)
 				result := m.loader.Load(m.request(true))
 				cleanup = m.loaded(result)
-				m.animation.paused = true
+				m.animation.Paused = true
 			case "menu":
 				cleanup = m.openMenu(0)
 			case "glyph":
 				_, cleanup = m.Update(press("g"))
 			}
 			if action == "keep" {
-				if m.picID != front.id || m.pictureView() != front.view || m.source != front.source || !front.flight.active.Load() {
+				if m.picID != front.ID || m.pictureView() != front.View || m.source != front.Image || !front.Flight.Active.Load() {
 					t.Fatal("keep-screen did not preserve the visible frame")
 				}
-			} else if front.flight.active.Load() {
+			} else if front.Flight.Active.Load() {
 				t.Fatal("abandoned front image was not retired")
 			}
-			if pending.active.Load() {
+			if pending.Active.Load() {
 				t.Fatal("unfinished image was not retired")
 			}
 			if m.animation != nil {
-				m.animation.paused = true
+				m.animation.Paused = true
 				m.animation.cancelPending()
 			}
 			drainAnimation(t, m, cleanup)
 			drainAnimation(t, m, draw) // Late render cannot restore a discarded image or old front.
 			if action == "glyph" {
-				if m.animationFront != nil || !glyphs(m.pictureView()) {
+				if m.presentation.Front != nil || !glyphs(m.pictureView()) {
 					t.Fatal("explicit glyph mode did not take effect")
 				}
 				_, cmd := m.Update(press("g"))
-				m.animation.paused = true
+				m.animation.Paused = true
 				if glyphs(m.pictureView()) {
 					t.Fatal("switch to Kitty exposed a transitional glyph frame")
 				}
 				drainAnimation(t, m, cmd)
-				if m.animationFront == nil || glyphs(m.pictureView()) {
+				if m.presentation.Front == nil || glyphs(m.pictureView()) {
 					t.Fatal("switch back to Kitty did not present an image")
 				}
 			}
@@ -449,7 +449,7 @@ func TestGIFPendingKittyFrameCleanupAndKeepScreen(t *testing.T) {
 
 func TestGIFKittyExportUsesFrontWhileBackIsEncoding(t *testing.T) {
 	m := animated(t, "kitty", 0)
-	front := m.animationFront
+	front := m.presentation.Front
 	stepAnimation(t, m) // Green is composed but has not replaced the red front.
 	var out saved
 	m.opts.Save = out.save(t)
@@ -461,7 +461,7 @@ func TestGIFKittyExportUsesFrontWhileBackIsEncoding(t *testing.T) {
 		t.Fatal("export captured an undisplayed frame")
 	}
 	m.Update(result)
-	if m.animationFront != front {
+	if m.presentation.Front != front {
 		t.Fatal("export disturbed presentation")
 	}
 }
@@ -484,11 +484,11 @@ func assertAnimationFits(t *testing.T, m *Model) {
 
 func TestGIFKittyResizeBurstRejectsOldPresentations(t *testing.T) {
 	m := animated(t, "kitty", 0)
-	a, front := m.animation, m.animationFront
+	a, front := m.animation, m.presentation.Front
 	// A transmission accepted before resizing can complete after a new layout.
 	frame := m.pic.SetImage(m.source)().(picture.KittyFrameMsg)
 	accepted := m.animationTransmission(frame, m.pic.Update(frame))
-	a.paused = true
+	a.Paused = true
 	var renders []tea.Cmd
 	var flights []*animationPlacement
 	for _, size := range []tea.WindowSizeMsg{
@@ -497,35 +497,35 @@ func TestGIFKittyResizeBurstRejectsOldPresentations(t *testing.T) {
 	} {
 		oldID := m.picID
 		_, cmd := m.Update(size)
-		if m.picID == oldID || !a.awaiting || m.animationFront != front {
+		if m.picID == oldID || !a.Awaiting || m.presentation.Front != front {
 			t.Fatal("resize did not retain the front and prepare a new placement")
 		}
 		assertAnimationFits(t, m)
 		renders = append(renders, cmd)
-		flights = append(flights, m.animationPlacement)
+		flights = append(flights, m.presentation.Flight)
 		m.Update(size) // Repeated layout must not invalidate work already in flight.
-		if m.animationPlacement != flights[len(flights)-1] {
+		if m.presentation.Flight != flights[len(flights)-1] {
 			t.Fatal("unchanged dimensions restarted rendering")
 		}
 	}
 	drainAnimation(t, m, accepted)
-	if m.animationFront != front || !a.awaiting {
+	if m.presentation.Front != front || !a.Awaiting {
 		t.Fatal("old presentation acknowledged the new geometry")
 	}
 	// Newest completes first; older encodes then arrive out of order.
 	drainAnimation(t, m, renders[len(renders)-1])
-	current := m.animationFront
+	current := m.presentation.Front
 	for i := len(renders) - 2; i >= 0; i-- {
 		drainAnimation(t, m, renders[i])
-		if flights[i].active.Load() || m.animationFront != current {
+		if flights[i].Active.Load() || m.presentation.Front != current {
 			t.Fatal("obsolete resize survived or replaced the latest frame")
 		}
 	}
-	if current == front || front.flight.active.Load() || a.awaiting || !a.paused {
+	if current == front || front.Flight.Active.Load() || a.Awaiting || !a.Paused {
 		t.Fatal("resize failed to settle, clean up, or preserve pause")
 	}
 	assertAnimationFits(t, m)
-	a.paused = false
+	a.Paused = false
 	if m.scheduleAnimation() == nil {
 		t.Fatal("playback did not resume after resizing")
 	}
@@ -533,8 +533,8 @@ func TestGIFKittyResizeBurstRejectsOldPresentations(t *testing.T) {
 
 func TestGIFKittyFontResizeCancelsPendingComposition(t *testing.T) {
 	m := animated(t, "kitty", 0)
-	a, front := m.animation, m.animationFront
-	tick := animationTick{a, a.epoch}
+	a, front := m.animation, m.presentation.Front
+	tick := animationTick{Owner: a.Animator, Epoch: a.Epoch}
 	composed := m.animationTick(tick)()
 	_, resize := m.Update(uv.CellSizeEvent{Width: 11, Height: 23})
 	// Simulate a loaded CI runner: a valid render may take longer than the
@@ -544,19 +544,19 @@ func TestGIFKittyFontResizeCancelsPendingComposition(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 		return fastResize()
 	}
-	if m.picID == front.id || a.epoch == tick.epoch || !a.awaiting {
+	if m.picID == front.ID || a.Epoch == tick.Epoch || !a.Awaiting {
 		t.Fatal("font resize reused the old placement or composition")
 	}
 	_, cmd := m.Update(composed)
-	if cmd != nil || a.player.Frame() != 1 {
+	if cmd != nil || a.Player.Frame() != 1 {
 		t.Fatal("old composition advanced playback during resize")
 	}
-	a.paused = true
+	a.Paused = true
 	drainAnimation(t, m, resize)
 	if w, h := m.pic.CellPixelSize(); w != 11 || h != 23 {
 		t.Fatalf("lost font geometry: %dx%d", w, h)
 	}
-	if m.animationFront == front || a.awaiting {
+	if m.presentation.Front == front || a.Awaiting {
 		t.Fatal("font resize failed to present")
 	}
 	assertAnimationFits(t, m)
@@ -567,7 +567,7 @@ func TestGIFSpeedKeysAndDelays(t *testing.T) {
 		t.Run(render, func(t *testing.T) {
 			m := animated(t, render, 0)
 			a := m.animation
-			a.paused = true
+			a.Paused = true
 			if a.rate() != 1 || a.delay() != 655350*time.Millisecond {
 				t.Fatal("new GIF does not start at its original speed")
 			}
@@ -581,8 +581,8 @@ func TestGIFSpeedKeysAndDelays(t *testing.T) {
 			} {
 				before, id := m.source, m.picID
 				m.Update(press(tt.key))
-				if a.rate() != tt.rate || !a.paused || a.pending || m.source != before || m.picID != id {
-					t.Fatalf("%s: rate %g, paused %v, pending %v", tt.key, a.rate(), a.paused, a.pending)
+				if a.rate() != tt.rate || !a.Paused || a.Pending || m.source != before || m.picID != id {
+					t.Fatalf("%s: rate %g, paused %v, pending %v", tt.key, a.rate(), a.Paused, a.Pending)
 				}
 				want := time.Duration(float64(655350*time.Millisecond) / tt.rate)
 				if a.delay() != want || !strings.Contains(m.detail(120, 40), fmt.Sprintf("%g× speed", tt.rate)) {
@@ -591,7 +591,8 @@ func TestGIFSpeedKeysAndDelays(t *testing.T) {
 			}
 			// A 20 ms encoded delay can run at 5 ms; it is not renormalized to
 			// 100 ms after scaling. Zoom and layout do not change playback speed.
-			a.player, _ = a.player.Next()
+			next, _ := a.Player.Next()
+			a.SetPlayer(next)
 			m.Update(press(">"))
 			m.Update(press(">"))
 			if a.delay() != 5*time.Millisecond {
@@ -601,13 +602,13 @@ func TestGIFSpeedKeysAndDelays(t *testing.T) {
 			drainAnimation(t, m, cmd)
 			_, cmd = m.Update(tea.WindowSizeMsg{Width: 30, Height: 10})
 			drainAnimation(t, m, cmd)
-			if a.rate() != 4 || !a.paused || m.zoom != 1 {
+			if a.rate() != 4 || !a.Paused || m.zoom != 1 {
 				t.Fatal("zoom/resize changed playback settings")
 			}
 			// Reload and file navigation create a new playback session at 1×.
 			m.load(true)
 			cmd = m.loaded(m.loader.Load(m.request(true)))
-			m.animation.paused = true
+			m.animation.Paused = true
 			drainAnimation(t, m, cmd)
 			if m.animation.rate() != 1 {
 				t.Fatal("new playback inherited speed from the previous session")
@@ -620,19 +621,19 @@ func TestGIFSpeedChangeCancelsTimerAndStaleComposition(t *testing.T) {
 	m := animated(t, "glyph", 0)
 	a := m.animation
 	timer := m.scheduleAnimation()
-	tick := animationTick{a, a.epoch}
+	tick := animationTick{Owner: a.Animator, Epoch: a.Epoch}
 	composed := m.animationTick(tick)()
 	_, replacement := m.Update(press(">"))
-	if timer() != nil || a.epoch == tick.epoch || !a.pending || replacement == nil {
+	if timer() != nil || a.Epoch == tick.Epoch || !a.Pending || replacement == nil {
 		t.Fatal("speed change did not replace the current delay")
 	}
 	m.Update(composed)
-	if a.player.Frame() != 1 || a.rate() != 2 {
+	if a.Player.Frame() != 1 || a.rate() != 2 {
 		t.Fatal("obsolete composition advanced at the previous speed")
 	}
 	m.Update(press("space"))
 	drainAnimation(t, m, replacement) // The replaced long timer must now be cancelled too.
-	if !a.paused || a.pending {
+	if !a.Paused || a.Pending {
 		t.Fatal("pause failed after speed change")
 	}
 }
@@ -642,26 +643,26 @@ func TestGIFSpeedPreservesKittyBackpressureAndFinitePlayback(t *testing.T) {
 	a := m.animation
 	draw := stepAnimation(t, m)
 	m.Update(press(">"))
-	if !a.awaiting || a.pending || m.scheduleAnimation() != nil {
+	if !a.Awaiting || a.Pending || m.scheduleAnimation() != nil {
 		t.Fatal("speed change bypassed Kitty backpressure")
 	}
-	a.paused = true
+	a.Paused = true
 	drainAnimation(t, m, draw)
-	a.paused = false
+	a.Paused = false
 	stepAnimation(t, m)
-	if !a.finished {
+	if !a.Finished {
 		t.Fatal("finite playback did not finish")
 	}
 	m.Update(press("<"))
-	if !a.finished || a.pending || a.rate() != 1 {
+	if !a.Finished || a.Pending || a.rate() != 1 {
 		t.Fatal("speed change restarted finished playback")
 	}
 	m.Update(press("<"))
 	restart := m.toggleAnimation()
 	draw = m.animationFrame(restart().(animationFrame))
-	a.paused = true
+	a.Paused = true
 	drainAnimation(t, m, draw)
-	if a.rate() != .5 || a.finished || a.player.Frame() != 1 {
+	if a.rate() != .5 || a.Finished || a.Player.Frame() != 1 {
 		t.Fatal("restart lost the selected speed")
 	}
 }

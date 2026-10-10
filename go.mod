@@ -20,6 +20,8 @@ require (
 	github.com/coder/websocket v1.8.15
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gen2brain/h265 v0.2.3
+	github.com/go-text/render v0.2.1
+	github.com/go-text/typesetting v0.3.5
 	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
@@ -70,6 +72,7 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.63.0 // indirect
 	github.com/quic-go/webtransport-go v0.13.0 // indirect
+	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect

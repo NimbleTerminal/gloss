@@ -11,7 +11,7 @@ cancellation discipline the standalone GIF viewer already has. Previews, the
 file-list thumbnails, and headless PNG exports keep the first frame.
 
 The playback machinery becomes an internal package shaped like a NimbleTerminal
-component, so the owner can extract it later (beside `ntcharts-qrcode`) as a
+component, so the owner can extract it later (beside `ntqrcode`) as a
 move rather than a redesign.
 
 ## What exists

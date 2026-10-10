@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/NimbleTerminal/gloss/examples"
 	"github.com/NimbleTerminal/gloss/internal/document"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 )
 

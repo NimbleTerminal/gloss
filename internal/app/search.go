@@ -65,7 +65,7 @@ type searchResult struct {
 
 func (m *Model) searchable() bool {
 	return !m.isPreview && !m.loading && m.err == nil && len(m.opts.Files) > 0 &&
-		(m.markdown != nil || m.sheet != nil || m.kind == "pdf")
+		(m.markdown != nil || m.typeset != nil || m.sheet != nil || m.kind == "pdf")
 }
 
 func (m *Model) editSearch() {
@@ -224,11 +224,14 @@ func (m *Model) startSearch() tea.Cmd {
 		columns = slices.Clone(m.sheet.cols)
 		s.columns, s.unit = columns, "cells"
 	}
-	if m.kind == "pdf" {
+	if m.kind == "pdf" && m.markdown == nil {
 		s.unit = "pages"
 	}
 	request, files, pages := m.request(false), m.opts.FilesFS, m.pages
 	request.TextOnly, request.Animate = true, false
+	if m.typeset != nil {
+		request.TypesetWidth = m.typesetWidth
+	}
 	pattern, revision := s.pattern, s.revision
 	if m.searchWorker == nil {
 		m.searchWorker = &searchWorker{}

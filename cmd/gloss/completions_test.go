@@ -115,7 +115,7 @@ COMP_WORDS=("$@"); COMP_CWORD=$(( $# - 1 )); COMPREPLY=(); _gloss; echo "${COMPR
 		words []string
 		want  string
 	}{
-		{[]string{"gloss", "--ty"}, "--type"},
+		{[]string{"gloss", "--ty"}, "--type --typeset"},
 		{[]string{"gloss", "--type", "sv"}, "svg"},
 		{[]string{"gloss", "--type", "=", "pd"}, "pdf"},
 		{[]string{"gloss", "-r", ""}, "auto kitty glyph"},

@@ -1,7 +1,9 @@
 package app
 
 import (
+	"context"
 	"fmt"
+	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
 	"image/color"
 	"image/draw"
@@ -11,10 +13,10 @@ import (
 	"sync/atomic"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
+	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -25,6 +27,9 @@ type Options struct {
 	Files                  []string
 	Stdin                  string // The file standard input was read into, if one of Files is it.
 	Type, Render, Render3D string
+	MarkdownMode           string
+	Typeset                bool
+	Theme                  string
 	Accept                 document.AcceptFilter
 	Page, DPI              int
 	Menu, Preview          bool
@@ -82,12 +87,23 @@ type meshState struct {
 // textState is what the model keeps for a Markdown or sheet document, and the
 // view to return to when a fetched file closes.
 type textState struct {
-	search        *textSearch
-	searchWorker  *searchWorker
-	markdown      *markdownView
-	savedMarkdown *markdownView
-	sheet         *sheetView
-	savedSheet    *sheetView // The cell to return to when a fetched file closes.
+	typesetPlayback         *animate.CompositeSource
+	search                  *textSearch
+	searchWorker            *searchWorker
+	markdown                *markdownView
+	typeset                 *document.Markdown
+	typesetWidth            int
+	typesetRevision         uint64
+	typesetActive           uint64
+	typesetWaitSize         bool
+	typesetCancel           context.CancelFunc
+	typesetTop, typesetLeft int
+	typesetEnd              bool
+	typesetShown            *document.TypesetViewport
+	typesetTheme            string
+	savedMarkdown           *markdownView
+	sheet                   *sheetView
+	savedSheet              *sheetView // The cell to return to when a fetched file closes.
 }
 
 // browserState is what the file browser remembers between visits.
@@ -120,11 +136,11 @@ type Model struct {
 	generation               uint64
 	kind                     string
 	loading, help, autoKitty bool
+	theme                    string
 	err                      error
 	source                   image.Image
 	animation                *animation
-	animationPlacement       *animationPlacement
-	animationFront           *animationPicture
+	presentation             *animate.Animator
 	zoom                     int
 	panX, panY               float64
 	screen                   screen // What fills the body.
@@ -157,6 +173,12 @@ func New(opts Options) *Model {
 	pic, id := terminalPicture(opts.Render, !opts.keptScreen)
 	opts.keptScreen = true
 	m := &Model{opts: opts, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, pic: pic, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
+	m.presentation = animate.New(&m.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
+	m.presentation.ID = id
+	m.theme = "dark"
+	if opts.Theme == "light" {
+		m.theme = "light"
+	}
 	if (opts.Menu || opts.Preview) && len(opts.Files) > 0 {
 		m.screen = screenList
 	}
@@ -201,12 +223,13 @@ func (m *Model) Init() tea.Cmd {
 	}
 	if m.screen == screenList {
 		m.suspended = true
-		return tea.Batch(m.pic.Init(), m.updatePreview(), browse, m.awaitDrops())
+		return tea.Batch(m.themeRequest(), m.pic.Init(), m.updatePreview(), browse, m.awaitDrops())
 	}
-	return tea.Batch(m.pic.Init(), m.load(false), browse, m.awaitDrops())
+	return tea.Batch(m.themeRequest(), m.pic.Init(), m.load(false), browse, m.awaitDrops())
 }
 
 func (m *Model) Close() error {
+	m.stopTypeset()
 	m.clearSearch()
 	m.stopAnimation()
 	m.clearAnimationFront()
@@ -244,7 +267,11 @@ func (m *Model) quit() tea.Cmd {
 	if m.browsing() {
 		m.showDocument()
 	}
-	return tea.Sequence(tea.Batch(qrCleanup, m.keepAnimationPicture()), tea.Quit)
+	var markdownCleanup tea.Cmd
+	if m.markdown != nil {
+		markdownCleanup = m.markdown.keep()
+	}
+	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture()), tea.Quit)
 }
 
 // IsStdin says whether path is the file standard input was read into.
@@ -252,8 +279,19 @@ func (o Options) IsStdin(path string) bool { return o.Stdin != "" && path == o.S
 
 // request is what the loader is asked for the current file and page.
 func (m *Model) request(reload bool) document.Request {
-	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
+	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: m.theme, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
 		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
+	q.TypesetWidth = m.typesetMeasure()
+	if !reload {
+		q.Playback = m.typesetPlayback
+	}
+	if m.opts.typesetEnabled() && !m.isPreview {
+		view := m.typesetViewport()
+		if m.typeset == nil && m.page > 1 {
+			view.Top = (m.page - 1) * 1125
+		}
+		q.TypesetView = &view
+	}
 	if m.opts.IsStdin(q.Path) {
 		q.BaseDir = m.opts.MarkdownBase
 	}
@@ -267,10 +305,17 @@ func (m *Model) load(reload bool) tea.Cmd {
 	if len(m.opts.Files) == 0 {
 		return nil
 	}
+	if m.opts.typesetEnabled() && m.width == 0 && !m.isPreview {
+		m.typesetWaitSize, m.loading = true, true
+		return nil
+	}
+	m.typesetWaitSize = false
 	m.stopAnimation()
 	m.generation++
 	m.loading, m.err = true, nil
 	q := m.request(reload)
+	m.stopTypeset()
+	q.Context, m.typesetCancel = context.WithCancel(context.Background())
 	preview := m.isPreview
 	return func() tea.Msg {
 		r := m.loader.Load(q)
@@ -326,6 +371,10 @@ func (m *Model) clearChart() tea.Cmd {
 }
 
 func (m *Model) clearGraphics() tea.Cmd {
+	m.stopTypeset()
+	m.typesetTop, m.typesetLeft, m.typesetEnd, m.typesetShown = 0, 0, false, nil
+	m.typeset = nil
+	m.typesetPlayback = nil
 	m.stopAnimation()
 	m.sheet = nil
 	frontCleanup := m.clearAnimationFront()
@@ -347,6 +396,7 @@ func (m *Model) layoutMarkdown() tea.Cmd {
 	if m.markdown == nil {
 		return nil
 	}
+	m.markdown.setTheme(m.theme)
 	cw, ch := m.pic.CellPixelSize()
 	return m.markdown.layout(m.width, m.bodyHeight(), cw, ch)
 }
@@ -377,6 +427,9 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd = tea.Batch(cmd, m.clearAnimationFront())
 		}
 		cmd = tea.Batch(cmd, m.scheduleAnimation())
+		if m.markdown != nil {
+			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument))
+		}
 		if m.qr != nil {
 			cw, ch := m.pic.CellPixelSize()
 			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
@@ -416,7 +469,23 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			return m, cmd
 		}
 	}
+	if m.markdown != nil {
+		if cmd, handled := m.markdown.animationMessage(msg); handled {
+			return m, cmd
+		}
+	}
 	switch v := msg.(type) {
+	case tea.BackgroundColorMsg:
+		if m.opts.Theme != "" && m.opts.Theme != "auto" || v.Color == nil {
+			return m, nil
+		}
+		name := "light"
+		if v.IsDark() {
+			name = "dark"
+		}
+		return m, m.applyTheme(name)
+	case tea.FocusMsg:
+		return m, m.themeRequest()
 	case searchResult:
 		return m, m.searched(v)
 	case animationTick:
@@ -426,29 +495,44 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	case animationSeekResult:
 		return m, m.animationSought(v)
 	case animationPresented:
-		if m.animation != nil && m.animation == v.owner && m.picID == v.id && m.pic.Mode() == picture.PictureKitty {
-			return m, m.presentAnimationPicture()
-		}
-		return m, nil
+		cmd, _ := m.presentation.Update(v)
+		return m, cmd
 	case previewResult:
 		if m.preview != nil && v.owner == m.preview.kittyID {
 			_, cmd := m.preview.Update(v.result)
 			return m, cmd
 		}
 		return m, nil
+	case typesetResize:
+		return m, m.reflowTypeset(v)
+	case typesetReflowResult:
+		return m, m.typesetReflowed(v)
 	case tea.WindowSizeMsg:
 		oldWidth, oldHeight := m.width, m.height
 		m.width, m.height = max(1, v.Width), max(1, v.Height)
 		m.opener.resize(m.width, m.bodyHeight())
 		var resize tea.Cmd
-		if m.animation != nil && m.pic.Mode() == picture.PictureKitty {
+		if m.source != nil && m.pic.Mode() == picture.PictureKitty {
 			if oldWidth != m.width || oldHeight != m.height {
-				resize = m.resizeAnimation()
+				if m.animation != nil {
+					resize = m.resizeAnimation()
+				} else {
+					resize = m.refreshImage()
+				}
 			}
 		} else {
 			resize = m.pic.SetSize(m.width, m.bodyHeight())
 		}
 		cmd := tea.Batch(resize, m.resizePreview(), m.layoutMarkdown(), m.layoutGrid())
+		if m.typesetWaitSize && !m.suspended {
+			cmd = tea.Batch(cmd, m.load(false))
+		}
+		if m.typeset != nil {
+			if m.markdown == nil {
+				cmd = tea.Sequence(cmd, m.refreshImage())
+			}
+			cmd = tea.Batch(cmd, m.queueTypesetReflow())
+		}
 		if m.chart != nil {
 			return m, tea.Batch(cmd, m.chart.SetSize(m.width, m.bodyHeight()), m.refit())
 		}
@@ -494,6 +578,17 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	case document.Result:
 		return m, m.loaded(v)
 	case tea.MouseWheelMsg:
+		if m.typeset != nil && m.markdown == nil && !m.help && m.screen == screenDocument {
+			if v.Button == tea.MouseWheelUp {
+				cmd, _ := m.typesetKey("up")
+				return m, cmd
+			}
+			if v.Button == tea.MouseWheelDown {
+				cmd, _ := m.typesetKey("down")
+				return m, cmd
+			}
+			return m, nil
+		}
 		if m.markdown != nil && !m.help && m.screen == screenDocument {
 			if v.Button == tea.MouseWheelUp {
 				m.markdown.scroll(-3)
@@ -523,11 +618,21 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	// from an earlier page cannot overwrite the current source.
 	cw, ch := m.pic.CellPixelSize()
 	picCmd := updateTerminalPicture(&m.pic, m.autoKitty, msg)
-	if nw, nh := m.pic.CellPixelSize(); (cw != nw || ch != nh) && m.animation != nil && m.pic.Mode() == picture.PictureKitty {
+	if nw, nh := m.pic.CellPixelSize(); (cw != nw || ch != nh) && m.source != nil && m.pic.Mode() == picture.PictureKitty {
 		// Font-size changes have the same placement lifetime as window resizes.
-		picCmd = m.resizeAnimation()
+		if m.animation != nil {
+			picCmd = m.resizeAnimation()
+		} else {
+			picCmd = m.refreshImage()
+		}
 	}
 	cmds = append(cmds, m.animationTransmission(msg, picCmd))
+	if nw, nh := m.pic.CellPixelSize(); (cw != nw || ch != nh) && m.typeset != nil {
+		cmds = append(cmds, m.queueTypesetReflow())
+		if m.markdown == nil {
+			cmds = append(cmds, m.refreshImage())
+		}
+	}
 	if m.markdown != nil {
 		cmds = append(cmds, m.markdown.update(msg), m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
 	}
@@ -563,14 +668,19 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	if v.Err != nil {
 		return m.clearGraphics()
 	}
-	animationCleanup := m.clearAnimationFront()
-	if m.animationPlacement != nil {
+	var animationCleanup tea.Cmd
+	if v.Image == nil || v.Animation != nil {
+		animationCleanup = m.clearAnimationFront()
+	}
+	if m.presentation.Flight != nil && (m.presentation.Front == nil || m.presentation.Front.ID != m.picID) {
 		pendingCleanup := m.pic.SetImage(nil)
 		m.retireAnimationPicture(pendingCleanup)
 		animationCleanup = tea.Batch(animationCleanup, pendingCleanup)
 	}
 	cleanup := tea.Batch(animationCleanup, m.clearQR(), m.clearMarkdown(), m.clearChart())
 	m.sheet = nil
+	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
+	m.acceptTypesetView(v)
 	m.kind, m.page, m.pages = v.Kind, v.Page, v.Pages
 	if v.Sheet != nil {
 		m.source, m.sheet = nil, newSheetView(v.Sheet)
@@ -597,9 +707,12 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	m.source = v.Image
 	if v.Animation != nil && !m.isPreview {
-		m.animation = &animation{player: v.Animation}
+		m.presentation.Speed = 0
+		m.presentation.SetPlayer(v.Animation)
+		m.presentation.Paused = false
+		m.animation = &animation{Animator: m.presentation}
 	}
-	return tea.Sequence(cleanup, m.refreshImage())
+	return tea.Sequence(cleanup, m.refreshImage(), m.queueTypesetReflow())
 }
 
 // showMesh puts a loaded mesh on a new chart, at the camera it starts from.
@@ -656,6 +769,15 @@ func (m *Model) refreshImage() tea.Cmd {
 	if m.source == nil {
 		return nil
 	}
+	if m.typeset != nil && !m.isPreview {
+		if !m.typesetMatches() {
+			return m.queueTypesetReflow()
+		}
+		if m.presentation.Source == nil && m.typesetPlayback != nil {
+			m.presentation.SetSource(m.typesetPlayback)
+		}
+		return m.showPicture(m.source)
+	}
 	span := 1 / float64(int(1)<<m.zoom)
 	limit := (1 - span) / 2
 	m.panX, m.panY = max(-limit, min(limit, m.panX)), max(-limit, min(limit, m.panY))
@@ -666,43 +788,22 @@ func (m *Model) refreshImage() tea.Cmd {
 var pictureBackground = color.RGBA{R: 24, G: 26, B: 30, A: 255}
 
 // showPicture puts img on screen. With Kitty graphics it goes under a new
-// image id, the old one deleted: ghostty-web, the browser app's terminal,
+// image id, retaining the old placement until transmission completes.
+// ghostty-web, the browser app's terminal,
 // keeps a texture for each id and keeps it for a new picture of the same size
 // that lands at the same place in its memory, so another page, file, or zoom
 // would show the last one again.
 func (m *Model) showPicture(img image.Image) tea.Cmd {
-	if m.pic.Mode() != picture.PictureKitty {
-		if m.animation != nil {
-			m.animation.awaiting = false
-		}
-		return m.pic.SetImage(img)
+	m.presentation.SetSize(m.width, m.bodyHeight())
+	m.presentation.SetBackground(m.pictureBackground())
+	zoom, panX, panY := m.zoom, m.panX, m.panY
+	m.presentation.Transform = func(frame image.Image) image.Image { return crop(frame, zoom, panX, panY) }
+	if m.typeset != nil {
+		m.presentation.Transform = nil
 	}
-	old := m.pic
-	cw, ch := old.CellPixelSize()
-	var cleanup tea.Cmd
-	if m.animation != nil && m.animationFront != nil && m.animationFront.id == m.picID {
-		// The front owns this placement until the new frame is transmitted.
-		m.animationPlacement = nil
-	} else {
-		cleanup = old.SetImage(nil)
-		m.retireAnimationPicture(cleanup)
-	}
-	if m.animation != nil {
-		m.picID = m.animation.nextImageID()
-		if m.picID >= 1<<24 {
-			m.animation.paused = true
-			m.note = "animation paused: terminal image IDs exhausted; restart gloss"
-			return cleanup
-		}
-		m.animation.awaiting = true
-		m.animationPlacement = &animationPlacement{}
-		m.animationPlacement.active.Store(true)
-	} else {
-		m.picID = nextKittyID()
-	}
-	m.pic = picture.NewWithConfig(picture.Config{KittyID: m.picID, KittyZ: -1, Background: pictureBackground,
-		CellPixelWidth: cw, CellPixelHeight: ch, KittyResolutionFactor: old.KittyResolutionFactor(), KittyFormat: old.KittyFormat(), KittyMedium: old.KittyMedium()})
-	return tea.Sequence(cleanup, m.pic.SetSize(m.width, m.bodyHeight()), m.pic.Toggle(), m.pic.SetImage(img))
+	cmd := m.presentation.Show(img)
+	m.picID = m.presentation.ID
+	return cmd
 }
 
 func crop(src image.Image, zoom int, panX, panY float64) image.Image {

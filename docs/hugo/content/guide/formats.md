@@ -18,8 +18,10 @@ bookToC: false
   Delays below 20 ms use 100 ms before the speed multiplier is applied; other
   delays are scaled directly (minimum 5 ms at 4×). Rendering can
   slow playback on large images or slow terminals; frames are not queued up.
-  File-list previews, inline Markdown/notebook images, and headless `--output`
+  File-list previews, notebook images, and headless `--output`
   use the first frame on the full logical canvas. GIF frames are not `--page`s.
+  Embedded Markdown GIFs animate when visible: at most eight distinct destinations
+  and 64 MiB of decoded frame storage per document; excess GIFs remain still.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder
