@@ -14,9 +14,15 @@ ground for coding agents.
 Requires Go **1.26.8+** and [Task](https://taskfile.dev/) for the development
 commands. Without Task, build with `go build -o gloss ./cmd/gloss`. Go's
 automatic toolchain selection can download that version. Dependencies are
-pinned in `go.mod`; sibling checkouts aren't needed. Clone with
-`--recurse-submodules` (or run `git submodule update --init`) to get the
-documentation theme.
+pinned in `go.mod`; sibling checkouts aren't needed. One dependency is
+replaced: Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
+taken from the `perf/consolidated` branch of `github.com/neomantra/ultraviolet`
+by a `replace` directive pinned to a commit, until that branch's renderer
+changes are upstream (a Kitty placeholder grid frame costs about 40% less;
+`BenchmarkTerminalFrame` in `internal/app` measures it). A module with a
+`replace` cannot be installed with `go install …@latest`, so install from a
+clone. Clone with `--recurse-submodules` (or run `git submodule update
+--init`) to get the documentation theme.
 
 ```sh
 task build                       # ./gloss

@@ -311,7 +311,10 @@ Uses [Task](https://taskfile.dev/); without it, `go build -o gloss ./cmd/gloss`.
   the Grist ones (needs `python3`).
 
 Version is stamped via `-ldflags "-X main.version=$VERSION"`. Dependencies are
-pinned in `go.mod`; builds use `-mod=readonly`.
+pinned in `go.mod`; builds use `-mod=readonly`. Bubble Tea's renderer,
+`github.com/charmbracelet/ultraviolet`, is replaced by the `neomantra` fork's
+`perf/consolidated` branch (see DEVELOP.md), which rules out
+`go install …@latest`.
 
 ## Conventions
 

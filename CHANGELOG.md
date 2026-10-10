@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+  * Render frames through the `perf/consolidated` branch of the
+    `neomantra/ultraviolet` fork of Bubble Tea's renderer, pinned by a `replace`
+    directive: a Kitty picture frame costs about 40% less renderer time and a
+    third fewer allocations. Install from a clone, since `go install …@latest`
+    does not accept a module with a `replace`.
+
   * Select text in typeset views by dragging; `y` copies it through the
     terminal (OSC 52) and `Esc` clears it. The selection is kept by its place
     in the text, so it survives scrolling, zooming and reflow. Text views keep

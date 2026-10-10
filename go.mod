@@ -84,3 +84,5 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )
+
+replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2

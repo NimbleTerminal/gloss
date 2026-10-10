@@ -20,8 +20,8 @@ sudo apt install ./gloss_*_linux_amd64.deb     # or _arm64
 ```
 
 The release also has archives for macOS, Linux, and Windows (amd64 and arm64),
-each a single binary with nothing else to install. With Go, `go install
-github.com/NimbleTerminal/gloss/cmd/gloss@latest` builds it from source.
+each a single binary with nothing else to install. With Go, clone the
+repository and run `go install ./cmd/gloss` in it to build from source.
 
 ## For agents
 
