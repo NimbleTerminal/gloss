@@ -76,7 +76,10 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   color-group colors, Bambu-Studio-style filament colors from slicer settings;
   part listing/selection (`c` key, `--parts`, `--partn`); too-large projects
   fall back to the embedded thumbnail.
-- **Markdown**: visible embedded GIF blocks animate in both renderers, with
+- **Markdown**: native text/typeset views open HTTP(S) links and linked figures
+  in the default browser on click, preserving wheel scrolling. The host supplies
+  `Options.OpenLink`; browser/serve hosts leave it nil. Normal text retains OSC 8.
+   visible embedded GIF blocks animate in both renderers, with
   eight distinct destinations and 64 MiB total decoded frame storage; excess
   GIFs stay on frame one and are counted in info. Offscreen/help/source/menu
   pauses; reflow preserves positions; reload restarts. `e` exports the first

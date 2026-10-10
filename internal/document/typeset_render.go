@@ -14,6 +14,12 @@ import (
 // selects a numbered 800×1125 export slice instead of a continuous viewport.
 type TypesetRegion = animate.Region
 
+// TypesetLink is a web link hit area in rendered-image pixels.
+type TypesetLink struct {
+	Rect image.Rectangle
+	URL  string
+}
+
 type TypesetViewport struct {
 	Top, Height, Left, Zoom int
 	End                     bool
@@ -140,6 +146,16 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		}
 		out.Playback = animate.NewComposite(base, out.Animated, previous)
 		out.Image = out.Playback.Image()
+	}
+	for _, op := range lay.ops {
+		if op.href == "" {
+			continue
+		}
+		r := op.rect.Sub(image.Pt(left, top))
+		r = image.Rect(int(math.Round(float64(r.Min.X)*scale)), int(math.Round(float64(r.Min.Y)*scale)), int(math.Round(float64(r.Max.X)*scale)), int(math.Round(float64(r.Max.Y)*scale))).Intersect(out.Image.Bounds())
+		if !r.Empty() {
+			out.Links = append(out.Links, TypesetLink{Rect: r, URL: op.href})
+		}
 	}
 	out.Info = append(append([]Field(nil), l.file...), l.typesetInfo...)
 	return

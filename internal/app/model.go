@@ -21,6 +21,9 @@ import (
 )
 
 type Options struct {
+	// OpenLink asks the embedding host to open an explicitly clicked web URL.
+	// Nil leaves link activation to the terminal (OSC 8). It never fetches a document.
+	OpenLink               func(string) error
 	STLCamera              *charts.Camera  // Optional initial/reset view for an embedded gallery.
 	Views                  []document.View // Views of a mesh asked for: the first is where the viewer starts.
 	FilesFS                fs.FS           // Optional embedded files for the browser demo.
@@ -87,6 +90,9 @@ type meshState struct {
 // textState is what the model keeps for a Markdown or sheet document, and the
 // view to return to when a fetched file closes.
 type textState struct {
+	typesetLinks            []document.TypesetLink
+	pressedLink             string
+	linkPoint               image.Point
 	typesetPlayback         *animate.CompositeSource
 	search                  *textSearch
 	searchWorker            *searchWorker
@@ -374,6 +380,8 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.stopTypeset()
 	m.typesetTop, m.typesetLeft, m.typesetEnd, m.typesetShown = 0, 0, false, nil
 	m.typeset = nil
+	m.typesetLinks = nil
+	m.pressedLink = ""
 	m.typesetPlayback = nil
 	m.stopAnimation()
 	m.sheet = nil
@@ -452,6 +460,9 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 	}
 	msg = m.onBody(msg)
+	if cmd, handled := m.linkMouse(msg); handled {
+		return m, cmd
+	}
 	if mouse, ok := msg.(tea.MouseMsg); ok && m.listing() {
 		if m.help {
 			return m, nil
@@ -475,6 +486,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 	}
 	switch v := msg.(type) {
+	case linkOpened:
+		if v.generation == m.generation && v.err != nil {
+			m.note = "open link: " + safe(v.err.Error())
+		}
+		return m, nil
 	case tea.BackgroundColorMsg:
 		if m.opts.Theme != "" && m.opts.Theme != "auto" || v.Color == nil {
 			return m, nil

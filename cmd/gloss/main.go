@@ -475,6 +475,7 @@ func run(args []string) (err error) {
 	if opts.Serve {
 		return served(opts, os.Stdout, os.Stderr)
 	}
+	opts.OpenLink = browse
 	m := app.New(opts.Options)
 	defer m.Close()
 	var drawn []tea.ProgramOption

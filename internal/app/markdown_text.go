@@ -34,8 +34,9 @@ type textTable struct {
 	alignments []east.Alignment
 }
 type markdownContent struct {
-	units  []textUnit
-	blocks []textBlock
+	imageLinks map[int]string
+	units      []textUnit
+	blocks     []textBlock
 }
 
 func (c *markdownContent) unit(s string) int {
@@ -100,7 +101,7 @@ func logicalRenderer(themes ...string) func([]byte, ast.Node) string {
 }
 
 func renderedContent(doc *document.Markdown, themes ...string) *markdownContent {
-	c := &markdownContent{}
+	c := &markdownContent{imageLinks: map[int]string{}}
 	renderLogical := logicalRenderer(themes...)
 	source := bytes.Clone(doc.Source)
 	root := document.MarkdownTree(source)
@@ -142,6 +143,9 @@ func renderedContent(doc *document.Markdown, themes ...string) *markdownContent 
 		return ast.NewTextSegment(text.NewSegment(start, len(source)))
 	}
 	for i, img := range images {
+		if link, ok := img.Parent().(*ast.Link); ok {
+			c.imageLinks[i] = string(link.Destination)
+		}
 		value := "[image limit reached]"
 		if i < len(doc.Images) {
 			r := nextMarker()

@@ -35,12 +35,14 @@ const (
 )
 
 type span struct {
+	href    string
 	text    string
 	style   int
 	ink     color.RGBA // zero means the ordinary text color
 	darkInk color.RGBA
 }
 type block struct {
+	href         string
 	kind         string
 	spans        []span
 	rows         [][][]span
@@ -89,6 +91,16 @@ func inline(n ast.Node, data []byte, style int) []span {
 				s = "[x] "
 			}
 			out = append(out, span{text: s, style: style | mono})
+		case *ast.Link:
+			linked := inline(v, data, style)
+			for i := range linked {
+				linked[i].href = string(v.Destination)
+				linked[i].ink = theme.Get("light").Accent
+				linked[i].darkInk = theme.Get("dark").Accent
+			}
+			out = append(out, linked...)
+		case *ast.AutoLink:
+			out = append(out, span{text: string(v.Label(data)), href: string(v.URL(data)), style: style, ink: theme.Get("light").Accent, darkInk: theme.Get("dark").Accent})
 		case *ast.Image:
 			out = append(out, span{text: "[image: " + string(v.Destination) + "]", style: style})
 		default:
@@ -117,7 +129,7 @@ func (p *prepared) walk(n ast.Node, data []byte, indent int) {
 		case *ast.Paragraph, *ast.TextBlock:
 			if c.ChildCount() == 1 {
 				if im := standaloneImage(c.FirstChild()); im != nil {
-					p.blocks = append(p.blocks, block{kind: "image", destination: string(im.Destination), asset: p.images[string(im.Destination)], spans: []span{{text: "[image unavailable: " + string(im.Destination) + "]", style: italic}}, indent: indent})
+					p.blocks = append(p.blocks, block{kind: "image", href: imageLink(im), destination: string(im.Destination), asset: p.images[string(im.Destination)], spans: []span{{text: "[image unavailable: " + string(im.Destination) + "]", style: italic}}, indent: indent})
 					continue
 				}
 			}
@@ -287,7 +299,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 		offset = end
 	}
 	// Per-engine bounded cache; eviction is deliberately simple for the spike.
-	bytes := len(s.text) * 20
+	bytes := len(s.text)*20 + len(k)
 	for _, r := range s.runs {
 		bytes += len(r.Glyphs) * 128
 	}
@@ -303,6 +315,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 }
 
 type operation struct {
+	href                  string
 	rect                  image.Rectangle
 	run                   *shaping.Output
 	style, size, baseline int
@@ -340,7 +353,7 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 				paragraphs = append(paragraphs, current)
 				current = nil
 			}
-			current = append(current, span{text: part, style: sp.style, ink: sp.ink, darkInk: sp.darkInk})
+			current = append(current, span{text: part, style: sp.style, ink: sp.ink, darkInk: sp.darkInk, href: sp.href})
 		}
 	}
 	if len(paragraphs) > 0 {
@@ -355,6 +368,14 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 		return ops, y - start
 	}
 	s := l.e.shape(spans, size)
+	// Link destinations do not affect shaping. Keep them out of the cache and
+	// project the caller's spans onto run offsets, avoiding repeated URL copies.
+	hrefs := make([]string, 0, len(s.text))
+	for _, sp := range spans {
+		for range []rune(sp.text) {
+			hrefs = append(hrefs, sp.href)
+		}
+	}
 	if len(s.text) == 0 {
 		return nil, size * 3 / 2
 	}
@@ -390,12 +411,14 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 			run.Glyphs = append([]shaping.Glyph(nil), r.Glyphs...)
 			style := 0
 			var ink, darkInk color.RGBA
+			href := ""
 			if r.Runes.Offset < len(s.styles) {
 				style = s.styles[r.Runes.Offset]
+				href = hrefs[r.Runes.Offset]
 				ink = s.inks[r.Runes.Offset]
 				darkInk = s.darkInks[r.Runes.Offset]
 			}
-			ops = append(ops, operation{rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline})
+			ops = append(ops, operation{rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline})
 			advance += r.Advance
 		}
 		y += height
@@ -443,7 +466,7 @@ func (l *layout) ensure(bottom int) {
 			bounds := b.asset.Bounds()
 			w := min(width, bounds.Dx())
 			h := max(1, bounds.Dy()*w/bounds.Dx())
-			l.ops = append(l.ops, operation{rect: image.Rect(x, l.y, x+w, l.y+h), asset: b.asset, destination: b.destination})
+			l.ops = append(l.ops, operation{rect: image.Rect(x, l.y, x+w, l.y+h), asset: b.asset, destination: b.destination, href: b.href})
 			l.y += h + 20
 		case "table":
 			l.table(b, x, width)
@@ -626,4 +649,11 @@ func typesetFill(c color.Color, p theme.Palette) color.Color {
 		return p.Muted
 	}
 	return c
+}
+
+func imageLink(im *ast.Image) string {
+	if link, ok := im.Parent().(*ast.Link); ok {
+		return string(link.Destination)
+	}
+	return ""
 }

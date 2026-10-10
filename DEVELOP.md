@@ -629,3 +629,20 @@ repository **Settings → Pages → Source → GitHub Actions** to enable hostin
 
 MIT; see [LICENSE](LICENSE). The licenses of the modules gloss links
 are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+
+## Markdown link activation
+
+Normal Markdown keeps OSC 8 sequences through wrapping and search highlighting.
+`internal/app/links.go` hit-tests those sequences in terminal cells; linked image
+blocks retain their parent link. Typeset spans carry destinations into drawing
+operations and `Result.Links` reports clipped raster-pixel rectangles, including
+linked images. Link destinations stay out of the shaping cache. Hit testing
+inverts picture's integer FitContain mapping and rejects stale/pending viewports.
+
+A left-button press/release on the same cell and URL calls `Options.OpenLink`
+outside the event loop. Movement, scrolling, source view and overlays cancel or
+suppress activation. The native CLI supplies its browser launcher; `--serve` and
+browser embeddings leave the callback nil so remote clicks never launch a browser
+on the server. Only absolute HTTP(S) URLs without credentials/control characters
+reach the callback. This action does not use document fetching or `--fetch`.

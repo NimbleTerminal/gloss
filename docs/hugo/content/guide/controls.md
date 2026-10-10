@@ -193,6 +193,10 @@ without standalone playback controls; `e` exports the first visible GIF’s curr
 frame in normal Markdown or the whole viewport in typeset mode. Large/slow frames play
 more slowly rather than building a rendering backlog.
 
+In native Markdown views, click an HTTP(S) link or linked image to open it in
+the default browser. This also works in typeset mode; wheel scrolling remains
+available. Dragging, source view, and overlays do not activate links.
+
 In a table, select a cell containing an http(s) URL and press `u` to show its QR
 code. This does not fetch the URL and needs no `--fetch`. The original cell
 stays unchanged; the overlay shows a single address footer. `Esc` or `u`

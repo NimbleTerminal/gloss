@@ -22,6 +22,18 @@ cat README.md | gloss --type markdown -
 Use `j`/`k`, arrows, or the mouse wheel to scroll; `Space`/`b` page down/up;
 `Ctrl-D`/`Ctrl-U` move half a page; `Home`/`End` jump to the ends. Press `s` to
 switch between rendered Markdown and source. File navigation remains `[`/`]`.
+In the native terminal viewer, click an HTTP(S) link or linked picture to open
+it in your default browser, in normal or typeset Markdown. Wheel scrolling
+still works. Opening a link does not download it into gloss and does not require
+`--fetch`. Dragging does not activate links. Relative file links, heading anchors,
+and other URL schemes are not handled by this click action.
+
+Normal Markdown also retains OSC 8 links for the terminal's own opener. With
+mouse reporting enabled, your terminal may require a modifier: Kitty supports
+Shift-click or Ctrl-Shift-click. The browser demo and `--serve` do not launch a
+browser on the server machine; normal-view links there use the hosting
+terminal's link handling. Typeset browser-host link activation is not implemented.
+
 Documents are limited to 2 MiB of UTF-8 and 32 image references, with a combined
 16-megapixel decoded image budget after resizing. Embedded images fit within
 1600 pixels, with at most 128 MiB of combined encoded image input. The default

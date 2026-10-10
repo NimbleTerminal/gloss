@@ -116,6 +116,7 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 	return m.showPicture(m.source)
 }
 func (m *Model) acceptTypesetView(v document.Result) {
+	m.typesetLinks = v.Links
 	m.typesetPlayback = v.Playback
 	if v.Playback != nil {
 		m.presentation.SetSource(v.Playback)

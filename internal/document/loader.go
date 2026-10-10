@@ -162,6 +162,7 @@ type Request struct {
 }
 
 type Result struct {
+	Links         []TypesetLink
 	TypesetView   *TypesetViewport
 	Animated      []TypesetRegion
 	AnimationBase image.Image
