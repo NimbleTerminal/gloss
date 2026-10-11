@@ -3,7 +3,6 @@ package document
 import (
 	"image"
 	"strings"
-	"unicode"
 
 	"golang.org/x/image/math/fixed"
 )
@@ -188,11 +187,12 @@ func (s *selection) span(i int, op *operation) (x0, x1 int, ok bool) {
 }
 
 // selected is the selection's text in reading order: runs of a line joined,
-// a paragraph's lines joined by a space, paragraphs of a block by a line
+// a paragraph's original text across visual wraps, paragraphs of a block by a line
 // break (cells of a table row by a tab), and blocks by a blank line.
 func (l *layout) selected(s selection) string {
 	var b strings.Builder
 	var prev *operation
+	prevEnd := 0
 	for i := s.start.op; i <= s.end.op && i < len(l.ops); i++ {
 		op := &l.ops[i]
 		if op.run == nil {
@@ -217,23 +217,15 @@ func (l *layout) selected(s selection) string {
 				b.WriteByte('\t')
 			case op.para != prev.para:
 				b.WriteByte('\n')
-			case op.rect.Min.Y != prev.rect.Min.Y:
-				// A wrapped line: the break stands for the space it was
-				// made at, unless that space is still in the text.
-				if !endsInSpace(b.String()) && !startsWithSpace(text) {
-					b.WriteByte(' ')
-				}
+			case op.run.Runes.Offset+from > prevEnd:
+				// Wrapping may omit whitespace from the drawing runs. Recover
+				// it from logical text; a break inside a token adds nothing.
+				b.WriteString(string(op.text[prevEnd : op.run.Runes.Offset+from]))
 			}
 		}
 		b.WriteString(text)
 		prev = op
+		prevEnd = op.run.Runes.Offset + to
 	}
 	return b.String()
-}
-
-func endsInSpace(s string) bool {
-	return len(s) > 0 && unicode.IsSpace(rune(s[len(s)-1]))
-}
-func startsWithSpace(s string) bool {
-	return len(s) > 0 && unicode.IsSpace(rune(s[0]))
 }

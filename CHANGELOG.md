@@ -20,7 +20,8 @@
   * Select text in typeset views by dragging; `y` copies it through the
     terminal (OSC 52) and `Esc` clears it. The selection is kept by its place
     in the text, so it survives scrolling, zooming and reflow. Text views keep
-    the terminal's own Shift-drag selection.
+    the terminal's own Shift-drag selection. Copy preserves logical text across
+    visual wraps, including long URLs and identifiers without added spaces.
 
   * Open HTTP(S) links and linked figures on click in native Markdown text and
     typeset views, preserving wheel scrolling and terminal OSC 8 links.

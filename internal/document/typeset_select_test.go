@@ -165,3 +165,40 @@ func TestTypesetSelectionHighlight(t *testing.T) {
 		t.Fatal("view width missing")
 	}
 }
+
+// Copy uses logical text, including whitespace omitted by visual wrapping.
+func TestTypesetSelectionPreservesWrappedText(t *testing.T) {
+	token := strings.Repeat("abcdefghij", 25)
+	for _, tc := range []struct{ name, source, want string }{
+		{"token", token, token},
+		{"url", "https://example.com/" + token, "https://example.com/" + token},
+		{"spaces", strings.Repeat("café   résumé ", 20) + "end", strings.Repeat("café   résumé ", 20) + "end"},
+		{"code", "```text\n" + token + "   tail\n    next line\n```", token + "   tail\n    next line"},
+		{"styles", "start **" + token + "** end", "start " + token + " end"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			l := &Loader{Files: fstest.MapFS{"doc.md": {Data: []byte(tc.source)}}}
+			defer l.Close()
+			q := Request{Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 4096}}
+			if r := l.Load(q); r.Err != nil {
+				t.Fatal(r.Err)
+			}
+			q.TypesetSelect = &TypesetSelection{Anchor: TypesetPlace{Point: image.Pt(0, 0)}, Focus: TypesetPlace{Point: image.Pt(99999, 99999)}}
+			r := l.Load(q)
+			if r.Err != nil {
+				t.Fatal(r.Err)
+			}
+			if r.TypesetSelected != tc.want {
+				t.Fatalf("copy differs: got %q, want %q", r.TypesetSelected, tc.want)
+			}
+			// Placed endpoints preserve the exact bytes through font and width changes.
+			q.TypesetSelect = r.TypesetSelection
+			q.TypesetWidth = 384
+			q.Font = "technical"
+			r = l.Load(q)
+			if r.Err != nil || r.TypesetSelected != tc.want {
+				t.Fatalf("reflowed copy %q: %v", r.TypesetSelected, r.Err)
+			}
+		})
+	}
+}
