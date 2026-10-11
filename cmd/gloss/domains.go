@@ -46,7 +46,7 @@ var domains = []domain{
 	{
 		ID: "documents", Title: "Documents, pages and tables",
 		Summary: "Choosing the page of a PDF or the sheet of a workbook, how finely a PDF is drawn, typesetting text, and which columns of a table to show.",
-		Flags:   []string{"page", "dpi", "markdown", "typeset", "font", "mono", "cols", "coln"},
+		Flags:   []string{"page", "dpi", "markdown", "typeset", "font", "mono", "line-numbers", "cols", "coln"},
 		Examples: []example{
 			{"The third page of a PDF", "gloss --page 3 report.pdf"},
 			{"Sharper pages", "gloss --dpi 300 report.pdf"},

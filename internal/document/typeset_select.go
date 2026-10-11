@@ -67,7 +67,7 @@ func (l *layout) place(p TypesetPlace) (caret, bool) {
 	last := -1
 	for i := range l.ops {
 		op := &l.ops[i]
-		if op.run == nil || op.block != p.Block || op.para != p.Para {
+		if op.run == nil || op.gutter || op.block != p.Block || op.para != p.Para {
 			continue
 		}
 		if r := op.run.Runes; p.Rune >= r.Offset && p.Rune < r.Offset+r.Count {
@@ -88,7 +88,7 @@ func (l *layout) caretAt(p image.Point) (caret, bool) {
 	best, dist := -1, 0
 	for i := range l.ops {
 		op := &l.ops[i]
-		if op.run == nil {
+		if op.run == nil || op.gutter {
 			continue
 		}
 		d := max(op.rect.Min.Y-p.Y, p.Y-op.rect.Max.Y+1, 0)
@@ -103,7 +103,7 @@ func (l *layout) caretAt(p image.Point) (caret, bool) {
 	first, last := best, best
 	for i := range l.ops {
 		op := &l.ops[i]
-		if op.run == nil || op.rect.Min.Y != line.Min.Y || op.rect.Max.Y != line.Max.Y {
+		if op.run == nil || op.gutter || op.rect.Min.Y != line.Min.Y || op.rect.Max.Y != line.Max.Y {
 			continue
 		}
 		if op.rect.Min.X <= p.X && p.X < op.rect.Max.X {
@@ -126,7 +126,7 @@ func (l *layout) caretAt(p image.Point) (caret, bool) {
 	gap := first
 	for i := range l.ops {
 		op := &l.ops[i]
-		if op.run != nil && op.rect.Min.Y == line.Min.Y && op.rect.Max.Y == line.Max.Y && op.rect.Max.X <= p.X && op.rect.Max.X > l.ops[gap].rect.Max.X {
+		if op.run != nil && !op.gutter && op.rect.Min.Y == line.Min.Y && op.rect.Max.Y == line.Max.Y && op.rect.Max.X <= p.X && op.rect.Max.X > l.ops[gap].rect.Max.X {
 			gap = i
 		}
 	}
@@ -164,7 +164,7 @@ func runX(op *operation, r int) int {
 
 // span is the page x range of the selected part of text operation i.
 func (s *selection) span(i int, op *operation) (x0, x1 int, ok bool) {
-	if s == nil || op.run == nil || i < s.start.op || i > s.end.op {
+	if s == nil || op.run == nil || op.gutter || i < s.start.op || i > s.end.op {
 		return 0, 0, false
 	}
 	from, to := 0, op.run.Runes.Count
@@ -195,7 +195,7 @@ func (l *layout) selected(s selection) string {
 	var prev *operation
 	for i := s.start.op; i <= s.end.op && i < len(l.ops); i++ {
 		op := &l.ops[i]
-		if op.run == nil {
+		if op.run == nil || op.gutter {
 			continue
 		}
 		from, to := 0, op.run.Runes.Count

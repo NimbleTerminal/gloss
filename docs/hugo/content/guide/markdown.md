@@ -86,7 +86,14 @@ gloss --typeset notes.txt
 gloss --typeset main.go
 gloss --typeset data.json
 cat notes.txt | gloss --type text --typeset -
+gloss --typeset -N main.go
 ```
+
+Text, source and JSON are laid out one line per block, so `#` adds a gutter
+of file line numbers to the page and `:` scrolls a line to the top; the status
+bar shows the line at the top. `--line-numbers` (`-N`) starts with the gutter on, in
+the viewer and in exports. A Markdown page's blocks are not lines, so there
+the keys point at the source view, which has both.
 
 Text and JSON keep their original `kind` in export manifests. Typeset text
 requires valid UTF-8, at most 2 MiB of source and formatted text, and at most
@@ -115,6 +122,8 @@ Reload with `R` after editing the source or its pictures.
 | --- | --- |
 | `t` | Switch to normal terminal text |
 | `s` | Toggle the typeset view and plain Markdown source |
+| `#` | Show or hide file line numbers, where rows are file lines: text, source, JSON and Markdown source |
+| `:` | Go to a line by number; `Enter` goes, `Esc` cancels |
 | Up / Down, wheel | Scroll vertically |
 | Space / `b`, PageDown / PageUp, `n` / `p` | Scroll one screen |
 | `+` / `-`, Left / Right | Zoom / pan horizontally |

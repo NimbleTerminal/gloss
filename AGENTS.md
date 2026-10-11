@@ -113,7 +113,12 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   extension; source is syntax-highlighted. `--typeset` or `t` switches text, source
   and JSON to the direct graphical typesetter; normal terminal text is the default.
   Plain text stays literal and proportional; source/JSON are highlighted monospace.
-  `s` and `/` return to normal text for reading/search. Typeset text requires valid
+  `s` and `/` return to normal text for reading/search. `#` toggles a gutter of
+  file line numbers and `:` goes to a line, in the normal and typeset views of
+  text, source, JSON and Markdown source (`internal/app/line_numbers.go`;
+  typeset: `Request.TypesetLineNumbers`, `TypesetViewport.Line/Lines/Numbers`);
+  `--line-numbers` (`-N`) starts with them on, in the viewer and typeset exports.
+  Rendered Markdown prose and JSON records have no file lines. Typeset text requires valid
   UTF-8, at most 2 MiB of source/formatted text, 8,192 lines and an untruncated
   bounded source view; Markdown shaping/raster limits also apply. Export kinds
   remain text/json. `--markdown typeset` remains a compatibility alias.

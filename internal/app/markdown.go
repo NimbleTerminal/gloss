@@ -1,9 +1,12 @@
 package app
 
 import (
+	"fmt"
 	"image"
 	"math"
+	"strconv"
 	"strings"
+	"sync"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -19,6 +22,7 @@ type markdownLine struct {
 	text  string
 	image int // -1 denotes text
 	row   int
+	line  int // The file line the row shows, when the view knows it; 0 otherwise.
 }
 
 type markdownView struct {
@@ -32,6 +36,10 @@ type markdownView struct {
 	width, height, offset             int
 	raw                               bool
 	theme                             string
+	numbers                           bool // Show file line numbers in a gutter, where rows are file lines.
+	fenced                            bool // The document is a file shown as one fenced code block: its rows are the file's lines.
+	gutter                            int  // Columns the gutter takes, including its separating space; 0 for none.
+	lastLine                          int  // The last file line the rows show; 0 when rows are not file lines.
 }
 
 func newMarkdownView(doc *document.Markdown, id int) *markdownView {
@@ -111,6 +119,14 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 		}
 		m.content = m.renderedText
 	}
+	lineOf, last := m.lineMap()
+	m.gutter, m.lastLine = 0, 0
+	if lineOf != nil {
+		m.lastLine = last
+	}
+	if m.numbers && lineOf != nil {
+		m.gutter = min(m.width-1, len(strconv.Itoa(last))+1)
+	}
 	var cmds []tea.Cmd
 	for _, block := range m.content.blocks {
 		switch {
@@ -151,11 +167,126 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 				m.lines = append(m.lines, markdownLine{image: i, row: row})
 			}
 		default:
-			m.lines = append(m.lines, wrapTextUnit(m.content.units[block.unit], block.unit, m.width, m.raw)...)
+			rows := wrapTextUnit(m.content.units[block.unit], block.unit, m.width-m.gutter, m.raw)
+			if lineOf != nil {
+				for i := range rows {
+					rows[i].line = lineOf(block.unit)
+				}
+			}
+			m.lines = append(m.lines, rows...)
 		}
 	}
 	m.scroll(0)
 	return tea.Batch(cmds...)
+}
+
+// lineMap says which file line a unit of the content shows, and the last
+// line, or nil where rows are not file lines. In the source view every unit
+// is one line. A file shown as one fenced code block has its lines as the
+// units between Glamour's margin rows, which the probe measures; the rows
+// are checked against the file before they are numbered.
+func (m *markdownView) lineMap() (func(unit int) int, int) {
+	if m.raw {
+		return func(unit int) int { return unit + 1 }, len(m.content.units)
+	}
+	if !m.fenced {
+		return nil, 0
+	}
+	lines := strings.Split(strings.TrimSuffix(string(m.doc.Source), "\n"), "\n")
+	if len(lines) < 3 || !strings.HasPrefix(lines[0], "```") {
+		return nil, 0
+	}
+	fence := lines[0][:strings.LastIndex(lines[0], "`")+1]
+	end := -1
+	for i := len(lines) - 1; i > 0; i-- {
+		if lines[i] == fence {
+			end = i
+			break
+		}
+	}
+	if end < 0 {
+		return nil, 0
+	}
+	content := lines[1:end]
+	top := fenceMargin(m.theme)
+	if top < 0 || top+len(content) > len(m.content.units) {
+		return nil, 0
+	}
+	for i, line := range content {
+		if squeeze(m.content.units[top+i].plain) != squeeze(line) {
+			return nil, 0
+		}
+	}
+	return func(unit int) int {
+		if unit < top || unit >= top+len(content) {
+			return 0
+		}
+		return unit - top + 1
+	}, len(content)
+}
+
+func squeeze(s string) string { return strings.Join(strings.Fields(s), " ") }
+
+var (
+	fenceMargins   = map[string]int{}
+	fenceMarginsMu sync.Mutex
+)
+
+// fenceMargin is how many rows Glamour puts above a fenced code block in a
+// theme, measured once by rendering a block of one known line.
+func fenceMargin(themeName string) int {
+	fenceMarginsMu.Lock()
+	defer fenceMarginsMu.Unlock()
+	if top, ok := fenceMargins[themeName]; ok {
+		return top
+	}
+	top := -1
+	probe := renderedContent(&document.Markdown{Source: []byte("```text\nX\n```\n")}, themeName)
+	for i, unit := range probe.units {
+		if strings.TrimSpace(unit.plain) == "X" {
+			top = i
+			break
+		}
+	}
+	fenceMargins[themeName] = top
+	return top
+}
+
+// numbered reports whether the rows are file lines the view can number and
+// go to.
+func (m *markdownView) numbered() bool { return m.lastLine > 0 }
+
+// goLine scrolls so that file line n starts at the top row, as far as the
+// scroll range allows; a line past the end is the last one.
+func (m *markdownView) goLine(n int) bool {
+	if !m.numbered() {
+		return false
+	}
+	at := len(m.lines) - 1
+	for i, line := range m.lines {
+		if line.line >= n {
+			at = i
+			break
+		}
+	}
+	m.offset = at
+	m.scroll(0)
+	return true
+}
+
+var gutterStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+
+// gutterFor is the row's gutter: the line number on a line's first row,
+// blank on the rows it wraps onto.
+func (m *markdownView) gutterFor(i int) string {
+	if m.gutter == 0 {
+		return ""
+	}
+	line := m.lines[i]
+	if line.line == 0 || (i > 0 && m.lines[i-1].line == line.line) {
+		return strings.Repeat(" ", m.gutter)
+	}
+	return gutterStyle.Render(fmt.Sprintf("%*d", m.gutter-1, line.line)) + " "
 }
 
 func (m *markdownView) scroll(delta int) {
@@ -194,7 +325,7 @@ func (m *markdownView) view() string {
 		if line.image < 0 {
 			p := theme.Get(m.theme)
 			text := lipgloss.NewStyle().Foreground(p.Foreground).Background(p.Background).Width(m.width)
-			lines = append(lines, text.Render(highlightRanges(line.text, m.highlights[i])))
+			lines = append(lines, text.Render(m.gutterFor(i)+highlightRanges(line.text, m.highlights[i])))
 			continue
 		}
 		rows, ok := cache[line.image]

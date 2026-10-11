@@ -29,6 +29,9 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if k == "T" && m.screen == screenDocument && !m.help && m.layer == layerNone {
 		return m.openThemePicker(), true
 	}
+	if m.lineInput != nil {
+		return m.lineInputKey(msg), true
+	}
 	// Keys over any screen but the browser, whose filter takes letters.
 	switch k {
 	case "q", "ctrl+c":
@@ -215,6 +218,9 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		if cmd, ok := m.typesetKey(k); ok {
 			return cmd, true
 		}
+	}
+	if cmd, ok := m.lineKey(k); ok {
+		return cmd, true
 	}
 	if m.markdown != nil {
 		if m.markdown.key(k) {

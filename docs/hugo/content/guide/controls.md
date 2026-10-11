@@ -24,6 +24,8 @@ bookToC: false
 | `t` on Markdown, text, source or JSON | Toggle normal text / typeset view |
 | `/` in typeset mode | Open the text/source view and search |
 | `s` in typeset mode | Toggle the typeset view and text/source |
+| `#` | Show or hide file line numbers, in text and typeset views of plain text, source, JSON and Markdown source |
+| `:` | Go to a line: type its number, `Enter` goes there, `Esc` cancels; a number past the end goes to the last line |
 | `Home` / `End`, `G` | First / last PDF page |
 | Arrows, `h j k l` | Move about a spreadsheet by row and column |
 | `x`, `X` | Hide the column under the cursor / show every column |
@@ -52,6 +54,17 @@ bookToC: false
 At a PDF boundary, page navigation stays on that page. Use `[` and `]` to change
 files. Loading and rendering run asynchronously; errors appear in the viewer
 with retry and next-file controls.
+
+## Line numbers and going to a line
+
+`#` puts the file's line numbers in a gutter, and `:` asks for a line to put
+at the top, wherever the rows are the file's lines: plain text, source code,
+JSON, and the source view (`s`) of Markdown and the other converted formats,
+in the normal text view and the typeset one. A wrapped line is numbered on
+its first row. Rendered Markdown prose and JSON records have no file lines,
+so both keys say to use the source view instead. With the numbers known, the
+status bar counts file lines rather than screen rows. `--line-numbers` (`-N`) starts
+with the gutter on, in the viewer and in typeset exports.
 
 ## Document text search
 

@@ -65,7 +65,7 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	cw, ch := m.pic.CellPixelSize()
 	width := float64(m.typesetMeasure()) * 150 / 72
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
-	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd}
+	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}
 	if m.pic.Mode() == picture.PictureKitty {
 		// The picture fills the body's cell area; a raster of exactly that
 		// size is shown as it is instead of being resampled.
@@ -88,7 +88,7 @@ func (m *Model) typesetViewMatches() bool {
 // theme, is the one the viewer's state asks for now.
 func (m *Model) viewportAsked(shown *document.TypesetViewport, width int, theme string) bool {
 	v := m.typesetViewport()
-	return shown != nil && theme == m.theme && !v.End && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+	return shown != nil && theme == m.theme && !v.End && v.Line == 0 && shown.Numbers == m.lineNumbers && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
 }
 
 // queueTypesetReflow asks for the page as the viewer's state now wants it,
@@ -200,7 +200,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	m.typesetFont = v.FontKey
 	if v.TypesetView != nil {
 		m.typesetTop, m.typesetLeft = v.TypesetView.Top, v.TypesetView.Left
-		m.typesetEnd = false
+		m.typesetEnd, m.typesetGoLine = false, 0
 	}
 	return overlays
 }
