@@ -1197,7 +1197,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/NimbleMarkets/ntcharts/v2 v2.7.2
+## github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 
 ```
 MIT License

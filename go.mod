@@ -11,7 +11,7 @@ require (
 	github.com/NimbleMarkets/go-booba v0.7.0
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
 	github.com/NimbleMarkets/ntcharts-svg v0.3.0
-	github.com/NimbleMarkets/ntcharts/v2 v2.7.2
+	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 	github.com/NimbleMarkets/ntcharts3d v0.2.1
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/colorprofile v0.4.3
