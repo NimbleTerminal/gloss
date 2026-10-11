@@ -1,6 +1,6 @@
 # `gloss` CHANGELOG
 
-## Unreleased
+## `v0.3.0` (2026-10-11)
 
 - Enforce PDF stream limits across filter chains and stop timed-out parser work.
   Prevent concurrent uploads from exceeding the session quota and expire stalled uploads.
