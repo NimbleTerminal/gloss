@@ -210,7 +210,9 @@ remains literal.
 
 Native open-with: `w` opens the current/highlighted file in the default host app,
 `W` chooses an app, and browser Alt+Enter emits `browse.OpenWithMsg` without
-selecting the file. Chooser `d` saves a per-format default. `internal/openwith`
+selecting the file. Chooser `d` saves a per-format default; `m` opens a global app checklist.
+Space saves visibility immediately, Enter/Esc returns, and hidden apps remain
+restorable. System default and Reveal cannot be hidden. `internal/openwith`
 owns the compiled native catalog, argv launch, and bounded 64 KiB atomic JSON
 preferences; `Options.OpenWith` is nil in browser/serve hosts and previews.
 Commands never come from preferences or a shell. `--apps [--json]` only lists

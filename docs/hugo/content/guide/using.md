@@ -97,7 +97,13 @@ file with Enter and press `W`, or configure the terminal's key binding.
 Use arrows to choose and Enter to open. Press `d` on an app to save it as the
 default for this format; this does not launch it. Choose System default and
 press `d` to remove an override. Esc closes the chooser; a saved choice stays
-saved. Preferences live in `gloss/open-with.json` under your OS user-config
+saved. Press `m` in the chooser to manage installed apps across all formats:
+arrows select, Space hides or restores an app and saves immediately, and Enter
+or Esc returns to the chooser. Hidden apps remain in this checklist. System
+default and Reveal cannot be hidden. Hiding a saved default uses the system
+default until that app is restored.
+
+Preferences live in `gloss/open-with.json` under your OS user-config
 directory. They contain app IDs, never executable commands. An unavailable
 saved app falls back to the system default. On Linux this needs `xdg-open` and
 a desktop association; avoid making gloss its own default opener.

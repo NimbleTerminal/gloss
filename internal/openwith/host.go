@@ -137,3 +137,38 @@ func (h *nativeHost) Launch(t Target, id string) (string, error) {
 	}
 	return name, nil
 }
+
+func (h *nativeHost) Apps() []AppPreference {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	var apps []AppPreference
+	for _, e := range h.catalog.Entries {
+		if e.ID == "system" || e.ID == "reveal" || !h.catalog.Available[e.ID] {
+			continue
+		}
+		apps = append(apps, AppPreference{ID: e.ID, Name: e.Name, Enabled: h.available(e.ID)})
+	}
+	slices.SortFunc(apps, func(a, b AppPreference) int { return strings.Compare(a.Name, b.Name) })
+	return apps
+}
+
+func (h *nativeHost) SetEnabled(id string, enabled bool) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.invalid != nil {
+		return fmt.Errorf("repair open-with.json before saving: %w", h.invalid)
+	}
+	if _, ok := h.catalog.entry(id); !ok || id == "system" || id == "reveal" || !h.catalog.Available[id] {
+		return fmt.Errorf("app %q cannot be managed", id)
+	}
+	p := Preferences{Defaults: maps.Clone(h.prefs.Defaults), Hidden: slices.Clone(h.prefs.Hidden)}
+	p.Hidden = slices.DeleteFunc(p.Hidden, func(v string) bool { return v == id })
+	if !enabled {
+		p.Hidden = append(p.Hidden, id)
+	}
+	if err := WritePreferences(h.dir, p); err != nil {
+		return err
+	}
+	h.prefs = p
+	return nil
+}

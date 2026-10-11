@@ -10,6 +10,8 @@ import (
 )
 
 type openWithPicker struct {
+	managing   bool
+	apps       []openwith.AppPreference
 	target     openwith.Target
 	choices    []openwith.Choice
 	cursor     int
@@ -151,12 +153,38 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 	case "ctrl+c":
 		return m.quit()
 	case "esc", "q":
+		if p.managing {
+			if p.busy {
+				return nil
+			}
+			return m.loadOpenWithApps(false, "", false)
+		}
 		return m.closeOpenWith()
 	}
 	if p.busy || m.width < 24 || m.bodyHeight() < 6 {
 		return nil
 	}
+	if p.managing {
+		switch msg.String() {
+		case "up", "k":
+			p.cursor = max(0, p.cursor-1)
+		case "down", "j":
+			p.cursor = min(len(p.apps)-1, p.cursor+1)
+		case "enter":
+			return m.loadOpenWithApps(false, "", false)
+		case " ", "space":
+			if p.cursor >= 0 && p.cursor < len(p.apps) {
+				a := p.apps[p.cursor]
+				return m.loadOpenWithApps(true, a.ID, !a.Enabled)
+			}
+		}
+		return nil
+	}
 	switch msg.String() {
+	case "m":
+		if _, ok := m.opts.OpenWith.(openwith.Manager); ok {
+			return m.loadOpenWithApps(true, "", false)
+		}
 	case "up", "k":
 		p.cursor = max(0, p.cursor-1)
 	case "down", "j":
@@ -205,6 +233,30 @@ func (m *Model) openWithView(w, h int) string {
 	if p.busy && len(p.choices) == 0 {
 		return "Open with…"
 	}
+	if p.managing {
+		header = "Manage apps — all formats"
+		lines := []string{ansi.Truncate(header, w, "…"), ""}
+		rows := max(1, h-4)
+		start := max(0, min(p.cursor-rows/2, len(p.apps)-rows))
+		for i := start; i < min(len(p.apps), start+rows); i++ {
+			a := p.apps[i]
+			mark, check := "  ", "[ ] "
+			if i == p.cursor {
+				mark = "› "
+			}
+			if a.Enabled {
+				check = "[x] "
+			}
+			lines = append(lines, ansi.Truncate(mark+check+safe(a.Name), w, "…"))
+		}
+		if len(p.apps) == 0 {
+			lines = append(lines, ansi.Truncate("No installed apps to manage", w, "…"))
+		}
+		if p.busy {
+			lines = append(lines, "Working…")
+		}
+		return strings.Join(lines, "\n")
+	}
 	rows := max(1, h-4)
 	start := max(0, min(p.cursor-rows/2, len(p.choices)-rows))
 	lines := []string{ansi.Truncate(header, w, "…"), ""}
@@ -230,5 +282,76 @@ func (m *Model) openWithView(w, h int) string {
 }
 
 func (m *Model) openWithStatus(w int) (string, string) {
-	return ansi.Truncate(fmt.Sprintf(" %s", m.note), w, "…"), ansi.Truncate(" ↑/↓ choose · Enter open · d default · Esc close", w, "")
+	hint := " ↑/↓ choose · Enter open · d default · Esc close"
+	if _, ok := m.opts.OpenWith.(openwith.Manager); ok {
+		hint = " ↑/↓ choose · Enter open · d default · m manage · Esc close"
+	}
+	if m.openWithPicker != nil && m.openWithPicker.managing {
+		hint = " ↑/↓ choose · Space toggle (saved) · Enter/Esc back"
+	}
+	return ansi.Truncate(fmt.Sprintf(" %s", m.note), w, "…"), ansi.Truncate(hint, w, "")
+}
+
+// App management uses the existing host boundary and event loop; it never launches.
+type openWithAppsLoaded struct {
+	operation  int
+	generation uint64
+	managing   bool
+	apps       []openwith.AppPreference
+	choices    []openwith.Choice
+	err        error
+}
+
+func (m *Model) loadOpenWithApps(managing bool, id string, enabled bool) tea.Cmd {
+	p := m.openWithPicker
+	host := m.opts.OpenWith
+	manager, ok := host.(openwith.Manager)
+	if !ok {
+		return nil
+	}
+	p.busy = true
+	m.openWithOperation++
+	p.operation = m.openWithOperation
+	op, generation, target := p.operation, p.generation, p.target
+	return func() tea.Msg {
+		v := openWithAppsLoaded{operation: op, generation: generation, managing: managing}
+		if id != "" {
+			v.err = manager.SetEnabled(id, enabled)
+		}
+		if managing {
+			v.apps = manager.Apps()
+		} else {
+			v.choices, v.err = host.Choices(target)
+			if v.err == nil && !target.Directory {
+				v.choices = append(v.choices, openwith.Choice{ID: "copy", Name: "Copy path", Available: true})
+			}
+		}
+		return v
+	}
+}
+
+func (m *Model) openWithAppsLoaded(v openWithAppsLoaded) tea.Cmd {
+	p := m.openWithPicker
+	if p == nil || p.operation != v.operation || p.generation != v.generation {
+		return nil
+	}
+	if m.generation != v.generation {
+		return m.closeOpenWith()
+	}
+	p.busy = false
+	if v.err != nil {
+		m.note = "Manage apps: " + safe(v.err.Error())
+	} else {
+		m.note = ""
+	}
+	if p.managing != v.managing {
+		p.cursor = 0
+	}
+	p.managing = v.managing
+	if v.managing {
+		p.apps = v.apps
+	} else if v.err == nil {
+		p.choices = v.choices
+	}
+	return nil
 }

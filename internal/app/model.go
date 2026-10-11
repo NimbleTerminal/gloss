@@ -558,6 +558,8 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, cmd
 	}
 	switch v := msg.(type) {
+	case openWithAppsLoaded:
+		return m, m.openWithAppsLoaded(v)
 	case openWithLoaded:
 		return m, m.openWithLoaded(v)
 	case openWithFinished:

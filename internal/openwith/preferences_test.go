@@ -174,3 +174,61 @@ func TestDirectoryOnlyOffersReveal(t *testing.T) {
 		t.Fatalf("%+v %v", choices, err)
 	}
 }
+
+func TestManageApps(t *testing.T) {
+	dir := t.TempDir()
+	h, err := NewHost(testCatalog(), dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manager := h.(Manager)
+	if err := h.SetDefault("pdf", "skim"); err != nil {
+		t.Fatal(err)
+	}
+	for _, enabled := range []bool{false, true} {
+		if err := manager.SetEnabled("skim", enabled); err != nil {
+			t.Fatal(err)
+		}
+		apps := manager.Apps()
+		if len(apps) != 1 || apps[0].Enabled != enabled {
+			t.Fatalf("apps: %+v", apps)
+		}
+		reopened, err := NewHost(testCatalog(), dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		choices, err := reopened.Choices(Target{Kind: "pdf"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, c := range choices {
+			if c.ID == "skim" {
+				found = true
+				if !c.Default {
+					t.Fatal("restored app lost default")
+				}
+			}
+		}
+		if found != enabled || choices[0].Default == enabled {
+			t.Fatalf("choices: %+v", choices)
+		}
+	}
+	for _, id := range []string{"system", "reveal", "unknown"} {
+		if err := manager.SetEnabled(id, false); err == nil {
+			t.Fatalf("managed %s", id)
+		}
+	}
+	// A failed save must leave the in-memory preference unchanged.
+	broken := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(broken, nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+	h.(*nativeHost).dir = broken
+	if err := manager.SetEnabled("skim", false); err == nil {
+		t.Fatal("save succeeded")
+	}
+	if !manager.Apps()[0].Enabled {
+		t.Fatal("failed save changed preference")
+	}
+}

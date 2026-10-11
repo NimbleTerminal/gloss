@@ -820,3 +820,14 @@ files cannot be silently overwritten. Tests inject probes and fake child
 processes, and exercise picker keys through the event loop. The native CLI owns
 stdin/download provenance. `--apps` reads preferences for discovery but never
 launches or loads a document; exports do not read these preferences.
+
+### Native app visibility
+
+The Open with chooser's `m` checklist uses the optional `openwith.Manager`
+host interface. Lists include installed apps even when hidden; System default
+and Reveal are excluded. Saves use the same bounded atomic preferences as
+per-format defaults, and failed writes leave in-memory preferences unchanged.
+The UI loads and saves through tagged messages in the existing event loop.
+The checklist interaction (arrows, Space to toggle) follows
+[thinkt's setup app chooser](https://github.com/wethinkt/go-thinkt/blob/main/internal/tui/setup/steps_apps.go);
+the implementation is native to gloss and adds no dependency.

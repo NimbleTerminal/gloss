@@ -6,7 +6,8 @@
   filter and selection when closed.
 
 - Open files in native apps with `w`/`W`, choose from the file browser with
-  Alt+Enter, save per-format defaults, and list apps with `--apps [--json]`.
+  Alt+Enter, save per-format defaults, manage visible apps in a checklist, and
+  list apps with `--apps [--json]`.
 
 - Render footnotes and GitHub alerts in both terminal text and typeset Markdown;
   click footnote references and back links to navigate within the document.

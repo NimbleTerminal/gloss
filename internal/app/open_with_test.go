@@ -238,3 +238,92 @@ func TestOpenWithPreservesOriginalKindAndTemporaryProvenance(t *testing.T) {
 		t.Fatal("lost temporary provenance")
 	}
 }
+
+type managingOpenHost struct {
+	fakeOpenHost
+	hidden bool
+	fail   bool
+}
+
+func (h *managingOpenHost) Apps() []openwith.AppPreference {
+	return []openwith.AppPreference{{ID: "editor", Name: "Editor", Enabled: !h.hidden}}
+}
+func (h *managingOpenHost) SetEnabled(id string, enabled bool) error {
+	if h.fail {
+		return fmt.Errorf("save failed")
+	}
+	h.hidden = !enabled
+	return nil
+}
+func (h *managingOpenHost) Choices(target openwith.Target) ([]openwith.Choice, error) {
+	choices, err := h.fakeOpenHost.Choices(target)
+	if h.hidden {
+		choices = append(choices[:1], choices[2:]...)
+	}
+	return choices, err
+}
+func TestManageAppsPicker(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &managingOpenHost{}
+	m.opts.OpenWith = h
+	m.layer = layerOpenWith
+	m.openWithPicker = &openWithPicker{target: openwith.Target{Path: "/tmp/test.md", Kind: "markdown"}, generation: m.generation}
+	key := func(k string) { t.Helper(); _, cmd := m.Update(press(k)); drainAnimation(t, m, cmd) }
+	key("m")
+	if !strings.Contains(m.View().Content, "[x] Editor") {
+		t.Fatal("missing checklist")
+	}
+	key("space")
+	if !h.hidden || !strings.Contains(m.View().Content, "[ ] Editor") {
+		t.Fatal("toggle failed")
+	}
+	key("esc")
+	if m.openWithPicker == nil || m.openWithPicker.managing {
+		t.Fatal("did not return to chooser")
+	}
+	for _, c := range m.openWithPicker.choices {
+		if c.ID == "editor" {
+			t.Fatal("hidden app still offered")
+		}
+	}
+	key("m")
+	h.fail = true
+	key("space")
+	if !h.hidden || !strings.Contains(m.note, "save failed") {
+		t.Fatal("save failure not preserved")
+	}
+	h.fail = false
+	key("space")
+	key("enter")
+	if h.hidden || m.openWithPicker.managing || len(h.launched) != 0 {
+		t.Fatal("restore launched or failed")
+	}
+	// Closing during an asynchronous load must ignore the late result.
+	_, cmd := m.Update(press("m"))
+	key("esc")
+	drainAnimation(t, m, cmd)
+	if m.openWithPicker != nil {
+		t.Fatal("late load reopened chooser")
+	}
+}
+
+func TestManageAppsEmptyAndNarrow(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	m.opts.OpenWith = &managingOpenHost{}
+	m.layer = layerOpenWith
+	m.openWithPicker = &openWithPicker{managing: true, generation: m.generation}
+	for _, width := range []int{24, 40, 80} {
+		for _, line := range strings.Split(m.openWithView(width, 6), "\n") {
+			if ansi.StringWidth(line) > width {
+				t.Fatalf("line exceeds width %d: %q", width, line)
+			}
+		}
+	}
+	for _, k := range []string{"down", "space", "d"} {
+		_, cmd := m.Update(press(k))
+		drainAnimation(t, m, cmd)
+	}
+	if m.openWithPicker == nil || !m.openWithPicker.managing {
+		t.Fatal("empty checklist exited")
+	}
+}

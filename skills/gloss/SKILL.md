@@ -481,6 +481,10 @@ use simple column sizing. Complex scripts, CJK, emoji and bidi are not guarantee
 
 ### Discover native apps
 
+In the native `W` chooser, `m` opens Manage apps. Space saves each hide/show
+change across formats; Enter/Esc returns to the chooser. Hidden apps can be
+restored there. This changes visibility, not the built-in command catalog.
+
 `gloss --apps` lists installed compatible apps and the effective default for
 each file kind. `gloss --apps --json` emits an array of
 `{kind, default, apps: [{id, name, available}]}`; `gloss skill schema` includes

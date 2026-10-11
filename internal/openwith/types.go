@@ -31,3 +31,16 @@ func Kind(kind string) string {
 	}
 	return kind
 }
+
+// AppPreference describes an installed app's visibility in all file choosers.
+type AppPreference struct {
+	ID, Name string
+	Enabled  bool
+}
+
+// Manager is an optional native-host capability for editing app visibility.
+// System default and Reveal are always available and cannot be hidden here.
+type Manager interface {
+	Apps() []AppPreference
+	SetEnabled(id string, enabled bool) error
+}
