@@ -18,8 +18,8 @@ github.com/NimbleMarkets/ntcharts-pdf v0.3.1 h1:gm5EDfcNVLz7HVlZKP9NnATwL6xJ1gOd
 github.com/NimbleMarkets/ntcharts-pdf v0.3.1/go.mod h1:T3VEhsT/AOPiVjIWKeApPAX57ZOBb4Q2VMr+1VYKwUk=
 github.com/NimbleMarkets/ntcharts-svg v0.3.0 h1:Ze/WdOprbwBqJfQdZbOixPyVRnQpIVrDES0hwXqsM9E=
 github.com/NimbleMarkets/ntcharts-svg v0.3.0/go.mod h1:BeJEiD5rCp0ikAsNe+HKtJiadNgqTvEZGmAB1LLM5vY=
-github.com/NimbleMarkets/ntcharts/v2 v2.7.2 h1:aNSgX4useGviTsPYCXy22W9JFmNDWCCMWz56rrEJQ+E=
-github.com/NimbleMarkets/ntcharts/v2 v2.7.2/go.mod h1:w+5yLPICduptuEeOk8ogPi2gYU9qmaim1Elol3TUI1k=
+github.com/NimbleMarkets/ntcharts/v2 v2.8.0 h1:80ticj4+1zmJKswSd2QJHS/n022BaW8jio4ZGJrhcmc=
+github.com/NimbleMarkets/ntcharts/v2 v2.8.0/go.mod h1:w+5yLPICduptuEeOk8ogPi2gYU9qmaim1Elol3TUI1k=
 github.com/NimbleMarkets/ntcharts3d v0.2.1 h1:d10mICYUmAWMo8fJrz1ziciDw8xZ8CZonHGd5EXEjG4=
 github.com/NimbleMarkets/ntcharts3d v0.2.1/go.mod h1:mG1448Di7U0kBgaTZkIM2Qc4WBLLh4tQgbrxwXhDW64=
 github.com/NimbleMarkets/oksvg v0.1.1 h1:ryK0nmpe6rTO/VybmE3HY7dnxLFh6V3iJeDO6cZcZoA=
@@ -155,8 +155,11 @@ github.com/tetratelabs/wazero v1.12.0 h1:DuWcpNu/FzgEXgGBDp8J1Spc+CWOvvtvVyjKlaZ
 github.com/tetratelabs/wazero v1.12.0/go.mod h1:LvKtzl2RqO4gyF27BiXU+nKAjcV8f38U+kP/q2vgxh0=
 github.com/xo/terminfo v1.2.0 h1:d0ZTOCpuGE0lwSAOs0zcJjwz3jWQyqcRt9XbGJpCOl4=
 github.com/xo/terminfo v1.2.0/go.mod h1:lGzkSo8Fe7IRh/w+Gqz7n5mDog4FVXCj3gy/DYTBqio=
+github.com/yuin/goldmark v1.7.1/go.mod h1:uzxRWxtg69N339t3louHJ7+O03ezfj6PlliRlaOzY1E=
 github.com/yuin/goldmark v1.8.2 h1:kEGpgqJXdgbkhcOgBxkC0X0PmoPG1ZyoZ117rDVp4zE=
 github.com/yuin/goldmark v1.8.2/go.mod h1:ip/1k0VRfGynBgxOz0yCqHrbZXhcjxyuS66Brc7iBKg=
+github.com/yuin/goldmark-emoji v1.0.5 h1:EMVWyCGPlXJfUXBXpuMu+ii3TIaxbVBnEX9uaDC4cIk=
+github.com/yuin/goldmark-emoji v1.0.5/go.mod h1:tTkZEbwu5wkPmgTcitqddVxY9osFZiavD+r4AzQrh1U=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
 go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=

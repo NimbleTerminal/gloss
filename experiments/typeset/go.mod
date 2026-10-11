@@ -24,7 +24,7 @@ require (
 	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
 	github.com/NimbleMarkets/go-gpuimage v0.1.0 // indirect
 	github.com/NimbleMarkets/ntcharts-svg v0.3.0 // indirect
-	github.com/NimbleMarkets/ntcharts/v2 v2.7.2 // indirect
+	github.com/NimbleMarkets/ntcharts/v2 v2.8.0 // indirect
 	github.com/NimbleMarkets/ntcharts3d v0.2.1 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
@@ -63,6 +63,7 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
+	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
