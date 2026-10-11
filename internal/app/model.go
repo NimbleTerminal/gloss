@@ -153,6 +153,7 @@ type browserState struct {
 type Model struct {
 	meshState
 	textState
+	helpOffset int // Rows the help page is scrolled, where it is taller than the screen.
 	browserState
 
 	opts                     Options

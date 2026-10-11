@@ -42,12 +42,25 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 		m.opts.KeepScreen = true
 		return m.quit(), true
 	case "?":
-		m.help = !m.help
+		m.help, m.helpOffset = !m.help, 0
 		return nil, true
 	}
 	if m.help {
-		if k == "esc" {
-			m.help = false
+		switch k {
+		case "esc":
+			m.help, m.helpOffset = false, 0
+		case "down", "j":
+			m.helpOffset++
+		case "up", "k":
+			m.helpOffset = max(0, m.helpOffset-1)
+		case "space", "pgdown":
+			m.helpOffset += max(1, m.bodyHeight()-1)
+		case "b", "pgup":
+			m.helpOffset = max(0, m.helpOffset-max(1, m.bodyHeight()-1))
+		case "home":
+			m.helpOffset = 0
+		case "end":
+			m.helpOffset = 1 << 20 // The view clamps it to the last page.
 		}
 		return nil, true
 	}

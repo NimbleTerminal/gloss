@@ -11,6 +11,10 @@
     native saved preferences, and bounded custom theme JSON via `--theme`.
     Share palettes across pager chrome, Markdown and typeset syntax colors.
 
+  * Redraw the help page (`?`) as sections in two columns, keys and actions
+    in the theme's colors, with a heading for each kind of document; narrow
+    terminals stack the sections in one column that scrolls.
+
   * Add optional line numbers and go-to-line: `#` shows the file's line numbers
     in a gutter and `:` goes to a line, in the text and typeset views of plain
     text, source code, JSON and Markdown source; the status bar then counts
