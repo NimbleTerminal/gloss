@@ -58,7 +58,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	exact := false // The body is already w×h: a frame would measure every cell to pad nothing.
 	switch {
 	case m.help:
-		body = helpScreen()
+		body = m.helpView(w, h)
 	case m.screen == screenBrowser:
 		body = m.opener.view()
 		if m.opener.find == nil {
@@ -119,34 +119,8 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	return frame.Render(body), mouse
 }
 
-// helpText is kept to 22 lines, the room a 24-row terminal leaves.
-const helpText = "gloss — a visual pager\n\n" +
-	"q / Q          quit / quit, leaving the view in the scrollback\n? / Esc        help / dismiss; Esc: file list\n" +
-	"] / [ / Tab    next / previous file\n" +
-	"m              file menu (v toggles preview)\n" +
-	"o              browse for a file to open\n" +
-	"n / p / Space  next / previous page or file; GIF: Space pauses\n" +
-	"Home / End     first / last PDF page or GIF frame\n" +
-	"+ / -          zoom\nh j k l / arrows  pan image / orbit mesh\n" +
-	"f / 0          fit (typeset: fonts) / reset view\ng              toggle Kitty / glyph; tables: u QR of URL\n" +
-	"R              reload file\n" +
-	"e / i          export as PNG / file details\n" +
-	"r              auto-rotate mesh (reload other files)\n" +
-	"C / B          mesh color / background color · T theme\n" +
-	"Drop files to open · / search · n/N next/prev match · Esc clear\n" +
-	"Meshes: drag to orbit, Shift-drag to pan, wheel to zoom, 5 orthographic\n" +
-	"Text: t text/typeset, s source; select: Shift-drag in text, drag + y in typeset\n" +
-	"Standalone GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
-
 // DocsURL is the documentation site.
 const DocsURL = "https://nimbleterminal.github.io/gloss/docs/"
-
-// helpScreen is the help, ending on a line that points at the documentation:
-// the address is a hyperlink where the terminal makes them, as the addresses in
-// a table are, and plain text, which many terminals link anyway, where not.
-func helpScreen() string {
-	return helpText + "gloss --help lists options. Docs: " + ansi.SetHyperlink(DocsURL) + DocsURL + ansi.ResetHyperlink() + "\n"
-}
 
 // emptyView is the drop target shown before any file, and what it opens.
 func (m *Model) emptyView(w int) string {
@@ -354,6 +328,9 @@ func (m *Model) detail(w, h int) string {
 		}
 	case m.typeset != nil && m.markdown == nil:
 		detail = map[string]string{"markdown": "Markdown", "text": "Text", "json": "JSON"}[m.kind] + " · typeset"
+		if s := m.typesetShown; s != nil && s.Lines > 0 {
+			detail += fmt.Sprintf(" · line %d/%d", s.Line, s.Lines)
+		}
 	case m.markdown != nil:
 		mode := "rendered"
 		if m.markdown.raw {
@@ -371,7 +348,7 @@ func (m *Model) detail(w, h int) string {
 				}
 			}
 		}
-		detail = fmt.Sprintf("%s · %s · line %d/%d", format, mode, min(m.markdown.offset+1, len(m.markdown.lines)), len(m.markdown.lines))
+		detail = fmt.Sprintf("%s · %s · %s", format, mode, m.markdown.lineDetail())
 	case m.sheet != nil:
 		detail = fmt.Sprintf("%s · %s", m.kind, m.sheet.status(w, h))
 		switch m.kind {
@@ -394,6 +371,9 @@ func (m *Model) hints() string {
 	}
 	if m.themePicker != nil {
 		return " ↑/↓ preview theme · Enter keep · Esc cancel"
+	}
+	if m.lineInput != nil {
+		return m.lineInput.status(m.width)
 	}
 	if len(m.opts.Files) == 0 {
 		keys := " q quit · ? help · i info"
@@ -419,6 +399,9 @@ func (m *Model) hints() string {
 	switch {
 	case m.typeset != nil && m.markdown == nil:
 		keys = " q quit · ↑/↓/wheel scroll · Space/b screen · +/- zoom · f fit width · s source · t text · e export"
+		if m.typesetLined() {
+			keys += " · : line · # numbers · S " + map[bool]string{false: "chop", true: "wrap"}[m.typesetShown.Chop]
+		}
 		if m.typesetSelected != "" {
 			keys = " y copy selection · Esc clear · ↑/↓/wheel scroll · +/- zoom · e export · q quit"
 		}
@@ -431,6 +414,10 @@ func (m *Model) hints() string {
 		if m.canTypeset() {
 			keys += " · t typeset"
 		}
+		if m.markdown.numbered() {
+			keys += " · : line · # numbers"
+		}
+		keys += " · S " + map[bool]string{false: "chop", true: "wrap"}[m.markdown.chop]
 	case m.sheet != nil:
 		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info"
 		switch {

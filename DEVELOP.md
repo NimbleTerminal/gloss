@@ -731,3 +731,48 @@ preferences are host callbacks; previews and headless exports do not read them.
 The source pins, licenses, subset recipe and checksums are documented in
 `internal/document/fonts/README.md`. Regeneration needs FontTools 4.60.2;
 building and using gloss need only the embedded subsets.
+
+## Line numbers, go to line, and chopped lines
+
+Line numbers are file lines, shown only where a view's rows are file lines
+(`internal/app/line_numbers.go` has the keys, the prompt and the status
+detail). The text view (`markdownView.lineMap`) knows them in two cases: the
+source view, where every unit is one line; and a file shown as one fenced code
+block, as plain text, source and JSON are, where the file's lines are the units
+between Glamour's margin rows. The margin is measured once per theme by
+rendering a block of one known line (`fenceMargin`), and the rows are compared
+with the file's lines, whitespace aside, before they are numbered: a mismatch
+means no numbers rather than wrong ones. Rendered Markdown prose and JSON
+records have no mapping; `#` and `:` then say to use the source view. The
+gutter is prepended after search highlighting, with the wrap width reduced by
+its columns, and a wrapped line is numbered on its first row only.
+
+A typeset text, source or JSON document already has one block per line
+(`prepared.lines`), so with `Request.TypesetLineNumbers` the layout lays a
+monospace number left of each block (`layout.number`) and moves the text right
+by the width of the widest number (`layout.gutterWidth`). Numbers are
+operations flagged `gutter`: drawn in the muted color, skipped by caret
+placement, selection spans and the selected text, and given paragraph −1 so
+places in the text are the same with or without them. Numbers on or off is
+part of the layout's identity, like its width, so toggling relays out and the
+visible block is anchored as on a reflow. `TypesetViewport.Line` on a request
+asks for a line at the top, which the loader lays out to and answers as it
+answers `End`; on a result `Line` is the line at the reading top (the block
+under the page margin, `layout.lineAt`) and `Lines` the count, zero for a
+Markdown page. The viewer clears its pending line when a result arrives and
+counts a pending line or a different gutter as a view that does not match.
+
+Chopping (`S`, `--chop-long-lines`) replaces wrapping, as `less -S` does. In
+the text view the layout wraps at an unbounded width, so a logical line is one
+row holding the whole styled line, and `view` cuts the window `left` columns
+in with `ansi.Cut`, after search highlighting and before the gutter, so styles
+and highlights survive and the gutter stays put. `scrollX` moves by a quarter
+of the width and stops at the widest row; `reveal` brings a search match that
+is off the edge a third of the way in. Tables are laid out within the width
+as before. A typeset text page lays each line out at an unbounded width
+(`layout.chop`), tracks the right edge of its widest operation (`extentX`),
+and the pan clamp in `renderTypeset` takes the greater of the page width and
+that edge. Chop is part of the layout's identity with width and numbers, and
+of the viewer's match test through `TypesetViewport.Chop`; a Markdown page
+ignores it, since its blocks are not lines.
+

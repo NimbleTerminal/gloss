@@ -29,6 +29,9 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if k == "T" && m.screen == screenDocument && !m.help && m.layer == layerNone {
 		return m.openThemePicker(), true
 	}
+	if m.lineInput != nil {
+		return m.lineInputKey(msg), true
+	}
 	// Keys over any screen but the browser, whose filter takes letters.
 	switch k {
 	case "q", "ctrl+c":
@@ -39,12 +42,25 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 		m.opts.KeepScreen = true
 		return m.quit(), true
 	case "?":
-		m.help = !m.help
+		m.help, m.helpOffset = !m.help, 0
 		return nil, true
 	}
 	if m.help {
-		if k == "esc" {
-			m.help = false
+		switch k {
+		case "esc":
+			m.help, m.helpOffset = false, 0
+		case "down", "j":
+			m.helpOffset++
+		case "up", "k":
+			m.helpOffset = max(0, m.helpOffset-1)
+		case "space", "pgdown":
+			m.helpOffset += max(1, m.bodyHeight()-1)
+		case "b", "pgup":
+			m.helpOffset = max(0, m.helpOffset-max(1, m.bodyHeight()-1))
+		case "home":
+			m.helpOffset = 0
+		case "end":
+			m.helpOffset = 1 << 20 // The view clamps it to the last page.
 		}
 		return nil, true
 	}
@@ -215,6 +231,9 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		if cmd, ok := m.typesetKey(k); ok {
 			return cmd, true
 		}
+	}
+	if cmd, ok := m.lineKey(k); ok {
+		return cmd, true
 	}
 	if m.markdown != nil {
 		if m.markdown.key(k) {

@@ -74,6 +74,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringVar(&opts.Mono, "mono", "", "Override typeset code face: jetbrains")
 	f.StringVar(&opts.Theme, "theme", "auto", "Colors: "+strings.Join(themeNames(), ", ")+", or theme JSON file")
 	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, plain text, source code, and JSON as graphics")
+	f.BoolVarP(&opts.LineNumbers, "line-numbers", "N", false, "number the lines of plain text, source code, JSON and Markdown source (# toggles, : goes to a line)")
+	f.BoolVarP(&opts.ChopLines, "chop-long-lines", "S", false, "cut long lines at the right edge instead of wrapping them, as less -S does (S toggles, arrows scroll sideways)")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
 	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown (or md)")
 	accept := f.String("accept", "", "require these content formats for this session, comma-separated: image/*, pdf, svg, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown")

@@ -23,6 +23,14 @@ type TypesetLink struct {
 type TypesetViewport struct {
 	Top, Height, Left, Zoom int
 	End                     bool
+	// Line asks for a file line at the top, where the first line sits at the
+	// top of the page, for a document whose blocks are its lines; a result
+	// says which line is at the top. Lines is how many the document has, on
+	// a result; zero where blocks are not lines, as on a Markdown page.
+	Line, Lines int
+	// Numbers says the picture has a gutter of line numbers, on a result;
+	// Chop, that its lines are laid out unwrapped.
+	Numbers, Chop bool
 	// Pixels is the size of the picture the viewer will show, in device
 	// pixels. The raster is exactly that size, so the terminal picture is
 	// copied, not resampled; the reading scale is unchanged. Zero rasters
@@ -60,9 +68,12 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		return
 	}
 	width := int(math.Round(float64(out.TypesetWidth) * 150 / 72))
+	numbers := q.TypesetLineNumbers && l.typesetPrepared.lines
+	chop := q.TypesetChop && l.typesetPrepared.lines
 	old := l.direct
-	if old == nil || old.width != width || changed {
+	if old == nil || old.width != width || changed || old.numbers != numbers || old.chop != chop {
 		l.direct = l.typesetEngine.layout(l.typesetPrepared, width)
+		l.direct.numbers, l.direct.chop = numbers, chop
 	}
 	lay := l.direct
 	top, height, left, zoom := 0, 1125, 0, 0
@@ -83,6 +94,13 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			if index < len(lay.starts) {
 				top = lay.starts[index] + max(0, top-old.starts[index])
 			}
+		}
+		if v.Line > 0 && lay.p.lines {
+			index := min(v.Line, len(lay.p.blocks)) - 1
+			for lay.next <= index && lay.next < len(lay.p.blocks) {
+				lay.ensure(lay.y + 1)
+			}
+			top = max(0, lay.starts[index]-50)
 		}
 		if v.End {
 			lay.ensure(1125 * MaxPages)
@@ -105,7 +123,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	if q.TypesetView != nil && done {
 		top = min(top, max(0, lay.y+50-height))
 	}
-	left = min(left, max(0, lay.width-width))
+	left = min(left, max(0, max(lay.width, lay.extentX+50)-width))
 	scale := float64(max(36, min(q.DPI, 600))) / 150
 	if q.DPI == 0 {
 		scale = 1
@@ -119,7 +137,10 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			pixels = p
 			scale = float64(p.X) / float64(width)
 		}
-		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom, Pixels: pixels, Width: width}
+		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom, Pixels: pixels, Width: width, Numbers: numbers, Chop: chop}
+		if lay.p.lines {
+			out.TypesetView.Lines, out.TypesetView.Line = len(lay.p.blocks), lay.lineAt(top)
+		}
 		out.TypesetDone = done
 		out.TypesetExtent = lay.y + 50
 	}

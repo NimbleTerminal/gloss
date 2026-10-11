@@ -9,6 +9,7 @@ import (
 	"image/draw"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -53,6 +54,7 @@ type block struct {
 }
 type prepared struct {
 	ctx        context.Context
+	lines      bool // The blocks are the file's lines, one each.
 	blocks     []block
 	images     map[string]image.Image
 	animations map[string]*animate.Player
@@ -353,6 +355,7 @@ type operation struct {
 	// which block it is, the same at every width.
 	text        []rune
 	block, para int
+	gutter      bool // A line number in the gutter: drawn muted, and not text to select.
 }
 type layout struct {
 	starts         []int
@@ -364,6 +367,10 @@ type layout struct {
 	ops            []operation
 	para           int        // Paragraphs laid out of the current block.
 	sel            *selection // Text to draw a highlight behind, while rastering.
+	numbers        bool       // Lay a gutter of line numbers left of the lines.
+	gutter         int        // Its width in page pixels, once measured.
+	chop           bool       // Lay each line on one row, however long, instead of wrapping it.
+	extentX        int        // The right edge of the widest operation, for panning a chopped page.
 }
 
 func (e *engine) layout(p *prepared, width int) *layout {
@@ -463,6 +470,49 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 	}
 	return ops, y - start
 }
+
+// gutterWidth is the room the line numbers take: the widest number the
+// document has, in the monospace face at the lines' size, and a gap.
+func (l *layout) gutterWidth(size int) int {
+	if l.gutter == 0 {
+		digits := strings.Repeat("0", len(strconv.Itoa(len(l.p.blocks))))
+		var advance fixed.Int26_6
+		for _, run := range l.e.shape([]span{{text: digits, style: mono}}, size).runs {
+			advance += run.Advance
+		}
+		l.gutter = advance.Ceil() + 20
+	}
+	return l.gutter
+}
+
+// number lays a block's line number in the gutter, at the block's top. It is
+// not a paragraph of the block: places in the text stay the same with or
+// without numbers.
+func (l *layout) number(n, size int) {
+	digits := len(strconv.Itoa(len(l.p.blocks)))
+	para := l.para
+	ops, _ := l.text([]span{{text: fmt.Sprintf("%*d", digits, n), style: mono}}, size, 50, l.y, l.gutter)
+	l.para = para
+	for i := range ops {
+		ops[i].gutter, ops[i].para = true, -1
+	}
+	l.ops = append(l.ops, ops...)
+}
+
+// lineAt is the line at the top of a view: the block at the reading top,
+// the page margin below the view's edge, where the first line sits when the
+// view is at the top of the page.
+func (l *layout) lineAt(top int) int {
+	at := 0
+	for i, y := range l.starts {
+		if y > top+50 {
+			break
+		}
+		at = i
+	}
+	return at + 1
+}
+
 func (l *layout) rect(r image.Rectangle, c color.Color) {
 	l.ops = append(l.ops, operation{rect: r, fill: c})
 }
@@ -499,10 +549,17 @@ func (l *layout) block() {
 		l.next++
 		l.para = 0
 		x := 50 + b.indent
-		width := max(32, l.width-50-x)
 		size := b.size
 		if size == 0 {
 			size = 25
+		}
+		if l.numbers && l.p.lines {
+			x += l.gutterWidth(size)
+			l.number(l.next, size)
+		}
+		width := max(32, l.width-50-x)
+		if l.chop && l.p.lines {
+			width = 1 << 24
 		}
 		switch b.kind {
 		case "rule":
@@ -545,6 +602,11 @@ func (l *layout) block() {
 		}
 		if l.y+50 > 1125*MaxPages || len(l.ops) > 32768 {
 			panic("typeset layout exceeds display-list limit")
+		}
+		for _, op := range l.ops[ops:] {
+			if op.run != nil {
+				l.extentX = max(l.extentX, op.rect.Max.X)
+			}
 		}
 	}
 }
@@ -658,6 +720,9 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, bas
 			}
 			if op.ink == theme.Get("light").Accent && op.darkInk == theme.Get("dark").Accent {
 				ink = palette.Accent
+			}
+			if op.gutter {
+				ink = palette.Muted
 			}
 			if x0, x1, ok := l.sel.span(i, &op); ok {
 				hr := image.Rect(int(math.Round(float64(x0-left)*scale)), r.Min.Y, int(math.Round(float64(x1-left)*scale)), r.Max.Y)

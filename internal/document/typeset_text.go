@@ -42,7 +42,7 @@ func (l *Loader) loadTypesetText(q Request, data []byte, file []Field, kind stri
 	if strings.Count(strings.TrimSuffix(text, "\n"), "\n")+1 > 8192 {
 		return fail(fmt.Errorf("typeset text exceeds 8,192 lines"))
 	}
-	prep := &prepared{ctx: q.Context}
+	prep := &prepared{ctx: q.Context, lines: true}
 	// One block per line bounds shaping and preserves blank lines and indentation.
 	// Highlight the complete source first so multiline tokens retain their color.
 	spans := []span{{text: strings.TrimSuffix(text, "\n")}}

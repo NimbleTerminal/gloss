@@ -11,6 +11,18 @@
     native saved preferences, and bounded custom theme JSON via `--theme`.
     Share palettes across pager chrome, Markdown and typeset syntax colors.
 
+  * Redraw the help page (`?`) as sections in two columns, keys and actions
+    in the theme's colors, with a heading for each kind of document; narrow
+    terminals stack the sections in one column that scrolls.
+
+  * Add optional line numbers and go-to-line: `#` shows the file's line numbers
+    in a gutter and `:` goes to a line, in the text and typeset views of plain
+    text, source code, JSON and Markdown source; the status bar then counts
+    file lines. `--line-numbers` (`-N`) starts with the gutter on, including in
+    typeset exports. `S` chops long lines instead of wrapping them, as `less -S`
+    does, with the arrows scrolling sideways and search matches brought into
+    view; `--chop-long-lines` (`-S`) starts chopped.
+
   * Render frames through the `perf/consolidated` branch of the
     `neomantra/ultraviolet` fork of Bubble Tea's renderer, pinned by a `replace`
     directive: a Kitty picture frame costs about 40% less renderer time and a

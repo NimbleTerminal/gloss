@@ -429,7 +429,9 @@ at the fixed 800-pixel reading width (150 DPI); `--page all --output-dir pages`
 exports them all. Slice boundaries can cut a text line or image. `--dpi` changes
 raster detail, `--max-edge` bounds the PNG; neither changes line wrapping.
 Plain text, source code and JSON also accept `--typeset`; source uses Chroma,
-plain text stays literal, and JSON is pretty-printed. Results preserve the input
+plain text stays literal, and JSON is pretty-printed; `--line-numbers` (`-N`) adds a
+gutter of file line numbers to these, and `--chop-long-lines` (`-S`) lays each
+line on one row instead of wrapping it, so a slice shows the left part of long lines. Results preserve the input
 kind (`markdown`, `text` or `json`). Text/JSON require valid UTF-8, at most 2 MiB
 of source and formatted text, and at most 8,192 lines; the bounded source view
 must fit without truncation. `--text` keeps its usual extraction behavior.

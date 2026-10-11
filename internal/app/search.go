@@ -375,6 +375,7 @@ func (m *Model) nextMatch(delta int) tea.Cmd {
 	case m.markdown != nil:
 		m.markdown.offset = hit.row
 		m.markdown.scroll(0)
+		m.markdown.reveal(hit.row)
 	case m.sheet != nil:
 		m.sheet.at = [2]int{hit.row, m.sheet.place(hit.col)}
 		m.sheet.settle(m.width, m.bodyHeight()-1)
