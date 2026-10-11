@@ -17,6 +17,12 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if m.search != nil && m.search.editing {
 		return m.searchKey(msg), true
 	}
+	if m.fontPicker != nil {
+		return m.fontPickerKey(k), true
+	}
+	if k == "f" && m.typeset != nil && m.markdown == nil && m.layer == layerNone && !m.help && m.screen == screenDocument {
+		return m.openFontPicker(), true
+	}
 	if m.themePicker != nil {
 		return m.themePickerKey(k), true
 	}

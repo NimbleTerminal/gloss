@@ -151,7 +151,7 @@ documents these scopes and the temporary `n`/`N` bindings.
 
 `--typeset` and `t` use the direct renderer in
 `internal/document/typeset_layout.go`, with go-text/typesetting v0.3.5 and
-go-text/render v0.2.1 (BSD-3-Clause), Chroma, and the existing embedded Go TTFs.
+go-text/render v0.2.1 (BSD-3-Clause), Chroma, and the embedded Latin font subsets.
 `typeset.go` preflights all local assets before decode; `typeset_render.go`
 connects the cached layout to `Loader`. `typeset_text.go` sends literal text
 directly to line blocks, with Chroma spans for source/JSON; only Markdown is
@@ -714,3 +714,20 @@ catalog entries at the host boundary. Rendering receives a reference to the
 snapshot, never a mutable global active theme. `Options.ThemeChoices` and
 `Options.SaveTheme` let native hosts supply local preferences; web hosts keep
 choices in memory. Syntax tokens survive shaping so palette changes reuse layout.
+
+### Typeset font pairs
+
+`internal/document/typeset_fonts.go` defines four paired looks. Requests carry
+`Font`/`Mono`, results carry `FontKey`, and stale viewer results must match it.
+The loader keeps prepared content/assets across changes, clears shaping/glyph
+caches when faces change, and reuses the old block starts to anchor the new
+layout. Face fallback is resolved through go-text's segmenter; warnings are
+bounded to 32 code points. Fonts are parsed per engine, never globally mutated.
+
+`internal/app/font_picker.go` renders bounded samples asynchronously via the
+same typesetter, with a fresh picture ID, owner/revision checks, cancellation,
+and cleanup on close/resize/quit. No terminal probes are added. Native font
+preferences are host callbacks; previews and headless exports do not read them.
+The source pins, licenses, subset recipe and checksums are documented in
+`internal/document/fonts/README.md`. Regeneration needs FontTools 4.60.2;
+building and using gloss need only the embedded subsets.

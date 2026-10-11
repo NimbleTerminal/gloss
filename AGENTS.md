@@ -87,7 +87,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   pauses; reflow preserves positions; reload restarts. `e` exports the first
   visible GIF’s displayed frame in normal Markdown, the viewport in typeset.
   Glamour by default; `s` toggles source and `t` switches text/typeset.
-  `--typeset` uses go-text, embedded Go fonts and Chroma directly,
+  `--typeset` uses go-text, embedded OFL font subsets and Chroma directly,
   without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
   width after a 30 ms debounce, cancels stale jobs and keeps the old image
   visible. Fonts/images/shaped text are cached; layout advances by block as
@@ -147,6 +147,18 @@ host saves accepted choices in its OS user-config directory under `gloss/theme`;
 explicit CLI themes override that preference. Browser choices are session-only,
 and exports never read the interactive preference. User theme JSON is bounded
 to 64 KiB; palettes are immutable snapshots, with no renderer filesystem access.
+
+Typeset fonts: `--font readable|editorial|technical|compact`, default Readable,
+pairs Literata/Iosevka, Newsreader/Iosevka, IBM Plex Sans/Mono, or Source Serif 4/
+JetBrains Mono. `--mono jetbrains` overrides the code face only. `f` opens a
+sample overlay over typeset text; arrows preview, Enter keeps, Esc restores,
+and +/- still zoom. Native confirmation saves `gloss/font` in the OS config
+directory; explicit flags override it, and exports ignore it. Seven OFL families
+ship as pinned Latin/Latin-1/combining/punctuation subsets, regular/bold/italic/
+bold-italic; no optional ligatures or runtime downloads. `i` identifies family
+names, used Literata/Iosevka fallbacks and up to 32 missing code points from the
+laid-out text. Font changes invalidate shaping and glyph caches and anchor the
+visible block. The chooser uses existing picture IDs/events/cleanup.
 
 Text themes: `--theme auto|light|dark|NAME|FILE.json` controls normal text and typeset colors.
 Auto asks for the terminal background through Bubble Tea's event loop, defaults

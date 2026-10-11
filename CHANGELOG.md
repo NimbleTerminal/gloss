@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+  * Add four embedded typeset font pairs, an `f` live sample chooser, saved
+    native preferences, `--font`, and a `--mono jetbrains` code-face override.
+    Reflow at the visible block, report fallback/missing glyphs, and keep source
+    toggles and search on logical text.
+
   * Add named color themes adapted from go-thinkt, a `T` live-preview chooser,
     native saved preferences, and bounded custom theme JSON via `--theme`.
     Share palettes across pager chrome, Markdown and typeset syntax colors.

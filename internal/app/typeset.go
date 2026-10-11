@@ -81,7 +81,7 @@ func (m *Model) typesetMatches() bool {
 	return m.typesetViewMatches() && selectionsEqual(m.typesetSelect, m.typesetSelectShown)
 }
 func (m *Model) typesetViewMatches() bool {
-	return m.viewportAsked(m.typesetShown, m.typesetWidth, m.typesetTheme)
+	return m.typesetFont == document.FontKey(m.opts.Font, m.opts.Mono) && m.viewportAsked(m.typesetShown, m.typesetWidth, m.typesetTheme)
 }
 
 // viewportAsked says a rendered part of the page, at a measure and in a
@@ -135,7 +135,7 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 		m.typesetActive = 0
 	}
 	stale := v.Generation != m.generation || msg.revision != m.typesetRevision
-	if m.typeset == nil || (stale && (v.Err != nil || !m.viewportAsked(v.TypesetView, v.TypesetWidth, v.Theme))) {
+	if m.typeset == nil || (stale && (v.Err != nil || v.FontKey != document.FontKey(m.opts.Font, m.opts.Mono) || !m.viewportAsked(v.TypesetView, v.TypesetWidth, v.Theme))) {
 		return m.queueTypesetReflow()
 	}
 	if v.Err != nil {
@@ -197,6 +197,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	}
 	m.typesetShown = v.TypesetView
 	m.typesetTheme = v.Theme
+	m.typesetFont = v.FontKey
 	if v.TypesetView != nil {
 		m.typesetTop, m.typesetLeft = v.TypesetView.Top, v.TypesetView.Left
 		m.typesetEnd = false

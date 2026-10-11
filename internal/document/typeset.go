@@ -24,7 +24,7 @@ func typesetMeasure(width int) int {
 	return max(192, min(width, 960))
 }
 
-//go:embed fonts/*.ttf
+//go:embed fonts/Gloss*.ttf
 var typesetFonts embed.FS
 
 type typesetAsset struct {

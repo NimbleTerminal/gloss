@@ -67,6 +67,7 @@ the terminal width and scrolls continuously with arrows or the wheel. It looks
 best in Kitty; half-blocks work elsewhere. Use `+`/`-` to zoom, `s` for source,
 and `e` to export the visible viewport as PNG. Plain text, source code and JSON
 also support `--typeset` and `t`; normal terminal text remains the default.
+In typeset mode, `f` previews four font pairs (`--font editorial` selects one).
 `T` previews color themes; `--theme nord` selects one directly.
 `--theme auto|light|dark` sets text and typeset colors; auto follows the terminal,
 while headless PNG exports default to light.

@@ -34,6 +34,8 @@ type Options struct {
 	MarkdownMode           string
 	Typeset                bool
 	Theme                  string
+	Font, Mono             string
+	SaveFont               func(string, string) error
 	ThemeChoices           []theme.Choice
 	SaveTheme              func(string) error
 	Accept                 document.AcceptFilter
@@ -120,6 +122,7 @@ type textState struct {
 	typesetEnd              bool
 	typesetShown            *document.TypesetViewport
 	typesetTheme            string
+	typesetFont             string
 	savedMarkdown           *markdownView
 	sheet                   *sheetView
 	savedSheet              *sheetView // The cell to return to when a fetched file closes.
@@ -158,6 +161,7 @@ type Model struct {
 	theme                    string
 	detectedTheme            string
 	themePicker              *themePicker
+	fontPicker               *fontPicker
 	err                      error
 	source                   image.Image
 	animation                *animation
@@ -198,6 +202,7 @@ func New(opts Options) *Model {
 	m.presentation.ID = id
 	m.theme = "dark"
 	m.detectedTheme = "dark"
+	m.typesetFont = document.FontKey(opts.Font, opts.Mono)
 	if opts.Theme != "" && opts.Theme != "auto" {
 		m.theme = theme.Resolve(opts.Theme)
 	}
@@ -254,6 +259,7 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Close() error {
 	m.stopTypeset()
+	m.clearFontPicker()
 	m.clearSearch()
 	m.stopAnimation()
 	m.clearAnimationFront()
@@ -283,7 +289,7 @@ func (m *Model) quit() tea.Cmd {
 	}
 	m.clearSearch()
 	m.stopAnimation()
-	qrCleanup := m.clearQR()
+	qrCleanup := tea.Batch(m.clearQR(), m.clearFontPicker())
 	if !m.opts.KeepScreen {
 		return tea.Sequence(tea.Batch(qrCleanup, m.clearGraphics(), m.disposePreview()), tea.Quit)
 	}
@@ -303,7 +309,7 @@ func (o Options) IsStdin(path string) bool { return o.Stdin != "" && path == o.S
 
 // request is what the loader is asked for the current file and page.
 func (m *Model) request(reload bool) document.Request {
-	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: m.theme, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
+	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: m.theme, Font: m.opts.Font, Mono: m.opts.Mono, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
 		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
 	q.TypesetWidth = m.typesetMeasure()
 	if !reload {
@@ -419,7 +425,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	frontCleanup := m.clearAnimationFront()
 	cleanup := m.pic.SetImage(nil)
 	m.retireAnimationPicture(cleanup)
-	return tea.Batch(frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
+	return tea.Batch(m.clearFontPicker(), frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -473,12 +479,15 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		if m.markdown != nil {
 			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument))
 		}
+		if p := m.fontPicker; p != nil {
+			cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
+		}
 		if m.qr != nil {
 			cw, ch := m.pic.CellPixelSize()
 			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
 		}
 	}()
-	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil) {
+	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {
 		return m, nil
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok {
@@ -525,6 +534,17 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, cmd
 	}
 	switch v := msg.(type) {
+	case fontPreviewResult:
+		if p := m.fontPicker; p != nil && p.owner == v.owner && p.revision == v.revision {
+			p.base, p.err = v.image, v.err
+			return m, m.showFontPreview()
+		}
+		return m, nil
+	case fontSaved:
+		if v.err != nil {
+			m.note = "save font: " + safe(v.err.Error())
+		}
+		return m, nil
 	case themeSaved:
 		if v.err != nil {
 			m.note = "save theme: " + safe(v.err.Error())

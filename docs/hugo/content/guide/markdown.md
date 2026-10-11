@@ -94,7 +94,7 @@ requires valid UTF-8, at most 2 MiB of source and formatted text, and at most
 The per-line shaping, raster and total layout limits below also apply.
 
 Typeset Markdown uses Goldmark, go-text shaping and rasterization, repo-embedded
-Go fonts, and Chroma's GitHub light/dark syntax colors. No PDF is generated and PDFium is
+paired font subsets, and theme-selected Chroma syntax colors. No PDF is generated and PDFium is
 not involved. The existing picture component displays one viewport image using
 Kitty graphics or colored half-blocks. No terminal text/image layering is needed.
 In Kitty mode, scrolling and page changes keep the previous image visible until
@@ -261,3 +261,45 @@ file again to pick up edits. No assets are downloaded.
 The palette colors the pager's status, prompts, document overlays, normal text,
 and typeset pages. Media pixels and mesh paints retain their own colors.
 This does not change your terminal application's configured palette or font.
+
+### Typeset font looks
+
+Press `f` while viewing typeset Markdown, text, source, or JSON. The chooser
+shows four paired looks using a line from the open document and a code line
+when it finds a fenced code block. Names and samples are drawn in the actual
+faces. Arrows preview the selection in the document behind it; Enter keeps it,
+Esc restores the previous pair. `+`/`-` still zoom; `0` still resets the view.
+Small terminals fall back to a text list. Sample images use Kitty when available
+and half-blocks otherwise. `f` retains fit behavior for other media.
+
+| Look | Body | Code |
+| --- | --- | --- |
+| `readable` (default) | Literata | Iosevka |
+| `editorial` | Newsreader | Iosevka |
+| `technical` | IBM Plex Sans | IBM Plex Mono |
+| `compact` | Source Serif 4 | JetBrains Mono |
+
+```sh
+gloss --typeset --font editorial README.md
+gloss --typeset --font technical --mono jetbrains main.go
+gloss --typeset --font compact --output page.png README.md
+```
+
+`--mono jetbrains` overrides the code face of the pair, including its chooser
+samples. The UI selects pairs, not individual faces. `i` shows the real family
+names, any fallback families used, and up to 32 missing code points encountered
+in the text laid out so far. Missing body glyphs try Literata; missing code
+glyphs try Iosevka. Characters absent from both remain missing, not silently
+substituted with an unrelated font.
+
+The native viewer remembers confirmed choices in `gloss/font` under the OS
+user-config directory. Either explicit font flag overrides the saved pair.
+Browser choices are session-only. Exports ignore saved preferences and default
+to Readable; pass the flags for reproducible output.
+
+The embedded subsets include Latin/Latin-1, combining accents, and common
+punctuation, with regular/bold/italic/bold-italic faces. Optional ligatures are
+disabled. CJK and emoji are not included. There is no font download, system-font
+lookup, PDF intermediate, or change to the terminal's font. Font changes reflow
+while anchoring the visible block; resizing and color changes reuse loaded
+faces. `s` and `/` continue to work on the normal text/source view.

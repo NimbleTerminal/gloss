@@ -1,0 +1,112 @@
+[
+  {
+    "file": "ibmplexmono-IBMPlexMono-Bold.ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexmono/IBMPlexMono-Bold.ttf",
+    "sha256": "ac27abd6450a64dd94467580a02fe6235156d5b92f2926ebbc8e7489df64e0be"
+  },
+  {
+    "file": "ibmplexmono-IBMPlexMono-BoldItalic.ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexmono/IBMPlexMono-BoldItalic.ttf",
+    "sha256": "af4e05a761e98c1adf064c48a6352c9bec1a6ad70982cd2a544149323391f98e"
+  },
+  {
+    "file": "ibmplexmono-IBMPlexMono-Italic.ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexmono/IBMPlexMono-Italic.ttf",
+    "sha256": "3362fc791b0652193328b862c1c5f23a789bc7288b1617fa63302f88689a2a34"
+  },
+  {
+    "file": "ibmplexmono-IBMPlexMono-Regular.ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexmono/IBMPlexMono-Regular.ttf",
+    "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46"
+  },
+  {
+    "file": "ibmplexmono-OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexmono/OFL.txt",
+    "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+  },
+  {
+    "file": "ibmplexsans-IBMPlexSans-Italic[wdth,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexsans/IBMPlexSans-Italic%5Bwdth%2Cwght%5D.ttf",
+    "sha256": "0b94c5e981993764db32bf9c610ecc60cbd34ad77ec2f10ba03c64ab75124d8e"
+  },
+  {
+    "file": "ibmplexsans-IBMPlexSans[wdth,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexsans/IBMPlexSans%5Bwdth%2Cwght%5D.ttf",
+    "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3"
+  },
+  {
+    "file": "ibmplexsans-OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexsans/OFL.txt",
+    "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+  },
+  {
+    "file": "jetbrainsmono-JetBrainsMono-Italic[wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/jetbrainsmono/JetBrainsMono-Italic%5Bwght%5D.ttf",
+    "sha256": "85ae2a5cd3f56baf1ce1c21a851322c58e3d8fbe8e8ad4a4d090a820dd7fe558"
+  },
+  {
+    "file": "jetbrainsmono-JetBrainsMono[wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf",
+    "sha256": "48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda"
+  },
+  {
+    "file": "jetbrainsmono-OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/jetbrainsmono/OFL.txt",
+    "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d"
+  },
+  {
+    "file": "literata-Literata-Italic[opsz,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/literata/Literata-Italic%5Bopsz%2Cwght%5D.ttf",
+    "sha256": "d483dfaeba9cbf4ce71d32a52ee65df82f7e35b15fff8d1011cdb242d1fcd465"
+  },
+  {
+    "file": "literata-Literata[opsz,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/literata/Literata%5Bopsz%2Cwght%5D.ttf",
+    "sha256": "b41138c9373112f32abb589cc22e8674b06ed4048b0c513be922bdd26f274440"
+  },
+  {
+    "file": "literata-OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/literata/OFL.txt",
+    "sha256": "8742963604cd89dc81437811a850018fc03b2bfad686d7422c8235967c87614e"
+  },
+  {
+    "file": "newsreader-Newsreader-Italic[opsz,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/newsreader/Newsreader-Italic%5Bopsz%2Cwght%5D.ttf",
+    "sha256": "796668611f80b64d5adf182fde3b6f29ed83b4e7cbec7b96937e84ac01364792"
+  },
+  {
+    "file": "newsreader-Newsreader[opsz,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/newsreader/Newsreader%5Bopsz%2Cwght%5D.ttf",
+    "sha256": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1"
+  },
+  {
+    "file": "newsreader-OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/newsreader/OFL.txt",
+    "sha256": "fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8"
+  },
+  {
+    "file": "sourceserif4-OFL.txt",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sourceserif4/OFL.txt",
+    "sha256": "5f94c3fd3a23131a417ab5a0c8452de57e70c3cfb9f604d88241f7065ebf9fd9"
+  },
+  {
+    "file": "sourceserif4-SourceSerif4-Italic[opsz,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sourceserif4/SourceSerif4-Italic%5Bopsz%2Cwght%5D.ttf",
+    "sha256": "15fbc7e4679489a501998c3669272637a6646388ef7e4bd77eebb5bf967a1f42"
+  },
+  {
+    "file": "sourceserif4-SourceSerif4[opsz,wght].ttf",
+    "url": "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sourceserif4/SourceSerif4%5Bopsz%2Cwght%5D.ttf",
+    "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b"
+  },
+  {
+    "file": "iosevka.LICENSE.md",
+    "url": "https://raw.githubusercontent.com/be5invis/Iosevka/v34.9.0/LICENSE.md",
+    "sha256": "4ba53c7c1cb39279aae5f8d7d22054c485c71169920e5a36ed098b115e2e3c5d"
+  },
+  {
+    "file": "iosevka.zip",
+    "url": "https://github.com/be5invis/Iosevka/releases/download/v34.9.0/PkgTTF-Iosevka-34.9.0.zip",
+    "sha256": "c61a10b880bf3087f982217423fa2876a93803bd2a1901fbc52ab80c7329f716"
+  }
+]

@@ -2,7 +2,6 @@
 package document
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"image"
@@ -217,10 +216,6 @@ func standaloneImage(n ast.Node) *ast.Image {
 	return nil
 }
 
-type faceMap struct{ face *font.Face }
-
-func (f faceMap) ResolveFace(rune) *font.Face { return f.face }
-
 type shaped struct {
 	tokens   []chroma.TokenType
 	text     []rune
@@ -231,14 +226,19 @@ type shaped struct {
 	size     int
 }
 type engine struct {
-	faces      [8]*font.Face
-	shaper     shaping.HarfbuzzShaper
-	segmenter  shaping.Segmenter
-	cache      map[string]*shaped
-	cacheBytes int
-	renderer   render.Renderer
-	ctx        context.Context
-	theme      string
+	fontKey      string
+	look         FontLook
+	fallback     [8]*font.Face
+	missing      map[rune]bool
+	fallbackUsed map[string]bool
+	faces        [8]*font.Face
+	shaper       shaping.HarfbuzzShaper
+	segmenter    shaping.Segmenter
+	cache        map[string]*shaped
+	cacheBytes   int
+	renderer     render.Renderer
+	ctx          context.Context
+	theme        string
 	// Rendered glyph masks, keyed by glyph, size, scale and quarter-pixel
 	// position. Drawing every glyph from its outline again on every scroll
 	// step was the raster's largest cost; a mask is drawn with the run's
@@ -268,24 +268,17 @@ type glyphMask struct {
 
 const glyphQuanta = 4 // Positions within a pixel a mask is rendered for.
 
-func newEngine() (*engine, error) {
-	e := &engine{cache: map[string]*shaped{}, glyphs: map[glyphKey]*glyphMask{}, glyphBudget: 32 << 20}
-	for i := 0; i < 8; i++ {
-		family := "Go"
-		if i&mono != 0 {
-			family = "GoMono"
-		}
-		variant := []string{"Regular", "Bold", "Italic", "BoldItalic"}[i&3]
-		b, err := typesetFonts.ReadFile("fonts/" + family + "-" + variant + ".ttf")
-		if err != nil {
-			return nil, err
-		}
-		e.faces[i], err = font.ParseTTF(bytes.NewReader(b))
-		if err != nil {
-			return nil, err
-		}
+func newEngine(options ...string) (*engine, error) {
+	e := &engine{glyphBudget: 32 << 20}
+	name, override := "", ""
+	if len(options) > 0 {
+		name = options[0]
 	}
-	return e, nil
+	if len(options) > 1 {
+		override = options[1]
+	}
+	_, err := e.setFonts(name, override)
+	return e, err
 }
 func (e *engine) shape(spans []span, size int) *shaped {
 	e.check()
@@ -323,8 +316,8 @@ func (e *engine) shape(spans []span, size int) *shaped {
 		if end == offset {
 			continue
 		}
-		in := shaping.Input{Text: s.text, RunStart: offset, RunEnd: end, Direction: di.DirectionLTR, Face: e.faces[sp.style&7], Size: fixed.I(size)}
-		for _, run := range e.segmenter.Split(in, faceMap{in.Face}) {
+		in := shaping.Input{Text: s.text, RunStart: offset, RunEnd: end, Direction: di.DirectionLTR, Face: e.faces[sp.style&7], FontFeatures: noLigatures, Size: fixed.I(size)}
+		for _, run := range e.segmenter.Split(in, fallbackMap{e, sp.style}) {
 			s.runs = append(s.runs, e.shaper.Shape(run))
 		}
 		offset = end

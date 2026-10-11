@@ -73,7 +73,7 @@ func (l *Loader) loadTypesetText(q Request, data []byte, file []Field, kind stri
 	if len(prep.blocks) > 8192 {
 		return fail(fmt.Errorf("typeset text exceeds 8,192 lines"))
 	}
-	eng, err := newEngine()
+	eng, err := newEngine(q.Font, q.Mono)
 	if err != nil {
 		return fail(err)
 	}

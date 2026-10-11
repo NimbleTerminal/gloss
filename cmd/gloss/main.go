@@ -41,6 +41,7 @@ func main() {
 // options are the viewer's, and those of showing it somewhere else.
 type options struct {
 	themeExplicit bool
+	fontExplicit  bool
 	app.Options
 	Serve, NoOpen bool
 	PickWeb       bool // Experimental upload-only page, without a terminal viewer.
@@ -69,6 +70,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.SetOutput(out)
 	f.StringVarP(&opts.Render, "render", "r", "auto", "terminal graphics: auto, kitty, glyph")
 	f.StringVar(&opts.Render3D, "3d", "auto", "mesh renderer for STL and 3MF: auto, software, wireframe")
+	f.StringVar(&opts.Font, "font", "readable", "Typeset font pair: readable, editorial, technical, compact")
+	f.StringVar(&opts.Mono, "mono", "", "Override typeset code face: jetbrains")
 	f.StringVar(&opts.Theme, "theme", "auto", "Colors: "+strings.Join(themeNames(), ", ")+", or theme JSON file")
 	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, plain text, source code, and JSON as graphics")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
@@ -191,6 +194,10 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		if _, err := parsePickNetwork(opts.Listen, opts.AdvertiseHost); err != nil {
 			return opts, false, err
 		}
+	}
+	opts.fontExplicit = f.Changed("font") || f.Changed("mono")
+	if _, err := document.ResolveFont(opts.Font, opts.Mono); err != nil {
+		return opts, false, err
 	}
 	opts.themeExplicit = f.Changed("theme")
 	if ref, err := theme.Load(opts.Theme); err != nil {
@@ -483,6 +490,12 @@ func run(args []string) (err error) {
 	opts.OpenLink = browse
 	opts.ThemeChoices = theme.Available()
 	opts.SaveTheme = theme.SaveChoice
+	opts.SaveFont = saveFontChoice
+	if !opts.fontExplicit {
+		if name, mono, err := savedFontChoice(); err == nil {
+			opts.Font, opts.Mono = name, mono
+		}
+	}
 	if !opts.themeExplicit {
 		if ref, err := theme.SavedChoice(); err == nil {
 			opts.Theme = ref

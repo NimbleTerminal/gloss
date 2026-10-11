@@ -34,7 +34,7 @@ type TypesetViewport struct {
 }
 
 func (l *Loader) renderTypeset(q Request) (out Result) {
-	out = Result{Theme: theme.Resolve(q.Theme), Generation: q.Generation, Kind: l.typesetKind, Text: l.typesetText, Typeset: l.typeset, TypesetWidth: typesetMeasure(q.TypesetWidth), Page: 1, Pages: 1}
+	out = Result{FontKey: FontKey(q.Font, q.Mono), Theme: theme.Resolve(q.Theme), Generation: q.Generation, Kind: l.typesetKind, Text: l.typesetText, Typeset: l.typeset, TypesetWidth: typesetMeasure(q.TypesetWidth), Page: 1, Pages: 1}
 	ctx := q.Context
 	if ctx == nil {
 		ctx = context.Background()
@@ -54,9 +54,14 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			}
 		}
 	}()
+	changed, err := l.typesetEngine.setFonts(q.Font, q.Mono)
+	if err != nil {
+		out.Err = err
+		return
+	}
 	width := int(math.Round(float64(out.TypesetWidth) * 150 / 72))
 	old := l.direct
-	if old == nil || old.width != width {
+	if old == nil || old.width != width || changed {
 		l.direct = l.typesetEngine.layout(l.typesetPrepared, width)
 	}
 	lay := l.direct
@@ -180,6 +185,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		}
 	}
 	out.Info = append(append([]Field(nil), l.file...), l.typesetInfo...)
+	out.Info = append(out.Info, l.typesetEngine.fontFields()...)
 	return
 }
 

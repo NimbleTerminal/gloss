@@ -86,10 +86,17 @@ NTCharts3d software renderer, whose license is among those below.
 	}
 	section(&b, "The Go runtime and standard library", "https://go.dev", text)
 	section(&b, "PDFium", "compiled to WebAssembly by github.com/klippa-app/go-pdfium and embedded in the native binary; the browser app serves @embedpdf/pdfium, which builds it, from the site itself (web/dist/vendor/embedpdf-pdfium, pinned and checked against its published hash)", []byte(pdfiumLicense))
-	if text, err := os.ReadFile(filepath.Join("internal", "document", "fonts", "LICENSE")); err == nil {
-		section(&b, "Go fonts", "embedded typeset Markdown fonts, from golang.org/x/image v0.46.0", text)
-	} else {
-		return err
+	for _, family := range []string{"literata", "newsreader", "ibmplexsans", "sourceserif4", "iosevka", "ibmplexmono", "jetbrainsmono"} {
+		text, err := os.ReadFile(filepath.Join("internal", "document", "fonts", family+".OFL.txt"))
+		if err != nil {
+			return err
+		}
+		lines := strings.Split(string(text), "\n")
+		for i := range lines {
+			lines[i] = strings.TrimRight(lines[i], " \t\r")
+		}
+		text = []byte(strings.Join(lines, "\n"))
+		section(&b, family+" font subsets", "OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names", text)
 	}
 
 	if text, err := os.ReadFile(filepath.Join("internal", "theme", "LICENSE.thinkt")); err == nil {

@@ -128,7 +128,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"n / p / Space  next / previous page or file; GIF: Space pauses\n" +
 	"Home / End     first / last PDF page or GIF frame\n" +
 	"+ / -          zoom\nh j k l / arrows  pan image / orbit mesh\n" +
-	"f / 0          fit / reset view\ng              toggle Kitty / glyph; tables: u QR of URL\n" +
+	"f / 0          fit (typeset: fonts) / reset view\ng              toggle Kitty / glyph; tables: u QR of URL\n" +
 	"R              reload file\n" +
 	"e / i          export as PNG / file details\n" +
 	"r              auto-rotate mesh (reload other files)\n" +
@@ -205,6 +205,8 @@ func (m *Model) layered(body string, w, h int) string {
 		return body
 	}
 	switch m.layer {
+	case layerFont:
+		return overlay(body, m.fontPickerView(), w, 0)
 	case layerTheme:
 		return overlay(body, m.themePickerView(w, h), w, 0)
 	case layerQR:
@@ -387,6 +389,9 @@ func (m *Model) detail(w, h int) string {
 
 // hints names the keys that work over the document.
 func (m *Model) hints() string {
+	if m.fontPicker != nil {
+		return " ↑/↓ fonts · Enter keep · Esc cancel · +/- zoom"
+	}
 	if m.themePicker != nil {
 		return " ↑/↓ preview theme · Enter keep · Esc cancel"
 	}

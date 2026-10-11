@@ -23,6 +23,7 @@ const (
 	layerColumns // The sheet's column list.
 	layerParts   // The 3MF's part list.
 	layerColor   // The mesh's color picker.
+	layerFont    // Typeset font pairs.
 	layerTheme   // Theme selection over the document.
 	layerQR      // The selected table URL, as a QR code.
 )
@@ -42,6 +43,13 @@ func (m *Model) closeLayer() tea.Cmd {
 	was := m.layer
 	m.layer = layerNone
 	switch was {
+	case layerFont:
+		p := m.fontPicker
+		cleanup := m.clearFontPicker()
+		if p != nil {
+			return tea.Batch(cleanup, m.setFont(p.font, p.mono))
+		}
+		return cleanup
 	case layerTheme:
 		p := m.themePicker
 		m.themePicker = nil

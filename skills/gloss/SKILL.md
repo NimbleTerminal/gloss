@@ -434,6 +434,11 @@ kind (`markdown`, `text` or `json`). Text/JSON require valid UTF-8, at most 2 Mi
 of source and formatted text, and at most 8,192 lines; the bounded source view
 must fit without truncation. `--text` keeps its usual extraction behavior.
 `--markdown typeset` remains a compatibility alias.
+`--font readable|editorial|technical|compact` selects an embedded body/code pair
+for typeset text and Markdown. Readable (Literata/Iosevka) is the export default;
+`--mono jetbrains` overrides only the code face. Exports ignore saved interactive
+font choices. Fonts are local Latin subsets; unsupported CJK/emoji stay missing
+and the typeset info reports encountered missing code points. No fonts are fetched.
 `--theme auto|light|dark|NAME|FILE.json` controls text and typeset colors. Headless auto always
 uses light and performs no terminal query; use `--theme dark` for dark PNGs.
 Named presets such as `nord` and `catppuccin-mocha`, or an explicit theme JSON

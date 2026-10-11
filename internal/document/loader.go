@@ -142,6 +142,7 @@ type Request struct {
 	MarkdownMode  string
 	Typeset       bool
 	Theme         string
+	Font, Mono    string
 	TypesetWidth  int // Reading width in points; zero uses the fixed export measure.
 	Page, DPI     int
 	Generation    uint64
@@ -173,6 +174,7 @@ type Result struct {
 	Playback         *animate.CompositeSource
 	TypesetDone      bool
 	Theme            string
+	FontKey          string
 	TypesetExtent    int
 	Generation       uint64
 	Kind             string
@@ -341,7 +343,7 @@ func (l *Loader) Load(q Request) (out Result) {
 				out.Err = err
 				return out
 			}
-			eng, err := newEngine()
+			eng, err := newEngine(q.Font, q.Mono)
 			if err != nil {
 				out.Err = err
 				return out
