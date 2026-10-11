@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add file-browser help on `?` with an empty filter or `F1`, preserving the
+  filter and selection when closed.
+
 - Open files in native apps with `w`/`W`, choose from the file browser with
   Alt+Enter, save per-format defaults, and list apps with `--apps [--json]`.
 

@@ -49,22 +49,7 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 		return nil, true
 	}
 	if m.help {
-		switch k {
-		case "esc":
-			m.help, m.helpOffset = false, 0
-		case "down", "j":
-			m.helpOffset++
-		case "up", "k":
-			m.helpOffset = max(0, m.helpOffset-1)
-		case "space", "pgdown":
-			m.helpOffset += max(1, m.bodyHeight()-1)
-		case "b", "pgup":
-			m.helpOffset = max(0, m.helpOffset-max(1, m.bodyHeight()-1))
-		case "home":
-			m.helpOffset = 0
-		case "end":
-			m.helpOffset = 1 << 20 // The view clamps it to the last page.
-		}
+		m.helpKey(k)
 		return nil, true
 	}
 	if (k == "o" || k == "O") && m.layer != layerColumns && m.layer != layerParts && m.layer != layerColor && m.layer != layerQR {
@@ -82,7 +67,23 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 // browserKey gives the folder browser its keys: its filter takes every
 // letter, so only a few controls are the viewer's.
 func (m *Model) browserKey(msg tea.KeyPressMsg) tea.Cmd {
-	switch msg.String() {
+	k := msg.String()
+	if k == "ctrl+c" {
+		return m.quit()
+	}
+	if m.help {
+		if k == "?" || k == "f1" || k == "q" {
+			m.help, m.helpOffset = false, 0
+		} else {
+			m.helpKey(k)
+		}
+		return nil
+	}
+	if k == "f1" || (k == "?" && m.browserQuestionHelp()) {
+		m.help, m.helpOffset = true, 0
+		return nil
+	}
+	switch k {
 	case "ctrl+c":
 		return m.quit()
 	case "esc":
@@ -410,4 +411,24 @@ func (m *Model) pictureKey(k string) tea.Cmd {
 		return nil
 	}
 	return m.refreshImage()
+}
+
+// helpKey scrolls or dismisses help without forwarding keys to the covered screen.
+func (m *Model) helpKey(k string) {
+	switch k {
+	case "esc":
+		m.help, m.helpOffset = false, 0
+	case "down", "j":
+		m.helpOffset++
+	case "up", "k":
+		m.helpOffset = max(0, m.helpOffset-1)
+	case "space", "pgdown":
+		m.helpOffset += max(1, m.bodyHeight()-1)
+	case "b", "pgup":
+		m.helpOffset = max(0, m.helpOffset-max(1, m.bodyHeight()-1))
+	case "home":
+		m.helpOffset = 0
+	case "end":
+		m.helpOffset = 1 << 20 // The view clamps it to the last page.
+	}
 }

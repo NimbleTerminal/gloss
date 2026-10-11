@@ -203,6 +203,11 @@ reusing fonts, shaping, layout and local images while keeping scroll position.
 Glamour styled text/search reindexes on changes. Images/PDFs and QR codes keep
 their original colors.
 
+File-browser help: `?` with an empty filter or `F1` while typing opens
+context-specific help. Help consumes navigation keys, and Esc/F1 returns to the
+same filter, selection, popup and folder. A question mark in an existing filter
+remains literal.
+
 Native open-with: `w` opens the current/highlighted file in the default host app,
 `W` chooses an app, and browser Alt+Enter emits `browse.OpenWithMsg` without
 selecting the file. Chooser `d` saves a per-format default. `internal/openwith`

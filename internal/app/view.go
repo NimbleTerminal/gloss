@@ -240,7 +240,7 @@ func (m *Model) browserStatus(w int) (bar, hint string) {
 	if m.noTextFiles {
 		text = "text"
 	}
-	hint = ansi.Truncate(" Enter open · ←/→ folders · / find · G go to · Tab complete · Ctrl-F types · Ctrl-L layout · Ctrl-G places · Ctrl-S sort · Ctrl-T "+greyed+" · Ctrl-X "+text+" · Alt-Enter open with · Esc cancel", w, "")
+	hint = ansi.Truncate(" ?/F1 help · Enter open · ←/→ folders · / find · G go to · Tab complete · Ctrl-F types · Ctrl-L layout · Ctrl-G places · Ctrl-S sort · Ctrl-T "+greyed+" · Ctrl-X "+text+" · Alt-Enter open with · Esc cancel", w, "")
 	if m.opener.going {
 		hint = ansi.Truncate(" Type a folder's path · Tab completes folders · Enter go · Esc back", w, "")
 	}

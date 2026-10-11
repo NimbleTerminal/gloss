@@ -37,3 +37,5 @@ func (m *Model) toggleUnsupported() tea.Cmd { return nil }
 func (m *Model) reorder() tea.Cmd           { return nil }
 func (m *Model) toggleText() tea.Cmd        { return nil }
 func (m *Model) opened(openResult) tea.Cmd  { return nil }
+
+func (m *Model) browserQuestionHelp() bool { return false }

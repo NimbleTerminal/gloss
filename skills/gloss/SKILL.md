@@ -491,3 +491,7 @@ per-format default. This is unavailable in `--serve`, `--pick-web` and the publi
 browser app. There is no headless launch flag. Continue using `--serve` when
 showing a file to a human from an agent. Temporary files opened externally are
 still removed under the original session cleanup rules; save a copy to keep them.
+
+In the native file browser, the human can press `?` with an empty filter or
+`F1` while typing for browser-specific help. Esc/F1 returns without losing their
+filter or selection.

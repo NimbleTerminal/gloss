@@ -935,3 +935,30 @@ func TestGoToAndFindClosePopupsThatWouldTakeTheirKeys(t *testing.T) {
 		}
 	}
 }
+
+func TestBrowserScopedHelpPreservesFilter(t *testing.T) {
+	m := browsing(t, folder(t))
+	selected := m.opener.picker.CurrentPath()
+	send(m, press("?"))
+	if !m.help || m.opener.picker.FilterValue() != "" {
+		t.Fatal("question mark entered the empty filter")
+	}
+	view := ansi.Strip(m.View().Content)
+	if !strings.Contains(view, "File browser") || !strings.Contains(view, "Ctrl-S") || strings.Contains(view, "Meshes") {
+		t.Fatalf("wrong help scope: %s", view)
+	}
+	send(m, press("down"), press("esc"))
+	if m.help || !m.browsing() || m.opener.picker.CurrentPath() != selected {
+		t.Fatal("help changed browser selection")
+	}
+	send(m, typed("alpha")...)
+	filter, selected := m.opener.picker.FilterValue(), m.opener.picker.CurrentPath()
+	send(m, tea.KeyPressMsg{Code: tea.KeyF1})
+	if !m.help {
+		t.Fatal("F1 did not open help with a filter")
+	}
+	send(m, press("pgdown"), press("home"), tea.KeyPressMsg{Code: tea.KeyF1})
+	if m.help || m.opener.picker.FilterValue() != filter || m.opener.picker.CurrentPath() != selected {
+		t.Fatal("help changed filter or selection")
+	}
+}

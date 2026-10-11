@@ -61,6 +61,40 @@ var helpRight = []helpSection{
 	}},
 }
 
+// Browser help describes the active file chooser rather than document controls.
+var browserHelpLeft = []helpSection{
+	{"File browser", []helpRow{
+		{"type", "filter file names"},
+		{"? / F1", "help (F1 while typing)"},
+		{"↑/↓", "select an entry"},
+		{"PgUp/PgDn", "move a screen"},
+		{"Enter", "open file or enter folder"},
+		{"←/→", "parent / enter folder"},
+		{"Alt-↑", "parent folder"},
+		{"Alt-←/→", "back / forward"},
+		{"Tab", "complete name"},
+		{"Shift-Tab", "previous completion"},
+		{"Alt-Enter", "choose an external app"},
+	}},
+}
+var browserHelpRight = []helpSection{
+	{"Layout and filters", []helpRow{
+		{"Ctrl-L", "list / columns / places"},
+		{"Ctrl-G", "focus places sidebar"},
+		{"Ctrl-F", "choose file types"},
+		{"Ctrl-S", "sort by name / date / kind"},
+		{"Ctrl-T", "hide / show unsupported"},
+		{"Ctrl-X", "include / exclude text"},
+	}},
+	{"Find and leave", []helpRow{
+		{"/", "find files (empty filter)"},
+		{"G", "go to folder (empty filter)"},
+		{"Esc", "close popup or return to view"},
+		{"Ctrl-C", "quit gloss"},
+		{"", "Help preserves your filter and selection"},
+	}},
+}
+
 const helpKeyWidth = 10
 
 // helpColumn renders sections one under another, each row a key column and
@@ -92,6 +126,10 @@ func (m *Model) helpColumn(sections []helpSection, width int) []string {
 // helpView is the help page at w×h: a title row, two columns or one, and
 // the docs row, scrolled by helpOffset when it is taller than the screen.
 func (m *Model) helpView(w, h int) string {
+	leftSections, rightSections := helpLeft, helpRight
+	if m.browsing() {
+		leftSections, rightSections = browserHelpLeft, browserHelpRight
+	}
 	p := m.palette()
 	name := lipgloss.NewStyle().Foreground(p.Accent).Bold(true).Render("gloss")
 	closing := lipgloss.NewStyle().Foreground(p.Muted).Render("? or Esc closes")
@@ -100,7 +138,7 @@ func (m *Model) helpView(w, h int) string {
 	rows := []string{heading + strings.Repeat(" ", gap) + closing, ""}
 	if w >= 80 {
 		col := (w - 4) / 2
-		left, right := m.helpColumn(helpLeft, col), m.helpColumn(helpRight, col)
+		left, right := m.helpColumn(leftSections, col), m.helpColumn(rightSections, col)
 		for i := range max(len(left), len(right)) {
 			l, r := "", ""
 			if i < len(left) {
@@ -112,7 +150,7 @@ func (m *Model) helpView(w, h int) string {
 			rows = append(rows, " "+l+strings.Repeat(" ", max(0, col-ansi.StringWidth(l)))+"  "+r)
 		}
 	} else {
-		for _, row := range m.helpColumn(append(append([]helpSection{}, helpLeft...), helpRight...), w-2) {
+		for _, row := range m.helpColumn(append(append([]helpSection{}, leftSections...), rightSections...), w-2) {
 			rows = append(rows, " "+row)
 		}
 	}

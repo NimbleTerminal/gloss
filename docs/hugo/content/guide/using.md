@@ -114,3 +114,9 @@ and web picker cannot launch host apps.
 Opening a stdin or downloaded file does not extend its lifetime. Save a copy
 from the other app before gloss exits if you want to keep it. Opening submits a
 launch request; gloss cannot tell whether the other app displayed the file.
+
+The file browser has its own help: press `?` before typing a filter, or `F1`
+while typing. It lists navigation, completion, layouts, type filters, sorting,
+find and app-opening controls. Arrows and PageUp/PageDown scroll help; Esc or F1
+returns to the same folder, filter and selection. A `?` inside an existing filter
+remains part of the filename search.

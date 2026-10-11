@@ -421,3 +421,8 @@ func (m *Model) opened(r openResult) tea.Cmd {
 	}
 	return m.addDropped(dropResult{files: []string{r.path}})
 }
+
+// A question mark starts help only before text entry; F1 is always available.
+func (m *Model) browserQuestionHelp() bool {
+	return m.opener != nil && m.opener.find == nil && !m.opener.going && m.opener.picker.FilterValue() == ""
+}
