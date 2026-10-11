@@ -478,3 +478,16 @@ frame one and are reported in info. Headless exports and previews stay on frame
 one. `e` exports the first visible GIF’s displayed frame in normal Markdown,
 or the displayed viewport in typeset mode. Tables
 use simple column sizing. Complex scripts, CJK, emoji and bidi are not guaranteed.
+
+### Discover native apps
+
+`gloss --apps` lists installed compatible apps and the effective default for
+each file kind. `gloss --apps --json` emits an array of
+`{kind, default, apps: [{id, name, available}]}`; `gloss skill schema` includes
+this shape. This command takes no files, needs no terminal, launches nothing,
+and does not change preferences. The human can use `w`/`W` in the native viewer
+to open a file in an app or choose another, and `d` in the chooser to save a
+per-format default. This is unavailable in `--serve`, `--pick-web` and the public
+browser app. There is no headless launch flag. Continue using `--serve` when
+showing a file to a human from an agent. Temporary files opened externally are
+still removed under the original session cleanup rules; save a copy to keep them.

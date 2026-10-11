@@ -17,6 +17,7 @@ bookToC: false
 | `t` | In the file list, show the files as a grid of thumbnails, and back |
 | `m` | Open the file-selection menu |
 | `o`, `O` | Browse folders for a file to open |
+| `w`, `W`; Alt+Enter in the browser | Open in the default native app / choose an app; chooser `d` saves the default |
 | `]`, `Tab` / `[`, `Shift-Tab` | Next / previous file |
 | `n`, `Space`, `PageDown` / `p`, `b`, `PageUp` | Next / previous PDF page, sheet, or Grist table; next / previous file for other formats |
 | `/` | Search text in the current document; `Enter` submits, `Esc` cancels editing |
@@ -55,6 +56,11 @@ bookToC: false
 At a PDF boundary, page navigation stays on that page. Use `[` and `]` to change
 files. Loading and rendering run asynchronously; errors appear in the viewer
 with retry and next-file controls.
+
+Native app handoff: `w` opens the current or highlighted file in its default app;
+`W` opens the app chooser. In the file browser use Alt+Enter. In the chooser,
+arrows select, Enter opens, `d` saves the default for that format, and Esc closes.
+See [Open in another app](../using/#open-in-another-app).
 
 ## Line numbers, going to a line, and long lines
 

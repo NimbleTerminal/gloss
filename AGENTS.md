@@ -203,6 +203,15 @@ reusing fonts, shaping, layout and local images while keeping scroll position.
 Glamour styled text/search reindexes on changes. Images/PDFs and QR codes keep
 their original colors.
 
+Native open-with: `w` opens the current/highlighted file in the default host app,
+`W` chooses an app, and browser Alt+Enter emits `browse.OpenWithMsg` without
+selecting the file. Chooser `d` saves a per-format default. `internal/openwith`
+owns the compiled native catalog, argv launch, and bounded 64 KiB atomic JSON
+preferences; `Options.OpenWith` is nil in browser/serve hosts and previews.
+Commands never come from preferences or a shell. `--apps [--json]` only lists
+choices; its result is included in `gloss skill schema`. Temporary files retain
+their original lifetime. No headless launch option or terminal editors yet.
+
 Key viewer features: Kitty graphics with colored half-block glyph fallback;
 alternate screen by default, `-X` for main screen; file menu (`--menu`),
 preview pane (`--preview` or `v`), file browser (`o`), drag-and-drop and

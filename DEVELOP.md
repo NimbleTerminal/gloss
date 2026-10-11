@@ -800,3 +800,23 @@ that edge. Chop is part of the layout's identity with width and numbers, and
 of the viewer's match test through `TypesetViewport.Chop`; a Markdown page
 ignores it, since its blocks are not lines.
 
+
+## Native app handoff
+
+`internal/openwith` separates portable Host/Target/Choice values from native
+catalog, preferences and process code (`!js`). `Options.OpenWith` is installed
+only in the direct native pager. The app chooser snapshots the target and uses
+commands/results tagged by operation and document generation; it intercepts keys
+before the browser filter and owns an opaque modal body while open. Underlying
+view state is retained, animation is paused and no image placeholders are drawn
+through the chooser. `browse.OpenWithMsg` carries intent without selecting a file.
+The harness records emitted messages and browsecfg exposes the intent to scripts.
+
+The catalog/probe, trusted-ID preference and nonblocking launch design follows
+`go-thinkt/internal/config/apps.go` and its platform catalogs; no thinkt code or
+dependency is imported. Launch uses argv, never a shell, and reaps the child in
+a goroutine. Preferences are limited to 64 KiB and atomically replaced; malformed
+files cannot be silently overwritten. Tests inject probes and fake child
+processes, and exercise picker keys through the event loop. The native CLI owns
+stdin/download provenance. `--apps` reads preferences for discovery but never
+launches or loads a document; exports do not read these preferences.

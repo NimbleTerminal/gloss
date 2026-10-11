@@ -83,3 +83,34 @@ gloss photo.png drawing.svg model.stl -mP
   replies. See [file handoff](../handoff/) for LAN setup and agent sessions.
 
 The [controls reference](../controls/) covers the keys for each media type.
+
+## Open in another app
+
+In the native viewer, `w` opens the current file in its default app. `W` opens
+an **Open with** chooser: system default, installed compatible apps, Reveal in
+Finder/Explorer (the containing folder on Linux), and Copy path. In the file
+menu or thumbnail grid these keys act on the highlighted file. In the file
+browser, Alt+Enter opens the chooser without selecting the entry; directories
+only offer Reveal. If your terminal does not report Alt+Enter, open a supported
+file with Enter and press `W`, or configure the terminal's key binding.
+
+Use arrows to choose and Enter to open. Press `d` on an app to save it as the
+default for this format; this does not launch it. Choose System default and
+press `d` to remove an override. Esc closes the chooser; a saved choice stays
+saved. Preferences live in `gloss/open-with.json` under your OS user-config
+directory. They contain app IDs, never executable commands. An unavailable
+saved app falls back to the system default. On Linux this needs `xdg-open` and
+a desktop association; avoid making gloss its own default opener.
+
+`gloss --apps` lists the available apps by format; `--apps --json` provides the
+same listing for scripts without opening anything. App discovery is limited to
+a built-in catalog and installed executable or app-bundle probes: initially
+Preview and Skim on macOS, plus VS Code, Cursor, Zed and Sublime Text on macOS
+and Linux. Windows offers the system default and Reveal. Other installed apps
+remain accessible through OS file associations. Terminal
+editors and custom commands are not supported. The browser demo, served viewer,
+and web picker cannot launch host apps.
+
+Opening a stdin or downloaded file does not extend its lifetime. Save a copy
+from the other app before gloss exits if you want to keep it. Opening submits a
+launch request; gloss cannot tell whether the other app displayed the file.
