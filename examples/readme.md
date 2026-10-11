@@ -1,7 +1,34 @@
 # A visual pager
 
 Gloss renders **Markdown with Glamour**, including local raster images and SVGs.
-Use `j` / `k` to scroll and `s` to toggle source. Press `m` for the file menu.
+Use `j` / `k` to scroll, `s` to toggle source, and `t` to switch text/typeset.
+Press `m` for the file menu.
+
+## Linked GIFs: Markdown and HTML
+
+Both figures use the same original local GIF. They animate while visible in the
+viewer; menu previews and headless PNG exports show the first frame. Click either figure
+to visit the gloss repository.
+
+### Markdown image
+
+[![An amber dot orbiting a blue center](motion.gif)](https://github.com/NimbleTerminal/gloss)
+
+### HTML image
+
+This version uses a centered paragraph and a 160-pixel width bound. It keeps the
+same aspect ratio and resolves the image beside this file.
+
+<p align="center">
+  <a href="https://github.com/NimbleTerminal/gloss">
+    <img src="motion.gif"
+         alt="An amber dot orbiting a blue center"
+         width="160">
+  </a>
+</p>
+
+Press `t` to compare both renderers, or `s` to inspect the markup. Scroll away
+and back to check that visible GIF playback resumes.
 
 ## An embedded SVG
 

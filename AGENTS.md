@@ -97,6 +97,10 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `Options.OpenLink`; browser/serve hosts leave it nil. Normal text retains OSC 8.
   Typeset links preview their URL in the status bar on hover using all-motion
   mouse reporting; normal text retains the terminal's own hover behavior.
+  Safe README HTML `img` tags (including linked images in `p`/`div`) normalize
+  to the shared image AST. Relative assets resolve beside the Markdown file;
+  numeric width/height bounds and left/center/right alignment are supported.
+  No CSS, script, event-handler, srcset, or remote-asset execution/fetching.
   Visible embedded GIF blocks animate in both renderers, with
   eight distinct destinations and 64 MiB total decoded frame storage; excess
   GIFs stay on frame one and are counted in info. Offscreen/help/source/menu

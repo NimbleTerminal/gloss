@@ -21,6 +21,7 @@ type markdownLine struct {
 	spans []textSpan
 	text  string
 	image int // -1 denotes text
+	inset int
 	row   int
 	line  int // The file line the row shows, when the view knows it; 0 otherwise.
 }
@@ -155,22 +156,28 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 				continue
 			}
 			b := asset.Image.Bounds()
-			rows := int(math.Ceil(float64(b.Dy()) * float64(m.width*max(1, cw)) / float64(b.Dx()*max(1, ch))))
+			iw, _ := asset.Layout.Fit(b.Dx(), b.Dy())
+			columns := m.width
+			if asset.Layout.Width > 0 || asset.Layout.Height > 0 {
+				columns = min(columns, max(1, iw/max(1, cw)))
+			}
+			inset := asset.Layout.Offset(m.width, columns)
+			rows := int(math.Ceil(float64(b.Dy()) * float64(columns*max(1, cw)) / float64(b.Dx()*max(1, ch))))
 			rows = max(1, min(rows, max(3, min(20, m.height-2))))
 			if a := m.animators[i]; a != nil {
 				oldCW, oldCH := m.pictures[i].CellPixelSize()
 				w, h := a.Size()
 				cmds = append(cmds, m.pictures[i].SetCellPixelSize(cw, ch))
-				if !a.HasImage() || w != m.width || h != rows || oldCW != cw || oldCH != ch {
+				if !a.HasImage() || w != columns || h != rows || oldCW != cw || oldCH != ch {
 					a.CancelPending()
-					a.SetSize(m.width, rows)
+					a.SetSize(columns, rows)
 					cmds = append(cmds, a.Show(a.Transform(a.Source.Image())))
 				}
 			} else {
-				cmds = append(cmds, m.pictures[i].SetCellPixelSize(cw, ch), m.pictures[i].SetSize(m.width, rows), m.pictures[i].SetImage(asset.Image))
+				cmds = append(cmds, m.pictures[i].SetCellPixelSize(cw, ch), m.pictures[i].SetSize(columns, rows), m.pictures[i].SetImage(asset.Image))
 			}
 			for row := 0; row < rows; row++ {
-				m.lines = append(m.lines, markdownLine{image: i, row: row})
+				m.lines = append(m.lines, markdownLine{image: i, row: row, inset: inset})
 			}
 		default:
 			rows := wrapTextUnit(m.content.units[block.unit], block.unit, wrap, m.raw)
@@ -373,7 +380,7 @@ func (m *markdownView) view() string {
 			cache[line.image] = rows
 		}
 		if line.row < len(rows) {
-			lines = append(lines, rows[line.row])
+			lines = append(lines, strings.Repeat(" ", line.inset)+rows[line.row])
 		} else {
 			lines = append(lines, "")
 		}

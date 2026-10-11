@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Display local HTML images in Markdown, including linked GIFs inside README
+  wrappers, with animation, size bounds, and alignment in both renderers.
+
 ## `v0.3.1` (2026-10-11)
 
 - Open files in native apps with `w`/`W` or Alt+Enter in the file browser.

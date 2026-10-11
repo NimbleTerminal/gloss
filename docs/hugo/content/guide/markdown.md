@@ -11,7 +11,14 @@ Glamour renders headings, lists, tables, and syntax-highlighted code. Local
 Markdown image references (including reference-style links) use the existing
 raster and SVG renderers, shown as block figures following their text line.
 Paths resolve relative to the Markdown file, or the working directory for stdin.
-Missing and remote images show placeholders; HTML image tags are not rendered.
+Missing and remote images show placeholders. README HTML images (`<img src="…">`),
+including `<a>` links inside `<p>` or `<div>`, use the same local-image and GIF
+playback path as Markdown images. Relative paths resolve beside the Markdown
+file. Numeric `width` and `height` (1–4096 pixels) bound the image without
+stretching; `align="left|center|right"` on the image or wrapper positions it.
+Terminal text rounds sizes to cells and retains its inline-image height limit.
+CSS, event handlers, `srcset`, scripts, and remote/data images are not enabled.
+This is an image subset, not general HTML layout; source view retains the markup.
 
 Emoji shortcodes such as `:heart:`, `:fire:`, and `:+1:` expand to Unicode in
 rendered Markdown, including headings, tables, and link labels. Source view,
@@ -199,7 +206,7 @@ fetched. An image alone in a paragraph, including one wrapped in a link, becomes
 block and is composited into the page. Embedded GIF blocks animate; inline images
 currently appear as labels. Tables have simple proportional columns, without
 alignment-aware or full browser table layout. GFM strikethrough and task markers
-are supported. Raw HTML, Mermaid and math have no layout. Unknown or untagged
+are supported. Other raw HTML, Mermaid and math have no layout. Unknown or untagged
 code blocks stay plain monospace. Complex-script layout, CJK/emoji font coverage,
 and bidirectional text are not guaranteed.
 

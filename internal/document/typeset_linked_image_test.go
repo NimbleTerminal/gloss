@@ -49,6 +49,10 @@ func TestTypesetLinkedImageCompositesLikeStandalone(t *testing.T) {
 				}
 				plain := render("![local](" + name + ")")
 				linked := render("[![local](" + name + ")](https://example.invalid/never-fetch)")
+				html := render(`<p><a href="./next.md"><img src="` + name + `" alt="local"></a></p>`)
+				if !bytes.Equal(plain.Pix, html.Pix) {
+					t.Fatal("HTML image differs from Markdown")
+				}
 				if !bytes.Equal(plain.Pix, linked.Pix) {
 					t.Fatal("link wrapper changed composition")
 				}

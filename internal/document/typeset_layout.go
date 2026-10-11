@@ -45,6 +45,7 @@ type span struct {
 	darkInk color.RGBA
 }
 type block struct {
+	imageLayout  ImageLayout
 	quotes       []quoteRule
 	href         string
 	kind         string
@@ -141,7 +142,7 @@ func (p *prepared) walk(n ast.Node, data []byte, indent int) {
 		case *ast.Paragraph, *ast.TextBlock:
 			if c.ChildCount() == 1 {
 				if im := standaloneImage(c.FirstChild()); im != nil {
-					p.blocks = append(p.blocks, block{kind: "image", href: imageLink(im), destination: string(im.Destination), asset: p.images[string(im.Destination)], spans: []span{{text: "[image unavailable: " + string(im.Destination) + "]", style: italic}}, indent: indent})
+					p.blocks = append(p.blocks, block{kind: "image", imageLayout: MarkdownImageLayout(im), href: imageLink(im), destination: string(im.Destination), asset: p.images[string(im.Destination)], spans: []span{{text: "[image unavailable: " + string(im.Destination) + "]", style: italic}}, indent: indent})
 					continue
 				}
 			}
@@ -583,8 +584,10 @@ func (l *layout) block() {
 				break
 			}
 			bounds := b.asset.Bounds()
-			w := min(width, bounds.Dx())
-			h := max(1, bounds.Dy()*w/bounds.Dx())
+			iw, ih := b.imageLayout.Fit(bounds.Dx(), bounds.Dy())
+			w := min(width, iw)
+			h := max(1, ih*w/iw)
+			x += b.imageLayout.Offset(width, w)
 			l.ops = append(l.ops, operation{rect: image.Rect(x, l.y, x+w, l.y+h), asset: b.asset, destination: b.destination, href: b.href})
 			l.y += h + 20
 		case "table":

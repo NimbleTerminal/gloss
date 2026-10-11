@@ -73,6 +73,7 @@ func (md *Markdown) Relink(to map[string]string) []byte {
 }
 
 type MarkdownImage struct {
+	Layout           ImageLayout
 	Destination, Alt string
 	Image            image.Image
 	Animation        *animate.Player
@@ -183,6 +184,7 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 			}
 			cache[dest] = asset
 		}
+		asset.Layout = MarkdownImageLayout(img)
 		asset.Alt = inlineText(img, md.Source)
 		md.Images = append(md.Images, asset)
 		return ast.WalkSkipChildren, nil

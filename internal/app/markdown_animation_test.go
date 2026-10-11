@@ -147,3 +147,37 @@ func TestInlineKeepScreenFreezesFrame(t *testing.T) {
 		t.Fatal("keep changed the visible glyph frame")
 	}
 }
+
+func TestHTMLInlineAnimation(t *testing.T) {
+	v := inlineAnimated(t)
+	v.doc.Source = []byte(`<p align="center"><a href="https://example.invalid"><img src="a.gif" width="16"></a></p>`)
+	v.doc.Images = v.doc.Images[:1]
+	v.doc.Images[0].Layout = document.ImageLayout{Width: 16, Align: "center"}
+	v.renderedText = nil
+	v.layout(40, 10, 8, 16)
+	v.scheduleAnimations(true)
+	a := v.animators[0]
+	if !a.Pending || !v.visibleImages()[0] {
+		t.Fatal("HTML GIF not visible/playing")
+	}
+	if v.renderedText.imageLinks[0] != "https://example.invalid" {
+		t.Fatal("HTML image link missing")
+	}
+	compose, _ := a.Update(animate.Tick{Owner: a, Epoch: a.Epoch})
+	a.Update(compose())
+	if a.Player.Frame() != 2 {
+		t.Fatal("HTML GIF did not animate")
+	}
+	found := false
+	for _, line := range v.lines {
+		if line.image == 0 {
+			found = true
+			if line.inset != 19 {
+				t.Fatalf("inset %d", line.inset)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("no image rows")
+	}
+}

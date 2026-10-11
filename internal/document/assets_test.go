@@ -23,8 +23,15 @@ func TestEmbeddedGallery(t *testing.T) {
 			}
 			switch r.Kind {
 			case "markdown":
-				if len(r.Markdown.Images) != 3 {
+				if len(r.Markdown.Images) != 5 {
 					t.Fatalf("images: %d", len(r.Markdown.Images))
+				}
+				plain, html := r.Markdown.Images[0], r.Markdown.Images[1]
+				if plain.Destination != "motion.gif" || html.Destination != plain.Destination || plain.Image != html.Image {
+					t.Fatal("Markdown and HTML GIFs should share the local asset")
+				}
+				if plain.Layout != (ImageLayout{}) || html.Layout != (ImageLayout{Width: 160, Align: "center"}) {
+					t.Fatal("GIF layout hints changed")
 				}
 				for _, asset := range r.Markdown.Images {
 					if asset.Err != nil || asset.Image == nil {

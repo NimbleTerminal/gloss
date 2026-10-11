@@ -307,6 +307,12 @@ Tests cover composition, offsets, background/previous disposal, delays, finite
 and infinite loops, immutable snapshots, pre-decode bounds, cancellation,
 stale work, export, and Kitty pacing/cleanup. `examples/motion.gif` is an
 original generated fixture; `scripts/gen-assets/gif.go` regenerates it.
+`./gloss examples/readme.md` compares that GIF as a Markdown linked image and
+an HTML `img` inside a centered `p`/`a` wrapper. Check visible animation, size
+bounds, aspect ratio, alignment, and linked-image clicks; press `t` to repeat
+in typeset mode, `s` to inspect source, and scroll away/back to resume playback.
+The same file and GIF are embedded in the native/browser sample gallery.
+Menu previews and headless exports intentionally show the first frame.
 GIF lifecycle tests pause playback and drain finite render commands to completion;
 they must not use the generic test pump's timer heuristic to discard slow renders.
 
