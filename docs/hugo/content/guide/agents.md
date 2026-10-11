@@ -16,6 +16,10 @@ gloss skill install ~/.claude/skills             # or into the skills folder nam
 gloss skill                                      # print it, to place it by hand
 ```
 
+Installation reports each agent and skill path once in the terminal. Redirected
+stdout contains just the installed paths, one per line, for scripts; progress
+messages go to stderr.
+
 Or, with Node, the [skills CLI](https://github.com/vercel-labs/skills) installs
 it from the repository for every agent it finds:
 

@@ -368,6 +368,11 @@ func run(args []string) (err error) {
 		return err
 	}
 	if opts.SkillInstall != "" {
+		if term.IsTerminal(os.Stdout.Fd()) {
+			// The diagnostic already includes the path. Emit bare paths only
+			// when stdout is redirected for a script to consume.
+			return installSkill(opts.SkillInstall, io.Discard, os.Stderr)
+		}
 		return installSkill(opts.SkillInstall, os.Stdout, os.Stderr)
 	}
 	if opts.Cancel != "" {
