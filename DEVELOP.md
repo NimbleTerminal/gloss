@@ -831,3 +831,15 @@ The UI loads and saves through tagged messages in the existing event loop.
 The checklist interaction (arrows, Space to toggle) follows
 [thinkt's setup app chooser](https://github.com/wethinkt/go-thinkt/blob/main/internal/tui/setup/steps_apps.go);
 the implementation is native to gloss and adds no dependency.
+
+### Terminal editors
+
+The optional native `Editor(Target)` capability prepares an `exec.Cmd` from
+VISUAL/EDITOR using Google's shlex parser. No shell is inserted. Only the pager
+calls `tea.ExecProcess`; the asynchronous GUI `Launch` path refuses this action.
+The app uses tagged preparation and completion messages, rejects stale requests,
+and clears Kitty placements and animation work before yielding the terminal.
+After completion it reloads the document or refreshes the current menu/browser.
+Tests run a child process through Bubble Tea to verify writes and nonzero exits,
+and cover source/scroll restoration and typeset reload after atomic replacement.
+Actual editor interaction and Kitty/tmux restoration still require terminal tests.

@@ -557,6 +557,9 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	if cmd, handled := m.typesetOverlayMessage(msg); handled {
 		return m, cmd
 	}
+	if cmd, handled := m.terminalEditorMessage(msg); handled {
+		return m, cmd
+	}
 	switch v := msg.(type) {
 	case openWithAppsLoaded:
 		return m, m.openWithAppsLoaded(v)
@@ -819,7 +822,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 		m.source = nil
 		m.markdown = newMarkdownView(v.Markdown, nextKittyID())
 		if m.savedMarkdown != nil {
-			m.markdown.raw, m.markdown.offset = m.savedMarkdown.raw, m.savedMarkdown.offset
+			m.markdown.raw, m.markdown.offset, m.markdown.left = m.savedMarkdown.raw, m.savedMarkdown.offset, m.savedMarkdown.left
 			m.savedMarkdown = nil
 		}
 		return tea.Sequence(tea.Batch(cleanup, m.pic.SetImage(nil)), tea.Batch(m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty), m.layoutMarkdown()))

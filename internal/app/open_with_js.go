@@ -12,3 +12,6 @@ func openWithTarget(string, string, bool) (openwith.Target, error) {
 	return openwith.Target{}, fmt.Errorf("not available in the browser")
 }
 func (m *Model) openWithBrowse(tea.Msg) (tea.Cmd, bool) { return nil, false }
+
+func (m *Model) startTerminalEditor() tea.Cmd                  { return nil }
+func (m *Model) terminalEditorMessage(tea.Msg) (tea.Cmd, bool) { return nil, false }

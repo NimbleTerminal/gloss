@@ -47,6 +47,7 @@ require (
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/jolestar/go-commons-pool/v2 v2.1.2 // indirect

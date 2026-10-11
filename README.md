@@ -14,7 +14,7 @@ Kitty graphics. [Demo tape](scripts/gloss-demo.tape).
 The Go module path is `nimbleterminal.dev/gloss`; source and releases remain on
 GitHub.
 
-Press `w` to open a file in its native app, or `W` to choose an app and save a default for that format.
+Press `w` to open a file in its native app, or `W` to choose an app, save a default, or edit text in `$VISUAL` / `$EDITOR`.
 
 ## Install
 

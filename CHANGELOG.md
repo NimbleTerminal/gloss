@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Edit text files in `$VISUAL` / `$EDITOR` from Open with, then return to gloss
+  with the file reloaded and viewing position preserved where possible.
+
 - Fix a served-viewer shutdown race when closing the browser tab (Booba v0.9.0).
 
 - Add file-browser help on `?` with an empty filter or `F1`, preserving the

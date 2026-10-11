@@ -485,7 +485,7 @@ In the native `W` chooser, `m` opens Manage apps. Space saves each hide/show
 change across formats; Enter/Esc returns to the chooser. Hidden apps can be
 restored there. This changes visibility, not the built-in command catalog.
 
-`gloss --apps` lists installed compatible apps and the effective default for
+`gloss --apps` lists compatible native actions and the effective default for
 each file kind. `gloss --apps --json` emits an array of
 `{kind, default, apps: [{id, name, available}]}`; `gloss skill schema` includes
 this shape. This command takes no files, needs no terminal, launches nothing,
@@ -495,6 +495,14 @@ per-format default. This is unavailable in `--serve`, `--pick-web` and the publi
 browser app. There is no headless launch flag. Continue using `--serve` when
 showing a file to a human from an agent. Temporary files opened externally are
 still removed under the original session cleanup rules; save a copy to keep them.
+
+The native chooser also offers **Edit in terminal** for text, Markdown, JSON,
+HTML, SVG, CSV and notebook originals. It uses VISUAL first, then EDITOR when
+VISUAL is empty, and waits before reloading the file. It edits the actual file;
+it does not change temporary-file retention. `--apps` reports this action as
+`terminal-editor`; `available` means the configured executable resolves.
+Agents should not set these variables from uploaded content or reply messages.
+There is still no served/browser or headless editor launch.
 
 In the native file browser, the human can press `?` with an empty filter or
 `F1` while typing for browser-specific help. Esc/F1 returns without losing their

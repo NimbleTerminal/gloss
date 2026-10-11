@@ -113,9 +113,26 @@ same listing for scripts without opening anything. App discovery is limited to
 a built-in catalog and installed executable or app-bundle probes: initially
 Preview and Skim on macOS, plus VS Code, Cursor, Zed and Sublime Text on macOS
 and Linux. Windows offers the system default and Reveal. Other installed apps
-remain accessible through OS file associations. Terminal
-editors and custom commands are not supported. The browser demo, served viewer,
+remain accessible through OS file associations. Custom GUI commands are not
+supported. The browser demo, served viewer,
 and web picker cannot launch host apps.
+
+For text, Markdown, JSON, HTML, SVG, CSV and notebook files, choose **Edit in
+terminal** in `W`. Gloss uses `$VISUAL`, falling back to `$EDITOR` when VISUAL is
+empty. For example, run `EDITOR=nano gloss README.md` or set
+`VISUAL='nvim -f'` in your shell. The editor receives the original file path;
+Word/PDF conversions and other binary formats are not offered for editing.
+If no editor is configured, select the action for setup guidance.
+
+Gloss suspends its terminal UI, waits for the editor, then reloads the file,
+keeping the source view and scroll position where possible. The menu and browser
+return to their existing selection. Use an editor that stays in the foreground
+until you finish. Settings support arguments and POSIX-style quotes, with no
+shell expansion, pipelines, or command substitution; an exact executable path
+may also contain spaces. On Windows, use forward slashes or single quotes for
+paths with backslashes when adding arguments. Settings are bounded to 8 KiB and
+64 words. An invalid VISUAL is reported rather than silently using EDITOR.
+The terminal editor is configured by these variables, not chooser `d` or `m`.
 
 Opening a stdin or downloaded file does not extend its lifetime. Save a copy
 from the other app before gloss exits if you want to keep it. Opening submits a

@@ -18,7 +18,7 @@ bookToC: false
 | `m` | Open the file-selection menu |
 | `o`, `O` | Browse folders for a file to open |
 | `?` with an empty browser filter, or `F1` | Show file-browser help; Esc/F1 returns to the same filter and selection |
-| `w`, `W`; Alt+Enter in the browser | Open in the default native app / choose an app; chooser `d` saves the default, `m` manages apps (Space toggles, Enter/Esc returns) |
+| `w`, `W`; Alt+Enter in the browser | Open in the default native app / choose an app; choose **Edit in terminal** for text; chooser `d` saves the default, `m` manages apps (Space toggles, Enter/Esc returns) |
 | `]`, `Tab` / `[`, `Shift-Tab` | Next / previous file |
 | `n`, `Space`, `PageDown` / `p`, `b`, `PageUp` | Next / previous PDF page, sheet, or Grist table; next / previous file for other formats |
 | `/` | Search text in the current document; `Enter` submits, `Esc` cancels editing |

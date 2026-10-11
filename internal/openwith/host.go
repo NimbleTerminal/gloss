@@ -56,6 +56,10 @@ func (h *nativeHost) Choices(t Target) ([]Choice, error) {
 	if len(out) > 1 {
 		slices.SortFunc(out[1:], func(a, b Choice) int { return strings.Compare(a.Name, b.Name) })
 	}
+	if Editable(t.Kind) {
+		_, editorErr := editorArguments(editorSetting())
+		out = append(out, Choice{ID: "terminal-editor", Name: "Edit in terminal", Available: editorErr == nil})
+	}
 	e, _ := h.catalog.entry("reveal")
 	out = append(out, Choice{ID: e.ID, Name: e.Name, Available: h.available(e.ID)})
 	return out, nil

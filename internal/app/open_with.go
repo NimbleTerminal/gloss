@@ -194,6 +194,13 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 			return nil
 		}
 		c := p.choices[p.cursor]
+		if c.ID == "terminal-editor" {
+			if msg.String() == "d" {
+				m.note = "Use VISUAL or EDITOR to choose the terminal editor"
+				return nil
+			}
+			return m.startTerminalEditor()
+		}
 		if !c.Available {
 			m.note = "Application is unavailable"
 			return nil

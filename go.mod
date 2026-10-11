@@ -23,6 +23,7 @@ require (
 	github.com/gen2brain/h265 v0.2.3
 	github.com/go-text/render v0.2.1
 	github.com/go-text/typesetting v0.3.5
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa

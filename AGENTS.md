@@ -215,9 +215,14 @@ Space saves visibility immediately, Enter/Esc returns, and hidden apps remain
 restorable. System default and Reveal cannot be hidden. `internal/openwith`
 owns the compiled native catalog, argv launch, and bounded 64 KiB atomic JSON
 preferences; `Options.OpenWith` is nil in browser/serve hosts and previews.
-Commands never come from preferences or a shell. `--apps [--json]` only lists
+GUI commands never come from preferences or a shell. The native-only
+`terminal-editor` action uses VISUAL then EDITOR for textual originals, with
+bounded shlex argument parsing (8 KiB, 64 words) and no implicit shell.
+`tea.ExecProcess` owns terminal suspension/restoration; graphics are cleared
+before handoff and file contents reloaded afterward, even on an editor error. `--apps [--json]` only lists
 choices; its result is included in `gloss skill schema`. Temporary files retain
-their original lifetime. No headless launch option or terminal editors yet.
+their original lifetime. No headless launch option. Terminal editors cannot be stored as GUI defaults
+or hidden in Manage apps; binary/converted documents are excluded.
 
 Key viewer features: Kitty graphics with colored half-block glyph fallback;
 alternate screen by default, `-X` for main screen; file menu (`--menu`),
