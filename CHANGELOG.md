@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+- Render footnotes and GitHub alerts in both terminal text and typeset Markdown;
+  click footnote references and back links to navigate within the document.
 - Move the Go module and imports to `nimbleterminal.dev/gloss`. Existing tagged
   versions keep their original GitHub module path.
+
+- Render Markdown emoji shortcodes and preserve emoji joiners in source and search.
 
 ## `v0.3.0` (2026-10-11)
 

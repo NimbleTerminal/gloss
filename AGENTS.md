@@ -103,6 +103,14 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   pauses; reflow preserves positions; reload restarts. `e` exports the first
   visible GIF’s displayed frame in normal Markdown, the viewport in typeset.
   Glamour by default; `s` toggles source and `t` switches text/typeset.
+  Unicode emoji shortcodes expand in rendered prose, tables, and link labels;
+  source, code, escapes, unknown names, and image-only aliases stay literal.
+  No emoji assets are fetched; typeset fonts still lack emoji coverage.
+  Footnotes use repeated numbered references and an end section; GitHub alerts
+  use bold labeled quotes. Both share normalized AST nodes across terminal text
+  and typesetting, including searchable note bodies. Click a footnote reference
+  to jump to its note and a back link to return to that occurrence; these are
+  document-local jumps, independent of the host's browser opener.
   `--typeset` uses go-text, embedded OFL font subsets and Chroma directly,
   without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
   width after a 30 ms debounce, cancels stale jobs and keeps the old image

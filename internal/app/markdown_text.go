@@ -91,6 +91,21 @@ func logicalRenderer(themes ...string) func([]byte, ast.Node) string {
 	style.Document.Margin = &zero
 	r := renderer.NewRenderer(renderer.WithNodeRenderers(util.Prioritized(gam.NewRenderer(gam.Options{WordWrap: 0, Styles: style, InlineTableLinks: true}), 100)))
 	return func(source []byte, root ast.Node) string {
+		// Glamour expects text segments even for generated extension labels.
+		// Append those labels to this render's private source buffer.
+		var labels []*ast.String
+		_ = ast.Walk(root, func(n ast.Node, enter bool) (ast.WalkStatus, error) {
+			if s, ok := n.(*ast.String); ok && enter {
+				labels = append(labels, s)
+			}
+			return ast.WalkContinue, nil
+		})
+		for _, s := range labels {
+			start := len(source)
+			source = append(source, s.Value...)
+			p := s.Parent()
+			p.ReplaceChild(p, s, ast.NewTextSegment(text.NewSegment(start, len(source))))
+		}
 		var out bytes.Buffer
 		if err := r.Render(&out, source, root); err != nil {
 			return "Markdown render error: " + safe(err.Error())

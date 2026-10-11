@@ -256,7 +256,9 @@ func cleanMarkdownSource(data []byte) string {
 		if r == '\r' {
 			return -1
 		}
-		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
+		// Preserve joiners used by emoji and shaped text while still
+		// excluding terminal controls and bidirectional overrides.
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) && r != '\u200c' && r != '\u200d' {
 			return '\ufffd'
 		}
 		return r

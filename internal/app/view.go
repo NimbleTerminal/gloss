@@ -289,6 +289,12 @@ func (m *Model) documentStatus(w, h int) (bar, hint string) {
 	if m.hoverLinkActive && m.typeset != nil {
 		if address := m.linkAt(m.hoverLinkPoint.X, m.hoverLinkPoint.Y); address != "" {
 			status = " Link: " + safe(address)
+			if _, internal := document.FootnotePeer(address); internal {
+				status = " Return to footnote reference"
+				if strings.HasPrefix(address, "gloss:fn:") {
+					status = " Jump to footnote"
+				}
+			}
 		}
 	}
 	bar = m.statusStyle().Width(w).Render(ansi.Truncate(status, w, "…"))

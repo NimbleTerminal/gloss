@@ -99,7 +99,8 @@ func (s *textSearch) insert(text string) {
 		if unicode.IsSpace(r) {
 			r = ' '
 		}
-		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
+		// Joiners are part of emoji and shaped text, not terminal controls.
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) && r != '\u200c' && r != '\u200d' {
 			continue
 		}
 		clean = append(clean, r)

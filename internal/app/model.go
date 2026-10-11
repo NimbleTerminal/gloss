@@ -125,6 +125,7 @@ type textState struct {
 	lineNumbers             bool       // Show file line numbers, where the view's rows are file lines.
 	lineInput               *lineInput // The go-to-line prompt, while it is open.
 	typesetGoLine           int        // A line the typeset page is asked to put at the top, until it answers.
+	typesetGoLink           string     // A document-local footnote target awaiting layout.
 	chopLines               bool       // Cut long lines at the right edge instead of wrapping them.
 	typesetShown            *document.TypesetViewport
 	typesetTheme            string
@@ -421,6 +422,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.stopTypeset()
 	m.typesetTop, m.typesetLeft, m.typesetEnd, m.typesetShown = 0, 0, false, nil
 	m.typesetGoLine, m.lineInput = 0, nil
+	m.typesetGoLink = ""
 	m.typeset = nil
 	m.typesetLinks = nil
 	m.clearTypesetSelection()

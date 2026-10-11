@@ -36,6 +36,10 @@ func TestMarkdownAssets(t *testing.T) {
 }
 
 func TestMarkdownLimitsAndControls(t *testing.T) {
+	const unicodeText = "👩🏽‍💻 🇯🇵 ❤️ é ▀▄▌▐░▒▓█ ｶﾀｶﾅ カタカナ a\u200cb"
+	if got := cleanMarkdownSource([]byte(unicodeText)); got != unicodeText {
+		t.Fatalf("Unicode text changed: %q", got)
+	}
 	if _, err := loadMarkdown("x.md", make([]byte, MaxMarkdownBytes+1), ""); err == nil {
 		t.Fatal("size limit not enforced")
 	}

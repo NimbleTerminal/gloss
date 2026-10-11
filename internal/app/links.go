@@ -8,11 +8,19 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 type linkOpened struct {
 	generation uint64
 	err        error
+}
+
+func documentLink(address string) string {
+	if _, ok := document.FootnotePeer(address); ok {
+		return address
+	}
+	return webLink(address)
 }
 
 // Only explicit web addresses are delegated to a host browser. In particular,
@@ -47,7 +55,7 @@ func oscLinkAt(text string, x int) string {
 			}
 		}
 		if w > 0 && x >= column && x < column+w {
-			return webLink(active)
+			return documentLink(active)
 		}
 		column += w
 	}
@@ -79,7 +87,7 @@ func (m *Model) linkAt(x, y int) string {
 	}
 	for _, link := range m.typesetLinks {
 		if at.In(link.Rect) {
-			return webLink(link.URL)
+			return documentLink(link.URL)
 		}
 	}
 	return ""
@@ -95,9 +103,6 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 		tea.KeyPressMsg, tea.WindowSizeMsg, tea.BlurMsg:
 		m.hoverLinkActive = false
 	}
-	if m.opts.OpenLink == nil {
-		return nil, false
-	}
 	switch v := msg.(type) {
 	case tea.MouseClickMsg:
 		m.pressedLink = ""
@@ -105,6 +110,9 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 			return nil, false
 		}
 		m.pressedLink = m.linkAt(v.X, v.Y)
+		if _, internal := document.FootnotePeer(m.pressedLink); !internal && m.opts.OpenLink == nil {
+			m.pressedLink = ""
+		}
 		m.linkPoint = image.Pt(v.X, v.Y)
 		return nil, m.pressedLink != ""
 	case tea.MouseMotionMsg:
@@ -122,8 +130,41 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 		if image.Pt(v.X, v.Y) != m.linkPoint || m.linkAt(v.X, v.Y) != address {
 			return nil, true
 		}
+		if target, internal := document.FootnotePeer(address); internal {
+			return m.jumpFootnote(target), true
+		}
 		open, generation := m.opts.OpenLink, m.generation
 		return func() tea.Msg { return linkOpened{generation, open(address)} }, true
 	}
 	return nil, false
+}
+
+func (m *Model) jumpFootnote(target string) tea.Cmd {
+	if md := m.markdown; md != nil {
+		for row, line := range md.lines {
+			text := line.text
+			var state byte
+			for len(text) > 0 {
+				seq, _, n, next := ansi.DecodeSequence(text, state, nil)
+				if n == 0 {
+					break
+				}
+				text, state = text[n:], next
+				if strings.HasPrefix(seq, "\x1b]8;") {
+					value := strings.TrimSuffix(strings.TrimSuffix(seq[4:], "\a"), "\x1b\\")
+					if _, address, ok := strings.Cut(value, ";"); ok && address == target {
+						md.offset = max(0, min(row, len(md.lines)-m.bodyHeight()))
+						return nil
+					}
+				}
+			}
+		}
+		return nil
+	}
+	if m.typeset != nil {
+		m.clearTypesetSelection()
+		m.typesetGoLink, m.typesetEnd = target, false
+		return m.queueTypesetReflow()
+	}
+	return nil
 }

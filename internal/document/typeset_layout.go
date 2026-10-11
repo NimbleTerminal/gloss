@@ -19,6 +19,7 @@ import (
 	"github.com/go-text/typesetting/di"
 	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/shaping"
+	emojiast "github.com/yuin/goldmark-emoji/ast"
 	"github.com/yuin/goldmark/ast"
 	ext "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/util"
@@ -44,6 +45,7 @@ type span struct {
 	darkInk color.RGBA
 }
 type block struct {
+	quotes       []quoteRule
 	href         string
 	kind         string
 	spans        []span
@@ -51,6 +53,11 @@ type block struct {
 	asset        image.Image
 	destination  string
 	indent, size int
+}
+
+type quoteRule struct {
+	indent int // belongs to the quote, independent of nested list indentation
+	last   bool
 }
 type prepared struct {
 	ctx        context.Context
@@ -78,6 +85,8 @@ func inline(n ast.Node, data []byte, style int) []span {
 			out = append(out, span{text: s, style: style})
 		case *ast.String:
 			out = append(out, span{text: string(v.Value), style: style})
+		case *emojiast.Emoji:
+			out = append(out, span{text: string(v.Value.Unicode), style: style})
 		case *ast.Emphasis:
 			flag := italic
 			if v.Level == 2 {
@@ -155,6 +164,7 @@ func (p *prepared) walk(n ast.Node, data []byte, indent int) {
 			start := len(p.blocks)
 			p.walk(c, data, indent+24)
 			for i := start; i < len(p.blocks); i++ {
+				p.blocks[i].quotes = append(p.blocks[i].quotes, quoteRule{indent: indent + 24, last: i == len(p.blocks)-1})
 				if p.blocks[i].kind == "paragraph" {
 					p.blocks[i].kind = "quote"
 				}
@@ -591,14 +601,26 @@ func (l *layout) block() {
 			if b.kind == "code" {
 				l.rect(image.Rect(x, l.y, x+width, l.y+h+32), color.RGBA{245, 247, 249, 255})
 			}
-			if b.kind == "quote" {
-				l.rect(image.Rect(x-18, l.y, x-14, l.y+h), color.RGBA{158, 172, 185, 255})
-			}
 			l.ops = append(l.ops, ops...)
 			l.y += h + 2*inset
 			if b.kind != "line" {
 				l.y += 16
 			}
+		}
+		// Border segments meet at block boundaries, including paragraph gaps.
+		// Only the final segment stops at the content's bottom. Appending per
+		// block preserves progressive layout and cancellation rollback.
+		contentBottom := y
+		for _, op := range l.ops[ops:] {
+			contentBottom = max(contentBottom, op.rect.Max.Y)
+		}
+		for _, quote := range b.quotes {
+			bottom := l.y
+			if quote.last {
+				bottom = contentBottom
+			}
+			x := 50 + quote.indent - 18
+			l.rect(image.Rect(x, y, x+4, bottom), color.RGBA{158, 172, 185, 255})
 		}
 		if l.y+50 > 1125*MaxPages || len(l.ops) > 32768 {
 			panic("typeset layout exceeds display-list limit")

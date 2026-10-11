@@ -13,6 +13,29 @@ raster and SVG renderers, shown as block figures following their text line.
 Paths resolve relative to the Markdown file, or the working directory for stdin.
 Missing and remote images show placeholders; HTML image tags are not rendered.
 
+Emoji shortcodes such as `:heart:`, `:fire:`, and `:+1:` expand to Unicode in
+rendered Markdown, including headings, tables, and link labels. Source view,
+code, escaped shortcodes, and link destinations stay literal. Unknown names and
+GitHub image-only aliases such as `:shipit:` also stay literal; no emoji images
+are fetched. Search for the emoji in rendered mode or the shortcode in source
+mode. Typeset mode expands shortcodes too, but its embedded fonts still lack
+emoji glyphs; use normal terminal text mode to see them.
+
+Footnotes (`[^name]` and `[^name]: explanation`) use numbered references and a
+**Footnotes** section in both normal and typeset views. Repeated references share
+a number; note bodies retain paragraphs, lists, code, links, and local images.
+Click a reference to jump to its note. Each note starts with a **back** link;
+repeated references have numbered back links to their individual occurrences.
+These jumps work in both views, without opening a browser. Dragging or
+Shift/Alt-clicking does not activate a jump. `/` can also find a reference or
+note text. Source view and `--text` preserve the original Markdown.
+
+GitHub alerts use a standalone `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`,
+`> [!WARNING]`, or `> [!CAUTION]` on the first line of a quote. Both views show
+a bold label and indented callout using the current theme, preserving the
+formatted body. Unknown markers and markers in code remain literal. Try
+`gloss examples/markdown-extensions.md` and press `t` to compare the two views.
+
 ```sh
 gloss examples/readme.md
 gloss --preview examples/readme.md examples/shapes.svg
@@ -314,7 +337,9 @@ to Readable; pass the flags for reproducible output.
 
 The embedded subsets include Latin/Latin-1, combining accents, and common
 punctuation, with regular/bold/italic/bold-italic faces. Optional ligatures are
-disabled. CJK and emoji are not included. There is no font download, system-font
+disabled. CJK, emoji, and block-drawing glyphs are not included. Use normal
+terminal text mode for these; their appearance depends on the terminal's fonts
+and Unicode support. There is no font download, system-font
 lookup, PDF intermediate, or change to the terminal's font. Font changes reflow
 while anchoring the visible block; resizing and color changes reuse loaded
 faces. `s` and `/` continue to work on the normal text/source view.

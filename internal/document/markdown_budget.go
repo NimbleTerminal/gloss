@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/yuin/goldmark"
+	emoji "github.com/yuin/goldmark-emoji"
+	"github.com/yuin/goldmark-emoji/definition"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -33,13 +35,24 @@ func readMarkdownTree(source []byte) (ast.Node, error) {
 			return nil, err
 		}
 		budget := &markdownBudget{until: time.Now().Add(parseDeadline)}
-		p := goldmark.New(goldmark.WithExtensions(extension.GFM, extension.DefinitionList)).Parser()
+		p := goldmark.New(goldmark.WithExtensions(extension.GFM, extension.DefinitionList, extension.Footnote,
+			emoji.New(emoji.WithEmojis(unicodeEmojis{definition.Github()})))).Parser()
 		p.AddOptions(budget)
 		budget.check()
 		root := p.Parse(text.NewReader(source))
+		normalizeMarkdownExtensions(root, source, budget.check)
 		budget.check()
 		return root, nil
 	})
+}
+
+// GitHub also defines image-only aliases such as :shipit:. Keep those literal:
+// rendered Markdown uses Unicode characters and never fetches emoji assets.
+type unicodeEmojis struct{ definition.Emojis }
+
+func (e unicodeEmojis) Get(name string) (*definition.Emoji, bool) {
+	v, ok := e.Emojis.Get(name)
+	return v, ok && v.IsUnicode()
 }
 func (b *markdownBudget) SetParserOption(c *parser.Config) {
 	for i, p := range c.BlockParsers {

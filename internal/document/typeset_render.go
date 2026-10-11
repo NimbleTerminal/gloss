@@ -14,13 +14,16 @@ import (
 // selects a numbered 800×1125 export slice instead of a continuous viewport.
 type TypesetRegion = animate.Region
 
-// TypesetLink is a web link hit area in rendered-image pixels.
+// TypesetLink is a web or document-local link hit area in rendered-image pixels.
 type TypesetLink struct {
 	Rect image.Rectangle
 	URL  string
 }
 
 type TypesetViewport struct {
+	// Link asks to reveal the first occurrence of this document-local link.
+	// Layout progresses only as far as its target, under the usual budget.
+	Link                    string
 	Top, Height, Left, Zoom int
 	End                     bool
 	// Line asks for a file line at the top, where the first line sits at the
@@ -105,6 +108,22 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		if v.End {
 			lay.ensure(1125 * MaxPages)
 			top = max(0, lay.y+50-max(1, height>>zoom))
+		}
+		if _, ok := FootnotePeer(v.Link); ok {
+			at := 0
+			for {
+				found := false
+				for ; at < len(lay.ops); at++ {
+					if op := lay.ops[at]; op.href == v.Link {
+						top, left, found = max(0, op.rect.Min.Y-20), max(0, op.rect.Min.X-50), true
+						break
+					}
+				}
+				if found || lay.next == len(lay.p.blocks) {
+					break
+				}
+				lay.ensure(lay.y + 1)
+			}
 		}
 	} else {
 		lay.ensure(1125 * MaxPages)
