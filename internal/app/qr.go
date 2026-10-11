@@ -61,14 +61,14 @@ func (m *Model) qrView(w, h int) string {
 	inner := w - 2
 	var lines []string
 	if err := m.qr.model.Err(); err != nil {
-		lines = append(lines, boxText.Render(ansi.Truncate(err.Error(), inner, "…")))
+		lines = append(lines, m.boxText().Render(ansi.Truncate(err.Error(), inner, "…")))
 	} else {
 		lines = append(lines, strings.Split(m.qr.model.View(), "\n")...)
 	}
 	// Keep the source visible without letting a long URL add rows. Closing
 	// the overlay returns to the original table cell with the complete text.
-	lines = append(lines, boxDim.Render(ansi.Truncate(safe(m.qr.address), inner, "…")))
-	return boxWithPadding(lines, 0)
+	lines = append(lines, m.boxText().Foreground(m.palette().Muted).Render(ansi.Truncate(safe(m.qr.address), inner, "…")))
+	return themedBox(lines, 0, m.palette())
 }
 
 func (m *Model) exportQR() tea.Cmd {

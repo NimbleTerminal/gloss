@@ -178,15 +178,15 @@ every scroll step was the raster's largest cost. The mask cache has a 32 MiB
 budget. A run holding a bitmap or SVG glyph is drawn by go-text on a tile.
 There is no terminal graphics composition and no new graphics protocol.
 
-`internal/theme` owns two palettes shared by Glamour and the direct renderer.
-`--theme auto|light|dark` resolves to light for headless exports. The application
+`internal/theme` owns named palettes shared by Glamour and the direct renderer.
+`--theme auto|light|dark|NAME|FILE.json` resolves to light for headless exports. The application
 owns interactive detection: `tea.RequestBackgroundColor` from Init/focus and
 `tea.BackgroundColorMsg` in Update, without blocking reads or extra probes.
 Auto starts dark; explicit themes ignore terminal replies. Previews inherit
 the parent theme and do not query. Theme changes invalidate Glamour's styled
 text cache and reindex existing search; typeset requests carry the resolved
 theme and reuse the font engine, shaped runs and display list. The rasterizer
-selects semantic fill colors and per-run light/dark inks at paint time.
+selects semantic fill colors and syntax-token colors at paint time.
 A theme mismatch schedules a cancellable viewport repaint and preserves scroll.
 The normal generation/revision checks reject stale completions. Embedded
 pictures, PDF pages and QR colors are not transformed.
@@ -707,3 +707,10 @@ line. `y` sends it with `tea.SetClipboard`, OSC 52, which works through SSH
 and in the browser build and needs no clipboard package; `Esc`, a click or a
 new drag clears it. Shift and Alt drags are not taken. The glyph fallback
 maps cells through the same fitted geometry as links do.
+
+Theme catalog and selection adapt go-thinkt (see `internal/theme/README.md` and
+`LICENSE.thinkt`). User JSON is resolved into immutable, content-addressed
+catalog entries at the host boundary. Rendering receives a reference to the
+snapshot, never a mutable global active theme. `Options.ThemeChoices` and
+`Options.SaveTheme` let native hosts supply local preferences; web hosts keep
+choices in memory. Syntax tokens survive shaping so palette changes reuse layout.

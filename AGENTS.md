@@ -142,7 +142,13 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   deadline and a streamed 128 MiB limit; URL documents are not saved in the
   public app's persistent library.
 
-Text themes: `--theme auto|light|dark` controls normal text and typeset colors.
+`T` previews named themes over a document; Enter keeps, Esc restores. The native
+host saves accepted choices in its OS user-config directory under `gloss/theme`;
+explicit CLI themes override that preference. Browser choices are session-only,
+and exports never read the interactive preference. User theme JSON is bounded
+to 64 KiB; palettes are immutable snapshots, with no renderer filesystem access.
+
+Text themes: `--theme auto|light|dark|NAME|FILE.json` controls normal text and typeset colors.
 Auto asks for the terminal background through Bubble Tea's event loop, defaults
 to dark without a reply, and rechecks on focus. Explicit themes ignore replies;
 previews inherit the parent. Headless auto always uses light without probing.

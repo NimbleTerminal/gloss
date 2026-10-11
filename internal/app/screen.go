@@ -23,6 +23,7 @@ const (
 	layerColumns // The sheet's column list.
 	layerParts   // The 3MF's part list.
 	layerColor   // The mesh's color picker.
+	layerTheme   // Theme selection over the document.
 	layerQR      // The selected table URL, as a QR code.
 )
 
@@ -41,6 +42,13 @@ func (m *Model) closeLayer() tea.Cmd {
 	was := m.layer
 	m.layer = layerNone
 	switch was {
+	case layerTheme:
+		p := m.themePicker
+		m.themePicker = nil
+		if p != nil {
+			m.opts.Theme = p.option
+			return m.applyTheme(p.original)
+		}
 	case layerQR:
 		return m.clearQR()
 	case layerColumns:

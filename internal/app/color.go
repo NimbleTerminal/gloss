@@ -414,7 +414,7 @@ func (m *Model) colorView(w, h int) string {
 	if p.bg {
 		title = "Background"
 	}
-	text, dim := boxText, boxDim
+	text, dim := m.boxText(), m.boxText().Foreground(m.palette().Muted)
 	swatch := lipgloss.NewStyle().Background(c).Foreground(contrast(c)).Padding(0, 1).Render(p.hexString())
 	tabs := make([]string, 3)
 	for i, name := range pickerModes {
@@ -488,7 +488,7 @@ func (m *Model) colorView(w, h int) string {
 		p.rows.scope = len(lines)
 		lines = append(lines, dim.Render("s  paint ")+text.Render(scope))
 	}
-	b := box(lines)
+	b := themedBox(lines, 1, m.palette())
 	p.at = image.Rect(w-lipgloss.Width(b), 1, w, 1+lipgloss.Height(b))
 	return b
 }

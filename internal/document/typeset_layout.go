@@ -16,6 +16,7 @@ import (
 
 	"github.com/NimbleTerminal/gloss/internal/animate"
 	"github.com/NimbleTerminal/gloss/internal/theme"
+	"github.com/alecthomas/chroma/v2"
 	"github.com/go-text/render"
 	"github.com/go-text/typesetting/di"
 	"github.com/go-text/typesetting/font"
@@ -35,6 +36,7 @@ const (
 )
 
 type span struct {
+	token   chroma.TokenType
 	href    string
 	text    string
 	style   int
@@ -220,6 +222,7 @@ type faceMap struct{ face *font.Face }
 func (f faceMap) ResolveFace(rune) *font.Face { return f.face }
 
 type shaped struct {
+	tokens   []chroma.TokenType
 	text     []rune
 	runs     []shaping.Output
 	styles   []int
@@ -297,7 +300,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 	var key strings.Builder
 	fmt.Fprintf(&key, "%d/", size)
 	for _, s := range spans {
-		fmt.Fprintf(&key, "%d:%v:%d:%s", s.style, [2]color.RGBA{s.ink, s.darkInk}, len(s.text), s.text)
+		fmt.Fprintf(&key, "%d:%d:%v:%d:%s", s.token, s.style, [2]color.RGBA{s.ink, s.darkInk}, len(s.text), s.text)
 	}
 	k := key.String()
 	if s := e.cache[k]; s != nil {
@@ -309,6 +312,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 		s.text = append(s.text, r...)
 		for range r {
 			s.styles = append(s.styles, sp.style)
+			s.tokens = append(s.tokens, sp.token)
 			s.inks = append(s.inks, sp.ink)
 			s.darkInks = append(s.darkInks, sp.darkInk)
 		}
@@ -326,7 +330,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 		offset = end
 	}
 	// Per-engine bounded cache; eviction is deliberately simple for the spike.
-	bytes := len(s.text)*20 + len(k)
+	bytes := len(s.text)*28 + len(k)
 	for _, r := range s.runs {
 		bytes += len(r.Glyphs) * 128
 	}
@@ -342,6 +346,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 }
 
 type operation struct {
+	token                 chroma.TokenType
 	href                  string
 	rect                  image.Rectangle
 	run                   *shaping.Output
@@ -386,7 +391,7 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 				paragraphs = append(paragraphs, current)
 				current = nil
 			}
-			current = append(current, span{text: part, style: sp.style, ink: sp.ink, darkInk: sp.darkInk, href: sp.href})
+			current = append(current, span{text: part, token: sp.token, style: sp.style, ink: sp.ink, darkInk: sp.darkInk, href: sp.href})
 		}
 	}
 	if len(paragraphs) > 0 {
@@ -447,13 +452,15 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 			style := 0
 			var ink, darkInk color.RGBA
 			href := ""
+			var token chroma.TokenType
 			if r.Runes.Offset < len(s.styles) {
 				style = s.styles[r.Runes.Offset]
+				token = s.tokens[r.Runes.Offset]
 				href = hrefs[r.Runes.Offset]
 				ink = s.inks[r.Runes.Offset]
 				darkInk = s.darkInks[r.Runes.Offset]
 			}
-			ops = append(ops, operation{rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline, text: s.text, block: l.next - 1, para: para})
+			ops = append(ops, operation{token: token, rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline, text: s.text, block: l.next - 1, para: para})
 			advance += r.Advance
 		}
 		y += height
@@ -650,8 +657,14 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, bas
 			if op.ink.A != 0 {
 				ink = op.ink
 			}
-			if l.e.theme == "dark" && op.darkInk.A != 0 {
+			if theme.Dark(l.e.theme) && op.darkInk.A != 0 {
 				ink = op.darkInk
+			}
+			if op.token != 0 {
+				ink = theme.Ink(l.e.theme, op.token)
+			}
+			if op.ink == theme.Get("light").Accent && op.darkInk == theme.Get("dark").Accent {
+				ink = palette.Accent
 			}
 			if x0, x1, ok := l.sel.span(i, &op); ok {
 				hr := image.Rect(int(math.Round(float64(x0-left)*scale)), r.Min.Y, int(math.Round(float64(x1-left)*scale)), r.Max.Y)

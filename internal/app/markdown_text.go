@@ -63,16 +63,18 @@ func sourceContent(source []byte) *markdownContent {
 // the viewport below, without making table borders part of searchable text.
 func logicalRenderer(themes ...string) func([]byte, ast.Node) string {
 	name := "dark"
-	if len(themes) > 0 && themes[0] == "light" {
-		name = "light"
+	if len(themes) > 0 && themes[0] != "" {
+		name = theme.Resolve(themes[0])
 	}
 	style := styles.DarkStyleConfig
-	if name == "light" {
+	if !theme.Dark(name) {
 		style = styles.LightStyleConfig
 	}
 	palette := theme.Get(name)
 	foreground, accent := fmt.Sprintf("#%02x%02x%02x", palette.Foreground.R, palette.Foreground.G, palette.Foreground.B), fmt.Sprintf("#%02x%02x%02x", palette.Accent.R, palette.Accent.G, palette.Accent.B)
 	style.Document.Color = &foreground
+	background := fmt.Sprintf("#%02x%02x%02x", palette.Background.R, palette.Background.G, palette.Background.B)
+	style.Document.BackgroundColor = &background
 	style.Heading.Color = &accent
 	muted := fmt.Sprintf("#%02x%02x%02x", palette.Muted.R, palette.Muted.G, palette.Muted.B)
 	code := fmt.Sprintf("#%02x%02x%02x", palette.Code.R, palette.Code.G, palette.Code.B)
@@ -84,10 +86,7 @@ func logicalRenderer(themes ...string) func([]byte, ast.Node) string {
 	style.Code.Color, style.Code.BackgroundColor = &accent, &code
 	style.CodeBlock.Color, style.CodeBlock.BackgroundColor = &foreground, &code
 	style.CodeBlock.Chroma = nil
-	style.CodeBlock.Theme = "github"
-	if name == "dark" {
-		style.CodeBlock.Theme = "github-dark"
-	}
+	style.CodeBlock.Theme = theme.Syntax(name)
 	zero := uint(0)
 	style.Document.Margin = &zero
 	r := renderer.NewRenderer(renderer.WithNodeRenderers(util.Prioritized(gam.NewRenderer(gam.Options{WordWrap: 0, Styles: style, InlineTableLinks: true}), 100)))

@@ -1,0 +1,13 @@
+{
+  "name": "gruvbox-light",
+  "base": "light",
+  "syntax": "gruvbox-light",
+  "background": "#fbf1c7",
+  "foreground": "#3c3836",
+  "muted": "#928374",
+  "border": "#928374",
+  "accent": "#076678",
+  "code": "#e9e7bc",
+  "header": "#ece4ad",
+  "selection": "#076678"
+}

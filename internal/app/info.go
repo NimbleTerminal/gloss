@@ -8,6 +8,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -25,8 +26,8 @@ func (m *Model) infoBox(w, h int) string {
 			labels = max(labels, lipgloss.Width(f.Label))
 		}
 	}
-	text := boxText
-	heading, label := text.Bold(true).Foreground(lipgloss.Color(colorNimbleYellow)), boxDim
+	text := m.boxText()
+	heading, label := text.Bold(true).Foreground(m.palette().Accent), text.Foreground(m.palette().Muted)
 	var lines []string
 	for _, f := range fields {
 		if f.Value == "" {
@@ -48,7 +49,7 @@ func (m *Model) infoBox(w, h int) string {
 	if len(lines) > rows {
 		lines = append(lines[:rows-1], text.Render("…"))
 	}
-	return box(lines)
+	return themedBox(lines, 1, m.palette())
 }
 
 // terminalFields describes the terminal and how gloss draws on it: what
@@ -95,7 +96,7 @@ func (m *Model) terminalFields() []document.Field {
 	}
 	return document.Section("Terminal",
 		document.Field{Label: "Size", Value: size},
-		document.Field{Label: "Text theme", Value: m.theme},
+		document.Field{Label: "Text theme", Value: theme.Name(m.theme)},
 		document.Field{Label: "Pictures", Value: pictures},
 		document.Field{Label: "Kitty graphics", Value: kitty},
 		document.Field{Label: "Meshes", Value: meshes},
@@ -105,20 +106,13 @@ func (m *Model) terminalFields() []document.Field {
 	)
 }
 
-// The corner boxes' colours: a shade, plain text on it, and dim text.
-var (
-	boxShade = lipgloss.Color(colorNimblePurpleDark)
-	boxText  = lipgloss.NewStyle().Background(boxShade).Foreground(lipgloss.Color(colorNimbleText))
-	boxDim   = boxText.Foreground(lipgloss.Color(colorNimbleDim))
-)
-
-// box frames styled lines as a shaded corner box, each padded to the widest.
-func box(lines []string) string {
-	return boxWithPadding(lines, 1)
+func (m *Model) boxText() lipgloss.Style {
+	return lipgloss.NewStyle().Background(m.palette().Header).Foreground(m.palette().Foreground)
 }
 
-func boxWithPadding(lines []string, padding int) string {
-	shade, text := boxShade, boxText
+func themedBox(lines []string, padding int, p theme.Palette) string {
+	shade := p.Header
+	text := lipgloss.NewStyle().Background(shade).Foreground(p.Foreground)
 	width := 0
 	for _, line := range lines {
 		width = max(width, lipgloss.Width(line))
@@ -126,7 +120,7 @@ func boxWithPadding(lines []string, padding int) string {
 	for i, line := range lines {
 		lines[i] = line + text.Render(strings.Repeat(" ", width-lipgloss.Width(line)))
 	}
-	return lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(frameColor).BorderBackground(shade).
+	return lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(p.Border).BorderBackground(shade).
 		Background(shade).Padding(0, padding).Render(strings.Join(lines, "\n"))
 }
 

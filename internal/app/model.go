@@ -17,6 +17,7 @@ import (
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -33,6 +34,8 @@ type Options struct {
 	MarkdownMode           string
 	Typeset                bool
 	Theme                  string
+	ThemeChoices           []theme.Choice
+	SaveTheme              func(string) error
 	Accept                 document.AcceptFilter
 	Page, DPI              int
 	Menu, Preview          bool
@@ -153,6 +156,8 @@ type Model struct {
 	kind                     string
 	loading, help, autoKitty bool
 	theme                    string
+	detectedTheme            string
+	themePicker              *themePicker
 	err                      error
 	source                   image.Image
 	animation                *animation
@@ -192,8 +197,9 @@ func New(opts Options) *Model {
 	m.presentation = animate.New(&m.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
 	m.presentation.ID = id
 	m.theme = "dark"
-	if opts.Theme == "light" {
-		m.theme = "light"
+	m.detectedTheme = "dark"
+	if opts.Theme != "" && opts.Theme != "auto" {
+		m.theme = theme.Resolve(opts.Theme)
 	}
 	if (opts.Menu || opts.Preview) && len(opts.Files) > 0 {
 		m.screen = screenList
@@ -472,7 +478,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
 		}
 	}()
-	if _, mouse := msg.(tea.MouseMsg); mouse && m.qr != nil {
+	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil) {
 		return m, nil
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok {
@@ -519,18 +525,27 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, cmd
 	}
 	switch v := msg.(type) {
+	case themeSaved:
+		if v.err != nil {
+			m.note = "save theme: " + safe(v.err.Error())
+		}
+		return m, nil
 	case linkOpened:
 		if v.generation == m.generation && v.err != nil {
 			m.note = "open link: " + safe(v.err.Error())
 		}
 		return m, nil
 	case tea.BackgroundColorMsg:
-		if m.opts.Theme != "" && m.opts.Theme != "auto" || v.Color == nil {
+		if v.Color == nil {
 			return m, nil
 		}
 		name := "light"
 		if v.IsDark() {
 			name = "dark"
+		}
+		m.detectedTheme = name
+		if m.themePicker != nil || m.opts.Theme != "" && m.opts.Theme != "auto" {
+			return m, nil
 		}
 		return m, m.applyTheme(name)
 	case tea.FocusMsg:

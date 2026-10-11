@@ -92,6 +92,12 @@ NTCharts3d software renderer, whose license is among those below.
 		return err
 	}
 
+	if text, err := os.ReadFile(filepath.Join("internal", "theme", "LICENSE.thinkt")); err == nil {
+		section(&b, "go-thinkt themes", "theme catalog and selection design adapted from github.com/wethinkt/go-thinkt; palette data introduced in 0705db8", text)
+	} else {
+		return err
+	}
+
 	// The site's fonts are served from web/fonts, with their license.
 	if text, err := os.ReadFile(filepath.Join("web", "fonts", "OFL.txt")); err == nil {
 		section(&b, "Open Sans", "the website's Condensed Bold and SemiCondensed faces, in web/fonts", text)

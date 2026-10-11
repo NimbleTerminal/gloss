@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/spf13/pflag"
 )
 
@@ -24,11 +25,19 @@ type completer struct {
 }
 
 // completers are the options whose values can be completed, by long name.
+func themeNames() []string {
+	themes := []string{"auto"}
+	for _, c := range theme.Builtins() {
+		themes = append(themes, c.Name)
+	}
+	return themes
+}
 func completers() map[string]completer {
+	themes := themeNames()
 	return map[string]completer{
 		"render":         {Words: []string{"auto", "kitty", "glyph"}},
 		"3d":             {Words: []string{"auto", "software", "wireframe"}},
-		"theme":          {Words: []string{"auto", "light", "dark"}},
+		"theme":          {Words: themes, File: true},
 		"markdown":       {Words: []string{"text", "typeset"}},
 		"type":           {Words: []string{"image", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "md"}},
 		"view":           {Words: []string{"front", "back", "left", "right", "top", "bottom", "iso", "all"}, List: true},

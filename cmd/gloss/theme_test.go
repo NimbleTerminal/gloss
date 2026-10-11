@@ -16,7 +16,7 @@ func TestThemeExportCLI(t *testing.T) {
 	if err := os.WriteFile(path, []byte("Café and literal *text*"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"auto", "light", "dark"} {
+	for _, name := range []string{"auto", "light", "dark", "nord", "catppuccin-latte"} {
 		t.Run(name, func(t *testing.T) {
 			var out, errs bytes.Buffer
 			opts, _, err := parse([]string{"--typeset", "--theme", name, "--output", "-", "--max-edge", "128", path}, &out)

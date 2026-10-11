@@ -55,6 +55,9 @@ func highlightCodeContext(ctx context.Context, source, language string, theme *c
 		reconstructed.WriteString(token.Value)
 		entry := theme.Get(token.Type)
 		sp := span{text: token.Value, style: mono}
+		if theme == codeTheme {
+			sp.token = token.Type
+		}
 		if theme == codeTheme && darkCodeTheme != nil {
 			dark := darkCodeTheme.Get(token.Type)
 			if dark.Colour.IsSet() {
@@ -72,7 +75,7 @@ func highlightCodeContext(ctx context.Context, source, language string, theme *c
 		}
 		// Buffer adjacent equal styles: repeated string concatenation would
 		// make punctuation-heavy untrusted code quadratic.
-		if pending.Len() > 0 && (current.style != sp.style || current.ink != sp.ink || current.darkInk != sp.darkInk) {
+		if pending.Len() > 0 && (current.token != sp.token || current.style != sp.style || current.ink != sp.ink || current.darkInk != sp.darkInk) {
 			flush()
 		}
 		current = sp

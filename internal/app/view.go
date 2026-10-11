@@ -132,7 +132,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"R              reload file\n" +
 	"e / i          export as PNG / file details\n" +
 	"r              auto-rotate mesh (reload other files)\n" +
-	"C / B          mesh color / background color\n" +
+	"C / B          mesh color / background color · T theme\n" +
 	"Drop files to open · / search · n/N next/prev match · Esc clear\n" +
 	"Meshes: drag to orbit, Shift-drag to pan, wheel to zoom, 5 orthographic\n" +
 	"Text: t text/typeset, s source; select: Shift-drag in text, drag + y in typeset\n" +
@@ -167,7 +167,7 @@ func (m *Model) emptyView(w int) string {
 	long := lipgloss.NewStyle().Width(lipgloss.Width(strings.Join(document.Formats, "\n"))).Render(strings.Join(document.Formats, "\n\n"))
 	short := lipgloss.NewStyle().Width(w).Align(lipgloss.Center).Render(document.FormatsShort)
 	name, gap := strings.Join(banner, "\n"), "\n\n\n"
-	art := bannerStyle.Render(name)
+	art := lipgloss.NewStyle().Foreground(m.palette().Accent).Bold(true).Render(name)
 	room := func(extra int) bool { return h >= len(banner)+2+lines+extra }
 	switch {
 	case w < lipgloss.Width(name) || h < len(banner):
@@ -205,6 +205,8 @@ func (m *Model) layered(body string, w, h int) string {
 		return body
 	}
 	switch m.layer {
+	case layerTheme:
+		return overlay(body, m.themePickerView(w, h), w, 0)
 	case layerQR:
 		return overlay(body, m.qrView(w, h), w, 0)
 	case layerInfo:
@@ -216,7 +218,7 @@ func (m *Model) layered(body string, w, h int) string {
 		return overlay(body, m.infoBox(w, h-top), w, top)
 	case layerColumns:
 		if m.sheet != nil && m.sheet.picker != nil {
-			return overlay(body, m.sheet.picker.view(m.sheet, w, h), w, 0)
+			return overlay(body, m.sheet.picker.view(m.sheet, w, h, m.palette()), w, 0)
 		}
 	case layerParts:
 		if m.pickingParts() && m.partPicker != nil {
@@ -385,6 +387,9 @@ func (m *Model) detail(w, h int) string {
 
 // hints names the keys that work over the document.
 func (m *Model) hints() string {
+	if m.themePicker != nil {
+		return " ↑/↓ preview theme · Enter keep · Esc cancel"
+	}
 	if len(m.opts.Files) == 0 {
 		keys := " q quit · ? help · i info"
 		if m.canBrowse() {
@@ -394,6 +399,8 @@ func (m *Model) hints() string {
 	}
 	// A layer takes the keys while it is up.
 	switch m.layer {
+	case layerTheme:
+		return " ↑/↓ preview theme · Enter keep · Esc cancel"
 	case layerQR:
 		return " Esc/u close QR · g graphics · e export QR · q quit"
 	case layerColumns:

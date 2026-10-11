@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+  * Add named color themes adapted from go-thinkt, a `T` live-preview chooser,
+    native saved preferences, and bounded custom theme JSON via `--theme`.
+    Share palettes across pager chrome, Markdown and typeset syntax colors.
+
   * Render frames through the `perf/consolidated` branch of the
     `neomantra/ultraviolet` fork of Bubble Tea's renderer, pinned by a `replace`
     directive: a Kitty picture frame costs about 40% less renderer time and a

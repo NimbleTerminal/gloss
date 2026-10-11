@@ -42,6 +42,16 @@ func TestTypesetThemeRepaintsWithoutRelayout(t *testing.T) {
 					t.Fatal("wrong background", r.Theme, got)
 				}
 			}
+			for _, name := range []string{"nord", "catppuccin-latte", "dracula"} {
+				q.Theme = name
+				r := l.Load(q)
+				if r.Err != nil || l.direct != layout || eng.cacheBytes != cacheBytes || len(layout.ops) != ops {
+					t.Fatal("named theme reshaped", name, r.Err)
+				}
+				if color.RGBAModel.Convert(r.Image.At(0, 0)) != theme.Get(name).Background {
+					t.Fatal("named background", name)
+				}
+			}
 			q.Theme, q.Generation = "auto", 2
 			auto := l.Load(q)
 			if auto.Err != nil || auto.Theme != "light" {

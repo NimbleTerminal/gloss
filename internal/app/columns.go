@@ -1,6 +1,8 @@
 package app
 
 import (
+	"charm.land/lipgloss/v2"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"strings"
 
 	"github.com/NimbleTerminal/gloss/internal/document"
@@ -46,7 +48,12 @@ func (p *columnPicker) key(v *sheetView, k string) bool {
 
 // view lists the columns in a box no taller than h rows, the cursor kept
 // in sight.
-func (p *columnPicker) view(v *sheetView, w, h int) string {
+func (p *columnPicker) view(v *sheetView, w, h int, palettes ...theme.Palette) string {
+	palette := theme.Get("dark")
+	if len(palettes) > 0 {
+		palette = palettes[0]
+	}
+	text := lipgloss.NewStyle().Background(palette.Header).Foreground(palette.Foreground)
 	rows := h - 2
 	if rows < 1 || w < 20 {
 		return ""
@@ -70,14 +77,14 @@ func (p *columnPicker) view(v *sheetView, w, h int) string {
 			name = ansi.Truncate(safe(strings.TrimSpace(header[c])), min(maxColumnWidth, w-16), "…")
 		}
 		line := strings.TrimRight(tick+" "+document.ColumnName(c)+"  "+name, " ")
-		style := boxText
+		style := text
 		if v.hidden[c] {
-			style = boxDim
+			style = text.Foreground(palette.Muted)
 		}
 		if c == p.at {
 			style = style.Reverse(true)
 		}
 		lines = append(lines, style.Render(line))
 	}
-	return box(lines)
+	return themedBox(lines, 1, palette)
 }

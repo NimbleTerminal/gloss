@@ -1,4 +1,4 @@
-// Package theme defines the two palettes shared by terminal text and typeset pages.
+// Package theme defines the palettes shared by terminal text and typeset pages.
 package theme
 
 import "image/color"
@@ -15,6 +15,9 @@ func rgb(n uint32) color.RGBA {
 // Resolve keeps exports deterministic: an unresolved or automatic theme is light.
 // The interactive application resolves auto from the terminal, with a dark fallback.
 func Resolve(name string) string {
+	if _, ok := catalog.Load(name); ok {
+		return name
+	}
 	if name == "dark" {
 		return "dark"
 	}
@@ -22,6 +25,9 @@ func Resolve(name string) string {
 }
 
 func Get(name string) Palette {
+	if s, ok := catalog.Load(name); ok {
+		return s.(snapshot).palette
+	}
 	if Resolve(name) == "dark" {
 		return Palette{rgb(0x181a1e), rgb(0xe6edf3), rgb(0x9da7b3), rgb(0x424a55), rgb(0x242830), rgb(0x303641), rgb(0xb9a5ff), rgb(0x264f78)}
 	}

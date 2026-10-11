@@ -21,6 +21,7 @@ import (
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/NimbleTerminal/gloss/skills"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/pflag"
@@ -39,6 +40,7 @@ func main() {
 
 // options are the viewer's, and those of showing it somewhere else.
 type options struct {
+	themeExplicit bool
 	app.Options
 	Serve, NoOpen bool
 	PickWeb       bool // Experimental upload-only page, without a terminal viewer.
@@ -67,7 +69,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.SetOutput(out)
 	f.StringVarP(&opts.Render, "render", "r", "auto", "terminal graphics: auto, kitty, glyph")
 	f.StringVar(&opts.Render3D, "3d", "auto", "mesh renderer for STL and 3MF: auto, software, wireframe")
-	f.StringVar(&opts.Theme, "theme", "auto", "Text and typeset colors: auto, light, dark (auto exports use light)")
+	f.StringVar(&opts.Theme, "theme", "auto", "Colors: "+strings.Join(themeNames(), ", ")+", or theme JSON file")
 	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, plain text, source code, and JSON as graphics")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
 	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown (or md)")
@@ -190,8 +192,11 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 			return opts, false, err
 		}
 	}
-	if !slices.Contains([]string{"auto", "light", "dark"}, opts.Theme) {
-		return opts, false, fmt.Errorf("--theme must be auto, light or dark")
+	opts.themeExplicit = f.Changed("theme")
+	if ref, err := theme.Load(opts.Theme); err != nil {
+		return opts, false, fmt.Errorf("--theme: %w", err)
+	} else {
+		opts.Theme = ref
 	}
 	if !slices.Contains([]string{"text", "typeset"}, opts.MarkdownMode) {
 		return opts, false, fmt.Errorf("--markdown must be text or typeset")
@@ -476,6 +481,16 @@ func run(args []string) (err error) {
 		return served(opts, os.Stdout, os.Stderr)
 	}
 	opts.OpenLink = browse
+	opts.ThemeChoices = theme.Available()
+	opts.SaveTheme = theme.SaveChoice
+	if !opts.themeExplicit {
+		if ref, err := theme.SavedChoice(); err == nil {
+			opts.Theme = ref
+		}
+	}
+	if opts.Theme != "auto" {
+		opts.ThemeChoices = append(opts.ThemeChoices, theme.Choice{Name: theme.Name(opts.Theme), Ref: opts.Theme})
+	}
 	m := app.New(opts.Options)
 	defer m.Close()
 	var drawn []tea.ProgramOption

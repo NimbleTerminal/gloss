@@ -1,0 +1,13 @@
+{
+  "name": "catppuccin-latte",
+  "base": "light",
+  "syntax": "catppuccin-latte",
+  "background": "#eff1f5",
+  "foreground": "#4c4f69",
+  "muted": "#6c6f85",
+  "border": "#6c6f85",
+  "accent": "#456e00",
+  "code": "#d5e6ea",
+  "header": "#d5e5d7",
+  "selection": "#456e00"
+}

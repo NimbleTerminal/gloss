@@ -1,0 +1,13 @@
+{
+  "name": "dracula",
+  "base": "dark",
+  "syntax": "dracula",
+  "background": "#282a36",
+  "foreground": "#f8f8f2",
+  "muted": "#6272a4",
+  "border": "#6272a4",
+  "accent": "#d6acff",
+  "code": "#34414e",
+  "header": "#2e4940",
+  "selection": "#d6acff"
+}

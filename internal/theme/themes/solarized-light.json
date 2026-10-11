@@ -1,0 +1,13 @@
+{
+  "name": "solarized-light",
+  "base": "light",
+  "syntax": "solarized-light",
+  "background": "#fdf6e3",
+  "foreground": "#657b83",
+  "muted": "#002b36",
+  "border": "#002b36",
+  "accent": "#839496",
+  "code": "#e4ecda",
+  "header": "#ebe8c1",
+  "selection": "#839496"
+}

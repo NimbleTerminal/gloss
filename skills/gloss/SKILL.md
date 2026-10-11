@@ -434,8 +434,12 @@ kind (`markdown`, `text` or `json`). Text/JSON require valid UTF-8, at most 2 Mi
 of source and formatted text, and at most 8,192 lines; the bounded source view
 must fit without truncation. `--text` keeps its usual extraction behavior.
 `--markdown typeset` remains a compatibility alias.
-`--theme auto|light|dark` controls text and typeset colors. Headless auto always
+`--theme auto|light|dark|NAME|FILE.json` controls text and typeset colors. Headless auto always
 uses light and performs no terminal query; use `--theme dark` for dark PNGs.
+Named presets such as `nord` and `catppuccin-mocha`, or an explicit theme JSON
+file, apply equally to exports. Exports ignore saved interactive preferences;
+pass `--theme` explicitly for reproducible custom colors. Theme files are at
+most 64 KiB, local only, and contain colors plus a Chroma syntax style, not fonts.
 Interactive auto follows the terminal background with a dark fallback and
 rechecks on focus. Images/PDF pages are not recolored; QR codes stay black/white.
 There is no PDF export. Default Markdown stays

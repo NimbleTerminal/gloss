@@ -42,7 +42,7 @@ func (m *Model) promptBox() string {
 	if m.promptHeight() == 0 {
 		return ""
 	}
-	return lipgloss.NewStyle().Bold(true).Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color(colorNimbleRed)).
+	return lipgloss.NewStyle().Bold(true).Border(lipgloss.RoundedBorder()).BorderForeground(m.palette().Accent).
 		Padding(0, 1).Width(m.width - 2).Render(strings.Join(lines, "\n"))
 }
 

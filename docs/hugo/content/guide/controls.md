@@ -11,6 +11,7 @@ bookToC: false
 | `q`, `Ctrl-C` | Quit |
 | `q`, `Q` | Quit / quit leaving the last view in the scrollback, whatever `-X` said |
 | `?`, `Esc` | Show help / dismiss help |
+| `T` over a document | Preview themes: arrows select, Enter keeps, Esc restores |
 | `Esc` | Back to the file list, with previews, from a document |
 | `t` | In the file list, show the files as a grid of thumbnails, and back |
 | `m` | Open the file-selection menu |
@@ -265,7 +266,7 @@ the terminal can do.
 
 ### Text colors
 
-`--theme auto|light|dark` selects normal text and typeset colors. Auto follows
+`--theme auto|light|dark|NAME|FILE.json` selects normal text and typeset colors. Auto follows
 the terminal background, with a dark fallback when no reply arrives, and
 rechecks on terminal focus. Headless exports use light for auto. Explicit themes
 override detection. See [Themes](../markdown/#themes) for details.

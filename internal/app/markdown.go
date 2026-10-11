@@ -1,14 +1,16 @@
 package app
 
 import (
-	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
 	"math"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	"github.com/NimbleTerminal/gloss/internal/animate"
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -33,7 +35,7 @@ type markdownView struct {
 }
 
 func newMarkdownView(doc *document.Markdown, id int) *markdownView {
-	m := &markdownView{doc: doc}
+	m := &markdownView{doc: doc, theme: "dark"}
 	for i := range doc.Images {
 		m.pictures = append(m.pictures, picture.NewWithConfig(picture.Config{KittyID: id + i, KittyZ: -1, KittyFormat: picture.KittyFormatZlib}))
 	}
@@ -190,7 +192,9 @@ func (m *markdownView) view() string {
 	for i := m.offset; i < min(len(m.lines), m.offset+m.height); i++ {
 		line := m.lines[i]
 		if line.image < 0 {
-			lines = append(lines, highlightRanges(line.text, m.highlights[i]))
+			p := theme.Get(m.theme)
+			text := lipgloss.NewStyle().Foreground(p.Foreground).Background(p.Background).Width(m.width)
+			lines = append(lines, text.Render(highlightRanges(line.text, m.highlights[i])))
 			continue
 		}
 		rows, ok := cache[line.image]

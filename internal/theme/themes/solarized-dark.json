@@ -1,0 +1,13 @@
+{
+  "name": "solarized-dark",
+  "base": "dark",
+  "syntax": "solarized-dark",
+  "background": "#002b36",
+  "foreground": "#708284",
+  "muted": "#475b62",
+  "border": "#475b62",
+  "accent": "#708284",
+  "code": "#042c32",
+  "header": "#112e22",
+  "selection": "#708284"
+}

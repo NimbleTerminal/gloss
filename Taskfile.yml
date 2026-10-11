@@ -23,6 +23,7 @@ tasks:
       - cmd/**/*.go
       - internal/**/*.go
       - internal/document/fonts/*.ttf
+      - internal/theme/themes/*.json
       - skills/*.go
       - skills/gloss/SKILL.md
       - web/embed.go

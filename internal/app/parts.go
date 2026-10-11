@@ -156,16 +156,16 @@ func (m *Model) partsView(w, h int) string {
 		}
 		name := ansi.Truncate(safe(m.parts[i].Name), min(32, w-24), "…")
 		line := fmt.Sprintf("%s %d  %s  %s △", tick, i+1, name, grouped(m.parts[i].Triangles))
-		style := boxText
+		style := m.boxText()
 		if !m.partShown(i) {
-			style = boxDim
+			style = m.boxText().Foreground(m.palette().Muted)
 		}
 		if i == p.at {
 			style = style.Reverse(true)
 		}
 		lines = append(lines, style.Render(strings.TrimRight(line, " ")))
 	}
-	return box(lines)
+	return themedBox(lines, 1, m.palette())
 }
 
 // refit fits the home to the frame as it now is, and takes the camera

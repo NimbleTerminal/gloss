@@ -1,0 +1,13 @@
+{
+  "name": "one-dark",
+  "base": "dark",
+  "syntax": "onedark",
+  "background": "#282c34",
+  "foreground": "#abb2bf",
+  "muted": "#767676",
+  "border": "#767676",
+  "accent": "#61afef",
+  "code": "#27363d",
+  "header": "#333d37",
+  "selection": "#61afef"
+}

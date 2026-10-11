@@ -1,0 +1,13 @@
+{
+  "name": "monokai",
+  "base": "dark",
+  "syntax": "monokai",
+  "background": "#272822",
+  "foreground": "#c4c5b5",
+  "muted": "#625e4c",
+  "border": "#625e4c",
+  "accent": "#9d65ff",
+  "code": "#213033",
+  "header": "#2d381c",
+  "selection": "#9d65ff"
+}

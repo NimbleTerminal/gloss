@@ -17,6 +17,12 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if m.search != nil && m.search.editing {
 		return m.searchKey(msg), true
 	}
+	if m.themePicker != nil {
+		return m.themePickerKey(k), true
+	}
+	if k == "T" && m.screen == screenDocument && !m.help && m.layer == layerNone {
+		return m.openThemePicker(), true
+	}
 	// Keys over any screen but the browser, whose filter takes letters.
 	switch k {
 	case "q", "ctrl+c":

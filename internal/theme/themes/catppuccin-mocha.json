@@ -1,0 +1,13 @@
+{
+  "name": "catppuccin-mocha",
+  "base": "dark",
+  "syntax": "catppuccin-mocha",
+  "background": "#1e1e2e",
+  "foreground": "#cdd6f4",
+  "muted": "#585b70",
+  "border": "#585b70",
+  "accent": "#74a8fc",
+  "code": "#2c3642",
+  "header": "#323c3f",
+  "selection": "#74a8fc"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "nord",
+  "base": "dark",
+  "syntax": "nord",
+  "background": "#2e3440",
+  "foreground": "#d8dee9",
+  "muted": "#4c566a",
+  "border": "#4c566a",
+  "accent": "#81a1c1",
+  "code": "#394551",
+  "header": "#40494b",
+  "selection": "#81a1c1"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "rose-pine",
+  "base": "dark",
+  "syntax": "rose-pine",
+  "background": "#191724",
+  "foreground": "#e0def4",
+  "muted": "#6e6a86",
+  "border": "#6e6a86",
+  "accent": "#9ccfd8",
+  "code": "#322b36",
+  "header": "#1d2534",
+  "selection": "#9ccfd8"
+}

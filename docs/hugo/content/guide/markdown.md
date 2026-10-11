@@ -180,7 +180,7 @@ the viewer keeps the previous image if a reflow or scroll fails.
 
 ## Themes
 
-`--theme auto|light|dark` applies to normal terminal text and typeset Markdown,
+`--theme auto|light|dark|NAME|FILE.json` applies to normal terminal text and typeset Markdown,
 plain text, source and JSON. The two palettes coordinate page backgrounds, body
 text, headings, quotes, borders, table headers, code blocks and syntax colors.
 
@@ -208,3 +208,56 @@ stays visible until the replacement is ready. Embedded images and existing PDF
 pages are never recolored. Transparent images naturally show the page color
 behind them. QR codes retain opaque black modules on white. Custom palettes
 and OS appearance integration are not part of this setting.
+
+### Named themes and customization
+
+Press `T` over a document to preview themes using the arrow keys. Enter keeps
+and, in the native viewer, saves the choice; Esc restores the previous theme.
+The document behind the chooser previews the colors. Fonts and spacing stay
+unchanged. Browser/serve choices last only for that viewer session.
+
+Built-ins: light, dark, Catppuccin Latte/Mocha, Dracula, Gruvbox Light/Dark,
+Monokai, Nord, One Dark, Rosé Pine, Solarized Light/Dark, and Tokyo Night.
+CLI names are lowercase and hyphenated, such as `catppuccin-mocha`, `one-dark`,
+and `rose-pine`. `auto` continues to follow terminal light/dark detection.
+
+```sh
+gloss --theme nord README.md
+gloss --typeset --theme catppuccin-mocha README.md
+gloss --typeset --theme ./my-theme.json --output page.png README.md
+```
+
+Explicit `--theme` wins over the saved native preference. Headless exports
+always ignore that preference: the default remains automatic light.
+Native preferences live under the OS user-config directory in `gloss/theme`
+(`~/Library/Application Support/gloss` on macOS; `$XDG_CONFIG_HOME/gloss` or
+`~/.config/gloss` on Linux; `%AppData%\gloss` on Windows).
+
+Place custom JSON files in that directory's `themes` subdirectory to include
+them in the chooser, or pass a file directly. Built-in names take precedence;
+use an explicit path to load a same-named user file. For example:
+
+```json
+{
+  "name": "my-theme",
+  "base": "dark",
+  "syntax": "nord",
+  "background": "#20242b",
+  "foreground": "#eceff4",
+  "accent": "#88c0d0"
+}
+```
+
+`base` must be `light` or `dark`. Missing colors inherit from that base.
+Optional colors are `background`, `foreground`, `muted`, `border`, `code`,
+`header`, `accent`, and `selection`; each must be `#RRGGBB`. `syntax` names a
+bundled Chroma style and defaults to GitHub light/dark. Unknown fields and
+invalid values are errors. Names use lowercase letters, digits, and hyphens
+(up to 64 characters). Files are limited to 64 KiB; the chooser reads at most
+64 user files and omits malformed files. Selecting a malformed file explicitly
+reports its error. Accepted choices save a snapshot; restart and select the
+file again to pick up edits. No assets are downloaded.
+
+The palette colors the pager's status, prompts, document overlays, normal text,
+and typeset pages. Media pixels and mesh paints retain their own colors.
+This does not change your terminal application's configured palette or font.
