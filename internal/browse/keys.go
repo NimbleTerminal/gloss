@@ -4,6 +4,7 @@ import "charm.land/bubbles/v2/key"
 
 // KeyMap is the keys the chooser takes. Anything else goes to the filter.
 type KeyMap struct {
+	OpenWith         key.Binding // Ask the host to open the highlighted entry in another app.
 	Up, Down         key.Binding
 	PageUp, PageDown key.Binding
 	Top, Bottom      key.Binding // Home and End, while the filter is empty.
@@ -21,6 +22,7 @@ type KeyMap struct {
 // DefaultKeyMap is the keys as shipped.
 func DefaultKeyMap() KeyMap {
 	return KeyMap{
+		OpenWith:     key.NewBinding(key.WithKeys("alt+enter"), key.WithHelp("alt+enter", "open with")),
 		Up:           key.NewBinding(key.WithKeys("up", "ctrl+p"), key.WithHelp("↑", "up")),
 		Down:         key.NewBinding(key.WithKeys("down", "ctrl+n"), key.WithHelp("↓", "down")),
 		PageUp:       key.NewBinding(key.WithKeys("pgup"), key.WithHelp("pgup", "page up")),

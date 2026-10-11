@@ -39,7 +39,8 @@ type Driver[M Component[M]] struct {
 	// characters.
 	StrictFit bool
 
-	trail []string
+	Messages []tea.Msg // Commands emitted by the component, for intent assertions.
+	trail    []string
 }
 
 // New starts a component at a size: the window size is sent, Init runs, and
@@ -174,6 +175,7 @@ func (d *Driver[M]) exec(cmd tea.Cmd, depth int) {
 		}
 		return
 	}
+	d.Messages = append(d.Messages, msg)
 	var next tea.Cmd
 	d.M, next = d.M.Update(msg)
 	d.exec(next, depth+1)

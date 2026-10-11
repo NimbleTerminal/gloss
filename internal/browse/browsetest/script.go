@@ -2,6 +2,7 @@ package browsetest
 
 import (
 	"bufio"
+	tea "charm.land/bubbletea/v2"
 	"errors"
 	"flag"
 	"fmt"
@@ -25,7 +26,8 @@ type Config[M Component[M]] struct {
 
 	// Probe reads the component's state by name, for a script's "state"
 	// checks. Optional.
-	Probe func(M) map[string]string
+	Probe   func(M) map[string]string
+	Message func(tea.Msg) map[string]string
 
 	// Strict checks every settled screen against the size it was given.
 	Strict bool
@@ -296,6 +298,13 @@ func (r *runner[M]) step(s step) {
 		}
 		k, v, _ := strings.Cut(s.arg, " ")
 		got, ok := r.cfg.Probe(r.d.M)[k]
+		if !ok && r.cfg.Message != nil {
+			for _, msg := range r.d.Messages {
+				if value, found := r.cfg.Message(msg)[k]; found {
+					got, ok = value, true
+				}
+			}
+		}
 		if !ok {
 			keys := make([]string, 0)
 			for key := range r.cfg.Probe(r.d.M) {

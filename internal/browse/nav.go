@@ -8,6 +8,12 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+// OpenWithMsg asks the embedding host to act on an entry without choosing it.
+type OpenWithMsg struct {
+	Path      string
+	Directory bool
+}
+
 // Update takes a message, as every bubble's does.
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -42,6 +48,13 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) key(msg tea.KeyPressMsg) (Model, tea.Cmd) {
+	if key.Matches(msg, m.keys.OpenWith) {
+		if m.side || m.menu || m.Current() == nil {
+			return m, nil
+		}
+		request := OpenWithMsg{Path: m.CurrentPath(), Directory: m.Current().IsDir()}
+		return m, func() tea.Msg { return request }
+	}
 	// A popup takes the keys it knows. Any other key closes it and goes on to be
 	// what it would have been, so the popup's closing is kept, not just for
 	// this key.

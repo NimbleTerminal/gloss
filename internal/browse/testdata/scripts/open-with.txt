@@ -1,0 +1,14 @@
+-- fs --
+home/evan/folder/
+home/evan/notes.md
+-- script --
+start /home/evan
+size 60 12
+press alt+enter
+state open-with /home/evan/folder
+state chosen ""
+state dir /home/evan
+press down alt+enter
+state open-with /home/evan/notes.md
+state chosen ""
+state dir /home/evan

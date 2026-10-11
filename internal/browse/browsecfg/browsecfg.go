@@ -4,6 +4,7 @@
 package browsecfg
 
 import (
+	tea "charm.land/bubbletea/v2"
 	"io/fs"
 	"path"
 	"slices"
@@ -37,6 +38,12 @@ var StateKeys = []string{"dir", "filter", "current", "chosen", "layout", "types"
 func Config() browsetest.Config[browse.Model] {
 	return browsetest.Config[browse.Model]{
 		Strict: true,
+		Message: func(msg tea.Msg) map[string]string {
+			if v, ok := msg.(browse.OpenWithMsg); ok {
+				return map[string]string{"open-with": v.Path}
+			}
+			return nil
+		},
 		New: func(fsys *browsetest.FS, start string, o map[string]string) browse.Model {
 			opts := []browse.Option{browse.WithHome("/home/evan")}
 			if v, ok := o["layout"]; ok {
