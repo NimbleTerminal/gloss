@@ -63,7 +63,7 @@ func measureLayer(reader *pdf.Reader, page int, text string) *TextLayer {
 // Do, those within the forms it paints, and inline images. An image drawn
 // twice counts twice; one only listed among the resources does not count.
 func pageImages(reader *pdf.Reader, page int) int {
-	n, err := withDeadline(parseDeadline, "counting the PDF's images", func() (int, error) {
+	n, err := recoverParse("counting the PDF's images", func() (int, error) {
 		p := reader.Page(page)
 		if p.V.IsNull() {
 			return 0, nil

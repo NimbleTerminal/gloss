@@ -98,6 +98,14 @@ not run document renderers to validate or preview uploads. It takes no initial
 files, `--glob`, `--fetch`, `--menu`, or `--preview`. The existing viewer remains
 available with `--serve --pick`.
 
+Ordinary `--serve` uploads have a **30-second idle timeout**, renewed as the
+server reads data. Slow transfers can continue while making progress. Each
+request allows at most 256 multipart fields and 1 GiB plus 1 MiB of multipart
+overhead; no more than four uploads run at once. The shared 1 GiB session quota
+includes bytes being uploaded. Failed uploads release their space and remove
+partial files. The upload-only `--pick-web` page retains its two-minute total
+upload deadline described above.
+
 With terminal stdin it opens a browser and waits, printing the confirmed full
 paths; `--no-open` prints the address on stderr instead of opening it. Without
 terminal stdin it detaches, with the same startup JSON, `--status`, `--resume`,

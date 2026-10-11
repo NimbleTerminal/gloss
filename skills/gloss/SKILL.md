@@ -242,6 +242,10 @@ It takes no initial files, `--glob`, `--fetch`, `--menu`, or `--preview`. Limits
 suffixes), and a fixed two-minute total deadline per upload, not an idle timeout.
 A full 128 MiB file needs about 9 Mbps of uplink before overhead; use smaller
 files on slow links. `--timeout` does not extend the upload deadline.
+For the ordinary `--serve` viewer, uploads instead expire after 30 seconds
+without read progress. Its limits are four concurrent uploads, 256 multipart
+fields per request, and a 1 GiB session quota that includes in-flight bytes.
+Quota, timeout, or malformed-request failures remove partial uploads.
 `--accept` checks formats; uploads are not rendered. Refresh restores completed uploads. Closing
 the tab does not decline; the request waits until Send, Cancel, or timeout.
 
@@ -411,6 +415,11 @@ anywhere. Say that when you send the link.
   frames and 64 Mi decoded frame pixels total, with the same 32 MP canvas cap.
 - Input files and stdin are limited to 128 MiB; images to 32 MP; PDFs to
   10,000 pages. `--info` reports these failures cleanly.
+- PDF streams allow 256 MiB per decoding stage and 1 GiB of total decoding
+  work. Unsupported filters (LZW, JPEG 2000, JBIG2), indirect decoding
+  parameters, and ambiguous stream lengths are refused. PDF metadata/text
+  parsing and SVG rendering use isolated workers stopped after 15 seconds;
+  a timeout is an error, not a task still running in the background.
 - gloss never fetches the network on its own. `--fetch` is an interactive
   option (Enter on a cell's address, or drop/paste one http(s) URL); the headless modes never need it.
 - `--accept 'image/*'` restricts a session to images including SVG; use comma-separated gloss formats such as `image/*,pdf` for alternatives. Content mismatches are errors, independent of `--type`, and rejected downloads are removed. The restriction also applies to local choices and drops. Public app links accept `?accept=image%2F*`; their URL drops fetch directly in the browser with CORS and never through a proxy.

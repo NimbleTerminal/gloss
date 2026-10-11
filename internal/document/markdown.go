@@ -14,10 +14,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/text"
 )
 
 const MaxMarkdownBytes = 2 << 20
@@ -84,7 +81,11 @@ type MarkdownImage struct {
 
 // MarkdownTree uses the same dialect for asset discovery and Glamour layout.
 func MarkdownTree(source []byte) ast.Node {
-	return goldmark.New(goldmark.WithExtensions(extension.GFM, extension.DefinitionList)).Parser().Parse(text.NewReader(source))
+	root, err := readMarkdownTree(source)
+	if err != nil {
+		return ast.NewDocument()
+	}
+	return root
 }
 
 func loadMarkdown(path string, data []byte, baseDir string) (*Markdown, error) {
@@ -115,7 +116,7 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 	cache := make(map[string]MarkdownImage)
 	pixels, encodedBytes := 0, 0
 	var animations markdownAnimations
-	root, err := withDeadline(parseDeadline, "reading the Markdown", func() (ast.Node, error) { return MarkdownTree(md.Source), nil })
+	root, err := readMarkdownTree(md.Source)
 	if err != nil {
 		return nil, err
 	}

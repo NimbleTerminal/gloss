@@ -106,6 +106,17 @@ separate browser-demo module:
   component of its own (see below); `internal/browse/browsetest` is its test
   harness.
 - `internal/document`: bounded loaders, renderers, and vision image sizing.
+  `parser_worker*.go` isolates SVG rasterization and PDF metadata/text parsing
+  in the same executable's private worker entry point, or a disposable browser
+  Web Worker. No external converter is installed. Parent-side deadlines stop
+  and reap/terminate workers; two slots bound concurrency. The worker protocol
+  accepts bounded bytes, never paths to read or shell commands. PDFium rendering
+  retains its existing backend after stream preflight. `pdf_budget.go` follows
+  declared lengths, resolves unambiguous integer length objects, and budgets
+  every supported filter stage before the PDF reader sees the input. Unsupported
+  filters and indirect decoding parameters are explicit errors. Goldmark parses
+  synchronously with block/inline/transform callbacks checking time and work;
+  there are no abandoned timeout goroutines.
 - `internal/app/qr.go`: table URL overlay using the external ntqrcode component.
 - `examples`: small runnable fixtures.
 - `scripts`: site building and fixture generation.
@@ -606,10 +617,15 @@ confirmation IDs, CSP and other security headers, 200/201-file boundaries,
 and QR wait exit codes. `task ci` exercises these under the race detector;
 `task web-check` tests the JS adapter.
 
-Uploads have a fixed two-minute total deadline in both `http.Server.ReadTimeout`
+Upload-only `--pick-web` requests have a fixed two-minute total deadline in both `http.Server.ReadTimeout`
 and `web/pick-api.mjs`, not an idle timeout. A 128 MiB file needs about 9 Mbps
 of uplink before overhead; slower links must send smaller files. `--timeout`
 controls the session lifetime and does not extend this per-upload deadline.
+Ordinary viewer uploads use a 30-second read-progress deadline instead.
+The shared receiver caps request bytes (session limit plus 1 MiB), all multipart
+fields (256), and concurrency (four). `uploadQuotaReader` reserves each chunk
+with a CAS before returning it to the file writer; errors refund all charged
+bytes and delete partial files. Reservations share the counter used by exports.
 
 ## The browser demo
 

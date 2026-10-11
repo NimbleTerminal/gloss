@@ -3,7 +3,6 @@ package document
 import (
 	"archive/zip"
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -31,24 +30,18 @@ func within(t *testing.T, d time.Duration, maxAlloc uint64, f func()) {
 	}
 }
 
-func TestWithDeadlineGivesUpOnWhatNeverReturns(t *testing.T) {
-	stop := make(chan struct{})
-	t.Cleanup(func() { close(stop) })
-	began := time.Now()
-	_, err := withDeadline(100*time.Millisecond, "the test", func() (int, error) { <-stop; return 1, nil })
-	if err == nil || !strings.Contains(err.Error(), "took longer") || time.Since(began) > 2*time.Second {
-		t.Fatalf("err=%v after %v", err, time.Since(began))
+func TestParserBudgetStopsMarkdown(t *testing.T) {
+	old := parseDeadline
+	parseDeadline = -time.Second
+	t.Cleanup(func() { parseDeadline = old })
+	if _, err := readMarkdownTree([]byte("# hello")); err == nil {
+		t.Fatal("expired parse was accepted")
 	}
-	if v, err := withDeadline(time.Second, "the test", func() (int, error) { return 7, nil }); v != 7 || err != nil {
-		t.Fatalf("a quick job: %v %v", v, err)
-	}
-	want := errors.New("plain failure")
-	if _, err := withDeadline(time.Second, "the test", func() (int, error) { return 0, want }); !errors.Is(err, want) {
-		t.Fatalf("an error is passed on: %v", err)
-	}
-	// A panic in the library is an error, not a crash of the process.
-	if _, err := withDeadline(time.Second, "the test", func() (int, error) { panic("boom") }); err == nil || !strings.Contains(err.Error(), "boom") {
-		t.Fatalf("a panic: %v", err)
+}
+
+func TestParserPanicIsAnError(t *testing.T) {
+	if _, err := recoverParse("test", func() (int, error) { panic("boom") }); err == nil || !strings.Contains(err.Error(), "boom") {
+		t.Fatal(err)
 	}
 }
 

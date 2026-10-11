@@ -14,7 +14,6 @@ import (
 	"image/color"
 	"io"
 	"io/fs"
-	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +25,6 @@ import (
 	_ "github.com/NimbleMarkets/ntcharts/v2/picture/decoders"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/gen2brain/h265/heic"
-	"github.com/ledongthuc/pdf"
 )
 
 const MaxFileBytes = 128 << 20
@@ -228,7 +226,7 @@ type Loader struct {
 	typesetInfo     []Field
 	typesetType     string
 	typesetHash     [32]byte
-	pdfReader       *pdf.Reader
+	pdfReader       *safePDF
 	pdfVersion      string
 	file            []Field
 	pages           int
@@ -370,20 +368,12 @@ func (l *Loader) Load(q Request) (out Result) {
 		details = func() []Field {
 			return Section("Document", Field{"Format", strings.TrimSpace("PDF " + pdfVersion(data))})
 		}
-		if err := checkPDFStreams(data); err != nil {
-			out.Err = err
-			return out
-		}
-		reader, err := pdf.NewReader(bytes.NewReader(data), int64(len(data)))
+		reader, err := newSafePDF(data, q.Page, q.TextOnly)
 		if err != nil {
 			out.Err = err
 			return out
 		}
-		pages := reader.NumPage()
-		if pages < 1 || pages > MaxPages {
-			out.Err = fmt.Errorf("PDF page count must be 1..%d", MaxPages)
-			return out
-		}
+		pages := reader.reply.Pages
 		l.path, l.pages, l.pdfData = q.Path, pages, data
 		l.pdfReader, l.pdfVersion, l.file = reader, pdfVersion(data), file
 		return l.renderPDF(q)
@@ -578,23 +568,17 @@ func (l *Loader) renderPDF(q Request) Result {
 		return Result{Generation: q.Generation, Kind: "pdf", Page: q.Page, Pages: l.pages, Err: err}
 	}
 	page := max(1, min(q.Page, l.pages))
-	dpi := q.DPI
-	if q.MaxEdge > 0 && l.pdfReader != nil {
-		w, h, ok, err := mediaBox(l.pdfReader, page)
-		if err != nil {
-			return Result{Generation: q.Generation, Kind: "pdf", Err: err}
-		}
-		if edge := math.Max(w, h); ok && edge > 0 {
-			dpi = int(math.Ceil(float64(q.MaxEdge) * 72 / edge))
-		}
+	dpi, dpiErr := l.pdfReader.dpi(page, q.MaxEdge, q.DPI)
+	if dpiErr != nil {
+		return Result{Generation: q.Generation, Kind: "pdf", Err: dpiErr}
 	}
 	out := Result{Generation: q.Generation, Kind: "pdf", Page: page, Pages: l.pages}
 	var err error
 	if q.TextOnly {
-		out.Text, err = pdfPageText(l.pdfReader, page)
-		out.Err = err
-		if err == nil || errors.Is(err, ErrNoTextLayer) {
-			out.Layer = measureLayer(l.pdfReader, page, out.Text)
+		reply, err := l.pdfReader.page(page, true)
+		out.Text, out.Layer, out.Err = reply.Text, reply.Layer, err
+		if err == nil && reply.NoText {
+			out.Err = fmt.Errorf("page %d has %w (a scan or a figure?): export it as a picture with --output", page, ErrNoTextLayer)
 		}
 		return out
 	}
@@ -607,9 +591,12 @@ func (l *Loader) renderPDF(q Request) Result {
 	}
 	out.Image, err = l.pdf.RenderPage(page, max(36, min(dpi, 600)))
 	out.Err = err
-	if reader, version, pages := l.pdfReader, l.pdfVersion, l.pages; err == nil && reader != nil {
-		out.Info = append(append([]Field(nil), l.file...), describe(func() []Field { return pdfFields(reader, version, pages, page) })...)
+	if err == nil {
+		if reply, e := l.pdfReader.page(page, false); e == nil {
+			out.Info = append(append([]Field(nil), l.file...), reply.Fields...)
+		}
 	}
+
 	return out
 }
 

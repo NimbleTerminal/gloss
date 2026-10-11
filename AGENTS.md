@@ -34,6 +34,12 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   (`testdata/scripts`, `task browse:screens`). Change the
   browser by adding a script first.
 - `internal/document`: bounded loaders, renderers, and vision-image sizing.
+  PDF metadata/text and SVG rasterization run in disposable parser workers:
+  the current executable on native hosts, Web Workers in the browser. A
+  15-second deadline stops and reaps/terminates the worker; at most two run at
+  once. Markdown checks its work budget synchronously in Goldmark callbacks.
+  `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
+  before PDF libraries run. Unsupported or ambiguous encodings fail closed.
 - `internal/animate`: bounded GIF decoding, format-neutral immutable clips and
   players, per-picture event-loop animators with Kitty pacing/cleanup, and the
   typeset region compositor. `internal/app/animation.go` adapts standalone controls.
@@ -274,6 +280,10 @@ Agent-facing / scriptable surface:
   delete, and are removed on timeout/decline/cancel. A start prunes states a
   day past their deadline.
   This is how a non-terminal agent asks a human for a file or shows one.
+  Upload accounting includes in-flight bytes before disk writes, with rollback
+  on failure. Ordinary `--serve` allows four concurrent uploads, at most 256
+  multipart fields per request, 1 GiB plus 1 MiB of multipart overhead per
+  request, and a 30-second upload idle timeout. The session quota remains 1 GiB.
 - `--pick-web`: experimental upload-only HTML/JS request page; implies
   `--serve --pick`, with no terminal connection, WASM, host-file browser, or
   file-download endpoint in the page. Takes no initial files, `--glob`, or `--fetch`. Choose/drop uploads

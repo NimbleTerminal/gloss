@@ -3,10 +3,8 @@ package document
 import (
 	"archive/zip"
 	"bytes"
-	"compress/zlib"
 	"encoding/binary"
 	"fmt"
-	"image"
 	"io"
 	"math"
 	"strconv"
@@ -38,75 +36,36 @@ const (
 	maxPDFInflated    = 1 << 30   // And all of them together.
 )
 
-// parseDeadline is how long a library that cannot be stopped is given.
+// parseDeadline bounds a parser worker or a cooperatively checked parse.
 // It is a variable so that tests can shorten it.
 var parseDeadline = 15 * time.Second
 
-// withDeadline runs work, and gives up on it after d. It is for the libraries
-// that take a hostile file and never return, and offer no way to stop them: a
-// PDF whose page tree lists itself, an SVG of nested uses. The work is
-// abandoned, not stopped: it goes on in its goroutine, so this is a way to
-// answer, not to save the cost. A panic in it is an error, as it would be in
-// the loader's own goroutine.
-func withDeadline[T any](d time.Duration, what string, work func() (T, error)) (T, error) {
-	type result struct {
-		value T
-		err   error
-	}
-	done := make(chan result, 1)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				done <- result{err: fmt.Errorf("%s: %v", what, r)}
-			}
-		}()
-		value, err := work()
-		done <- result{value, err}
-	}()
-	select {
-	case r := <-done:
-		return r.value, r.err
-	case <-time.After(d):
-		var zero T
-		return zero, fmt.Errorf("%s took longer than %v: the file is probably crafted, and was given up", what, d)
-	}
-}
-
-// renderSVGWithin is renderSVG under the deadline: a few hundred bytes of
-// <use> within <use> within <use> is a render that never ends.
-func renderSVGWithin(name string, data []byte, edge int) (image.Image, error) {
-	return withDeadline(parseDeadline, "drawing the SVG", func() (image.Image, error) {
-		return renderSVGUnbounded(name, data, edge)
-	})
-}
-
-// mediaBox is the size of a page in points, and whether it has one: MediaBox
-// is inherited from the nearest ancestor in the page tree. The reader does not
-// notice a tree that lists itself, and never returns from it.
-func mediaBox(reader *pdf.Reader, page int) (w, h float64, ok bool, err error) {
-	type size struct {
-		w, h float64
-		ok   bool
-	}
-	s, err := withDeadline(parseDeadline, "reading the PDF's page tree", func() (size, error) {
-		for node, depth := reader.Page(page).V, 0; !node.IsNull() && depth < maxPDFTreeWalk; node, depth = node.Key("Parent"), depth+1 {
-			box := node.Key("MediaBox")
-			if box.Len() != 4 {
-				continue
-			}
-			w, h := math.Abs(box.Index(2).Float64()-box.Index(0).Float64()), math.Abs(box.Index(3).Float64()-box.Index(1).Float64())
-			return size{w, h, w > 0 && h > 0 && !math.IsNaN(w) && !math.IsNaN(h) && !math.IsInf(w, 0) && !math.IsInf(h, 0)}, nil
+// recoverParse turns library panics into errors. It runs synchronously: a
+// timeout must stop the parser, never leave a goroutine working in the background.
+func recoverParse[T any](what string, work func() (T, error)) (value T, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%s: %v", what, r)
 		}
-		return size{}, nil
-	})
-	return s.w, s.h, s.ok, err
+	}()
+	return work()
 }
 
-// pageText is the text layer of a page, under the deadline.
+// These helpers run only inside the killable parser worker.
+func mediaBox(reader *pdf.Reader, page int) (w, h float64, ok bool, err error) {
+	for node, depth := reader.Page(page).V, 0; !node.IsNull() && depth < maxPDFTreeWalk; node, depth = node.Key("Parent"), depth+1 {
+		box := node.Key("MediaBox")
+		if box.Len() != 4 {
+			continue
+		}
+		w, h = math.Abs(box.Index(2).Float64()-box.Index(0).Float64()), math.Abs(box.Index(3).Float64()-box.Index(1).Float64())
+		return w, h, w > 0 && h > 0 && !math.IsNaN(w) && !math.IsNaN(h) && !math.IsInf(w, 0) && !math.IsInf(h, 0), nil
+	}
+	return 0, 0, false, nil
+}
+
 func pageText(reader *pdf.Reader, page int) (string, error) {
-	return withDeadline(parseDeadline, "reading the PDF's text", func() (string, error) {
-		return reader.Page(page).GetPlainText(nil)
-	})
+	return reader.Page(page).GetPlainText(nil)
 }
 
 // openZip is zip.NewReader after a look at how many entries the archive says
@@ -255,54 +214,4 @@ func tooWide(text string, separator rune) bool {
 		}
 	}
 	return false
-}
-
-// checkPDFStreams refuses a PDF whose compressed streams inflate to more than
-// they should: a megabyte of Flate can say a gigabyte, and both the Go reader
-// and PDFium make the whole of it before anyone can say no. It inflates each
-// stream in turn into nothing, stopping at the limits, so what it costs is
-// time, not memory. A stream that is not Flate is passed over.
-func checkPDFStreams(data []byte) error {
-	var total int64
-	rest := data
-	for {
-		i := bytes.Index(rest, []byte("stream"))
-		if i < 0 {
-			return nil
-		}
-		start := i + len("stream")
-		if bytes.HasSuffix(rest[:i], []byte("end")) {
-			rest = rest[start:] // The end of one, not the start of the next.
-			continue
-		}
-		switch {
-		case bytes.HasPrefix(rest[start:], []byte("\r\n")):
-			start += 2
-		case bytes.HasPrefix(rest[start:], []byte("\n")):
-			start++
-		default:
-			rest = rest[start:]
-			continue
-		}
-		end := bytes.Index(rest[start:], []byte("endstream"))
-		if end < 0 {
-			return nil // Cut short: the readers will say so.
-		}
-		n := inflatedSize(rest[start:start+end], maxPDFStream+1)
-		if total += n; n > maxPDFStream || total > maxPDFInflated {
-			return fmt.Errorf("PDF has streams that inflate to more than %d MiB: a compression bomb, or too large to open", maxPDFInflated>>20)
-		}
-		rest = rest[start+end+len("endstream"):]
-	}
-}
-
-// inflatedSize is how many bytes a Flate stream makes, counted up to limit.
-func inflatedSize(raw []byte, limit int64) int64 {
-	zr, err := zlib.NewReader(bytes.NewReader(raw))
-	if err != nil {
-		return 0
-	}
-	defer zr.Close()
-	n, _ := io.Copy(io.Discard, io.LimitReader(zr, limit))
-	return n
 }

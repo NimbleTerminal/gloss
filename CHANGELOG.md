@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Enforce PDF stream limits across filter chains and stop timed-out parser work.
+  Prevent concurrent uploads from exceeding the session quota and expire stalled uploads.
 - Typeset Markdown, plain text, source code, and JSON with `t` or `--typeset`:
   embedded fonts, highlighted code, tables, local images, and continuous scrolling.
   Export the viewport or numbered PNG slices without a browser or PDF step.

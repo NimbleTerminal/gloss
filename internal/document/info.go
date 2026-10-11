@@ -198,14 +198,8 @@ func pdfVersion(data []byte) string {
 }
 
 func pdfInfo(data []byte, page int) ([]Field, error) {
-	if err := checkPDFStreams(data); err != nil {
-		return nil, err
-	}
-	reader, err := pdf.NewReader(bytes.NewReader(data), int64(len(data)))
-	if err != nil {
-		return nil, err
-	}
-	return pdfFields(reader, pdfVersion(data), reader.NumPage(), page), nil
+	reply, err := runParser(parserRequest{Kind: "pdf", Data: data, Page: page})
+	return reply.Fields, err
 }
 
 // pdfDate reads "D:20260304050607+02'00'", of which only the year is required.

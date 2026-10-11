@@ -28,10 +28,17 @@ bookToC: false
   errors. HEIC works in Markdown, previews, PNG exports, and the browser demo.
 - SVG: NTCharts' pure-Go SVG renderer, rasterized to a 2400-pixel maximum edge.
   SVG support follows the underlying oksvg renderer, not a full browser engine.
+  Rendering runs in an isolated worker that is stopped after 15 seconds.
 - PDF: PDFium via embedded WebAssembly; no Poppler, MuPDF, CGO, or external
   runtime installation. Pages render at 150 DPI by default (`--dpi 36..600`),
   with a 32-megapixel raster budget and a 10,000-page limit. Password-protected
-  PDFs aren't supported. `/` searches the text layer and jumps to matching
+  PDFs aren't supported. Decoded streams are limited to 256 MiB per decoding
+  stage and 1 GiB of total decoding work. Stream lengths, chained filters, and
+  predictor buffers are checked before opening. Ambiguous lengths, indirect
+  filters/decode parameters, and unbudgeted filters (including LZW, JPEG 2000,
+  and JBIG2) are rejected. PDF metadata and text parsing run in isolated
+  workers with a 15-second deadline; timed-out workers are stopped.
+  `/` searches the text layer and jumps to matching
   pages with excerpts; it does not highlight the raster or perform OCR.
 - STL: ASCII and binary, flat-shaded triangles, up to 932,067 faces: as many as
   NTCharts3d draws, which is as many as any GPU is sure to hold. Normals are recomputed from vertex winding. GPU

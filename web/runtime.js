@@ -5,6 +5,7 @@ import { bootConfig, emptied } from './boot.mjs';
 import { openLibrary } from './library.mjs';
 import { pickFiles, pickFolder, inputPicker } from './pickers.mjs';
 import { fetchDocument } from './remote.mjs';
+import { parserWorkers } from './parser-worker.mjs';
 
 const config = bootConfig(document.querySelector('#gloss-boot')?.textContent, location.href);
 const $ = selector => document.querySelector(selector);
@@ -114,7 +115,9 @@ try {
     status.textContent = downloadStatus(loaded, total);
   }, Number(await sizeText));
   status.textContent = 'Download complete. Compiling WebAssembly…';
-  const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+  const module = await WebAssembly.compile(bytes);
+  window.glossParseWorker = parserWorkers(module);
+  const instance = await WebAssembly.instantiate(module, go.importObject);
   status.textContent = 'Starting the terminal…';
   const terminal = new BoobaTerminal('terminal');
   await terminal.init();

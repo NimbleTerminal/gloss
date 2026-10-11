@@ -76,10 +76,11 @@ type server struct {
 	lifetime      *viewerLifetime
 	closeOnce     sync.Once
 
-	mu     sync.Mutex
-	model  *app.Model
-	dir    string       // Where drops are kept; made when the first arrives.
-	stored atomic.Int64 // Bytes kept so far, against maxSessionBytes.
+	mu      sync.Mutex
+	model   *app.Model
+	dir     string       // Where drops are kept; made when the first arrives.
+	stored  atomic.Int64 // Bytes kept so far, against maxSessionBytes.
+	uploads atomic.Int32 // Active requests, including bytes not committed yet.
 
 	// Exports, made by e in the viewer, wait here for the page to take
 	// them as downloads: the server's working directory is not the
@@ -200,7 +201,7 @@ func serve(ctx context.Context, opts app.Options) (*server, error) {
 		return nil, err
 	}
 	s.URL = "http://" + listener.Addr().String() + "/" + s.token + "/"
-	s.front = &http.Server{Handler: s, ReadHeaderTimeout: 10 * time.Second, ErrorLog: log.New(io.Discard, "", 0)}
+	s.front = &http.Server{Handler: s, ReadHeaderTimeout: 10 * time.Second, ReadTimeout: uploadIdleTimeout, IdleTimeout: 30 * time.Second, ErrorLog: log.New(io.Discard, "", 0)}
 	go s.front.Serve(listener)
 	go func() {
 		<-ctx.Done()
@@ -348,6 +349,25 @@ func (s *server) receive(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
+	if s.uploads.Add(1) > 4 {
+		s.uploads.Add(-1)
+		r.Close = true
+		w.Header().Set("Connection", "close")
+		http.Error(w, "too many concurrent uploads", http.StatusServiceUnavailable)
+		return
+	}
+	defer s.uploads.Add(-1)
+	r.Body = http.MaxBytesReader(w, r.Body, maxSessionBytes+(1<<20))
+	succeeded := false
+	if s.webPick == nil {
+		controller := http.NewResponseController(w)
+		defer func() {
+			if succeeded {
+				_ = controller.SetReadDeadline(time.Time{})
+			}
+		}()
+		r.Body = &uploadBody{ReadCloser: r.Body, controller: controller}
+	}
 	form, err := r.MultipartReader()
 	if err != nil {
 		http.Error(w, "not a drop", http.StatusBadRequest)
@@ -356,19 +376,25 @@ func (s *server) receive(w http.ResponseWriter, r *http.Request) {
 	var paths []string
 	var taken int64 // What this drop has kept, to give back if it fails.
 	fail := func(code int, reason string) {
+		r.Close = true
+		w.Header().Set("Connection", "close")
 		for _, path := range paths {
 			os.Remove(path)
 		}
 		s.stored.Add(-taken)
 		http.Error(w, reason, code)
 	}
-	for {
+	for parts := 0; ; parts++ {
 		part, err := form.NextPart()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			fail(http.StatusBadRequest, "not a drop")
+			fail(uploadErrorStatus(err, http.StatusBadRequest), "could not read upload")
+			return
+		}
+		if parts >= maxDrops {
+			fail(http.StatusRequestEntityTooLarge, "too many multipart fields")
 			return
 		}
 		// Only the last element of the name is the page's to choose.
@@ -385,32 +411,27 @@ func (s *server) receive(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// One file may be 128 MiB, and the session has only so much to give.
-		room := min(document.MaxFileBytes, maxSessionBytes-s.stored.Load())
-		if room <= 0 {
-			fail(http.StatusRequestEntityTooLarge, "this session has kept all the files it will")
-			return
+		charged := &uploadQuotaReader{s: s, reader: io.LimitReader(part, document.MaxFileBytes+1)}
+		kept, size, err := s.keep(name, charged)
+		if err != nil || size > document.MaxFileBytes {
+			s.stored.Add(-charged.charged)
 		}
-		kept, size, err := s.keep(name, io.LimitReader(part, room+1))
 		switch {
 		case errors.Is(err, syscall.ENAMETOOLONG):
 			fail(http.StatusBadRequest, "filename is too long (including any duplicate-name suffix)")
 			return
 		case err != nil:
-			fail(http.StatusInternalServerError, "the drop could not be kept")
+			code := uploadErrorStatus(err, http.StatusInternalServerError)
+			fail(code, "the drop could not be kept")
 			return
-		case size > room:
+		case size > document.MaxFileBytes:
 			os.Remove(kept)
-			if room == document.MaxFileBytes {
-				fail(http.StatusRequestEntityTooLarge, document.ErrTooLarge.Error())
-			} else {
-				fail(http.StatusRequestEntityTooLarge, "this session has kept all the files it will")
-			}
+			fail(http.StatusRequestEntityTooLarge, document.ErrTooLarge.Error())
 			return
 		case size == 0:
 			os.Remove(kept)
 			continue
 		}
-		s.stored.Add(size)
 		taken += size
 		paths = append(paths, kept)
 		if err := s.accept.CheckFile(nil, kept); err != nil {
@@ -436,6 +457,7 @@ func (s *server) receive(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string][]string{"paths": paths})
+	succeeded = true
 }
 
 // offer keeps an export for the page to download, within what the session

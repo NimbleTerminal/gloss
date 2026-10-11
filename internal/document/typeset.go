@@ -47,7 +47,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 	if err := checkMarkdownNesting(string(data)); err != nil {
 		return nil, nil, nil, err
 	}
-	root, err := withDeadline(parseDeadline, "reading the Markdown", func() (ast.Node, error) { return MarkdownTree(data), nil })
+	root, err := readMarkdownTree(data)
 	if err != nil {
 		return nil, nil, nil, err
 	}
