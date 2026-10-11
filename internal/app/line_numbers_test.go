@@ -198,7 +198,7 @@ func TestTypesetLineNumberKeys(t *testing.T) {
 }
 
 func TestLineNumbersInHelp(t *testing.T) {
-	if !strings.Contains(helpScreen(), "# line numbers") || !strings.Contains(helpScreen(), ": go to line") {
+	if !strings.Contains(helpScreen(), "# line numbers") || !strings.Contains(helpScreen(), ": go to line") || !strings.Contains(helpScreen(), "S chop") {
 		t.Fatal("help does not mention line numbers")
 	}
 }

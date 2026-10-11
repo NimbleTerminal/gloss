@@ -118,7 +118,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   text, source, JSON and Markdown source (`internal/app/line_numbers.go`;
   typeset: `Request.TypesetLineNumbers`, `TypesetViewport.Line/Lines/Numbers`);
   `--line-numbers` (`-N`) starts with them on, in the viewer and typeset exports.
-  Rendered Markdown prose and JSON records have no file lines. Typeset text requires valid
+  Rendered Markdown prose and JSON records have no file lines. `S` chops long
+  lines instead of wrapping them, as `less -S` does, with the arrows scrolling
+  sideways: any text view, and typeset text/source/JSON pages
+  (`Request.TypesetChop`, `TypesetViewport.Chop`); `--chop-long-lines` (`-S`)
+  starts chopped. Typeset text requires valid
   UTF-8, at most 2 MiB of source/formatted text, 8,192 lines and an untruncated
   bounded source view; Markdown shaping/raster limits also apply. Export kinds
   remain text/json. `--markdown typeset` remains a compatibility alias.

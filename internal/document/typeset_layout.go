@@ -369,6 +369,8 @@ type layout struct {
 	sel            *selection // Text to draw a highlight behind, while rastering.
 	numbers        bool       // Lay a gutter of line numbers left of the lines.
 	gutter         int        // Its width in page pixels, once measured.
+	chop           bool       // Lay each line on one row, however long, instead of wrapping it.
+	extentX        int        // The right edge of the widest operation, for panning a chopped page.
 }
 
 func (e *engine) layout(p *prepared, width int) *layout {
@@ -556,6 +558,9 @@ func (l *layout) block() {
 			l.number(l.next, size)
 		}
 		width := max(32, l.width-50-x)
+		if l.chop && l.p.lines {
+			width = 1 << 24
+		}
 		switch b.kind {
 		case "rule":
 			l.rect(image.Rect(x, l.y, x+width, l.y+2), color.Gray{210})
@@ -597,6 +602,11 @@ func (l *layout) block() {
 		}
 		if l.y+50 > 1125*MaxPages || len(l.ops) > 32768 {
 			panic("typeset layout exceeds display-list limit")
+		}
+		for _, op := range l.ops[ops:] {
+			if op.run != nil {
+				l.extentX = max(l.extentX, op.rect.Max.X)
+			}
 		}
 	}
 }

@@ -147,19 +147,22 @@ type Request struct {
 	// TypesetLineNumbers asks for a gutter of file line numbers on a document
 	// whose blocks are its lines: text, source and JSON.
 	TypesetLineNumbers bool
-	Page, DPI          int
-	Generation         uint64
-	Reload             bool
-	MaxEdge            int         // Export raster target; zero keeps interactive defaults.
-	Animate            bool        // Decode bounded GIF playback; still exports and previews leave this false.
-	TextOnly           bool        // The text layer of a PDF page is wanted, not a picture of it.
-	Preview            bool        // A small, quick rendering is wanted: a thumbnail will do.
-	Parts              PartFilter  // The parts of a 3MF to show; empty shows them all.
-	Shown              []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
-	Color              *color.RGBA // Paint for the faces of a mesh that its file left plain.
-	PaintAll           bool        // Paint every face, not only the plain ones.
-	Stdin              bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
-	BaseDir            string      // Relative Markdown assets; empty uses the source directory.
+	// TypesetChop lays each line of such a document on one row, however
+	// long, for the viewer to pan across, instead of wrapping it.
+	TypesetChop bool
+	Page, DPI   int
+	Generation  uint64
+	Reload      bool
+	MaxEdge     int         // Export raster target; zero keeps interactive defaults.
+	Animate     bool        // Decode bounded GIF playback; still exports and previews leave this false.
+	TextOnly    bool        // The text layer of a PDF page is wanted, not a picture of it.
+	Preview     bool        // A small, quick rendering is wanted: a thumbnail will do.
+	Parts       PartFilter  // The parts of a 3MF to show; empty shows them all.
+	Shown       []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
+	Color       *color.RGBA // Paint for the faces of a mesh that its file left plain.
+	PaintAll    bool        // Paint every face, not only the plain ones.
+	Stdin       bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
+	BaseDir     string      // Relative Markdown assets; empty uses the source directory.
 	// Exactly what was asked for: a page or part that is not there is an
 	// error, not the nearest one. The viewer turns pages and keeps within
 	// them; an export or a text must not answer for another page.

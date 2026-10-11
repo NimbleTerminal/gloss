@@ -88,7 +88,7 @@ func (m *Model) typesetViewMatches() bool {
 // theme, is the one the viewer's state asks for now.
 func (m *Model) viewportAsked(shown *document.TypesetViewport, width int, theme string) bool {
 	v := m.typesetViewport()
-	return shown != nil && theme == m.theme && !v.End && v.Line == 0 && shown.Numbers == m.lineNumbers && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+	return shown != nil && theme == m.theme && !v.End && v.Line == 0 && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
 }
 
 // queueTypesetReflow asks for the page as the viewer's state now wants it,

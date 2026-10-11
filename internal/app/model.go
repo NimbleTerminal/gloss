@@ -34,6 +34,7 @@ type Options struct {
 	MarkdownMode           string
 	Typeset                bool
 	LineNumbers            bool // Show file line numbers in text and typeset views of line-based documents.
+	ChopLines              bool // Cut long lines at the right edge instead of wrapping them, as less -S does.
 	Theme                  string
 	Font, Mono             string
 	SaveFont               func(string, string) error
@@ -124,6 +125,7 @@ type textState struct {
 	lineNumbers             bool       // Show file line numbers, where the view's rows are file lines.
 	lineInput               *lineInput // The go-to-line prompt, while it is open.
 	typesetGoLine           int        // A line the typeset page is asked to put at the top, until it answers.
+	chopLines               bool       // Cut long lines at the right edge instead of wrapping them.
 	typesetShown            *document.TypesetViewport
 	typesetTheme            string
 	typesetFont             string
@@ -202,7 +204,7 @@ func New(opts Options) *Model {
 	pic, id := terminalPicture(opts.Render, !opts.keptScreen)
 	opts.keptScreen = true
 	m := &Model{opts: opts, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, pic: pic, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
-	m.lineNumbers = opts.LineNumbers
+	m.lineNumbers, m.chopLines = opts.LineNumbers, opts.ChopLines
 	m.presentation = animate.New(&m.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
 	m.presentation.ID = id
 	m.theme = "dark"
@@ -317,7 +319,7 @@ func (m *Model) request(reload bool) document.Request {
 	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: m.theme, Font: m.opts.Font, Mono: m.opts.Mono, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
 		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
 	q.TypesetWidth = m.typesetMeasure()
-	q.TypesetLineNumbers = m.lineNumbers
+	q.TypesetLineNumbers, q.TypesetChop = m.lineNumbers, m.chopLines
 	if !reload {
 		q.Playback = m.typesetPlayback
 		if sources := m.typesetOverlaySources(); q.Playback != nil && len(sources) > 0 {
@@ -449,7 +451,7 @@ func (m *Model) layoutMarkdown() tea.Cmd {
 		return nil
 	}
 	m.markdown.setTheme(m.theme)
-	m.markdown.numbers, m.markdown.fenced = m.lineNumbers, m.kind == "text" || m.kind == "json"
+	m.markdown.numbers, m.markdown.fenced, m.markdown.chop = m.lineNumbers, m.kind == "text" || m.kind == "json", m.chopLines
 	cw, ch := m.pic.CellPixelSize()
 	return m.markdown.layout(m.width, m.bodyHeight(), cw, ch)
 }

@@ -732,7 +732,7 @@ The source pins, licenses, subset recipe and checksums are documented in
 `internal/document/fonts/README.md`. Regeneration needs FontTools 4.60.2;
 building and using gloss need only the embedded subsets.
 
-## Line numbers and go to line
+## Line numbers, go to line, and chopped lines
 
 Line numbers are file lines, shown only where a view's rows are file lines
 (`internal/app/line_numbers.go` has the keys, the prompt and the status
@@ -761,4 +761,18 @@ answers `End`; on a result `Line` is the line at the reading top (the block
 under the page margin, `layout.lineAt`) and `Lines` the count, zero for a
 Markdown page. The viewer clears its pending line when a result arrives and
 counts a pending line or a different gutter as a view that does not match.
+
+Chopping (`S`, `--chop-long-lines`) replaces wrapping, as `less -S` does. In
+the text view the layout wraps at an unbounded width, so a logical line is one
+row holding the whole styled line, and `view` cuts the window `left` columns
+in with `ansi.Cut`, after search highlighting and before the gutter, so styles
+and highlights survive and the gutter stays put. `scrollX` moves by a quarter
+of the width and stops at the widest row; `reveal` brings a search match that
+is off the edge a third of the way in. Tables are laid out within the width
+as before. A typeset text page lays each line out at an unbounded width
+(`layout.chop`), tracks the right edge of its widest operation (`extentX`),
+and the pan clamp in `renderTypeset` takes the greater of the page width and
+that edge. Chop is part of the layout's identity with width and numbers, and
+of the viewer's match test through `TypesetViewport.Chop`; a Markdown page
+ignores it, since its blocks are not lines.
 

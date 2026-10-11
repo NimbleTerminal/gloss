@@ -58,8 +58,36 @@ func (m *Model) lineKey(k string) (tea.Cmd, bool) {
 		}
 		m.lineInput = &lineInput{}
 		return nil, true
+	case "S":
+		// Chopping is for any text view, as less -S is; a typeset page chops
+		// only where its blocks are lines.
+		m.chopLines = !m.chopLines
+		if typeset {
+			if !lined {
+				m.note = "chopping lines: text, source and JSON pages only"
+				return nil, true
+			}
+			return m.queueTypesetReflow(), true
+		}
+		return m.layoutMarkdown(), true
 	}
 	return nil, false
+}
+
+// reveal scrolls a chopped view sideways so that the search highlight on a
+// row is in view, a third of the way in.
+func (v *markdownView) reveal(row int) {
+	hits := v.highlights[row]
+	if !v.chop || len(hits) == 0 || row < 0 || row >= len(v.lines) {
+		return
+	}
+	plain := ansi.Strip(v.lines[row].text)
+	col := ansi.StringWidth(plain[:min(len(plain), hits[0][0])])
+	avail := max(1, v.width-v.gutter)
+	if col < v.left || col >= v.left+avail {
+		v.left = max(0, col-avail/3)
+		v.scrollX(0)
+	}
 }
 
 // lineInputKey edits the go-to-line prompt: digits, Backspace, Enter goes,
@@ -118,8 +146,12 @@ func (v *markdownView) topLine() int {
 // lineDetail is the position part of the status bar for a text view: file
 // lines when the rows are file lines, screen rows otherwise.
 func (v *markdownView) lineDetail() string {
+	detail := fmt.Sprintf("line %d/%d", min(v.offset+1, len(v.lines)), len(v.lines))
 	if v.numbered() {
-		return fmt.Sprintf("line %d/%d", v.topLine(), v.lastLine)
+		detail = fmt.Sprintf("line %d/%d", v.topLine(), v.lastLine)
 	}
-	return fmt.Sprintf("line %d/%d", min(v.offset+1, len(v.lines)), len(v.lines))
+	if v.chop && v.left > 0 {
+		detail += fmt.Sprintf(" · col %d", v.left+1)
+	}
+	return detail
 }

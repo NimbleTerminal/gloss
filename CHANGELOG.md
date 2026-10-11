@@ -15,7 +15,9 @@
     in a gutter and `:` goes to a line, in the text and typeset views of plain
     text, source code, JSON and Markdown source; the status bar then counts
     file lines. `--line-numbers` (`-N`) starts with the gutter on, including in
-    typeset exports.
+    typeset exports. `S` chops long lines instead of wrapping them, as `less -S`
+    does, with the arrows scrolling sideways and search matches brought into
+    view; `--chop-long-lines` (`-S`) starts chopped.
 
   * Render frames through the `perf/consolidated` branch of the
     `neomantra/ultraviolet` fork of Bubble Tea's renderer, pinned by a `replace`

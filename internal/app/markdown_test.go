@@ -155,3 +155,58 @@ func TestLineNumbersNumberFencedFileLines(t *testing.T) {
 		})
 	}
 }
+
+// Chopped, a long line is one row cut at the right edge; the view scrolls
+// sideways as far as the widest line, and back; the gutter does not move.
+func TestChopLongLines(t *testing.T) {
+	doc := &document.Markdown{Source: []byte("short\n0123456789abcdefghijklmnopqrstuvwxyz\nend\n")}
+	m := newMarkdownView(doc, 500)
+	m.raw, m.chop = true, true
+	m.layout(12, 10, 8, 16)
+	rows := trimmedRows(m.view())
+	if len(rows) != 4 || rows[1] != "0123456789ab" || rows[0] != "short" {
+		t.Fatalf("chopped rows %q", rows)
+	}
+	if m.lines[1].line != 2 || m.lines[2].line != 3 {
+		t.Fatal("rows are not one per line")
+	}
+	if !m.key("right") || m.left != 3 {
+		t.Fatalf("right scrolled to %d", m.left)
+	}
+	rows = trimmedRows(m.view())
+	if rows[1] != "3456789abcde" || rows[0] != "rt" || rows[2] != "" {
+		t.Fatalf("scrolled rows %q", rows)
+	}
+	for range 20 {
+		m.key("right")
+	}
+	if m.left != 36-12 {
+		t.Fatalf("scrolled past the widest line: %d", m.left)
+	}
+	m.key("home")
+	if m.left != 0 || m.offset != 0 {
+		t.Fatal("home did not return to the left edge")
+	}
+	// With numbers, the gutter stays while the text scrolls.
+	m.numbers = true
+	m.layout(12, 10, 8, 16)
+	m.key("right")
+	rows = trimmedRows(m.view())
+	if rows[1] != "2 3456789abc" || rows[0] != "1 rt" {
+		t.Fatalf("numbered scrolled rows %q", rows)
+	}
+	// Wrapping again: rows wrap, and sideways scrolling is gone.
+	m.chop = false
+	m.layout(12, 10, 8, 16)
+	if m.left != 0 || len(m.lines) <= 4 || m.key("right") {
+		t.Fatalf("wrap mode: left %d rows %d", m.left, len(m.lines))
+	}
+}
+
+func trimmedRows(view string) []string {
+	rows := strings.Split(ansi.Strip(view), "\n")
+	for i, row := range rows {
+		rows[i] = strings.TrimRight(row, " ")
+	}
+	return rows
+}

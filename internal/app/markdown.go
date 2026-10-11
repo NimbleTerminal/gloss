@@ -40,6 +40,8 @@ type markdownView struct {
 	fenced                            bool // The document is a file shown as one fenced code block: its rows are the file's lines.
 	gutter                            int  // Columns the gutter takes, including its separating space; 0 for none.
 	lastLine                          int  // The last file line the rows show; 0 when rows are not file lines.
+	chop                              bool // Cut long lines at the right edge instead of wrapping them.
+	left, widest                      int  // The columns scrolled off the left edge, and the widest row, when chopping.
 }
 
 func newMarkdownView(doc *document.Markdown, id int) *markdownView {
@@ -127,6 +129,10 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 	if m.numbers && lineOf != nil {
 		m.gutter = min(m.width-1, len(strconv.Itoa(last))+1)
 	}
+	wrap := m.width - m.gutter
+	if m.chop {
+		wrap = 1 << 20
+	}
 	var cmds []tea.Cmd
 	for _, block := range m.content.blocks {
 		switch {
@@ -167,7 +173,7 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 				m.lines = append(m.lines, markdownLine{image: i, row: row})
 			}
 		default:
-			rows := wrapTextUnit(m.content.units[block.unit], block.unit, m.width-m.gutter, m.raw)
+			rows := wrapTextUnit(m.content.units[block.unit], block.unit, wrap, m.raw)
 			if lineOf != nil {
 				for i := range rows {
 					rows[i].line = lineOf(block.unit)
@@ -176,8 +182,24 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 			m.lines = append(m.lines, rows...)
 		}
 	}
+	m.widest = 0
+	for _, line := range m.lines {
+		if line.image < 0 {
+			m.widest = max(m.widest, ansi.StringWidth(line.text))
+		}
+	}
+	if !m.chop {
+		m.left = 0
+	}
 	m.scroll(0)
+	m.scrollX(0)
 	return tea.Batch(cmds...)
+}
+
+// scrollX moves the chopped rows sideways, no further than the end of the
+// widest one.
+func (m *markdownView) scrollX(delta int) {
+	m.left = max(0, min(m.widest-max(1, m.width-m.gutter), m.left+delta))
 }
 
 // lineMap says which file line a unit of the content shows, and the last
@@ -308,9 +330,18 @@ func (m *markdownView) key(k string) bool {
 	case "ctrl+u":
 		m.scroll(-max(1, m.height/2))
 	case "home", "0":
-		m.offset = 0
+		m.offset, m.left = 0, 0
 	case "end", "G":
 		m.scroll(len(m.lines))
+	case "left", "h", "right", "l":
+		if !m.chop {
+			return false
+		}
+		step := max(1, m.width/4)
+		if k == "left" || k == "h" {
+			step = -step
+		}
+		m.scrollX(step)
 	default:
 		return false
 	}
@@ -324,8 +355,12 @@ func (m *markdownView) view() string {
 		line := m.lines[i]
 		if line.image < 0 {
 			p := theme.Get(m.theme)
-			text := lipgloss.NewStyle().Foreground(p.Foreground).Background(p.Background).Width(m.width)
-			lines = append(lines, text.Render(m.gutterFor(i)+highlightRanges(line.text, m.highlights[i])))
+			style := lipgloss.NewStyle().Foreground(p.Foreground).Background(p.Background).Width(m.width)
+			text := highlightRanges(line.text, m.highlights[i])
+			if m.chop {
+				text = ansi.Cut(text, m.left, m.left+max(1, m.width-m.gutter))
+			}
+			lines = append(lines, style.Render(m.gutterFor(i)+text))
 			continue
 		}
 		rows, ok := cache[line.image]

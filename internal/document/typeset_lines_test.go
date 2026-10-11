@@ -116,3 +116,57 @@ func TestTypesetGoToLine(t *testing.T) {
 		t.Fatalf("markdown page %+v", r.TypesetView)
 	}
 }
+
+// Chopped, a long line of a text page is laid out on one row, however wide,
+// and the page pans as far as the widest line. A Markdown page keeps wrapping.
+func TestTypesetChopLongLines(t *testing.T) {
+	long := "short\n" + strings.Repeat("a long line of words that will wrap at the measure ", 8) + "\nend\n"
+	l := &Loader{Files: fstest.MapFS{"long.txt": {Data: []byte(long)}, "page.md": {Data: []byte("# Title\n\n" + strings.Repeat("prose ", 300) + "\n")}}}
+	defer l.Close()
+	q := Request{Path: "long.txt", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
+	if r := l.Load(q); r.Err != nil || r.TypesetView.Chop {
+		t.Fatalf("plain %+v %v", r.TypesetView, r.Err)
+	}
+	rowsOf := func(block int) map[int]bool {
+		rows := map[int]bool{}
+		for _, op := range l.direct.ops {
+			if op.run != nil && !op.gutter && op.block == block {
+				rows[op.rect.Min.Y] = true
+			}
+		}
+		return rows
+	}
+	if len(rowsOf(1)) < 2 {
+		t.Fatal("long line did not wrap without chop")
+	}
+	q.TypesetChop = true
+	r := l.Load(q)
+	if r.Err != nil || !r.TypesetView.Chop {
+		t.Fatalf("chopped %+v %v", r.TypesetView, r.Err)
+	}
+	if len(rowsOf(1)) != 1 {
+		t.Fatalf("chopped line on %d rows", len(rowsOf(1)))
+	}
+	widest := 0
+	for _, op := range l.direct.ops {
+		widest = max(widest, op.rect.Max.X)
+	}
+	if widest <= l.direct.width {
+		t.Fatal("chopped line does not reach past the page width")
+	}
+	q.TypesetView = &TypesetViewport{Height: 400, Left: 1 << 20}
+	r = l.Load(q)
+	if r.Err != nil || r.TypesetView.Left != widest+50-r.TypesetView.Width || r.TypesetView.Left <= 0 {
+		t.Fatalf("pan clamp %+v, widest %d", r.TypesetView, widest)
+	}
+	// Panning back to the left and wrapping again.
+	q.TypesetChop = false
+	q.TypesetView = &TypesetViewport{Height: 400, Left: 1 << 20}
+	if r = l.Load(q); r.Err != nil || r.TypesetView.Chop || r.TypesetView.Left != 0 || len(rowsOf(1)) < 2 {
+		t.Fatalf("wrapped again %+v", r.TypesetView)
+	}
+	q = Request{Path: "page.md", Typeset: true, Page: 1, TypesetChop: true, TypesetView: &TypesetViewport{Height: 400}}
+	if r = l.Load(q); r.Err != nil || r.TypesetView.Chop {
+		t.Fatalf("markdown page chopped: %+v", r.TypesetView)
+	}
+}

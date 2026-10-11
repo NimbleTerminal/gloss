@@ -26,6 +26,7 @@ bookToC: false
 | `s` in typeset mode | Toggle the typeset view and text/source |
 | `#` | Show or hide file line numbers, in text and typeset views of plain text, source, JSON and Markdown source |
 | `:` | Go to a line: type its number, `Enter` goes there, `Esc` cancels; a number past the end goes to the last line |
+| `S` | Chop long lines at the right edge instead of wrapping them, as `less -S` does, and back; chopped, `←`/`→` and `h`/`l` scroll sideways and `Home` returns to the left edge |
 | `Home` / `End`, `G` | First / last PDF page |
 | Arrows, `h j k l` | Move about a spreadsheet by row and column |
 | `x`, `X` | Hide the column under the cursor / show every column |
@@ -55,7 +56,7 @@ At a PDF boundary, page navigation stays on that page. Use `[` and `]` to change
 files. Loading and rendering run asynchronously; errors appear in the viewer
 with retry and next-file controls.
 
-## Line numbers and going to a line
+## Line numbers, going to a line, and long lines
 
 `#` puts the file's line numbers in a gutter, and `:` asks for a line to put
 at the top, wherever the rows are the file's lines: plain text, source code,
@@ -65,6 +66,14 @@ its first row. Rendered Markdown prose and JSON records have no file lines,
 so both keys say to use the source view instead. With the numbers known, the
 status bar counts file lines rather than screen rows. `--line-numbers` (`-N`) starts
 with the gutter on, in the viewer and in typeset exports.
+
+`S` chops long lines instead of wrapping them, as `less -S` does: each line is
+one row, cut at the right edge, and the arrows scroll the text sideways by a
+quarter of the screen, with the status bar naming the column at the left edge.
+A search match beyond the edge is scrolled into view. In the text views this
+chops whatever is shown; a typeset page chops only text, source and JSON,
+whose lines then pan as far as the widest one. `--chop-long-lines` (`-S`)
+starts chopped.
 
 ## Document text search
 

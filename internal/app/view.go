@@ -135,7 +135,7 @@ const helpText = "gloss — a visual pager\n\n" +
 	"Drop files to open · / search · n/N next/prev match · Esc clear\n" +
 	"Meshes: drag to orbit, Shift-drag to pan, wheel to zoom, 5 orthographic\n" +
 	"Text: t text/typeset, s source; select: Shift-drag in text, drag + y in typeset\n" +
-	"Lines: # line numbers, : go to line (text, source, JSON, Markdown source)\n" +
+	"Lines: # line numbers, : go to line, S chop/wrap long lines (text, source, JSON)\n" +
 	"Standalone GIFs: Space play/pause, ,/. step, drag bar seek, </> speed, Backspace 1×\n"
 
 // DocsURL is the documentation site.
@@ -426,7 +426,7 @@ func (m *Model) hints() string {
 	case m.typeset != nil && m.markdown == nil:
 		keys = " q quit · ↑/↓/wheel scroll · Space/b screen · +/- zoom · f fit width · s source · t text · e export"
 		if m.typesetLined() {
-			keys += " · : line · # numbers"
+			keys += " · : line · # numbers · S " + map[bool]string{false: "chop", true: "wrap"}[m.typesetShown.Chop]
 		}
 		if m.typesetSelected != "" {
 			keys = " y copy selection · Esc clear · ↑/↓/wheel scroll · +/- zoom · e export · q quit"
@@ -443,6 +443,7 @@ func (m *Model) hints() string {
 		if m.markdown.numbered() {
 			keys += " · : line · # numbers"
 		}
+		keys += " · S " + map[bool]string{false: "chop", true: "wrap"}[m.markdown.chop]
 	case m.sheet != nil:
 		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info"
 		switch {
