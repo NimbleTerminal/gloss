@@ -13,7 +13,30 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/charmbracelet/x/ansi/kitty"
 )
+
+func TestPreviewKittyPresentation(t *testing.T) {
+	m := New(Options{Files: []string{"a.png"}, Menu: true, Preview: true, Render: "kitty"})
+	t.Cleanup(func() { m.Close() })
+	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	p := m.preview
+	_, cmd := m.Update(previewResult{owner: p.kittyID, result: document.Result{
+		Generation: p.generation, Kind: "png", Image: image.NewRGBA(image.Rect(0, 0, 32, 32)),
+	}})
+	drainAnimation(t, m, cmd)
+	if p.presentation.Front == nil || !strings.ContainsRune(m.View().Content, kitty.Placeholder) {
+		t.Fatal("preview did not present its Kitty image through the parent event loop")
+	}
+	if m.presentation.Front != nil {
+		t.Fatal("preview presentation changed the parent image")
+	}
+	_, cmd = m.Update(tea.WindowSizeMsg{Width: 90, Height: 25})
+	drainAnimation(t, m, cmd)
+	if p.presentation.Awaiting || !strings.ContainsRune(m.View().Content, kitty.Placeholder) {
+		t.Fatal("resized preview did not finish presentation")
+	}
+}
 
 func TestMenuSelectionCancelAndOpen(t *testing.T) {
 	m := New(Options{Files: []string{"a.pdf", "b.svg", "c.stl"}, Render: "glyph", Page: 1, DPI: 72})

@@ -590,7 +590,12 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	case animationSeekResult:
 		return m, m.animationSought(v)
 	case animationPresented:
-		cmd, _ := m.presentation.Update(v)
+		cmd, handled := m.presentation.Update(v)
+		// A menu preview owns its own presentation. Its completion travels
+		// through this event loop just like the picture frame that preceded it.
+		if !handled && m.preview != nil {
+			_, cmd = m.preview.Update(v)
+		}
 		return m, cmd
 	case previewResult:
 		if m.preview != nil && v.owner == m.preview.kittyID {
