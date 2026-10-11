@@ -2,24 +2,20 @@
 
 ## Unreleased
 
+## `v0.3.1` (2026-10-11)
+
+- Open files in native apps with `w`/`W` or Alt+Enter in the file browser.
+  Save per-format defaults, manage visible apps, and list them with `--apps`.
 - Edit text files in `$VISUAL` / `$EDITOR` from Open with, then return to gloss
   with the file reloaded and viewing position preserved where possible.
-
-- Fix a served-viewer shutdown race when closing the browser tab (Booba v0.9.0).
-
-- Add file-browser help on `?` with an empty filter or `F1`, preserving the
-  filter and selection when closed.
-
-- Open files in native apps with `w`/`W`, choose from the file browser with
-  Alt+Enter, save per-format defaults, manage visible apps in a checklist, and
-  list apps with `--apps [--json]`.
-
-- Render footnotes and GitHub alerts in both terminal text and typeset Markdown;
-  click footnote references and back links to navigate within the document.
-- Move the Go module and imports to `nimbleterminal.dev/gloss`. Existing tagged
-  versions keep their original GitHub module path.
-
-- Render Markdown emoji shortcodes and preserve emoji joiners in source and search.
+- Support emoji shortcodes, footnotes, and GitHub alerts in terminal text and
+  typeset Markdown. Click footnote references and back links to navigate.
+- Show file-browser help with `?` when the filter is empty, or `F1` at any time.
+- Fix the browser gallery getting stuck on “Preparing image” and a served-viewer
+  shutdown race when closing the browser tab.
+- Add Homebrew installation tips and remove duplicate skill-install output.
+- Move the Go module to `nimbleterminal.dev/gloss`; the repository remains
+  `github.com/NimbleTerminal/gloss`.
 
 ## `v0.3.0` (2026-10-11)
 
