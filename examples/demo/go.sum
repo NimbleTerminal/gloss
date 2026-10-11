@@ -12,8 +12,8 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/NimbleMarkets/booba-shim v0.1.0 h1:oy4hrfKJw+Loyc0SmebYP7NzDLR7j3jDakA+OJ2ygQw=
 github.com/NimbleMarkets/booba-shim v0.1.0/go.mod h1:+3ch4kZuCLtrwGK2s3ALo/I1Dzcz4e888PC3f2lLbgs=
-github.com/NimbleMarkets/go-booba v0.7.0 h1:lZoafrAIhx3jmBUhfCW+45v7vZpGnhO67ywVWy3kVMA=
-github.com/NimbleMarkets/go-booba v0.7.0/go.mod h1:I6VRW95yGxv2j9/T11UGr4olNYyqeuNpBwZQvPDUACw=
+github.com/NimbleMarkets/go-booba v0.9.0 h1:QZ96/0chKJXn74tfIbvFZeHSJNa71uNnufFPqDVVPCw=
+github.com/NimbleMarkets/go-booba v0.9.0/go.mod h1:i/XjhpdZ8B+gXeaYLQ1HQLw0QOh9Cg/t2I2lNKDSynw=
 github.com/NimbleMarkets/go-gpuimage v0.1.0 h1:2GRyaKxM+OO7riNcLV6uTX9DRXijkCWL9v7HItj5Mm4=
 github.com/NimbleMarkets/go-gpuimage v0.1.0/go.mod h1:eWkNxvLkZkQQdwtUHbbULnM69mLS53iIXQEfce667N8=
 github.com/NimbleMarkets/ntcharts-pdf v0.3.1 h1:gm5EDfcNVLz7HVlZKP9NnATwL6xJ1gOdu4gJHmjo1qg=

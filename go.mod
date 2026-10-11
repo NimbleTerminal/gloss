@@ -8,7 +8,7 @@ require (
 	charm.land/glamour/v2 v2.0.1
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
-	github.com/NimbleMarkets/go-booba v0.7.0
+	github.com/NimbleMarkets/go-booba v0.9.0
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
 	github.com/NimbleMarkets/ntcharts-svg v0.3.0
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0

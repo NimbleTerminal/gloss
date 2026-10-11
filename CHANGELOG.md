@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix a served-viewer shutdown race when closing the browser tab (Booba v0.9.0).
+
 - Add file-browser help on `?` with an empty filter or `F1`, preserving the
   filter and selection when closed.
 
