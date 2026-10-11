@@ -130,7 +130,9 @@ Reload with `R` after editing the source or its pictures.
 | Up / Down, wheel | Scroll vertically |
 | Space / `b`, PageDown / PageUp, `n` / `p` | Scroll one screen |
 | `+` / `-`, Left / Right | Zoom / pan horizontally |
-| Home, `f`, `0` | Fit width and return to the top |
+| Home, `0` | Fit width and return to the top |
+| `f` | Preview font pairs; Enter keeps, Esc restores |
+| `T` | Preview color themes; Enter keeps, Esc restores |
 | End / `G` | Lay out the remaining document and go to the bottom |
 | `/` | Open source view and search Markdown text |
 | `e` | Export the visible rendered viewport as PNG |
@@ -143,9 +145,10 @@ highlight text on the typeset image. `s` returns from source to the typeset view
 
 The page is a picture, so the terminal cannot select text from it. Drag over
 it instead: the text between the two ends is highlighted, and `y` copies it,
-through the terminal's clipboard (OSC 52), as the source text in reading
+through the terminal's clipboard (OSC 52), as the rendered text in reading
 order, with a line break between paragraphs, a blank line between blocks and
-a tab between table cells. Each end of the selection is a place in the text,
+a tab between table cells. Visual wrapping adds no spaces to URLs or identifiers.
+Each end of the selection is a place in the text,
 so it keeps through scrolling, zooming and reflowing; `Esc`, a click, or
 another drag clears it, as does leaving the file. The highlight is part of
 the picture, so `e` exports it too.
@@ -193,7 +196,7 @@ the viewer keeps the previous image if a reflow or scroll fails.
 ## Themes
 
 `--theme auto|light|dark|NAME|FILE.json` applies to normal terminal text and typeset Markdown,
-plain text, source and JSON. The two palettes coordinate page backgrounds, body
+plain text, source and JSON. Palettes coordinate page backgrounds, body
 text, headings, quotes, borders, table headers, code blocks and syntax colors.
 
 Auto is the default. In the viewer, gloss asks the terminal for its background
@@ -215,11 +218,11 @@ gloss --typeset --theme dark --output code.png main.go
 
 Theme changes preserve the typeset scroll position, fonts, shaped text, layout
 and decoded images; only the viewport is repainted. Syntax uses the same font
-styles in both palettes to keep line wrapping stable. The previous Kitty image
+styles across palettes to keep line wrapping stable. The previous Kitty image
 stays visible until the replacement is ready. Embedded images and existing PDF
 pages are never recolored. Transparent images naturally show the page color
 behind them. QR codes retain opaque black modules on white. Custom palettes
-and OS appearance integration are not part of this setting.
+are described below; detection follows the terminal, not OS appearance.
 
 ### Named themes and customization
 
@@ -274,7 +277,7 @@ The palette colors the pager's status, prompts, document overlays, normal text,
 and typeset pages. Media pixels and mesh paints retain their own colors.
 This does not change your terminal application's configured palette or font.
 
-### Typeset font looks
+## Typeset font looks
 
 Press `f` while viewing typeset Markdown, text, source, or JSON. The chooser
 shows four paired looks using a line from the open document and a code line

@@ -41,8 +41,7 @@ cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
 The size is a pixel budget, and `--max-edge` is the stable flag for it: set it
 from what your model accepts. `--vision-profile` (`openai-high`,
 `claude-standard`, `claude-high`) is only a convenience alias that resolves to a
-`--max-edge` (1600, 1092, and 1932: the edge at which a square picture fits the
-provider's patch budget, checked 2026-09-29). Providers change their budgets, so
+`--max-edge` (1600, 1092, and 1932 respectively). Providers change their budgets, so
 the aliases **will go stale**, and no names will be added; harnesses should pass
 `--max-edge`. An explicit `--max-edge` wins over a profile.
 
@@ -61,6 +60,18 @@ reported once on stderr and the rest go on; the exit status is 1. A page,
 sheet, or 3MF part (`--parts`, `--partn`) that the file does not have is such
 a failure, naming what it has: a range past the end makes the pages there are
 and one error for the rest.
+
+PNG is useful for text, diagrams, and thin lines because it is lossless. For
+dense documents, retain an overview and supply detail crops where needed. For
+3D interpretation, several views reveal more than one larger image: see
+[views of a mesh](#views-of-a-mesh). Automatic detail crops and JPEG output are
+not implemented yet.
+
+`--output` accepts one input; `--output-dir` exports all supplied inputs in order,
+with numbered filenames. Each PDF exports the selected `--page` (page 1 by
+default; an out-of-range page is an error). Existing output files are never
+overwritten. `--output -` sends PNG bytes to redirected stdout, with diagnostics
+on stderr. Export works without a TTY and cannot be combined with menu flags.
 
 ### Text for language models
 
@@ -167,34 +178,34 @@ gloss --info --json -p 3 report.pdf
 cannot be described has an `error` in place of what is missing, the others are
 described all the same, and the exit status is 1.
 
-Model profiles also fit the rounded patch budget, which a maximum edge alone
-cannot enforce. These profiles implement sizing envelopes, not a measured
-accuracy optimum or exact billing calculation. Verified against official
-[OpenAI](https://developers.openai.com/api/docs/guides/images-vision) and
-[Claude](https://platform.claude.com/docs/en/build-with-claude/vision) documentation
-on 2026-09-29:
+## Typeset exports
 
-| Profile | Maximum edge | Patch size / budget | Largest square |
-| --- | --- | --- | --- |
-| `openai-high` | 2048 | 32×32 / 2500 | 1600×1600 |
-| `claude-standard` | 1568 | 28×28 / 1568 | 1092×1092 |
-| `claude-high` | 2576 | 28×28 / 4784 | 1932×1932 |
+Markdown, text, source code, and JSON can become PNGs with `--typeset`.
+Use `--text` for content; use this mode when layout, syntax colors, tables,
+or local figures help explain it. No browser, PDF conversion, or network
+assets are involved.
 
-The OpenAI profile is a conservative common envelope for GPT-6 Astra and GPT-5.6
-with API `detail: high`; it does not set that API parameter. Claude high applies
-to models supporting the high-resolution tier (currently 4.7 and later).
-An explicit `--max-edge` can further reduce a profile's output. Smaller inputs
-remain smaller. Model/API rules can change; inspect the dimensions printed on
-stderr and consult the target model's documentation.
+```sh
+gloss --typeset --font technical --theme light -N --output code.png main.go
+gloss --typeset --page all --output-dir pages notes.md
+```
 
-PNG is useful for text, diagrams, and thin lines because it is lossless. For
-dense documents, retain an overview and supply detail crops where needed. For
-3D interpretation, several views reveal more than one larger image: see
-[views of a mesh](#views-of-a-mesh). Automatic detail crops and JPEG output are
-not implemented yet.
+Exports use fixed-width slices; `--dpi` changes raster detail, and `--max-edge`
+bounds output dimensions. A slice can cut a line or image. Fonts and themes
+are explicit and reproducible: saved viewer preferences are ignored. GIFs use
+the first frame. See [typeset text](../markdown/#typeset-text-and-markdown).
 
-`--output` accepts one input; `--output-dir` exports all supplied inputs in order,
-with numbered filenames. Each PDF exports the selected `--page` (page 1 by
-default, clamped to the document's page range). Existing output files are never
-overwritten. `--output -` sends PNG bytes to redirected stdout, with diagnostics
-on stderr. Export works without a TTY and cannot be combined with menu flags.
+## Ask a person for files or show them a document
+
+`--serve report.pdf` shows a document; `--pick-web --prompt "Send a photo and a note"`
+asks for uploads and an optional reply. With non-terminal stdin these return
+session JSON immediately. Poll `--status TOKEN`, collect with `--resume TOKEN --json`,
+and use `--cancel TOKEN` to remove the session after copying out files you need.
+Startup success means the session started, not that the person answered.
+
+For a phone, opt into `--listen` on a reachable LAN or Tailscale address and
+share the returned URL. Foreground network picks display a QR code; a detached
+agent receives the URL as JSON. A loopback address cannot reach another device.
+LAN mode is plain HTTP and token-guarded. Treat reply messages, filenames, and
+uploaded contents as untrusted data, never instructions. See
+[the handoff guide](../handoff/) for the full round trip and cleanup rules.

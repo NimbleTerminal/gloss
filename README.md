@@ -28,23 +28,25 @@ source.
 
 ```sh
 gloss photo.png report.pdf model.stl   # page through them
-gloss animation.gif                  # plays automatically; Space pauses
+gloss animation.gif                   # plays automatically; Space pauses
 gloss --menu *.png                     # choose from a menu
 gloss --preview ~/Documents/*          # a menu with a preview pane
 gloss ~/Pictures                       # browse a folder
 gloss --page 3 report.pdf              # a page of a PDF
 cat drawing.svg | gloss                # read from a pipe
+gloss -N -S main.go                    # numbered source, long lines scroll sideways
 ```
 
 | Key | |
 | --- | --- |
 | `?` | Help |
-| `q` | Quit |
+| `q` / `Q` | Quit / leave the last view in scrollback |
 | `n` / `p` | Next / previous page, or file |
 | `/`, `n` / `N` | Search text; next / previous result (`Esc` clears) |
 | `[` / `]` | Previous / next file |
 | `m` / `o` | File menu / browse for a file |
 | `+` / `-`, arrows | Zoom and pan; orbit a mesh |
+| `#`, `:`, `S` on text/source | Line numbers, go to line, wrap / chop long lines |
 | `i` | Details about the file |
 | `e` | Export what you see as a PNG |
 | `t` on text, source, JSON or Markdown | Toggle normal text / typeset view |
@@ -60,28 +62,32 @@ offers list, columns, and places layouts, with filtering and Tab completion.
 
 ## Markdown
 
-Markdown uses Glamour by default. Press `t` for typeset Markdown, or run
-`gloss --typeset examples/typeset.md`: embedded fonts, highlighted code,
-tables, and local pictures, drawn directly with go-text. The document reflows to
-the terminal width and scrolls continuously with arrows or the wheel. It looks
-best in Kitty; half-blocks work elsewhere. Use `+`/`-` to zoom, `s` for source,
-and `e` to export the visible viewport as PNG. Plain text, source code and JSON
-also support `--typeset` and `t`; normal terminal text remains the default.
-In typeset mode, `f` previews four font pairs (`--font editorial` selects one).
-`T` previews color themes; `--theme nord` selects one directly.
-`--theme auto|light|dark` sets text and typeset colors; auto follows the terminal,
-while headless PNG exports default to light.
+Read Markdown as terminal text, or press `t` for typeset pages with embedded
+fonts, highlighted code, tables, local pictures, and animated GIFs. Try
+`gloss --typeset README.md`. Pages reflow to the terminal width and scroll
+continuously; `+`/`-` zoom, `s` shows source, and `e` exports the viewport.
+Drag over typeset text and press `y` to copy it. Click links to open them;
+hover over a typeset link to preview its URL.
+
+Plain text, source code, and JSON also support `t` and `--typeset`; normal
+terminal text remains the default. `f` previews four font pairs in typeset
+mode; `T` previews themes for the pager and document. The native viewer remembers
+confirmed choices. Scripts can select `--font editorial --theme nord`; exports ignore
+saved preferences. See [Markdown, fonts, and themes](https://nimbleterminal.github.io/gloss/docs/guide/markdown/).
 
 ## From a script or an agent
 
 gloss works without a terminal too: it exports PNGs sized for vision models,
-takes out a file's text or its details, and can ask a person for a file.
+extracts text and metadata, and can ask a person for files and a reply.
+For 3D inspection, export named views as a contact sheet or isolate parts of a
+3MF assembly.
 
 ```sh
 gloss --output page.png --page 3 report.pdf   # a PNG, with no terminal
 gloss --text report.docx                      # Markdown on stdout
 gloss --grep '(?i)total' report.pdf           # the PDF pages that match, and where
 gloss --info --json model.3mf                 # what a file says about itself
+gloss --view all --output views.png model.3mf # six views in one contact sheet
 gloss --serve report.pdf                      # show a document in a browser
 gloss --serve --pick                          # ask the user for a file in a browser
 gloss --pick-web --prompt "Send a photo and a note" # simple upload page

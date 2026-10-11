@@ -11,6 +11,16 @@ short introduction; the user reference is the guide on the documentation site
 (`docs/hugo/content/guide`); DEVELOP.md is for working on gloss. Keep them and
 this file consistent with the code.
 
+## Documentation responsibilities
+
+Keep the README focused on the useful differences: one pager for mixed media,
+text/typeset switching, GIF playback and frame seeking, searchable documents and
+tables, 3D inspection, headless exports, and human/agent handoff by URL or QR.
+Use the Unreleased changelog for short user-visible changes, not implementation
+history. The guide owns controls, themes/fonts, limits, and examples; the skill
+owns scriptable workflows, JSON results, exit codes, and untrusted-input rules.
+Update source docs and regenerate the generated guide pages with `task docs`.
+
 ## Repository layout
 
 - `cmd/gloss`: CLI flags (pflag GNU syntax), stdin handling, PNG export
@@ -100,7 +110,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   the composite page. A left drag over the page selects text
   (`internal/app/typeset_select.go`, `internal/document/typeset_select.go`):
   the loader highlights it in the raster and returns its text, with each end
-  placed as block/paragraph/rune so it survives reflow; `y` copies it with
+  placed as block/paragraph/rune so it survives reflow; copying preserves logical
+  text across visual wraps. `y` copies it with
   `tea.SetClipboard` (OSC 52, no clipboard dependency), `Esc` clears it.
   Text screens have no selection of their own: the terminal's Shift override. Preflight: 2 MiB UTF-8, 32 image references, 16 Mi decoded pixels,
   128 MiB combined image input. Layout caps: 32,768 AST nodes/blocks/drawing

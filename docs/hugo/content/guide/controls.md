@@ -227,7 +227,8 @@ them with your terminal's override, usually Shift held while dragging. A
 typeset page is a picture, which the terminal cannot select from: drag over
 it to select text, `y` copies the selection through the terminal's clipboard
 (OSC 52, which the terminal must allow; most do), and `Esc` clears it. The
-selection follows the text through scrolling, zooming and resizing, and a
+selection follows the text through scrolling, zooming and resizing. Visual
+wrapping adds no spaces to copied URLs or identifiers. A
 plain click or another drag replaces it. Shift-drag is still the terminal's.
 
 In a table, select a cell containing an http(s) URL and press `u` to show its QR

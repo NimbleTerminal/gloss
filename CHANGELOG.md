@@ -2,225 +2,41 @@
 
 ## Unreleased
 
-  * Require Go 1.26.9 or newer for standard-library security fixes.
-
-  * Add four embedded typeset font pairs, an `f` live sample chooser, saved
-    native preferences, `--font`, and a `--mono jetbrains` code-face override.
-    Reflow at the visible block, report fallback/missing glyphs, and keep source
-    toggles and search on logical text.
-
-  * Add named color themes adapted from go-thinkt, a `T` live-preview chooser,
-    native saved preferences, and bounded custom theme JSON via `--theme`.
-    Share palettes across pager chrome, Markdown and typeset syntax colors.
-
-  * Redraw the help page (`?`) as sections in two columns, keys and actions
-    in the theme's colors, with a heading for each kind of document; narrow
-    terminals stack the sections in one column that scrolls.
-
-  * Add optional line numbers and go-to-line: `#` shows the file's line numbers
-    in a gutter and `:` goes to a line, in the text and typeset views of plain
-    text, source code, JSON and Markdown source; the status bar then counts
-    file lines. `--line-numbers` (`-N`) starts with the gutter on, including in
-    typeset exports. `S` chops long lines instead of wrapping them, as `less -S`
-    does, with the arrows scrolling sideways and search matches brought into
-    view; `--chop-long-lines` (`-S`) starts chopped.
-
-  * Render frames through the `perf/consolidated` branch of the
-    `neomantra/ultraviolet` fork of Bubble Tea's renderer, pinned by a `replace`
-    directive: a Kitty picture frame costs about 40% less renderer time and a
-    third fewer allocations. Install from a clone, since `go install …@latest`
-    does not accept a module with a `replace`.
-
-  * Select text in typeset views by dragging; `y` copies it through the
-    terminal (OSC 52) and `Esc` clears it. The selection is kept by its place
-    in the text, so it survives scrolling, zooming and reflow. Text views keep
-    the terminal's own Shift-drag selection. Copy preserves logical text across
-    visual wraps, including long URLs and identifiers without added spaces.
-
-  * Open HTTP(S) links and linked figures on click in native Markdown text and
-    typeset views, preserving wheel scrolling and terminal OSC 8 links.
-    Preview typeset link URLs in the status bar on hover.
-
-  * Adopt NimbleTerminal/ntqrcode v0.2.0 at `nimbleterminal.dev/ntqrcode`
-    in native and browser builds; update local workspace paths.
-
-  * Animate embedded GIF figures in normal and typeset Markdown. Pause hidden
-    images, preserve playback across typeset reflow, and export displayed frames.
-    Bound animation to eight destinations and 64 MiB of decoded storage per
-    document, retaining first-frame stills beyond the budget. Share standalone
-    and inline playback through the reusable internal animation package.
-
-  * Add `--theme auto|light|dark` for terminal text and typeset pages, including
-    syntax colors. Auto follows terminal background replies with a dark fallback;
-    headless auto exports use light. Theme changes repaint typeset pages without
-    rebuilding layout or losing scroll position.
-
-  * Add explicit `--typeset` for Markdown, plain text, source code and JSON
-    (`--markdown typeset` remains an alias): embedded-font graphics via go-text,
-    Chroma-highlighted code, local images, continuous scrolling and cancellable
-    width reflow. `t` switches renderer, `s` shows source, `/` opens source search.
-    Glamour stays the default. Interactive `e` saves the visible viewport;
-    headless PNG exports support numbered fixed-width slices with `--page`.
-
-  * Move gloss, its documentation site, and Homebrew tap to NimbleTerminal;
-    update recording references to NimbleTerminal/ntrecord. Other dependencies remain
-    pinned under their existing NimbleMarkets module paths.
-
-  * **Browser viewing sessions**
-    * Show supplied files with viewer controls instead of upload-request chrome
-    * Detached show-only sessions default to renewable 10-minute inactivity
-      limits, with a warning and Keep viewing action; explicit timeouts and
-      picker deadlines stay fixed
-    * Distinguish deliberate completion from expiration or transport loss;
-      interrupted viewing surfaces remain uncovered with a notice
-
-  * **Document text search**
-    * `/` opens a Unicode-aware literal, case-insensitive query; `n`/`N` visit
-      text occurrences/cells/pages and `Esc` clears it
-    * Highlight displayed text and visible-column table cells; PDF text search
-      jumps to matching pages with excerpts, reporting pages without text
-    * Bounded asynchronous searches cancel on reload or leaving the document,
-      reject stale results, and reindex after layout/source/column changes
-    * Search logical text before wrapping: long words and phrases match across
-      screen rows, highlights span their fragments, and resizing preserves the
-      selected occurrence and result count
-    * Markdown table cells and headers wrap independently; very narrow layouts
-      stack cells instead of losing right-hand columns
-
-  * **Animated GIFs**
-    * Click/drag the frame scrubber to seek; `,`/`.` step frames and Home/End
-      select endpoints. Seeking pauses, with cancellable, coalesced composition;
-      Space resumes from the selected frame with a fresh loop count
-    * Automatic playback in Kitty and glyph modes with frame transparency,
-      disposal, delays, and loop counts; Space pauses/resumes and restarts a
-      finished animation
-    * `<`/`>` adjust playback speed through 0.25×, 0.5×, 1×, 2×, and 4×;
-      Backspace restores 1×, and the status bar shows the selected speed
-    * Kitty playback retains the previous image until its replacement is ready,
-      avoiding glyph flashes between frames
-    * Window/font resizing keeps the retained frame within the viewport and
-      rejects obsolete placements without interrupting the user's pause state
-    * Zoom/pan follow playback; `e` exports the displayed frame. Previews,
-      inline images, and headless PNG export keep the first frame
-    * Bounded decoding checks canvas size, frame count, and total frame pixels
-      before allocation; hidden/closed documents cancel playback work
-    * An original `examples/motion.gif` fixture is also in the browser gallery
-
-
-  * **File handoff and QR codes**
-    * Pin native and browser builds to `ntcharts-qrcode v0.1.1`, using
-      `piglig/go-qr/v2 v2.3.0` with optimized text segments, explicit UTF-8,
-      and automatic error-correction boosting
-    * Experimental `--pick-web` offers a plain HTML/JS upload page with
-      Choose files, Remove, Send files, and Cancel; no WASM or terminal needed
-    * An optional reply message accompanies files in `--status` and
-      `--resume --json`, and foreground `--pick-web --json` answers
-    * `--listen` and `--advertise-host` support LAN and Tailscale addresses
-      for the upload-only picker. LAN binding is opt-in, plain HTTP, and
-      token-guarded; the full `--serve` viewer remains localhost-only
-    * Foreground LAN picks show a terminal QR until confirmation, cancellation,
-      or timeout, preserving stdout for paths or JSON
-    * `u` shows a selected table URL as a QR overlay with Kitty graphics or
-      half-block fallback; `e` exports its PNG, and the original text remains
-      available in the table
-    * The browser demo starts with a sample image on phone-width screens
-
-
-  * **The file browser**
-    * A rebuilt chooser (`o`) with three layouts: list, file-manager columns,
-      and columns with a sidebar of common and recently visited folders.
-      `Ctrl-L` switches layouts; `Ctrl-G` moves to the sidebar
-    * Ranked fuzzy filtering with highlighted matches, smart case, globs,
-      and access to hidden files by typing a leading dot
-    * `Tab` completes a common prefix, then cycles candidates; `Shift-Tab`
-      cycles backward and `→` accepts the dimmed suggestion. `Tab` also expands
-      abbreviated folder paths; `G` completes folders only
-    * Clickable breadcrumbs, back and forward history, and mouse navigation
-      through rows, columns, places, and the file-type menu (`Ctrl-F`)
-    * Cursor positions survive folder reads and navigation. Completion works
-      after accented and other multibyte characters. Typing and search commands
-      close popups; hidden popups no longer capture keys, and the wheel
-      scrolls the menu or sidebar under it
-    * File detection is deferred until rows are drawn or files are chosen,
-      avoiding reads of every unknown file just to list a folder. Pipes,
-      devices, and links to them are never opened for detection
-    * A new guide explains the layouts, filtering, completion, and keys
-
-  * **URL drops and required formats**
-    * `--fetch` also enables dropping or pasting one http(s) URL in the
-      terminal, and dropping one on a `--serve` page
-    * `--accept 'image/*'` requires images, including SVG; comma-separated
-      formats such as `--accept 'image/*,pdf'` allow alternatives. The filter
-      applies to initial files, choices, drops, and downloads independently
-      of `--type`. Mismatches report the received and required formats;
-      rejected downloads are removed
-    * The landing-page demo and browser app accept URL drops. Downloads go
-      directly from the source to the browser, subject to CORS, without a
-      site proxy, credentials, or referrer. Browser downloads have a one-minute
-      deadline and enforce the 128 MiB limit while streaming
-    * `?accept=image%2F*` restricts a browser app session to images. Documents
-      opened from URLs are not saved in the app's persistent file library
-
-  * **The agent contract**
-    * `gloss --cancel TOKEN` ends a detached session: it stops the server,
-      deletes the session folder with every dropped file, and makes later
-      `--status` and `--resume` exit 1
-    * `--resume` no longer removes a settled session: `--status` still reports
-      it, paths and all, and `--resume` answers again, until `--cancel` or a
-      day after the session's timeout
-    * The startup, `--status`, and `--resume --json` objects carry
-      `"protocol": 1`
-    * `--text --json` on a PDF page adds `chars` and `images`, and
-      `"sparse": true` for a page with images and under 100 characters of
-      text, which is better exported as a picture
-    * `--grep PATTERN` searches the text layer of a PDF and prints only the
-      matching pages, with an excerpt; `--json` gives one object per match.
-      Matches stop at 200
-    * `gloss skill schema` prints the JSON Schema of everything gloss writes as
-      JSON, generated from the types that write it
-
-  * **Commands**
-    * `gloss skill` prints the agent skill and `gloss skill install [FOLDER]`
-      installs it; they replace `--skill` and `--install`, which still work
-      but are no longer listed
-    * `gloss view` is the default command, spelled out: `gloss view FILE` is
-      `gloss FILE`, and is how to open a file named `skill`, `view` or `help`
-    * `gloss help [command]` shows the usage of gloss or of one command; the
-      shell completions offer the commands
-
-  * **Fixes**
-    * Exports and `--text` refuse a page, sheet, table, or 3MF part the file
-      does not have, naming what it has, instead of giving the last one; a
-      range past the end makes the pages there are and reports the rest once.
-      Each failure is reported once on stderr, not twice
-    * A 3MF too large to draw, or to unpack within 128 MiB, exports its
-      embedded thumbnail with a `note` in the manifest and on stderr saying so;
-      `--info` describes a package too large to unpack from its root model
-    * Mesh exports of named views outline edges, so holes and openings no
-      longer vanish in flat-shaded front, back, and top views
-    * `--text` into a file or folder writes a notebook's or Word document's
-      pictures beside the text and links them; on stdout a `note` says they
-      were left out. The browser app no longer shows dropped files under
-      `dropped/`
-    * Grist summary tables show what they group by as Grist does (the site's
-      name, not `Sites[1]`) and are titled `Table [by Column]`
-    * `e` in a `--serve` page downloads the PNG in the browser instead of
-      writing it into the directory gloss was started in
-    * The browser app no longer keeps showing the previous picture after
-      moving to another file of the same size (a texture cache in ghostty-web
-      is worked around with a new Kitty image id per picture)
-
-  * **Development and packaging**
-    * The file chooser is a separate Bubble Tea component. Its test harness
-      provides an in-memory filesystem, scripted golden screens, layout and
-      terminal-safety checks, and session recording and replay; `task browse:*`
-      exposes the tests, playground, benchmarks, and VHS recordings
-    * `task build` skips rebuilding when its sources, embedded assets,
-      dependencies, and requested version have not changed. A test checks
-      that the build's source list covers everything the binary uses
-    * License notice generation finds Go's license in Homebrew installations
-      and reports an error if it cannot read it, instead of silently omitting
-      the runtime license
+- Typeset Markdown, plain text, source code, and JSON with `t` or `--typeset`:
+  embedded fonts, highlighted code, tables, local images, and continuous scrolling.
+  Export the viewport or numbered PNG slices without a browser or PDF step.
+- Preview four font pairs with `f` and color themes with `T`. Save native choices,
+  select them with `--font` and `--theme`, or supply a custom theme JSON file.
+- Search document text, table cells, and PDF text with `/` and `n`/`N`. Text
+  matches survive wrapping and resizing. Add line numbers with `#` (`-N`),
+  go to a line with `:`, and chop long lines with `S` (`-S`).
+- Select and copy typeset text by dragging and pressing `y`. Copy preserves
+  text across visual wraps. Click Markdown links and preview typeset URLs on hover.
+- Play GIFs with pause, speed control, frame stepping, and a draggable scrubber.
+  Local GIF figures also animate in Markdown. Export the displayed frame or
+  typeset viewport; previews and headless exports use the first frame.
+- Improve Kitty scrolling, resizing, and animation: keep the previous picture
+  until its replacement is ready, cache glyphs, and update only animated regions.
+- Browse files in list, columns, or places layouts, with fuzzy filtering,
+  path completion, breadcrumbs, and mouse navigation. Help groups controls by media.
+- Request uploads and an optional reply with `--pick-web`. Opt-in LAN/Tailscale
+  binding (`--listen`, `--advertise-host`) supports phone handoff by QR code.
+  LAN HTTP is unencrypted and token-guarded; `--serve` remains localhost-only.
+- Show a table URL as a QR code with `u`, and export it with `e`. Use Kitty
+  graphics or a half-block fallback without changing the original text.
+- Give browser viewers appropriate viewing controls and renewable idle sessions.
+  Expiration or connection loss leaves the document visible with a notice.
+- Add detached-session cancellation, repeatable status/resume results, JSON
+  schemas, PDF text search with `--grep`, and sparse-page hints for agents.
+- Accept explicit URL drops with `--fetch` and constrain inputs with `--accept`.
+  Browser URL downloads use CORS directly, without a proxy.
+- Fix export page validation, retain notebook/Word images beside extracted text,
+  outline named mesh views, and use embedded thumbnails for oversized 3MF files.
+- Move gloss, the documentation site, and Homebrew tap to NimbleTerminal.
+  Adopt NTCharts v2.8.0 and `nimbleterminal.dev/ntqrcode`; require Go 1.26.9+.
+  Source installs use a clone because the renderer uses a pinned module replacement.
+- Add `gloss view`, `gloss help`, and `gloss skill install`; keep the old skill
+  flags as hidden aliases. Make `task build` skip unchanged builds outside a workspace.
 
 ## `v0.2.0` (2026-10-02)
 

@@ -31,7 +31,7 @@ it alone does not inspect its contents.
 | `--json` with text, grep, export, or info | JSON array of results, including errors |
 | `--pick` with terminal stdin | Chosen full paths after confirmation |
 | `--pick` / `--serve` without terminal stdin | One JSON object describing the detached session; exit 0 means started, not answered |
-| `--resume TOKEN` | Chosen paths; with `--json`, an object with `protocol`, `status`, `paths`, `error`, and optional user-authored `message` from `--pick-web` |
+| `--resume TOKEN` | Chosen paths; with `--json`, an object with `protocol`, `status`, `paths`, `error`, and optional untrusted reply `message` from `--pick-web` |
 | `--status TOKEN` | One JSON object, at once, saying how the detached session stands: `protocol`, `state`, `settled`, and `paths`, `message`, `error`, or `seconds_left` as they apply |
 | `--cancel TOKEN` | Nothing; exit 0 means the session is ended and its folder deleted |
 | `gloss skill schema` | The JSON Schema of every object above |
