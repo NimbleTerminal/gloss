@@ -1,12 +1,14 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/NimbleTerminal/gloss/internal/document"
+	"github.com/charmbracelet/x/ansi/kitty"
 )
 
 func TestFontPickerPreviewCancelConfirm(t *testing.T) {
@@ -55,14 +57,19 @@ func TestFontPickerKittyCleanupAndResize(t *testing.T) {
 	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
 	m.pic.Toggle()
 	_, cmd := m.Update(press("f"))
-	pump(m, cmd, 0)
+	// The preview and Kitty encoding are finite work, not timers. Wait for
+	// both even when rendering exceeds pump's patience on a loaded CI runner.
+	drainAnimation(t, m, cmd)
 	if m.fontPicker == nil || m.fontPicker.pic.Mode() != picture.PictureKitty {
 		t.Fatal("picker ignored capability")
 	}
 	old := m.fontPicker
+	if old.base == nil || old.err != nil || !strings.ContainsRune(old.pic.View().Content, kitty.Placeholder) {
+		t.Fatalf("picker frame not ready: %v", old.err)
+	}
 	_, cmd = m.Update(tea.WindowSizeMsg{Width: 12, Height: 6})
 	raw := collectRaw(cmd)
-	if !strings.Contains(raw, "a=d,d=I,i=") {
+	if !strings.Contains(raw, fmt.Sprintf("a=d,d=I,i=%d", old.owner)) {
 		t.Fatal("resize did not clean graphics", raw)
 	}
 	_, cmd = m.Update(press("esc"))
@@ -70,12 +77,16 @@ func TestFontPickerKittyCleanupAndResize(t *testing.T) {
 	_, cmd = m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	drainAnimation(t, m, cmd)
 	_, cmd = m.Update(press("f"))
-	pump(m, cmd, 0)
+	drainAnimation(t, m, cmd)
 	if m.fontPicker.owner == old.owner {
 		t.Fatal("reused picker image ID")
 	}
+	reopened := m.fontPicker
+	if reopened.base == nil || reopened.err != nil || !strings.ContainsRune(reopened.pic.View().Content, kitty.Placeholder) {
+		t.Fatalf("reopened picker frame not ready: %v", reopened.err)
+	}
 	raw = collectRaw(m.quit())
-	if !strings.Contains(raw, "a=d,d=I,i=") {
+	if !strings.Contains(raw, fmt.Sprintf("a=d,d=I,i=%d", reopened.owner)) {
 		t.Fatal("quit did not clean picker")
 	}
 }
