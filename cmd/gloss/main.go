@@ -49,6 +49,7 @@ type options struct {
 	AdvertiseHost string
 	Timeout       time.Duration
 	Info, JSON    bool
+	Apps          bool
 	FetchAllowed  bool
 	Globs         []string
 	Text          bool           // Take the text out, rather than draw.
@@ -97,8 +98,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	coln := f.String("coln", "", "show only these columns of a table, counted from 1: 2,4-6")
 	f.StringArrayVar(&opts.Globs, "glob", nil, "search the folders named, or the current one, for files: a glob, an extension, or a kind such as images (repeatable)")
 	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; gloss never fetches on its own")
+	f.BoolVar(&opts.Apps, "apps", false, "list installed apps for each file kind without opening a file; --json for scripts")
 	f.BoolVar(&opts.Info, "info", false, "print what each file says about itself, and do not open the viewer")
-	f.BoolVar(&opts.JSON, "json", false, "with --info, --text, --grep, an export, --pick-web, or --resume, print JSON")
+	f.BoolVar(&opts.JSON, "json", false, "with --apps, --info, --text, --grep, an export, --pick-web, or --resume, print JSON")
 	f.BoolVar(&opts.Pick, "pick", false, "wait for the user to hand over files: Enter prints their paths and quits")
 	f.BoolVar(&opts.PickWeb, "pick-web", false, "experimental file request with Choose files and Send buttons, without a terminal; implies --serve --pick; takes no input files")
 	f.StringVar(&opts.Listen, "listen", defaultPickListen, "with --pick-web, listen on IP:port (IPv6: [IP]:port); port 0 chooses a free port; wildcard requires --advertise-host")
@@ -304,7 +306,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	switch {
 	case opts.Grep != nil && (opts.Output != "" || opts.OutputDir != "" || opts.Info || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.FetchAllowed):
 		return opts, false, fmt.Errorf("--grep prints the matches and exits; it cannot be combined with an export, --info, or the viewer's options")
-	case opts.JSON && opts.Grep == nil && !opts.Info && !opts.Text && opts.Output == "" && opts.OutputDir == "" && opts.Resume == "" && !opts.PickWeb:
+	case opts.JSON && !opts.Apps && opts.Grep == nil && !opts.Info && !opts.Text && opts.Output == "" && opts.OutputDir == "" && opts.Resume == "" && !opts.PickWeb:
 		return opts, false, fmt.Errorf("--json goes with --info, --text, --grep, an export, --pick-web, or --resume")
 	case opts.Info && (opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen):
 		return opts, false, fmt.Errorf("--info prints and exits; it cannot be combined with the viewer's or export's options")
@@ -356,6 +358,10 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	case opts.Detached != "" && (!opts.Serve || !tokenPattern.MatchString(opts.Detached)):
 		return opts, false, fmt.Errorf("--detached is for gloss's own use")
 	}
+
+	if opts.Apps && (len(opts.Files) > 0 || len(opts.Globs) > 0 || opts.Serve || opts.Pick || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != "" || opts.Menu || opts.Preview || opts.FetchAllowed) {
+		return opts, false, fmt.Errorf("--apps lists applications; it takes no files or other mode")
+	}
 	return opts, false, nil
 }
 
@@ -366,6 +372,16 @@ func run(args []string) (err error) {
 	}
 	if err != nil {
 		return err
+	}
+	if opts.Apps {
+		host, err := nativeOpenWith()
+		if host == nil {
+			return err
+		}
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "gloss: open-with preferences: %v\n", err)
+		}
+		return writeApps(os.Stdout, host, opts.JSON)
 	}
 	if opts.SkillInstall != "" {
 		if term.IsTerminal(os.Stdout.Fd()) {
@@ -478,12 +494,14 @@ func run(args []string) (err error) {
 	if exporting {
 		return exportFiles(opts, os.Stdout, os.Stderr)
 	}
+	fetchDir := ""
 	if opts.FetchAllowed {
 		// Fetched files are the session's; a picked one is the caller's.
 		dir, err := os.MkdirTemp("", "gloss-fetch-")
 		if err != nil {
 			return err
 		}
+		fetchDir = dir
 		opts.Fetch = func(address string) (string, error) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 			defer cancel()
@@ -493,6 +511,20 @@ func run(args []string) (err error) {
 	}
 	if opts.Serve {
 		return served(opts, os.Stdout, os.Stderr)
+	}
+	err = configureOpenWith(&opts, nativeOpenWith)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "gloss: open-with preferences: %v\n", err)
+	}
+	opts.IsTemporary = func(path string) bool {
+		if path == stdinPath && stdinPath != "" {
+			return true
+		}
+		if fetchDir == "" {
+			return false
+		}
+		rel, e := filepath.Rel(fetchDir, path)
+		return e == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel)
 	}
 	opts.OpenLink = browse
 	opts.ThemeChoices = theme.Available()

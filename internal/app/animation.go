@@ -50,7 +50,7 @@ func (m *Model) stopAnimation() {
 }
 func (m *Model) animationVisible() bool { return m.animation != nil && m.mediaVisible() }
 func (m *Model) mediaVisible() bool {
-	return !m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument && m.markdown == nil && (m.typeset == nil || (m.typesetActive == 0 && m.typesetMatches()))
+	return m.openWithPicker == nil && !m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument && m.markdown == nil && (m.typeset == nil || (m.typesetActive == 0 && m.typesetMatches()))
 }
 func (m *Model) scheduleAnimation() tea.Cmd {
 	visible := m.mediaVisible()

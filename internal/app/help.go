@@ -24,6 +24,7 @@ var helpLeft = []helpSection{
 		{"?  Esc", "help · back to the files"},
 		{"]  [  Tab", "next / previous file"},
 		{"m  o", "file menu · browse folders"},
+		{"w  W", "open default app · choose app"},
 		{"e  i  R", "export · details · reload"},
 		{"/  n  N", "search · next / prev match"},
 		{"T", "choose a color theme"},

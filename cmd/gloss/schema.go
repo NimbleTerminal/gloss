@@ -19,6 +19,7 @@ var schemaShapes = []struct {
 	array     bool
 }{
 	{"results", "What --json prints with --text, --grep, --output, or --output-dir: one object per input and page, or per match with --grep; failed ones carry error.", made{}, true},
+	{"apps", "What --apps --json prints: visible native applications and effective defaults by format.", appsListing{}, true},
 	{"info", "What --info --json prints: one object per file; failed ones carry error.", described{}, true},
 	{"started", "The one object --pick or --serve prints, and exits 0, when standard input is not a terminal.", started{}, false},
 	{"status", "The one object --status prints.", sessionStatus{}, false},

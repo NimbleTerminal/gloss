@@ -19,6 +19,7 @@ type layer int
 
 const (
 	layerNone layer = iota
+	layerOpenWith
 	layerInfo
 	layerColumns // The sheet's column list.
 	layerParts   // The 3MF's part list.
@@ -43,6 +44,8 @@ func (m *Model) closeLayer() tea.Cmd {
 	was := m.layer
 	m.layer = layerNone
 	switch was {
+	case layerOpenWith:
+		return m.closeOpenWith()
 	case layerFont:
 		p := m.fontPicker
 		cleanup := m.clearFontPicker()
@@ -88,6 +91,7 @@ func (m *Model) closeLayer() tea.Cmd {
 // keepLayer takes a layer down without undoing anything: a color
 // chosen is kept.
 func (m *Model) keepLayer() {
+	m.openWithPicker = nil
 	m.layer, m.colorPicker, m.partPicker = layerNone, nil, nil
 	if m.sheet != nil {
 		m.sheet.picker = nil

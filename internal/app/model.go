@@ -18,10 +18,13 @@ import (
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 type Options struct {
+	OpenWith    openwith.Host
+	IsTemporary func(string) bool
 	// OpenLink asks the embedding host to open an explicitly clicked web URL.
 	// Nil leaves link activation to the terminal (OSC 8). It never fetches a document.
 	OpenLink               func(string) error
@@ -152,6 +155,8 @@ type browserState struct {
 // has no preview of its own, it takes no drops or mouse input, and it loads
 // with Request.Preview so the loader keeps it small.
 type Model struct {
+	openWithPicker    *openWithPicker
+	openWithOperation int
 	meshState
 	textState
 	helpOffset int // Rows the help page is scrolled, where it is taller than the screen.
@@ -490,7 +495,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 		cmd = tea.Batch(cmd, m.scheduleAnimation(), m.scheduleTypesetOverlays())
 		if m.markdown != nil {
-			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument))
+			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument))
 		}
 		if p := m.fontPicker; p != nil {
 			cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
@@ -501,6 +506,12 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 	}()
 	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {
+		return m, nil
+	}
+	if cmd, handled := m.openWithBrowse(msg); handled {
+		return m, cmd
+	}
+	if _, ok := msg.(tea.MouseMsg); ok && m.openWithPicker != nil {
 		return m, nil
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok {
@@ -547,6 +558,10 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, cmd
 	}
 	switch v := msg.(type) {
+	case openWithLoaded:
+		return m, m.openWithLoaded(v)
+	case openWithFinished:
+		return m, m.openWithFinished(v)
 	case fontPreviewResult:
 		if p := m.fontPicker; p != nil && p.owner == v.owner && p.revision == v.revision {
 			p.base, p.err = v.image, v.err

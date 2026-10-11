@@ -71,7 +71,7 @@ func TestHelpStacksAndScrolls(t *testing.T) {
 			t.Errorf("row too wide: %q", row)
 		}
 	}
-	scrolled := helpRows(t, 50, 24, "down", "down", "down", "down", "down", "down", "down", "down", "down", "down", "down", "down")
+	scrolled := helpRows(t, 50, 24, "pgdown")
 	if scrolled[0] == rows[0] || !strings.Contains(strings.Join(scrolled, "\n"), "GIFs") {
 		t.Fatalf("down did not scroll the help: %q", scrolled)
 	}

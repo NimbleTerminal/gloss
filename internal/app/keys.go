@@ -11,6 +11,9 @@ import (
 func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	m.note = ""
 	k := msg.String()
+	if m.openWithPicker != nil {
+		return m.openWithKey(msg), true
+	}
 	if m.screen == screenBrowser {
 		return m.browserKey(msg), true
 	}
@@ -66,6 +69,9 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	}
 	if (k == "o" || k == "O") && m.layer != layerColumns && m.layer != layerParts && m.layer != layerColor && m.layer != layerQR {
 		return m.openBrowser(), true
+	}
+	if (k == "w" || k == "W") && m.layer == layerNone {
+		return m.openWithCurrent(k == "W"), true
 	}
 	if m.listing() {
 		return m.menuKey(k), true

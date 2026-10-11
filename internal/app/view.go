@@ -57,6 +57,8 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	plain := true  // Cut to the viewport; graphics keep their escapes whole.
 	exact := false // The body is already w×h: a frame would measure every cell to pad nothing.
 	switch {
+	case m.openWithPicker != nil:
+		body = m.openWithView(w, h)
 	case m.help:
 		body = m.helpView(w, h)
 	case m.screen == screenBrowser:
@@ -175,7 +177,7 @@ var banner = []string{
 // layered lays the document's layer over its body, where the screen is a
 // document's and the help is down.
 func (m *Model) layered(body string, w, h int) string {
-	if m.help || m.screen != screenDocument {
+	if m.openWithPicker != nil || m.help || m.screen != screenDocument {
 		return body
 	}
 	switch m.layer {
@@ -211,6 +213,8 @@ func (m *Model) layered(body string, w, h int) string {
 // statusLine is the status bar and the keys line for the screen on show.
 func (m *Model) statusLine(w, h int) (bar, hint string) {
 	switch {
+	case m.openWithPicker != nil:
+		return m.openWithStatus(w)
 	case m.screen == screenBrowser && !m.help:
 		return m.browserStatus(w)
 	case m.listing():
@@ -236,7 +240,7 @@ func (m *Model) browserStatus(w int) (bar, hint string) {
 	if m.noTextFiles {
 		text = "text"
 	}
-	hint = ansi.Truncate(" Enter open · ←/→ folders · / find · G go to · Tab complete · Ctrl-F types · Ctrl-L layout · Ctrl-G places · Ctrl-S sort · Ctrl-T "+greyed+" · Ctrl-X "+text+" · Esc cancel", w, "")
+	hint = ansi.Truncate(" Enter open · ←/→ folders · / find · G go to · Tab complete · Ctrl-F types · Ctrl-L layout · Ctrl-G places · Ctrl-S sort · Ctrl-T "+greyed+" · Ctrl-X "+text+" · Alt-Enter open with · Esc cancel", w, "")
 	if m.opener.going {
 		hint = ansi.Truncate(" Type a folder's path · Tab completes folders · Enter go · Esc back", w, "")
 	}
@@ -249,7 +253,7 @@ func (m *Model) browserStatus(w int) (bar, hint string) {
 
 func (m *Model) listStatus(w int) (bar, hint string) {
 	status := fmt.Sprintf(" Files · %d/%d selected · current %d", m.selection+1, len(m.opts.Files), m.index+1)
-	hint = " ↑/↓ select · Enter open · t thumbnails · v preview · Esc cancel · q quit"
+	hint = " ↑/↓ select · Enter open · t thumbnails · v preview · w/W apps · Esc cancel · q quit"
 	if m.screen == screenGrid && m.grid != nil {
 		status = fmt.Sprintf(" Files · grid · %d/%d selected · current %d", m.selection+1, len(m.opts.Files), m.index+1)
 		if m.grid.pending() {

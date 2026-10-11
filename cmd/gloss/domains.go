@@ -76,7 +76,7 @@ var domains = []domain{
 	{
 		ID: "extract", Title: "Text and details",
 		Summary: "Reading a file without drawing it: its text, or what it says about itself, or where a PDF says something. All work without a terminal and write only the answer to standard output. With `--json`, a PDF page's text comes with `chars` and `images`, and `sparse` when it is a picture with next to no text, better exported with `--output`. `--grep` prints each match's page and a line around it, not the document.",
-		Flags:   []string{"text", "grep", "info", "json"},
+		Flags:   []string{"text", "grep", "info", "apps", "json"},
 		Examples: []example{
 			{"The text of a PDF page", "gloss --text --page 4 report.pdf"},
 			{"The pages of a PDF that mention an invoice, and where", "gloss --grep '(?i)invoice' report.pdf"},
