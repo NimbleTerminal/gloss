@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // DropMsg adds files to the session. Hosts without bracketed paste, such as

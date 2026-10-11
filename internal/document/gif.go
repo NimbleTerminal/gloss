@@ -1,8 +1,8 @@
 package document
 
 import (
-	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
+	"nimbleterminal.dev/gloss/internal/animate"
 )
 
 const MaxGIFFrames = animate.MaxGIFFrames

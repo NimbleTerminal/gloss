@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // partPicker is the list of a 3MF's parts, each ticked when shown.

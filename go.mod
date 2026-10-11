@@ -1,4 +1,4 @@
-module github.com/NimbleTerminal/gloss
+module nimbleterminal.dev/gloss
 
 go 1.26.9
 

@@ -4,7 +4,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/signintech/gopdf"
 	mdpdf "github.com/stephenafamo/goldmark-pdf"
@@ -15,6 +14,7 @@ import (
 	"image/png"
 	"io"
 	"math"
+	"nimbleterminal.dev/gloss/internal/document"
 	"os"
 	"path/filepath"
 	"strings"

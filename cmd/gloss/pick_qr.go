@@ -8,8 +8,8 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/charmbracelet/x/term"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 // Only a foreground terminal gets an interactive QR. Agent startup remains

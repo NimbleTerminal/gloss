@@ -13,7 +13,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 type saved struct {

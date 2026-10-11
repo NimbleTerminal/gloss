@@ -7,8 +7,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // View draws the screen on show: its body, a layer over it where there is

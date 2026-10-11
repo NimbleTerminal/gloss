@@ -2,7 +2,7 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/animate"
 	"time"
 )
 

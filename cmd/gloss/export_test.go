@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 func TestExportCLI(t *testing.T) {

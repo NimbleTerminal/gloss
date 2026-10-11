@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-const module = "github.com/NimbleTerminal/gloss"
+const module = "nimbleterminal.dev/gloss"
 
 // buildSources are the include and exclude patterns of the build task's sources.
 func buildSources(t *testing.T, taskfile string) (include, exclude []string) {

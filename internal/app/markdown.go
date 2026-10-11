@@ -11,10 +11,10 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/animate"
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 type markdownLine struct {

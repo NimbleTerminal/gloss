@@ -56,7 +56,7 @@
     </dl></section>
     <section class="install"><h2>In your terminal</h2><p>gloss is a single binary for macOS, Linux, and Windows. Pictures are drawn with Kitty graphics where the terminal has them, and with glyphs everywhere else. Drop files on it, browse folders, and export what you see.</p><div class="channels">
       <div><span>Homebrew</span><code class="command"><span class="prompt" aria-hidden="true">$ </span>brew install --cask nimbleterminal/tap/gloss</code></div>
-      <div><span>Go</span><code class="command"><span class="prompt" aria-hidden="true">$ </span>go install github.com/NimbleTerminal/gloss/cmd/gloss@latest</code></div>
+      <div><span>Go</span><code class="command"><span class="prompt" aria-hidden="true">$ </span>git clone https://github.com/NimbleTerminal/gloss.git &amp;&amp; cd gloss &amp;&amp; go install ./cmd/gloss</code></div>
     </div></section>
     <section class="examples"><h2>Beyond the demo</h2><p>The terminal demo above shows the interactive side. gloss is scriptable too:</p><ul>
       <li><code class="command"><span class="prompt" aria-hidden="true">$ </span>cat drawing.svg | gloss</code><span>Pipes and stdin are first-class inputs.</span></li>

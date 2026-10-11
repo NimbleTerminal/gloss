@@ -12,8 +12,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/animate"
 	"github.com/charmbracelet/x/ansi/kitty"
+	"nimbleterminal.dev/gloss/internal/animate"
 )
 
 func gifPage(t testing.TB) fstest.MapFS {

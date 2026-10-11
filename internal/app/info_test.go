@@ -10,9 +10,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 var landscape = []document.Field{

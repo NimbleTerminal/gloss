@@ -11,6 +11,9 @@ and CSV files.
 Recorded with [ntrecord](https://github.com/NimbleTerminal/ntrecord), including real
 Kitty graphics. [Demo tape](scripts/gloss-demo.tape).
 
+The Go module path is `nimbleterminal.dev/gloss`; source and releases remain on
+GitHub.
+
 ## Install
 
 ```sh

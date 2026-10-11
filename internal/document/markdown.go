@@ -3,10 +3,10 @@ package document
 import (
 	"context"
 	"fmt"
-	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
 	"io/fs"
 	"net/url"
+	"nimbleterminal.dev/gloss/internal/animate"
 	"os"
 	"path"
 	"path/filepath"

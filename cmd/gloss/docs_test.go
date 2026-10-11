@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/spf13/pflag"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 // visibleFlags is every option --help lists, by asking the real parser.

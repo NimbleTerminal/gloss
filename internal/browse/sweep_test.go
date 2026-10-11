@@ -2,13 +2,13 @@ package browse_test
 
 import (
 	"fmt"
-	"github.com/NimbleTerminal/gloss/internal/browse/browsecfg"
+	"nimbleterminal.dev/gloss/internal/browse/browsecfg"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/browse"
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 // awkward are names that break layouts: wide, joined, selected, combined,

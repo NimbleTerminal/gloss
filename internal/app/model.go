@@ -3,12 +3,12 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/NimbleTerminal/gloss/internal/animate"
 	"image"
 	"image/color"
 	"image/draw"
 	"io/fs"
 	"math/rand/v2"
+	"nimbleterminal.dev/gloss/internal/animate"
 	"os"
 	"sync/atomic"
 
@@ -16,9 +16,9 @@ import (
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 type Options struct {

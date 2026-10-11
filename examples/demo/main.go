@@ -9,10 +9,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	booba "github.com/NimbleMarkets/go-booba"
-	"github.com/NimbleTerminal/gloss/examples"
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/spf13/pflag"
+	"nimbleterminal.dev/gloss/examples"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // options opens the gallery on its menu, or on one sample with the others

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 func TestFS(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // colorPicker chooses a paint for the mesh on screen, in one of three

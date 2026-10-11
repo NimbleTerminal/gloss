@@ -17,7 +17,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/go-text/render"
 	"github.com/go-text/typesetting/di"
 	"github.com/go-text/typesetting/font"
@@ -26,6 +25,7 @@ import (
 	ext "github.com/yuin/goldmark/extension/ast"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/fixed"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 const (

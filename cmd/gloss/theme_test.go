@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/theme"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 func TestThemeExportCLI(t *testing.T) {

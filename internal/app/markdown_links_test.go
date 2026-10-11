@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func TestMarkdownHyperlinkSurvivesViewportClipping(t *testing.T) {

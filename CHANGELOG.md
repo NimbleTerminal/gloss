@@ -1,5 +1,10 @@
 # `gloss` CHANGELOG
 
+## Unreleased
+
+- Move the Go module and imports to `nimbleterminal.dev/gloss`. Existing tagged
+  versions keep their original GitHub module path.
+
 ## `v0.3.0` (2026-10-11)
 
 - Enforce PDF stream limits across filter chains and stop timed-out parser work.

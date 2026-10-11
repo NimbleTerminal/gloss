@@ -9,7 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func TestTypesetViewer(t *testing.T) {

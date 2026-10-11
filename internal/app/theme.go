@@ -3,8 +3,8 @@ package app
 import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"image/color"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // Detection belongs to the application's event loop, never to a renderer or

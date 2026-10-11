@@ -3,8 +3,8 @@ package browse_test
 import (
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/browse/browsecfg"
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse/browsecfg"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 func TestScripts(t *testing.T) {

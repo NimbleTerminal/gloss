@@ -19,12 +19,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/internal/theme"
-	"github.com/NimbleTerminal/gloss/skills"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/pflag"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
+	"nimbleterminal.dev/gloss/skills"
 )
 
 var version = "dev"

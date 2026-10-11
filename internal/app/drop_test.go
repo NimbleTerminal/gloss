@@ -11,9 +11,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleTerminal/gloss/examples"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/examples"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 const samples = "../../examples/"

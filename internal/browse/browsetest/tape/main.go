@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 func main() {

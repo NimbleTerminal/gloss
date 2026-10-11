@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // The grid's tiles, in cells: wide enough for a name, high enough for a

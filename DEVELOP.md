@@ -9,6 +9,14 @@ documentation is on the [documentation site](https://nimbleterminal.github.io/gl
 this file is for working on gloss itself. [AGENTS.md](AGENTS.md) is the same
 ground for coding agents.
 
+## Go module path
+
+The root module is `nimbleterminal.dev/gloss`. Self-imports and the separate
+`examples/demo` and `experiments/typeset` modules use that prefix; their local
+replacements still point at the root checkout. GitHub remains the source host.
+Consumers moving from the GitHub module path must update their imports and use
+a version published after the migration. Existing tags are unchanged.
+
 ## Build and run
 
 Requires Go **1.26.9+** and [Task](https://taskfile.dev/) for the development

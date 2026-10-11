@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 // conforms checks a decoded value against the part of JSON Schema that

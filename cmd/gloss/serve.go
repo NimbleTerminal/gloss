@@ -31,9 +31,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	booba "github.com/NimbleMarkets/go-booba/serve"
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/web"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/web"
 )
 
 var (

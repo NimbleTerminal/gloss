@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 func TestSplit(t *testing.T) {

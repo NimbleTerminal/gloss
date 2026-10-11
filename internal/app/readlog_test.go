@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // countFS counts what is opened, as the os would be asked to, and describes

@@ -4,7 +4,7 @@ package main
 
 import (
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func acceptDrops(func(tea.Msg), *document.Overlay, document.AcceptFilter) {}

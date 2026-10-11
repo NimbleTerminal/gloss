@@ -2,11 +2,11 @@ package app
 
 import (
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/theme"
+	"nimbleterminal.dev/gloss/internal/theme"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // columnPicker is the list of a sheet's columns, each ticked when shown.

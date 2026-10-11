@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // The screens and layers, and the keys that move between them.

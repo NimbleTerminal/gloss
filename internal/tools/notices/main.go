@@ -48,7 +48,7 @@ func run() error {
 		}
 		for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
 			fields := strings.Split(line, "\t")
-			if len(fields) != 3 || fields[2] == "" || strings.HasPrefix(fields[0], "github.com/NimbleTerminal/gloss") {
+			if len(fields) != 3 || fields[2] == "" || strings.HasPrefix(fields[0], "nimbleterminal.dev/gloss") {
 				continue
 			}
 			if _, seen := modules[fields[0]]; !seen {

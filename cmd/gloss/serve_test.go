@@ -20,9 +20,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/coder/websocket"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func serving(t *testing.T, opts app.Options) *server {

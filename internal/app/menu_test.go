@@ -11,9 +11,9 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func TestPreviewKittyPresentation(t *testing.T) {

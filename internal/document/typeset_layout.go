@@ -14,8 +14,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/NimbleTerminal/gloss/internal/animate"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/go-text/render"
 	"github.com/go-text/typesetting/di"
@@ -26,6 +24,8 @@ import (
 	"github.com/yuin/goldmark/util"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/fixed"
+	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 const (

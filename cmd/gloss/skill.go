@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/skills"
+	"nimbleterminal.dev/gloss/skills"
 )
 
 // skillHome is a skills folder an agent reads, detected by the presence of

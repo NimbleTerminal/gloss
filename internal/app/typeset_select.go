@@ -6,7 +6,7 @@ import (
 	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // Selecting text on a typeset page. The page is a picture, so the terminal

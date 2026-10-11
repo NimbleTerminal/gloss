@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 func webPicking(t *testing.T, opts app.Options) *server {

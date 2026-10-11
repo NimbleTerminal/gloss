@@ -10,14 +10,14 @@ import (
 	gam "charm.land/glamour/v2/ansi"
 	"charm.land/glamour/v2/styles"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/yuin/goldmark/ast"
 	east "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // Logical text is immutable and independent of the viewport. Screen spans map

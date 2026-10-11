@@ -9,7 +9,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // typesetResizeDelay coalesces a burst of width changes before reflowing. It

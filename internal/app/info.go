@@ -7,9 +7,9 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // infoBox draws the details of the current file, no larger than w by h cells.

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func searchDocument(t *testing.T, text string) *Model {

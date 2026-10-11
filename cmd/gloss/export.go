@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func exportRequest(opts app.Options, path string, generation int) document.Request {

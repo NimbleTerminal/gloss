@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/browse/browsecfg"
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse/browsecfg"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 func main() {

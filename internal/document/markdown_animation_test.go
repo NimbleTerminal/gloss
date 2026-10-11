@@ -7,7 +7,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/NimbleTerminal/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/animate"
 )
 
 func TestMarkdownAnimationModesBudgetAndDuplicates(t *testing.T) {

@@ -13,9 +13,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleTerminal/gloss/examples"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
+	"nimbleterminal.dev/gloss/examples"
 )
 
 // pumpPatience is how long pump waits on one command before taking it for a

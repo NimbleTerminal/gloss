@@ -8,8 +8,8 @@ import (
 	"syscall/js"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // acceptDrops registers window.gloss_drop(names, contents) beside Booba's

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 const (

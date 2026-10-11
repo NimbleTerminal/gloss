@@ -5,9 +5,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"github.com/spf13/pflag"
+	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // Completion scripts for bash, zsh, and fish are written from the options

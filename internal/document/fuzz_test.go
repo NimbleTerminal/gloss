@@ -10,7 +10,7 @@ import (
 	"image/png"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/examples"
+	"nimbleterminal.dev/gloss/examples"
 )
 
 // The parsers take files from anywhere. Each must refuse or read what it

@@ -9,8 +9,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 type fontPicker struct {

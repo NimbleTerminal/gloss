@@ -11,8 +11,8 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/animate"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func inlineAnimated(t *testing.T) *markdownView {

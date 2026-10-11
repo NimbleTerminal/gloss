@@ -1,12 +1,12 @@
-module github.com/NimbleTerminal/gloss/examples/demo
+module nimbleterminal.dev/gloss/examples/demo
 
 go 1.26.9
 
 require (
 	charm.land/bubbletea/v2 v2.1.0
 	github.com/NimbleMarkets/go-booba v0.7.0
-	github.com/NimbleTerminal/gloss v0.0.0
 	github.com/spf13/pflag v1.0.10
+	nimbleterminal.dev/gloss v0.0.0
 )
 
 require (
@@ -75,7 +75,7 @@ require (
 	nimbleterminal.dev/ntqrcode v0.2.0 // indirect
 )
 
-replace github.com/NimbleTerminal/gloss => ../..
+replace nimbleterminal.dev/gloss => ../..
 
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20260928192001-1b36865b418a
 

@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/examples"
+	"nimbleterminal.dev/gloss/examples"
 )
 
 func TestDemoPrefersTheGPU(t *testing.T) {

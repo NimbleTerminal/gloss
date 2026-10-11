@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // A range of pages is listed in full, so a range must be bounded: --page

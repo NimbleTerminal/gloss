@@ -1,10 +1,9 @@
-module github.com/NimbleTerminal/gloss/experiments/typeset
+module nimbleterminal.dev/gloss/experiments/typeset
 
 go 1.26.9
 
 require (
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
-	github.com/NimbleTerminal/gloss v0.0.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/go-text/render v0.2.1
 	github.com/go-text/typesetting v0.3.5
@@ -13,6 +12,7 @@ require (
 	github.com/stephenafamo/goldmark-pdf v0.4.2
 	github.com/yuin/goldmark v1.8.2
 	golang.org/x/image v0.47.0
+	nimbleterminal.dev/gloss v0.0.0
 )
 
 require (
@@ -70,4 +70,4 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 )
 
-replace github.com/NimbleTerminal/gloss => ../..
+replace nimbleterminal.dev/gloss => ../..

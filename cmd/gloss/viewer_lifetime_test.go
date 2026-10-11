@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 func TestViewerLifetimeRenewalAndHardLimit(t *testing.T) {

@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/internal/browse"
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 // Options a script may set, with `option NAME VALUE`:

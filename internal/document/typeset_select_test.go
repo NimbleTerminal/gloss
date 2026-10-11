@@ -7,7 +7,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/NimbleTerminal/gloss/internal/theme"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 var selectSource = "# Title\n\nHello wide world of words.\n\nSecond paragraph here.\n\n```\ncode line one\ncode line two\n```\n\n| A | B |\n| --- | --- |\n| alpha | beta |\n\n" +

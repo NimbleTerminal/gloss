@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/internal/browse/browsetest"
+	"nimbleterminal.dev/gloss/internal/browse/browsetest"
 )
 
 func TestTape(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/internal/app"
 	"github.com/spf13/pflag"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 // The reference is written from the options themselves, so it cannot say

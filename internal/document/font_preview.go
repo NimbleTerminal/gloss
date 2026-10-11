@@ -7,7 +7,7 @@ import (
 	"image/draw"
 	"strings"
 
-	"github.com/NimbleTerminal/gloss/internal/theme"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // FontPreview draws the four bounded sample rows using the same shaper and

@@ -14,8 +14,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleTerminal/gloss/internal/browse"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/browse"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // The orders a folder can be listed in, cycled with Ctrl-S.

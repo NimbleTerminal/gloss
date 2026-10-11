@@ -3,10 +3,10 @@ package document
 import (
 	"context"
 	"fmt"
-	"github.com/NimbleTerminal/gloss/internal/animate"
-	"github.com/NimbleTerminal/gloss/internal/theme"
 	"image"
 	"math"
+	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/theme"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"image"
 
-	"github.com/NimbleTerminal/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/animate"
 )
 
 const MaxMarkdownAnimations = 8

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/NimbleTerminal/gloss/examples"
+	"nimbleterminal.dev/gloss/examples"
 )
 
 func TestEmbeddedGallery(t *testing.T) {

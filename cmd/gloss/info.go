@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
-	"github.com/NimbleTerminal/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // described is what a file says about itself, for a program to read.

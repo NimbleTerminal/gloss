@@ -7,8 +7,8 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func TestMarkdownLayoutAndScroll(t *testing.T) {

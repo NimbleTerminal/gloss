@@ -8,7 +8,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/NimbleTerminal/gloss/internal/theme"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 func TestTypesetThemeRepaintsWithoutRelayout(t *testing.T) {

@@ -10,12 +10,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"github.com/makiuchi-d/gozxing"
 	decoder "github.com/makiuchi-d/gozxing/qrcode"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func qrTable(t *testing.T) *Model {

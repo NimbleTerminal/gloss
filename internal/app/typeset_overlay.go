@@ -7,10 +7,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"github.com/NimbleTerminal/gloss/internal/animate"
-	"github.com/NimbleTerminal/gloss/internal/document"
 	"github.com/charmbracelet/x/ansi/kitty"
 	xdraw "golang.org/x/image/draw"
+	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // Under Kitty graphics the typeset page is one still picture and its animated
