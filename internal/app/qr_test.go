@@ -83,12 +83,14 @@ func TestTableQRKittyLifecycle(t *testing.T) {
 			picture.ForceKittyCapability(picture.KittyCapabilitySupported)
 			m.pic.Toggle()
 			_, cmd := m.Update(press("u"))
-			pump(m, cmd, 0)
+			// QR encoding is finite work. Wait for its graphics messages even
+			// when a loaded race-test runner exceeds pump's timer cutoff.
+			drainAnimation(t, m, cmd)
 			if !strings.ContainsRune(m.View().Content, kitty.Placeholder) {
 				t.Fatal("QR frames were not routed through the app event loop")
 			}
 			_, cmd = m.Update(uv.CellSizeEvent{Width: 10, Height: 20})
-			pump(m, cmd, 0)
+			drainAnimation(t, m, cmd)
 			if !strings.ContainsRune(m.View().Content, kitty.Placeholder) {
 				t.Fatal("cell geometry update lost QR")
 			}
