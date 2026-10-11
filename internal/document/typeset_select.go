@@ -138,7 +138,7 @@ func runRune(op *operation, x int) int {
 	pos, at := fixed.I(op.rect.Min.X), fixed.I(x)
 	for _, g := range op.run.Glyphs {
 		if at < pos+g.Advance/2 {
-			return max(0, min(op.run.Runes.Count, g.ClusterIndex-op.run.Runes.Offset))
+			return max(0, min(op.run.Runes.Count, g.TextIndex()-op.run.Runes.Offset))
 		}
 		pos += g.Advance
 	}
@@ -153,7 +153,7 @@ func runX(op *operation, r int) int {
 	}
 	pos := fixed.I(op.rect.Min.X)
 	for _, g := range op.run.Glyphs {
-		if g.ClusterIndex-op.run.Runes.Offset >= r {
+		if g.TextIndex()-op.run.Runes.Offset >= r {
 			return pos.Floor()
 		}
 		pos += g.Advance

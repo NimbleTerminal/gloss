@@ -57,9 +57,8 @@ func TestLineNumbersNumberSourceLines(t *testing.T) {
 	if !m.numbered() {
 		t.Fatal("source view has no line numbers")
 	}
-	rows := strings.Split(ansi.Strip(m.view()), "\n")
 	m.layout(24, 10, 8, 16)
-	rows = strings.Split(ansi.Strip(m.view()), "\n")
+	rows := strings.Split(ansi.Strip(m.view()), "\n")
 	want := []string{"1 first", "2 second line that is lo", "  ng enough to wrap twic", "  e over", "3 third", "4 "}
 	if len(rows) != len(want) {
 		t.Fatalf("rows %q", rows)

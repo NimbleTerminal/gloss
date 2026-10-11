@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+  * Require Go 1.26.9 or newer for standard-library security fixes.
+
   * Add four embedded typeset font pairs, an `f` live sample chooser, saved
     native preferences, `--font`, and a `--mono jetbrains` code-face override.
     Reflow at the visible block, report fallback/missing glyphs, and keep source

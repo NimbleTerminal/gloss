@@ -1,6 +1,6 @@
 module github.com/NimbleTerminal/gloss/experiments/typeset
 
-go 1.26.8
+go 1.26.9
 
 require (
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1

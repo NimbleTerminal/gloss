@@ -22,7 +22,7 @@ func TestMarkdownHyperlinkSurvivesViewportClipping(t *testing.T) {
 		for _, width := range []int{8, 16, 60} {
 			t.Run(fmt.Sprintf("%d/%s", width, source[:1]), func(t *testing.T) {
 				v := newMarkdownView(&document.Markdown{Source: []byte(source)}, 100)
-				defer v.close()
+				t.Cleanup(func() { collectRaw(v.close()) })
 				v.layout(width, 2, 8, 16)
 				count := 0
 				// Every row can be the first row after scrolling; OSC state cannot depend
