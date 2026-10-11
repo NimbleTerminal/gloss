@@ -12,6 +12,16 @@ With [Homebrew](https://brew.sh), on macOS or Linux:
 brew install --cask nimbleterminal/tap/gloss
 ```
 
+The Homebrew installation note includes `gloss skill install` for AI agents
+and two optional companion tools: [mpv](https://formulae.brew.sh/formula/mpv)
+for audio/video playback, and [FFmpeg](https://formulae.brew.sh/formula/ffmpeg)
+for media conversion and frame extraction. Gloss does not require or invoke them.
+
+```sh
+brew install mpv       # optional player
+brew install ffmpeg    # optional conversion tools
+```
+
 On Debian or Ubuntu, download the `.deb` for your machine from the
 [latest release](https://github.com/NimbleTerminal/gloss/releases/latest) and install it:
 

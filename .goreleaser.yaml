@@ -139,6 +139,13 @@ homebrew_casks:
     description: Visual pager for the terminal, like less with pictures
     license: MIT
     skip_upload: auto
+    caveats: |
+      To teach your AI agents how to use gloss:
+        gloss skill install
+
+      Optional companion tools (gloss does not require or invoke them):
+        brew install mpv       # audio/video playback
+        brew install ffmpeg    # media conversion and frame extraction
     binaries:
       - gloss
     manpages:
