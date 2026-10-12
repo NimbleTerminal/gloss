@@ -1085,7 +1085,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/NimbleMarkets/go-booba v0.9.0
+## github.com/NimbleMarkets/go-booba v0.9.2
 
 ```
 MIT License
@@ -1233,7 +1233,7 @@ The source code of this project is released under the MIT License, see [LICENSE]
   * [`./examples/picture/Fuji-01.png`](./examples/picture/Fuji-01.png) is from https://www.hypertalking.com/2023/05/08/1-bit-pixel-art-of-hokusais-the-great-wave-off-kanagawa/ and distributed under the "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License", http://creativecommons.org/licenses/by-nc-nd/4.0/.
 ```
 
-## github.com/NimbleMarkets/ntcharts3d v0.2.1
+## github.com/NimbleMarkets/ntcharts3d v0.2.2
 
 ```
 MIT License
@@ -2474,7 +2474,7 @@ For more information, please refer to <https://unlicense.org/>
 ---
 ```
 
-## github.com/go-webgpu/goffi v0.6.3
+## github.com/go-webgpu/goffi v0.6.4
 
 ```
 MIT License

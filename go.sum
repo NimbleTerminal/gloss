@@ -14,8 +14,8 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/NimbleMarkets/booba-shim v0.1.0 h1:oy4hrfKJw+Loyc0SmebYP7NzDLR7j3jDakA+OJ2ygQw=
 github.com/NimbleMarkets/booba-shim v0.1.0/go.mod h1:+3ch4kZuCLtrwGK2s3ALo/I1Dzcz4e888PC3f2lLbgs=
-github.com/NimbleMarkets/go-booba v0.9.0 h1:QZ96/0chKJXn74tfIbvFZeHSJNa71uNnufFPqDVVPCw=
-github.com/NimbleMarkets/go-booba v0.9.0/go.mod h1:i/XjhpdZ8B+gXeaYLQ1HQLw0QOh9Cg/t2I2lNKDSynw=
+github.com/NimbleMarkets/go-booba v0.9.2 h1:SS6cfOCeWj3eMZhspkn3l9nHYTnofP80rGtCDAWoWEc=
+github.com/NimbleMarkets/go-booba v0.9.2/go.mod h1:i/XjhpdZ8B+gXeaYLQ1HQLw0QOh9Cg/t2I2lNKDSynw=
 github.com/NimbleMarkets/go-gpuimage v0.1.0 h1:2GRyaKxM+OO7riNcLV6uTX9DRXijkCWL9v7HItj5Mm4=
 github.com/NimbleMarkets/go-gpuimage v0.1.0/go.mod h1:eWkNxvLkZkQQdwtUHbbULnM69mLS53iIXQEfce667N8=
 github.com/NimbleMarkets/ntcharts-pdf v0.3.1 h1:gm5EDfcNVLz7HVlZKP9NnATwL6xJ1gOdu4gJHmjo1qg=
@@ -24,8 +24,8 @@ github.com/NimbleMarkets/ntcharts-svg v0.3.0 h1:Ze/WdOprbwBqJfQdZbOixPyVRnQpIVrD
 github.com/NimbleMarkets/ntcharts-svg v0.3.0/go.mod h1:BeJEiD5rCp0ikAsNe+HKtJiadNgqTvEZGmAB1LLM5vY=
 github.com/NimbleMarkets/ntcharts/v2 v2.8.0 h1:80ticj4+1zmJKswSd2QJHS/n022BaW8jio4ZGJrhcmc=
 github.com/NimbleMarkets/ntcharts/v2 v2.8.0/go.mod h1:w+5yLPICduptuEeOk8ogPi2gYU9qmaim1Elol3TUI1k=
-github.com/NimbleMarkets/ntcharts3d v0.2.1 h1:d10mICYUmAWMo8fJrz1ziciDw8xZ8CZonHGd5EXEjG4=
-github.com/NimbleMarkets/ntcharts3d v0.2.1/go.mod h1:mG1448Di7U0kBgaTZkIM2Qc4WBLLh4tQgbrxwXhDW64=
+github.com/NimbleMarkets/ntcharts3d v0.2.2 h1:0pA9GNu0OXTbmS3dA0w24Pn9VXrtzFxg5UUONG5QJms=
+github.com/NimbleMarkets/ntcharts3d v0.2.2/go.mod h1:C273wd/aPSBvQ7nr2XuzksM2Ma+5SNFOXj0hL2OYtZ8=
 github.com/NimbleMarkets/oksvg v0.1.1 h1:ryK0nmpe6rTO/VybmE3HY7dnxLFh6V3iJeDO6cZcZoA=
 github.com/NimbleMarkets/oksvg v0.1.1/go.mod h1:UjBClYuMoMN0Pb9nUI1d5sm/3H8DSGd6YopliZWA3qw=
 github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f h1:pqwrnHeqwiYovxidiJKVG+iGpeSgBppV4x1Q/GiiloU=
@@ -97,8 +97,8 @@ github.com/go-text/typesetting v0.3.5 h1:XZPUooClHY0Vf/rFyUyuPRNEkawARaFzLMQcXLS
 github.com/go-text/typesetting v0.3.5/go.mod h1:XZO1hD+nQVyvVa5IicQk7FsCa4PFQaJ2soWAP1f//68=
 github.com/go-text/typesetting-utils v0.0.0-20260419141703-4ffe8874dabc h1:8FGo2It5K75XkavhTiCKExUfVaVDS1feBnLCru5qeoY=
 github.com/go-text/typesetting-utils v0.0.0-20260419141703-4ffe8874dabc/go.mod h1:3/62I4La/HBRX9TcTpBj4eipLiwzf+vhI+7whTc9V7o=
-github.com/go-webgpu/goffi v0.6.3 h1:p4gKGikHBAQ/8iUiew9MV4C5M1ZGIsk8QGFGuJjMj+A=
-github.com/go-webgpu/goffi v0.6.3/go.mod h1:wfoxNsJkU+5RFbV1kNN1kunhc1lFHuJKK3zpgx08/uM=
+github.com/go-webgpu/goffi v0.6.4 h1:8UkFpiQk9nRWtft/avVYZXIt6YYpQSDW4ZIJ95Zl268=
+github.com/go-webgpu/goffi v0.6.4/go.mod h1:wfoxNsJkU+5RFbV1kNN1kunhc1lFHuJKK3zpgx08/uM=
 github.com/go-webgpu/webgpu v0.5.5 h1:pIrXzRg0LRlNjNmR+ZNo/ERN88YaObzbCY5oYhir5SA=
 github.com/go-webgpu/webgpu v0.5.5/go.mod h1:vgIuNTa1UlZ4njCGY6Pmp/0c5T5o2Ml2fQ0znLc7B98=
 github.com/gogpu/gpucontext v0.31.3 h1:SMnYOQgr+s5issi1R/Oezbo8lV5Lb6HWUZ4HujFgrZA=
