@@ -137,8 +137,11 @@ func TestTableQRExportUsesExistingSaveHook(t *testing.T) {
 				saved = bytes.Clone(data)
 				return name, nil
 			}
-			_, cmd := m.Update(press("e"))
-			pump(m, cmd, 0)
+			// The export is one command; run it here rather than through pump,
+			// which stops waiting on a slow runner before the save has happened.
+			if !deliver(m, press("e")) {
+				t.Fatal("export queued no command")
+			}
 			img, err := png.Decode(bytes.NewReader(saved))
 			if err != nil {
 				t.Fatal(err)

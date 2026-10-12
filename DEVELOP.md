@@ -117,7 +117,10 @@ separate browser-demo module:
   `parser_worker*.go` isolates SVG rasterization and PDF metadata/text parsing
   in the same executable's private worker entry point, or a disposable browser
   Web Worker. No external converter is installed. Parent-side deadlines stop
-  and reap/terminate workers; two slots bound concurrency. The worker protocol
+  and reap/terminate workers; two slots bound concurrency. Under the race
+  detector the worker, which is the test binary run again, is several times
+  slower, so `race_test.go` lengthens the deadline for the package's tests;
+  tests of the deadline itself set their own. The worker protocol
   accepts bounded bytes, never paths to read or shell commands. PDFium rendering
   retains its existing backend after stream preflight. `pdf_budget.go` follows
   declared lengths, resolves unambiguous integer length objects, and budgets
