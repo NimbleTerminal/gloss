@@ -209,12 +209,15 @@ func (m *Model) meshFrame(content string, w int) string {
 	if err := m.chart.Err(); err != nil {
 		title += " · " + safe(err.Error())
 	}
-	lines[0] = ansi.Truncate(title, w, "…")
+	pad := func(line string) string {
+		return line + strings.Repeat(" ", max(0, w-ansi.StringWidth(line)))
+	}
+	lines[0] = pad(ansi.Truncate(title, w, "…"))
 	footer := " drag orbit · Shift-drag pan · wheel zoom · 5 projection · r rotate · f fit"
 	if m.isPreview {
 		footer = " drag orbit · wheel zoom" // Keys are the list's.
 	}
-	lines[len(lines)-1] = ansi.Truncate(footer, w, "")
+	lines[len(lines)-1] = pad(ansi.Truncate(footer, w, ""))
 	return strings.Join(lines, "\n")
 }
 

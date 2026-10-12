@@ -8,6 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	"nimbleterminal.dev/gloss/examples"
 )
 
 // kittyTypesetModel shows a typeset page under Kitty graphics at cols×rows,
@@ -24,6 +25,40 @@ func kittyTypesetModel(tb testing.TB, cols, rows int) *Model {
 		tb.Fatal("no presented Kitty typeset picture")
 	}
 	return m
+}
+
+func kittyMeshModel(tb testing.TB, cols, rows int) *Model {
+	tb.Helper()
+	tb.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+	m := New(Options{Files: []string{"gloss.stl"}, FilesFS: examples.Files, Render: "kitty", Render3D: "software", Page: 1})
+	tb.Cleanup(func() { _ = m.Close() })
+	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})
+	drainAnimation(tb, m, m.load(false))
+	if m.chart == nil || m.chart.PictureMode() != picture.PictureKitty {
+		tb.Fatal("no Kitty mesh")
+	}
+	return m
+}
+
+func BenchmarkMeshView(b *testing.B) {
+	m := kittyMeshModel(b, 200, 52)
+	b.ReportAllocs()
+	for b.Loop() {
+		m.View()
+	}
+}
+
+func TestMeshBodyIsUnframed(t *testing.T) {
+	m := kittyMeshModel(t, 200, 52)
+	for _, size := range [][2]int{{200, 52}, {80, 24}, {40, 12}} {
+		m.Update(tea.WindowSizeMsg{Width: size[0], Height: size[1]})
+		w, h := m.width, m.bodyHeight()
+		grid := m.meshFrame(m.chart.View().Content, w)
+		body, _ := m.body(w, h)
+		if body != grid || lipgloss.NewStyle().Width(w).Height(h).Render(grid) != grid {
+			t.Fatalf("mesh body at %dx%d needs framing", w, h)
+		}
+	}
 }
 
 // The picture grid is already the body's exact size; drawing a frame must not

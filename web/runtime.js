@@ -100,7 +100,7 @@ if (config.mode === 'app') {
 }
 
 try {
-  const { BoobaTerminal } = await import('./booba/booba.js');
+  const { BoobaTerminal, parseRendererFromURL } = await import('./booba/booba.js');
   await import('./booba-shim/pdfium/pdfium-shim.js');
   // PDF initialization is asynchronous; its Go bridge waits for readiness.
   window.boobaShim.pdfium.ready.catch(error => console.error('PDF renderer:', error));
@@ -119,7 +119,7 @@ try {
   window.glossParseWorker = parserWorkers(module);
   const instance = await WebAssembly.instantiate(module, go.importObject);
   status.textContent = 'Starting the terminal…';
-  const terminal = new BoobaTerminal('terminal');
+  const terminal = new BoobaTerminal('terminal', { renderer: parseRendererFromURL() });
   await terminal.init();
   go.run(instance).catch(error => message(`Unable to run gloss: ${error.message || error}`));
   terminal.connectWasm();

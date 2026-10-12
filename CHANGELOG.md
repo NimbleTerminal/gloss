@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Make mesh camera updates cheaper to draw and use shared pixel buffers in
+  terminals that support them, including the browser demo. Avoid exposing
+  partial browser screen updates and flashing image-placeholder glyphs.
 - Play animated WebP files like GIFs: standalone with the same pause, speed,
   step and seek controls, and embedded in Markdown under the shared animation
   budget. Frames are decoded as they are shown, so long full-canvas clips play

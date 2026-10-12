@@ -688,6 +688,21 @@ requests to other hosts are limited to document addresses a visitor asks to open
 runtime assets are served alongside the site. Meshes are drawn with WebGPU where the browser
 has it, and by the software renderer where it does not.
 
+Mesh charts request Kitty shared-memory transport, with direct transmission
+when it is unavailable. Their Kitty placeholder grids already fill the viewport;
+only the short header and footer need padding. `BenchmarkMeshView` measures this
+path, and `TestMeshBodyIsUnframed` checks it across resizes. A browser image cache
+must also distinguish graphics revisions: retransmission can reuse the same
+WASM pixel address and length, so allocation identity alone does not identify
+unchanged image contents.
+The browser terminal holds painting during synchronized output (DEC mode
+2026), with a one-second recovery deadline. Valid image placeholders awaiting
+their placement paint background only, rather than a font's missing-glyph box.
+Canvas2D reads one viewport and each image's metadata once per frame; backing
+canvas dimensions use the same integer rounding during resize and comparison.
+Use `?renderer=canvas2d` (or `webgl`) on the terminal demo to compare display
+backends independently of the mesh renderer.
+
 Embed the standalone terminal on another site:
 
 ```html

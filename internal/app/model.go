@@ -8,9 +8,10 @@ import (
 	"image/draw"
 	"io/fs"
 	"math/rand/v2"
-	"nimbleterminal.dev/gloss/internal/animate"
 	"os"
 	"sync/atomic"
+
+	"nimbleterminal.dev/gloss/internal/animate"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
@@ -850,7 +851,13 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 		mode = charts.Wireframe
 	}
 	m.chartID = nextKittyID()
-	m.chart = charts.New(m.width, m.bodyHeight(), charts.WithKittyID(m.chartID), charts.WithAutoRotate(false), charts.WithRenderMode(mode), charts.WithBackground(m.background()))
+	m.chart = charts.New(
+		m.width, m.bodyHeight(),
+		charts.WithKittyID(m.chartID),
+		charts.WithKittyMedium(picture.KittyMediumSharedMemory),
+		charts.WithAutoRotate(false),
+		charts.WithRenderMode(mode),
+		charts.WithBackground(m.background()))
 	// The chart draws only through the commands it returns, so each
 	// is kept, whether or not it has anything to say before Init.
 	var setup []tea.Cmd
