@@ -55,7 +55,7 @@ func (p *Player) Seek(ctx context.Context, frame int) (*Player, error) {
 		}
 		switch n.data.Frames[n.frame].Disposal {
 		case DisposalBackground:
-			draw.Draw(n.canvas, n.data.Frames[n.frame].Image.Bounds(), image.NewUniform(n.data.Background), image.Point{}, draw.Src)
+			draw.Draw(n.canvas, n.data.Frames[n.frame].Rect, image.NewUniform(n.data.Background), image.Point{}, draw.Src)
 		case DisposalPrevious:
 			if n.restore != nil {
 				draw.Draw(n.canvas, n.canvas.Bounds(), n.restore, image.Point{}, draw.Src)
@@ -70,8 +70,7 @@ func (p *Player) Seek(ctx context.Context, frame int) (*Player, error) {
 			draw.Draw(snapshot, snapshot.Bounds(), n.canvas, image.Point{}, draw.Src)
 			n.restore = snapshot
 		}
-		f := n.data.Frames[n.frame].Image
-		draw.Draw(n.canvas, f.Bounds(), f, f.Bounds().Min, n.data.Frames[n.frame].Blend)
+		n.data.Frames[n.frame].paint(n.canvas)
 	}
 	return n, ctx.Err()
 }
@@ -93,7 +92,7 @@ func (p *Player) Next() (*Player, bool) {
 	draw.Draw(n.canvas, n.canvas.Bounds(), p.canvas, image.Point{}, draw.Src)
 	switch p.data.Frames[p.frame].Disposal {
 	case DisposalBackground:
-		draw.Draw(n.canvas, p.data.Frames[p.frame].Image.Bounds(), image.NewUniform(p.data.Background), image.Point{}, draw.Src)
+		draw.Draw(n.canvas, p.data.Frames[p.frame].Rect, image.NewUniform(p.data.Background), image.Point{}, draw.Src)
 	case DisposalPrevious:
 		if p.restore != nil {
 			draw.Draw(n.canvas, n.canvas.Bounds(), p.restore, image.Point{}, draw.Src)
@@ -116,6 +115,20 @@ func (p *Player) paint() {
 		p.restore = image.NewRGBA(p.canvas.Bounds())
 		draw.Draw(p.restore, p.restore.Bounds(), p.canvas, image.Point{}, draw.Src)
 	}
-	frame := p.data.Frames[p.frame].Image
-	draw.Draw(p.canvas, frame.Bounds(), frame, frame.Bounds().Min, p.data.Frames[p.frame].Blend)
+	p.data.Frames[p.frame].paint(p.canvas)
+}
+
+// paint draws the frame at its placement, decoding it first when it is held
+// compressed. A frame that fails to decode, or decodes to the wrong size,
+// leaves the canvas as it was; its delay and disposal still apply.
+func (f ClipFrame) paint(canvas draw.Image) {
+	img := f.Image
+	if img == nil {
+		decoded, err := f.Load()
+		if err != nil || decoded == nil || decoded.Bounds().Size() != f.Rect.Size() {
+			return
+		}
+		img = decoded
+	}
+	draw.Draw(canvas, f.Rect, img, img.Bounds().Min, f.Blend)
 }

@@ -71,7 +71,7 @@ func DecodeGIF(data []byte, animate bool) (image.Image, *Player, error) {
 	}
 	clip := &Clip{Bounds: image.Rect(0, 0, cfg.Width, cfg.Height), LoopCount: g.LoopCount, Background: gifBackground(g)}
 	for i, frame := range g.Image {
-		clip.Frames = append(clip.Frames, ClipFrame{Image: frame, Delay: normalizedGIFDelay(g.Delay[i]), Disposal: g.Disposal[i], Blend: draw.Over})
+		clip.Frames = append(clip.Frames, ClipFrame{Image: frame, Rect: frame.Bounds(), Delay: normalizedGIFDelay(g.Delay[i]), Disposal: g.Disposal[i], Blend: draw.Over})
 	}
 	p := newPlayer(clip)
 	if len(g.Image) == 1 {

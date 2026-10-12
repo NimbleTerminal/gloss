@@ -18,6 +18,11 @@ import (
 // frame's own ALPH/VP8/VP8L chunks. Only the container is parsed here; the
 // frame pixels are decoded by golang.org/x/image/webp from a synthetic
 // single-image file, so no second codec is involved.
+//
+// Unlike a GIF's small paletted frames, WebP frames are usually full-canvas
+// RGBA video, so they stay compressed in the file's bytes and are decoded as
+// the player paints them. Memory is then the canvases and one frame, whatever
+// the frame count, and the file limit bounds the whole.
 
 const (
 	webpAnimationFlag = 1 << 1
@@ -49,7 +54,7 @@ type webpAnimation struct {
 
 // parseWebPAnimation walks the container's chunk headers, checking declared
 // lengths against the file and every frame against the canvas and the frame
-// budgets, without decoding any pixels.
+// limit, without decoding any pixels.
 func parseWebPAnimation(data []byte) (*webpAnimation, error) {
 	if !IsAnimatedWebP(data) {
 		return nil, fmt.Errorf("webp: not an animation")
@@ -60,7 +65,6 @@ func parseWebPAnimation(data []byte) (*webpAnimation, error) {
 		return nil, err
 	}
 	seenANIM := false
-	pixels := 0
 	for _, c := range chunks {
 		switch c.id {
 		case "VP8X":
@@ -85,7 +89,7 @@ func parseWebPAnimation(data []byte) (*webpAnimation, error) {
 				return nil, fmt.Errorf("webp: invalid ANMF chunk")
 			}
 			if len(a.frames) >= MaxGIFFrames {
-				return nil, fmt.Errorf("WebP exceeds %d frames", MaxGIFFrames)
+				return nil, fmt.Errorf("WebP has more than %d frames", MaxGIFFrames)
 			}
 			x, y := 2*int(webpUint24(c.payload[0:])), 2*int(webpUint24(c.payload[3:]))
 			w, h := int(webpUint24(c.payload[6:]))+1, int(webpUint24(c.payload[9:]))+1
@@ -93,10 +97,6 @@ func parseWebPAnimation(data []byte) (*webpAnimation, error) {
 			if !f.rect.In(a.bounds) {
 				return nil, fmt.Errorf("WebP has an out-of-canvas frame")
 			}
-			if w > (MaxGIFPixels-pixels)/4/h {
-				return nil, fmt.Errorf("WebP frames exceed %d decoded pixels", MaxGIFPixels/4)
-			}
-			pixels += w * h * 4
 			if c.payload[15]&2 != 0 {
 				f.blend = draw.Src
 			}
@@ -156,8 +156,9 @@ func webpChunks(b []byte) ([]webpChunk, error) {
 
 func webpUint24(b []byte) uint32 { return uint32(b[0]) | uint32(b[1])<<8 | uint32(b[2])<<16 }
 
-// PreflightWebP sizes an animation from its chunk headers alone. A still
-// WebP counts as one frame of its own size.
+// PreflightWebP sizes an animation from its chunk headers alone: its RGBA
+// canvas plus the compressed frames, which is what playing it holds. A still
+// WebP counts as one decoded frame of its own size.
 func PreflightWebP(data []byte) (Stats, error) {
 	if len(data) > MaxFileBytes {
 		return Stats{}, ErrTooLarge
@@ -176,16 +177,17 @@ func PreflightWebP(data []byte) (Stats, error) {
 	if err != nil {
 		return Stats{}, err
 	}
-	stats := Stats{Bounds: a.bounds, Frames: len(a.frames)}
+	stats := Stats{Bounds: a.bounds, Frames: len(a.frames), Bytes: a.bounds.Dx() * a.bounds.Dy() * 4}
 	for _, f := range a.frames {
-		stats.Bytes += f.rect.Dx() * f.rect.Dy() * 4
+		stats.Bytes += len(f.data)
 	}
 	return stats, nil
 }
 
 // DecodeWebP decodes a WebP file. An animation becomes a Player when animate
-// is set; otherwise, as for previews and exports, only its first frame is
-// composited onto the canvas. A still returns its image and no Player.
+// is set, with its first frame decoded now and the rest as they are painted;
+// otherwise, as for previews and exports, only its first frame is composited
+// onto the canvas. A still returns its image and no Player.
 func DecodeWebP(data []byte, animate bool) (image.Image, *Player, error) {
 	if len(data) > MaxFileBytes {
 		return nil, nil, ErrTooLarge
@@ -211,12 +213,18 @@ func DecodeWebP(data []byte, animate bool) (image.Image, *Player, error) {
 	if a.alpha {
 		clip.Background = color.Transparent
 	}
-	for _, f := range frames {
-		img, err := decodeWebPFrame(f)
-		if err != nil {
-			return nil, nil, err
+	for i, f := range frames {
+		cf := ClipFrame{Rect: f.rect, Delay: f.delay, Disposal: f.disposal, Blend: f.blend}
+		if i == 0 {
+			img, err := decodeWebPFrame(f)
+			if err != nil {
+				return nil, nil, err
+			}
+			cf.Image = img
+		} else {
+			cf.Load = func() (image.Image, error) { return decodeWebPFrame(f) }
 		}
-		clip.Frames = append(clip.Frames, ClipFrame{Image: img, Delay: f.delay, Disposal: f.disposal, Blend: f.blend})
+		clip.Frames = append(clip.Frames, cf)
 	}
 	p := newPlayer(clip)
 	if len(frames) == 1 {

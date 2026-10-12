@@ -13,19 +13,23 @@ bookToC: false
   `<`/`>` select 0.25×, 0.5×, 1×, 2×, or 4× speed; Backspace restores 1×.
   `r` reloads from the beginning at 1×. The status bar shows the frame, speed,
   and playback state. `e` exports the current full frame as PNG; zoom/pan still work.
-  Canvas size is limited to 32 MP, animation to 1,000 frames and 64 MiB of
-  decoded frame storage in total: 64 Mi pixels for a GIF's indexed frames,
-  16 Mi for a WebP's RGBA frames. Limits are checked before decoding all frames.
-  WebP frames are decoded by the same lossless/lossy decoder as still files,
-  with their alpha, blend and dispose-to-background settings honored.
+  Canvas size is limited to 32 MP and animation to 1,000 frames. A GIF's
+  indexed frames are decoded up front, within 64 Mi frame pixels in total,
+  checked before decoding. A WebP's frames stay compressed and are decoded as
+  they are shown, so a long full-canvas clip costs its canvas and one frame,
+  not every frame; a large lossy frame can take longer to decode than its
+  delay, in which case playback runs slower rather than skipping. A WebP frame
+  that fails to decode is skipped. Alpha, blend and dispose-to-background
+  settings are honored.
   Delays below 20 ms use 100 ms before the speed multiplier is applied; other
   delays are scaled directly (minimum 5 ms at 4×). Rendering can
   slow playback on large images or slow terminals; frames are not queued up.
   File-list previews, notebook images, and headless `--output`
   use the first frame on the full logical canvas. Frames are not `--page`s.
   Embedded Markdown GIFs and WebPs animate when visible: at most eight distinct
-  destinations and 64 MiB of decoded frame storage per document; excess
-  animations remain still.
+  destinations and 64 MiB of animation storage per document (decoded GIF
+  frames; a WebP's canvas plus its compressed frames); excess animations
+  remain still.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder

@@ -18,6 +18,8 @@ const (
 
 // Clip and its frames are immutable after construction. A decoder owns the
 // image storage; callers must not mutate it while a Player can reference it.
+// A frame is either decoded up front (Image) or when it is painted (Load),
+// which keeps a long, large animation's memory at its canvases and one frame.
 type Clip struct {
 	Bounds     image.Rectangle
 	Frames     []ClipFrame
@@ -26,7 +28,9 @@ type Clip struct {
 }
 
 type ClipFrame struct {
-	Image    image.Image // Its bounds are its placement rectangle on the canvas.
+	Image    image.Image                 // Decoded pixels, or nil when Load supplies them; its bounds are Rect.
+	Rect     image.Rectangle             // Placement on the canvas.
+	Load     func() (image.Image, error) // Decodes the frame as it is painted; safe to call concurrently. A failure leaves the canvas as it was.
 	Delay    time.Duration
 	Disposal byte // 0/1 retain, 2 background, 3 previous.
 	Blend    draw.Op
@@ -38,15 +42,31 @@ type Stats struct {
 }
 
 // NewPlayer validates format-neutral decoded clips, counting paletted storage
-// at one byte per pixel and RGBA/NRGBA at four. GIF decoding preflights first.
+// at one byte per pixel and RGBA/NRGBA at four; frames decoded on demand hold
+// none. A decoded frame's Rect may be left for its image to fill in.
 func NewPlayer(c *Clip) (*Player, error) {
 	if c == nil || c.LoopCount < -1 || c.Bounds.Min != (image.Point{}) || c.Bounds.Empty() || c.Bounds.Dx() > MaxPixels/c.Bounds.Dy() || len(c.Frames) == 0 || len(c.Frames) > MaxGIFFrames {
 		return nil, fmt.Errorf("invalid animation canvas or frame count")
 	}
+	copy := *c
+	copy.Frames = append([]ClipFrame(nil), c.Frames...)
 	bytes := 0
-	for _, f := range c.Frames {
-		if f.Image == nil || f.Image.Bounds().Empty() || !f.Image.Bounds().In(c.Bounds) || f.Disposal > 3 || (f.Blend != draw.Over && f.Blend != draw.Src) || f.Delay <= 0 {
+	for i := range copy.Frames {
+		f := &copy.Frames[i]
+		if f.Image != nil && f.Rect == (image.Rectangle{}) {
+			f.Rect = f.Image.Bounds()
+		}
+		if f.Rect.Empty() || !f.Rect.In(c.Bounds) || f.Disposal > 3 || (f.Blend != draw.Over && f.Blend != draw.Src) || f.Delay <= 0 {
 			return nil, fmt.Errorf("invalid animation frame")
+		}
+		if f.Image == nil {
+			if f.Load == nil {
+				return nil, fmt.Errorf("animation frame has no image or loader")
+			}
+			continue
+		}
+		if f.Image.Bounds() != f.Rect {
+			return nil, fmt.Errorf("animation frame image does not match its placement")
 		}
 		var storage int
 		switch img := f.Image.(type) {
@@ -64,8 +84,6 @@ func NewPlayer(c *Clip) (*Player, error) {
 		}
 		bytes += storage
 	}
-	copy := *c
-	copy.Frames = append([]ClipFrame(nil), c.Frames...)
 	if copy.Background == nil {
 		copy.Background = color.Transparent
 	}

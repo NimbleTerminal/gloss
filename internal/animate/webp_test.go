@@ -258,9 +258,60 @@ func TestWebPFirstFrameOnlyAndStill(t *testing.T) {
 	if err != nil || stats.Frames != 1 || stats.Bytes != 8 || stats.Bounds != image.Rect(0, 0, 2, 1) {
 		t.Fatalf("still preflight %+v, %v", stats, err)
 	}
+	// An animation holds its RGBA canvas and its compressed frames.
+	compressed := 0
+	for _, name := range []string{"red3", "tg2", "blue1", "yellow1"} {
+		compressed += len(webpBitstream(t, name))
+	}
 	stats, err = PreflightWebP(webpTestData(t, webpFourFrames(0)))
-	if err != nil || stats.Frames != 4 || stats.Bytes != (3+2+1+1)*4 || stats.Bounds != image.Rect(0, 0, 3, 1) {
-		t.Fatalf("animation preflight %+v, %v", stats, err)
+	if err != nil || stats.Frames != 4 || stats.Bytes != 3*1*4+compressed || stats.Bounds != image.Rect(0, 0, 3, 1) {
+		t.Fatalf("animation preflight %+v, %v (want %d bytes)", stats, err, 3*1*4+compressed)
+	}
+}
+
+// Frames after the first stay compressed until painted, so a long,
+// full-canvas animation is not bounded by decoded frame storage, and a frame
+// that fails to decode is skipped rather than failing the file.
+func TestWebPFramesDecodeOnDemand(t *testing.T) {
+	a := webpFourFrames(0)
+	// A frame declared 3×1 whose bitstream is 1×1: it fails to decode when painted.
+	hdr := make([]byte, 16)
+	put24(hdr[6:], 2)
+	a.extra = chunk("ANMF", append(hdr, webpBitstream(t, "blue1")...))
+	data := webpTestData(t, a)
+	img, p, err := DecodeWebP(data, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Frames() != 5 {
+		t.Fatalf("%d frames", p.Frames())
+	}
+	for i, f := range p.data.Frames {
+		if (f.Image != nil) != (i == 0) || (f.Load != nil) == (i == 0) {
+			t.Fatalf("frame %d: image %v, loader %v", i, f.Image != nil, f.Load != nil)
+		}
+	}
+	assertRow(t, img, red, red, red)
+	for range 3 {
+		p, _ = p.Next()
+	}
+	assertRow(t, p.Image(), yellow, green, clear)
+	p, _ = p.Next()
+	assertRow(t, p.Image(), yellow, green, clear)
+	// Many full-canvas frames of a large canvas open; only the first decodes.
+	big := webpAnim{width: 4000, height: 4000, frames: []webpFrame{{bitstream: "red3"}}}
+	for range 200 {
+		h := make([]byte, 16)
+		put24(h[6:], 4000-1)
+		put24(h[9:], 4000-1)
+		big.extra = append(big.extra, chunk("ANMF", append(h, webpBitstream(t, "red3")...))...)
+	}
+	stats, err := PreflightWebP(webpTestData(t, big))
+	if err != nil || stats.Frames != 201 || stats.Bytes < 4000*4000*4 {
+		t.Fatalf("large preflight %+v, %v", stats, err)
+	}
+	if _, p, err := DecodeWebP(webpTestData(t, big), true); err != nil || p.Frames() != 201 {
+		t.Fatalf("large animation: %v", err)
 	}
 }
 
@@ -313,13 +364,12 @@ func TestWebPPreflightRejects(t *testing.T) {
 		manyFrames = append(manyFrames, bigFrame(1, 1)...)
 	}
 	cases := map[string][]byte{
-		"truncated":          good[:len(good)-5],
-		"frame overrun":      append(good[:len(good):len(good)], chunk("ANMF", make([]byte, 20))...),
-		"out of canvas":      webpTestData(t, webpAnim{width: 2, height: 1, frames: []webpFrame{{bitstream: "red3"}}}),
-		"no frames":          webpTestData(t, webpAnim{width: 2, height: 1}),
-		"no bitstream":       webpTestData(t, webpAnim{width: 3, height: 1, extra: chunk("ANMF", make([]byte, 16))}),
-		"too many frames":    webpTestData(t, webpAnim{width: 3, height: 1, frames: []webpFrame{{bitstream: "red3"}}, extra: manyFrames}),
-		"frame pixel budget": webpTestData(t, webpAnim{width: 5000, height: 5000, frames: []webpFrame{{bitstream: "red3"}}, extra: append(bigFrame(5000, 5000), bigFrame(5000, 5000)...)}),
+		"truncated":       good[:len(good)-5],
+		"frame overrun":   append(good[:len(good):len(good)], chunk("ANMF", make([]byte, 20))...),
+		"out of canvas":   webpTestData(t, webpAnim{width: 2, height: 1, frames: []webpFrame{{bitstream: "red3"}}}),
+		"no frames":       webpTestData(t, webpAnim{width: 2, height: 1}),
+		"no bitstream":    webpTestData(t, webpAnim{width: 3, height: 1, extra: chunk("ANMF", make([]byte, 16))}),
+		"too many frames": webpTestData(t, webpAnim{width: 3, height: 1, frames: []webpFrame{{bitstream: "red3"}}, extra: manyFrames}),
 	}
 	// A canvas over the pixel limit.
 	huge := webpTestData(t, webpAnim{width: 3, height: 1, frames: []webpFrame{{bitstream: "red3"}}})
@@ -334,11 +384,17 @@ func TestWebPPreflightRejects(t *testing.T) {
 			t.Errorf("%s: decode accepted", name)
 		}
 	}
-	// A frame whose bitstream is smaller than its header claims fails to decode.
-	bad := webpTestData(t, webpAnim{width: 3, height: 1, frames: []webpFrame{{bitstream: "red3"}}, extra: bigFrame(3, 1)[:0]})
-	bad = append(bad[:len(bad):len(bad)], chunk("ANMF", append(func() []byte { h := make([]byte, 16); put24(h[6:], 2); return h }(), webpBitstream(t, "blue1")...))...)
-	binary.LittleEndian.PutUint32(bad[4:], uint32(len(bad)-8))
-	if _, _, err := DecodeWebP(bad, true); err == nil {
-		t.Error("mismatched frame size decoded")
+	// The first frame is decoded on opening, so one whose bitstream is 1×1
+	// under a 3×1 header fails the file; the headers alone pass preflight.
+	h := make([]byte, 16)
+	put24(h[6:], 2)
+	bad := webpTestData(t, webpAnim{width: 3, height: 1, extra: chunk("ANMF", append(h, webpBitstream(t, "blue1")...))})
+	if _, err := PreflightWebP(bad); err != nil {
+		t.Error("preflight decoded pixels:", err)
+	}
+	for _, animate := range []bool{false, true} {
+		if _, _, err := DecodeWebP(bad, animate); err == nil {
+			t.Errorf("animate %v: mismatched first frame decoded", animate)
+		}
 	}
 }

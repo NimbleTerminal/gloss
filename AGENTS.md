@@ -76,10 +76,13 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Space resumes at the selected frame. Composition is cancellable and coalesced.
   `r`/`R` reloads, `e` exports the current full frame. Honors
   transparency, frame rectangles, disposal, and loop counts. Canvas up to
-  32 MP, at most 1,000 frames and 64 MiB total decoded frame storage (one
-  byte per GIF pixel, four per WebP pixel), checked from the headers before
-  frames are decoded. WebP frame pixels come from `x/image/webp` per ANMF
-  chunk; the container is parsed in `internal/animate/webp.go`. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
+  32 MP and at most 1,000 frames, checked from the headers. GIF frames are
+  decoded up front within 64 MiB (one byte per pixel). WebP frames stay
+  compressed and are decoded by `x/image/webp` per ANMF chunk as the player
+  paints them (`ClipFrame.Load`), so memory is the canvases plus one frame; a
+  frame that fails to decode is skipped. The container is parsed in
+  `internal/animate/webp.go`; preflight counts a WebP's canvas plus compressed
+  frames. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
   pages; file navigation is unchanged except Space while an animation is open.
 - **SVG**: rasterized by NTCharts' pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.
@@ -104,7 +107,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   numeric width/height bounds and left/center/right alignment are supported.
   No CSS, script, event-handler, srcset, or remote-asset execution/fetching.
   Visible embedded GIF and animated-WebP blocks animate in both renderers, with
-  eight distinct destinations and 64 MiB total decoded frame storage; excess
+  eight distinct destinations and 64 MiB total animation storage; excess
   animations stay on frame one and are counted in info. Offscreen/help/source/menu
   pauses; reflow preserves positions; reload restarts. `e` exports the first
   visible GIF’s displayed frame in normal Markdown, the viewport in typeset.

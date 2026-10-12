@@ -251,11 +251,17 @@ previews and headless exports do not enable animation.
 `internal/animate/webp.go` does the same for animated WebP. It walks the RIFF
 container itself (VP8X flags, the ANIM background and loop count, each ANMF's
 placement, duration, blend and dispose bits), checking declared chunk lengths
-against the file and the frame rectangles against the canvas, and counts frame
-storage at four bytes per pixel. Pixels are decoded by `golang.org/x/image/webp`:
-each frame's own ALPH/VP8/VP8L chunks are wrapped in a synthetic single-image
-file, with an extended header when alpha is present. WebP frame X/Y offsets are
-stored halved. `animate.Decode`, `Preflight` and `Animated` dispatch on the
+against the file and the frame rectangles against the canvas. Pixels are
+decoded by `golang.org/x/image/webp`: each frame's own ALPH/VP8/VP8L chunks are
+wrapped in a synthetic single-image file, with an extended header when alpha
+is present. WebP frame X/Y offsets are stored halved. Because WebP frames are
+usually full-canvas RGBA video, only the first is decoded on opening; the rest
+are `ClipFrame.Load` closures over the file's bytes that the player runs as it
+paints (`ClipFrame.paint`), so memory is the canvases plus one frame and the
+128 MiB file limit bounds the rest. A frame that fails to decode, or decodes
+to another size, is skipped; its delay and disposal still apply. Preflight
+reports the canvas plus compressed frame bytes. A 1080p lossy frame decodes
+in about 25 ms. `animate.Decode`, `Preflight` and `Animated` dispatch on the
 file signature; the document loader and both Markdown renderers use those.
 
 `animate.Player` holds immutable decoded frames and a playback position. `Next`
@@ -332,7 +338,7 @@ they must not use the generic test pump's timer heuristic to discard slow render
 The package has no document or application dependencies. `Clip` describes
 immutable paletted/RGBA frames, frame rectangles, blend/disposal, delays and loop
 counts; `NewPlayer` validates 64 MiB of decoded storage (RGBA costs four bytes
-per pixel). `DecodeGIF` and `DecodeWebP` are the bounded producers. `Source.Clone` snapshots mutable
+per pixel; frames with a `Load` hold none). `DecodeGIF` and `DecodeWebP` are the bounded producers. `Source.Clone` snapshots mutable
 playback state before asynchronous composition. `PlayerSource` drives one clip;
 `CompositeSource` drives independently timed regions over a page raster that
 omits animated images, so transparent frames reveal the original page background.

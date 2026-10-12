@@ -412,7 +412,8 @@ anywhere. Say that when you send the link.
 - GIFs and animated WebPs animate in the viewer (Space pauses/resumes). `--output`
   exports the first composited frame; frames are not selectable with `--page`.
   Interactive `e` exports the displayed frame. Animation is limited to 1,000
-  frames and 64 Mi decoded frame pixels total, with the same 32 MP canvas cap.
+  frames and the same 32 MP canvas cap; a GIF's decoded frames to 64 Mi pixels
+  total, while WebP frames are decoded as shown and bounded by the file limit.
 - Input files and stdin are limited to 128 MiB; images to 32 MP; PDFs to
   10,000 pages. `--info` reports these failures cleanly.
 - PDF streams allow 256 MiB per decoding stage and 1 GiB of total decoding
