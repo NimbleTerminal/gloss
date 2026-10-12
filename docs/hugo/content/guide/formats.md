@@ -7,21 +7,25 @@ bookToC: false
 # Formats and limits
 
 - PNG, JPEG, WebP, BMP, TIFF: first frame/page, up to 32 megapixels.
-  Animated WebP and AVIF aren't supported.
-- GIF: automatic playback with transparency, partial frames, disposal, and the
-  file's loop count. **Space** pauses/resumes (or restarts after the last loop);
+  AVIF isn't supported.
+- GIF and animated WebP: automatic playback with transparency, partial frames,
+  disposal, and the file's loop count. **Space** pauses/resumes (or restarts after the last loop);
   `<`/`>` select 0.25×, 0.5×, 1×, 2×, or 4× speed; Backspace restores 1×.
   `r` reloads from the beginning at 1×. The status bar shows the frame, speed,
   and playback state. `e` exports the current full frame as PNG; zoom/pan still work.
-  Canvas size is limited to 32 MP, animation to 1,000 frames and 64 Mi decoded
-  frame pixels in total. Limits are checked before decoding all frames.
+  Canvas size is limited to 32 MP, animation to 1,000 frames and 64 MiB of
+  decoded frame storage in total: 64 Mi pixels for a GIF's indexed frames,
+  16 Mi for a WebP's RGBA frames. Limits are checked before decoding all frames.
+  WebP frames are decoded by the same lossless/lossy decoder as still files,
+  with their alpha, blend and dispose-to-background settings honored.
   Delays below 20 ms use 100 ms before the speed multiplier is applied; other
   delays are scaled directly (minimum 5 ms at 4×). Rendering can
   slow playback on large images or slow terminals; frames are not queued up.
   File-list previews, notebook images, and headless `--output`
-  use the first frame on the full logical canvas. GIF frames are not `--page`s.
-  Embedded Markdown GIFs animate when visible: at most eight distinct destinations
-  and 64 MiB of decoded frame storage per document; excess GIFs remain still.
+  use the first frame on the full logical canvas. Frames are not `--page`s.
+  Embedded Markdown GIFs and WebPs animate when visible: at most eight distinct
+  destinations and 64 MiB of decoded frame storage per document; excess
+  animations remain still.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder

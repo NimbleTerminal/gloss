@@ -22,9 +22,9 @@ const MaxMarkdownImages = 32
 const maxMarkdownImagePixels = 16 << 20
 
 type Markdown struct {
-	GIFs, Animated, AnimationOverBudget int
-	Source                              []byte
-	Images                              []MarkdownImage
+	Animations, Animated, AnimationOverBudget int // GIFs and animated WebPs: seen, playing, and left on their first frame.
+	Source                                    []byte
+	Images                                    []MarkdownImage
 	// The pictures are inside the file, as a notebook's outputs and a Word
 	// document's media are: their links name no file a reader can open.
 	Packaged bool
@@ -157,9 +157,9 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 						switch kind {
 						case "svg":
 							asset.Image, asset.Err = renderSVG(resolved, data, 1600)
-						case "gif":
+						case "gif", "webp":
 							asset.Image, asset.Animation, asset.Err = animations.decode(ctx, data, play)
-						case "heic", "image", "png", "jpeg", "webp", "bmp", "tiff":
+						case "heic", "image", "png", "jpeg", "bmp", "tiff":
 							asset.Image, asset.Err = decodeRaster(data)
 						default:
 							asset.Err = fmt.Errorf("embedded format %s is not an image or SVG", kind)

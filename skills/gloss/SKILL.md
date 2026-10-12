@@ -409,8 +409,8 @@ anywhere. Say that when you send the link.
   `--pick`, or `--serve`) without a user's terminal: it will fail or hang. The
   four headless modes above are your whole interface; `--pick` and `--serve`
   are headless when stdin is not a terminal, and return at once.
-- GIFs animate in the viewer (Space pauses/resumes). `--output` exports the
-  first composited frame; GIF frames are not selectable with `--page`.
+- GIFs and animated WebPs animate in the viewer (Space pauses/resumes). `--output`
+  exports the first composited frame; frames are not selectable with `--page`.
   Interactive `e` exports the displayed frame. Animation is limited to 1,000
   frames and 64 Mi decoded frame pixels total, with the same 32 MP canvas cap.
 - Input files and stdin are limited to 128 MiB; images to 32 MP; PDFs to
@@ -472,9 +472,9 @@ and 32 Mi raster pixels. Oversized content fails rather than being silently cut.
 Local paths resolve relative to the Markdown file, or cwd for stdin. Missing or
 remote images become placeholders; no images/fonts are fetched. Images alone
 in paragraphs render as blocks; inline images currently appear as labels.
-Visible GIF blocks animate in the interactive Markdown viewer, up to eight
-distinct destinations and 64 MiB total decoded frame storage; excess GIFs keep
-frame one and are reported in info. Headless exports and previews stay on frame
+Visible GIF and animated WebP blocks animate in the interactive Markdown viewer,
+up to eight distinct destinations and 64 MiB total decoded frame storage; excess
+animations keep frame one and are reported in info. Headless exports and previews stay on frame
 one. `e` exports the first visible GIF’s displayed frame in normal Markdown,
 or the displayed viewport in typeset mode. Tables
 use simple column sizing. Complex scripts, CJK, emoji and bidi are not guaranteed.

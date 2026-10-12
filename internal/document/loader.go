@@ -152,7 +152,7 @@ type Request struct {
 	Generation  uint64
 	Reload      bool
 	MaxEdge     int         // Export raster target; zero keeps interactive defaults.
-	Animate     bool        // Decode bounded GIF playback; still exports and previews leave this false.
+	Animate     bool        // Decode bounded GIF/WebP playback; still exports and previews leave this false.
 	TextOnly    bool        // The text layer of a PDF page is wanted, not a picture of it.
 	Preview     bool        // A small, quick rendering is wanted: a thumbnail will do.
 	Parts       PartFilter  // The parts of a 3MF to show; empty shows them all.
@@ -503,8 +503,8 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		details = func() []Field { return model.fields(shown) }
 	default:
-		if q.Animate && !q.Preview && (bytes.HasPrefix(data, []byte("GIF87a")) || bytes.HasPrefix(data, []byte("GIF89a"))) {
-			out.Image, out.Animation, out.Err = decodeGIF(data, true)
+		if q.Animate && !q.Preview && animate.Animated(data) {
+			out.Image, out.Animation, out.Err = decodeAnimation(data, true)
 		} else {
 			out.Image, out.Err = decodeRaster(data)
 		}
@@ -530,8 +530,8 @@ func decodeRaster(data []byte) (image.Image, error) {
 	if cfg.Width <= 0 || cfg.Height <= 0 || cfg.Width > MaxPixels/cfg.Height {
 		return nil, fmt.Errorf("image exceeds %d pixels", MaxPixels)
 	}
-	if format == "gif" {
-		img, _, err := decodeGIF(data, false)
+	if format == "gif" || format == "webp" {
+		img, _, err := decodeAnimation(data, false)
 		return img, err
 	}
 	if format == "heic" {

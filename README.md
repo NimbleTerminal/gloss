@@ -57,8 +57,8 @@ gloss -N -S main.go                    # numbered source, long lines scroll side
 | `t` on text, source, JSON or Markdown | Toggle normal text / typeset view |
 | `s` on Markdown | Toggle rendered text or typeset view / source |
 | `u` | Show a selected table URL as a QR code |
-| Space, `<` / `>` on a standalone GIF | Pause / resume; slower / faster playback |
-| `,` / `.` on a standalone GIF | Step frames; click or drag the bottom bar to seek |
+| Space, `<` / `>` on a GIF or animated WebP | Pause / resume; slower / faster playback |
+| `,` / `.` on a GIF or animated WebP | Step frames; click or drag the bottom bar to seek |
 
 Pictures use Kitty graphics where the terminal has them, and colored half-blocks
 where it does not. Drag files onto the terminal to open them; add `--fetch`
@@ -68,7 +68,7 @@ offers list, columns, and places layouts, with filtering and Tab completion.
 ## Markdown
 
 Read Markdown as terminal text, or press `t` for typeset pages with embedded
-fonts, highlighted code, tables, local pictures, and animated GIFs. Try
+fonts, highlighted code, tables, local pictures, and animated GIFs or WebPs. Try
 `gloss --typeset README.md`. Pages reflow to the terminal width and scroll
 continuously; `+`/`-` zoom, `s` shows source, and `e` exports the viewport.
 Drag over typeset text and press `y` to copy it. Click links to open them;

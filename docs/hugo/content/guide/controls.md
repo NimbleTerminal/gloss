@@ -200,19 +200,19 @@ number instead. The browser demo, and a page shown with `--serve`, offer the
 PNG as a download instead: what is saved goes where the browser saves, not
 where gloss runs.
 
-Standalone animated GIFs play automatically. **Space** pauses or resumes; after a finite
+Standalone animated GIFs and WebPs play automatically. **Space** pauses or resumes; after a finite
 animation finishes, Space starts it again. **`<` / `>`** slow down or speed up
 through **0.25×, 0.5×, 1×, 2×, and 4×**; **Backspace** restores 1×. The status
 bar shows playback speed separately from zoom. Changing speed preserves pause
 and restarts the current frame's delay; it does not skip frames or restart a
 finished animation. Space restart retains speed. `r` or `R` reloads from the
-start at 1×; opening another GIF also starts at 1×.
+start at 1×; opening another animation also starts at 1×.
 
 The bottom row is a **frame scrubber**: click or drag its bar to seek. **`,` / `.`**
 step backward/forward one frame; **Home / End** select the first/last frame.
 Seeking pauses playback and clamps at the ends. **Space** resumes from the
 selected frame with a fresh loop count, retaining playback speed and zoom.
-The bar represents frame positions, not elapsed time (GIF frame delays vary).
+The bar represents frame positions, not elapsed time (frame delays vary).
 Rapid dragging keeps only the latest requested position; the old picture stays
 visible while the requested frame is composed. The status bar reports seeking;
 wait for it to finish before exporting that frame. The bar is hidden behind
@@ -220,7 +220,7 @@ help and overlays; arrow keys still pan the image.
 
 `n`/`p` and `[`/`]` still switch files. Zoom and pan apply to every frame, and
 `e` saves the displayed full frame as PNG. Help and the file browser suspend
-playback; list previews remain still. Embedded Markdown GIFs play while visible,
+playback; list previews remain still. Embedded Markdown GIFs and WebPs play while visible,
 without standalone playback controls; `e` exports the first visible GIF’s current
 frame in normal Markdown or the whole viewport in typeset mode. Large/slow frames play
 more slowly rather than building a rendering backlog.

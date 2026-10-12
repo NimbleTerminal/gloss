@@ -71,11 +71,11 @@ gloss photo.png drawing.svg model.stl -mP
 ## Choose a view
 
 - Read Markdown as terminal text, or press `t` for a typeset page with local
-  images, animated GIFs, and highlighted code. Text, source, and JSON also
+  images, animated GIFs and WebPs, and highlighted code. Text, source, and JSON also
   support `t`. Choose fonts with `f` and themes with `T`; see [Markdown](../markdown/).
 - Search document text, table cells, or PDF text with `/`. On source and text,
   `#` shows line numbers, `:` goes to a line, and `S` toggles long-line wrapping.
-- Pause a standalone GIF with Space, change speed with `<`/`>`, and scrub or
+- Pause a standalone GIF or animated WebP with Space, change speed with `<`/`>`, and scrub or
   step frames. Orbit STL/3MF meshes and select 3MF parts with `c`.
 - Press `e` to export the current image or typeset viewport. Scripts use
   `--output` without a terminal; meshes can export several views in one sheet.

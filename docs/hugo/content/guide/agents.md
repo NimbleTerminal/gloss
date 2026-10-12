@@ -196,8 +196,8 @@ gloss --typeset --page all --output-dir pages notes.md
 
 Exports use fixed-width slices; `--dpi` changes raster detail, and `--max-edge`
 bounds output dimensions. A slice can cut a line or image. Fonts and themes
-are explicit and reproducible: saved viewer preferences are ignored. GIFs use
-the first frame. See [typeset text](../markdown/#typeset-text-and-markdown).
+are explicit and reproducible: saved viewer preferences are ignored. GIFs and
+animated WebPs use the first frame. See [typeset text](../markdown/#typeset-text-and-markdown).
 
 ## Ask a person for files or show them a document
 

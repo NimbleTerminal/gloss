@@ -240,13 +240,23 @@ invalidation, raster scale, source/search toggles, resize/scroll consistency,
 Chroma colors, exports, and concurrent independent loaders. Actual Kitty/tmux
 resize, scrolling and glyph fallback remain manual checks after renderer work.
 
-## Animated GIFs
+## Animated GIFs and WebPs
 
 `internal/animate/gif.go` scans GIF blocks before `image/gif.DecodeAll` to
 bound the logical canvas (32 MP), frame count (1,000), and aggregate paletted
 frame pixels (64 Mi). The standard library decodes LZW and palettes. Static
 loads decode only the first frame and composite it onto the logical canvas;
 previews and headless exports do not enable animation.
+
+`internal/animate/webp.go` does the same for animated WebP. It walks the RIFF
+container itself (VP8X flags, the ANIM background and loop count, each ANMF's
+placement, duration, blend and dispose bits), checking declared chunk lengths
+against the file and the frame rectangles against the canvas, and counts frame
+storage at four bytes per pixel. Pixels are decoded by `golang.org/x/image/webp`:
+each frame's own ALPH/VP8/VP8L chunks are wrapped in a synthetic single-image
+file, with an extended header when alpha is present. WebP frame X/Y offsets are
+stored halved. `animate.Decode`, `Preflight` and `Animated` dispatch on the
+file signature; the document loader and both Markdown renderers use those.
 
 `animate.Player` holds immutable decoded frames and a playback position. `Next`
 returns a fresh composed canvas, honoring transparency and the
@@ -306,12 +316,15 @@ frame before its asynchronous export; it never reloads the first frame.
 Tests cover composition, offsets, background/previous disposal, delays, finite
 and infinite loops, immutable snapshots, pre-decode bounds, cancellation,
 stale work, export, and Kitty pacing/cleanup. `examples/motion.gif` is an
-original generated fixture; `scripts/gen-assets/gif.go` regenerates it.
+original generated fixture; `scripts/gen-assets/gif.go` regenerates it, and
+`gen-assets` converts it to `examples/motion.webp` with `gif2webp` (libwebp)
+when that tool is installed. The WebP unit tests assemble containers from tiny
+`cwebp` bitstreams embedded as hex, since Go has no WebP encoder.
 `./gloss examples/readme.md` compares that GIF as a Markdown linked image and
 an HTML `img` inside a centered `p`/`a` wrapper. Check visible animation, size
 bounds, aspect ratio, alignment, and linked-image clicks; press `t` to repeat
 in typeset mode, `s` to inspect source, and scroll away/back to resume playback.
-The same file and GIF are embedded in the native/browser sample gallery.
+The same file, GIF and WebP are embedded in the native/browser sample gallery.
 Menu previews and headless exports intentionally show the first frame.
 GIF lifecycle tests pause playback and drain finite render commands to completion;
 they must not use the generic test pump's timer heuristic to discard slow renders.
@@ -319,7 +332,7 @@ they must not use the generic test pump's timer heuristic to discard slow render
 The package has no document or application dependencies. `Clip` describes
 immutable paletted/RGBA frames, frame rectangles, blend/disposal, delays and loop
 counts; `NewPlayer` validates 64 MiB of decoded storage (RGBA costs four bytes
-per pixel). `DecodeGIF` is the bounded producer. `Source.Clone` snapshots mutable
+per pixel). `DecodeGIF` and `DecodeWebP` are the bounded producers. `Source.Clone` snapshots mutable
 playback state before asynchronous composition. `PlayerSource` drives one clip;
 `CompositeSource` drives independently timed regions over a page raster that
 omits animated images, so transparent frames reveal the original page background.

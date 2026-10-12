@@ -34,7 +34,7 @@ func TestMarkdownAnimationModesBudgetAndDuplicates(t *testing.T) {
 			if mode == "typeset" {
 				md = r.Typeset
 			}
-			if md.GIFs != 9 || md.Animated != 8 || md.AnimationOverBudget != 1 {
+			if md.Animations != 9 || md.Animated != 8 || md.AnimationOverBudget != 1 {
 				t.Fatalf("%s counts: %+v", mode, md)
 			}
 			if mode == "text" {

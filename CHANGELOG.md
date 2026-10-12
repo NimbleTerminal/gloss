@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Play animated WebP files like GIFs: standalone with the same pause, speed,
+  step and seek controls, and embedded in Markdown under the shared animation
+  budget. Animated WebP previously failed to open at all.
 - Display local HTML images in Markdown, including linked GIFs inside README
   wrappers, with animation, size bounds, and alignment in both renderers.
 

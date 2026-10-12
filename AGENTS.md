@@ -40,7 +40,7 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
   `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
   before PDF libraries run. Unsupported or ambiguous encodings fail closed.
-- `internal/animate`: bounded GIF decoding, format-neutral immutable clips and
+- `internal/animate`: bounded GIF and animated-WebP decoding, format-neutral immutable clips and
   players, per-picture event-loop animators with Kitty pacing/cleanup, and the
   typeset region compositor. `internal/app/animation.go` adapts standalone controls.
 - `internal/app/qr.go`: table URL overlay using the external
@@ -69,15 +69,17 @@ limits" page, `docs/hugo/content/guide/formats.md`):
 
 - **Images**: PNG, JPEG, WebP, BMP, TIFF (first frame, up to 32 MP) and
   HEIC/HEIF via a pure-Go HEVC decoder — no CGO or external converters.
-- **GIF**: automatic animation; Space pauses/resumes or restarts a finished
+- **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar
   supports click/drag seeking. Seeking pauses and resets the loop count;
   Space resumes at the selected frame. Composition is cancellable and coalesced.
   `r`/`R` reloads, `e` exports the current full frame. Honors
   transparency, frame rectangles, disposal, and loop counts. Canvas up to
-  32 MP, at most 1,000 frames and 64 Mi total decoded frame pixels, checked
-  before DecodeAll. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
+  32 MP, at most 1,000 frames and 64 MiB total decoded frame storage (one
+  byte per GIF pixel, four per WebP pixel), checked from the headers before
+  frames are decoded. WebP frame pixels come from `x/image/webp` per ANMF
+  chunk; the container is parsed in `internal/animate/webp.go`. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
   pages; file navigation is unchanged except Space while an animation is open.
 - **SVG**: rasterized by NTCharts' pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.
@@ -101,9 +103,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   to the shared image AST. Relative assets resolve beside the Markdown file;
   numeric width/height bounds and left/center/right alignment are supported.
   No CSS, script, event-handler, srcset, or remote-asset execution/fetching.
-  Visible embedded GIF blocks animate in both renderers, with
+  Visible embedded GIF and animated-WebP blocks animate in both renderers, with
   eight distinct destinations and 64 MiB total decoded frame storage; excess
-  GIFs stay on frame one and are counted in info. Offscreen/help/source/menu
+  animations stay on frame one and are counted in info. Offscreen/help/source/menu
   pauses; reflow preserves positions; reload restarts. `e` exports the first
   visible GIF’s displayed frame in normal Markdown, the viewport in typeset.
   Glamour by default; `s` toggles source and `t` switches text/typeset.
@@ -388,8 +390,8 @@ Uses [Task](https://taskfile.dev/); without it, `go build -o gloss ./cmd/gloss`.
   cask (`.goreleaser.yaml`; `task release-check` validates it). Pushing a
   `v*` tag publishes them via GitHub Actions, the cask to
   `NimbleTerminal/homebrew-tap`.
-- `task gen-assets` — regenerates the original PNG/HEIC/PDF/STL fixtures, and
-  the Grist ones (needs `python3`).
+- `task gen-assets` — regenerates the original PNG/HEIC/GIF/PDF/STL fixtures,
+  the animated WebP (needs `gif2webp`), and the Grist ones (needs `python3`).
 
 Version is stamped via `-ldflags "-X main.version=$VERSION"`. Dependencies are
 pinned in `go.mod`; builds use `-mod=readonly`. Bubble Tea's renderer,

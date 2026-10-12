@@ -36,7 +36,11 @@ and back to check that visible GIF playback resumes.
 
 ## Raster images
 
-Open `motion.gif` from the gallery for an animated orbit; Space pauses or resumes it.
+Open `motion.gif` or `motion.webp` from the gallery for an animated orbit; Space
+pauses or resumes it. The WebP is the same orbit, converted losslessly, and
+plays here as an embedded animation too:
+
+![The same orbit as an animated WebP](motion.webp)
 
 Two original landscapes, decoded locally: blue hills at dusk in PNG and a sunny desert in HEIC.
 

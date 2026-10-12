@@ -23,8 +23,11 @@ func TestEmbeddedGallery(t *testing.T) {
 			}
 			switch r.Kind {
 			case "markdown":
-				if len(r.Markdown.Images) != 5 {
+				if len(r.Markdown.Images) != 6 {
 					t.Fatalf("images: %d", len(r.Markdown.Images))
+				}
+				if r.Markdown.Images[3].Destination != "motion.webp" || r.Markdown.Animations != 2 {
+					t.Fatalf("animated WebP not counted: %+v", r.Markdown.Images[3])
 				}
 				plain, html := r.Markdown.Images[0], r.Markdown.Images[1]
 				if plain.Destination != "motion.gif" || html.Destination != plain.Destination || plain.Image != html.Image {

@@ -186,10 +186,14 @@ func inspectGIF(data []byte, stats *Stats) error {
 }
 
 func normalizedGIFDelay(delay int) time.Duration {
-	// Zero/one-centisecond delays commonly mean an unspecified delay. Avoid
-	// spinning or saturating the terminal; all other delays are preserved.
-	if delay < 2 {
+	return normalizedDelay(time.Duration(delay) * 10 * time.Millisecond)
+}
+
+// Delays under 20 ms commonly mean an unspecified delay. Avoid spinning or
+// saturating the terminal; all other delays are preserved.
+func normalizedDelay(d time.Duration) time.Duration {
+	if d < 20*time.Millisecond {
 		return 100 * time.Millisecond
 	}
-	return time.Duration(delay) * 10 * time.Millisecond
+	return d
 }

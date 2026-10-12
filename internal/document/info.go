@@ -312,8 +312,8 @@ func markdownFields(markdown *Markdown) []Field {
 		return strconv.Itoa(n)
 	}
 	animated := ""
-	if markdown.GIFs > 0 {
-		animated = fmt.Sprintf("%d of %d GIFs", markdown.Animated, markdown.GIFs)
+	if markdown.Animations > 0 {
+		animated = fmt.Sprintf("%d of %d animations", markdown.Animated, markdown.Animations)
 		if markdown.AnimationOverBudget > 0 {
 			animated += fmt.Sprintf("; %d over budget", markdown.AnimationOverBudget)
 		}

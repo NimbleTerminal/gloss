@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"math"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/gen2brain/h265/heic"
@@ -33,6 +34,12 @@ func main() {
 		}
 	}
 	write("examples/motion.gif", func(b *bytes.Buffer) error { return motionGIF(b) })
+	// Go has no WebP encoder: the animated WebP is the GIF converted by libwebp.
+	if _, err := exec.LookPath("gif2webp"); err != nil {
+		fmt.Fprintln(os.Stderr, "gif2webp not found; examples/motion.webp left as is")
+	} else if out, err := exec.Command("gif2webp", "-quiet", "-min_size", "-metadata", "none", "examples/motion.gif", "-o", "examples/motion.webp").CombinedOutput(); err != nil {
+		panic(fmt.Sprintf("gif2webp: %v\n%s", err, out))
+	}
 	write("examples/landscape.png", func(b *bytes.Buffer) error { return png.Encode(b, img) })
 	write("examples/landscape.heic", func(b *bytes.Buffer) error { return heic.Encode(b, desert(), heic.EncodeOptions{Quality: 85}) })
 	if err := os.WriteFile("examples/field-guide.pdf", pdf(), 0644); err != nil {

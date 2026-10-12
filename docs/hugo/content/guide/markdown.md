@@ -88,12 +88,12 @@ With Kitty graphics a typeset GIF is redrawn in its own area only, so the rest
 of the page is not resent for every frame, and it stands still during a scroll
 or resize burst, resuming once the view settles.
 
-A document can animate up to eight distinct GIF destinations with a combined
-64 MiB of decoded frame storage, checked before full decoding. Duplicate
-references share decoded frames. GIFs beyond either animation budget keep their
-first frame; `i` reports the animated and over-budget counts. Each GIF also has
-the usual 32 MP canvas and 1,000-frame limits. Previews and headless exports
-always use the first frame. Animated WebP and APNG remain unsupported.
+A document can animate up to eight distinct GIF or animated WebP destinations
+with a combined 64 MiB of decoded frame storage, checked before full decoding.
+Duplicate references share decoded frames. Animations beyond either budget keep
+their first frame; `i` reports the animated and over-budget counts. Each
+animation also has the usual 32 MP canvas and 1,000-frame limits. Previews and
+headless exports always use the first frame. APNG remains unsupported.
 
 ## Typeset text and Markdown
 
