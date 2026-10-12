@@ -35,7 +35,7 @@ var domains = []domain{
 	{
 		ID: "view", Title: "Opening and viewing",
 		Summary: "How gloss starts and what it draws with: the file menu and preview pane, terminal graphics, the screen it uses, which files it finds, and what it may fetch. gloss fetches only an http(s) address you name on the command line, or one you choose inside a document with --fetch; GLOSS_NO_FETCH in the environment forbids both.",
-		Flags:   []string{"menu", "preview", "render", "theme", "no-alt-screen", "type", "glob", "fetch"},
+		Flags:   []string{"menu", "preview", "render", "theme", "no-alt-screen", "type", "glob", "fetch", "user-agent"},
 		Examples: []example{
 			{"Look at some files, with a menu to choose among them", "gloss --menu photo.png report.pdf model.stl"},
 			{"A menu with a preview pane", "gloss --preview *.png"},

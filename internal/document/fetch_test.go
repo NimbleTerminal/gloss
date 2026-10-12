@@ -69,6 +69,22 @@ func pngBytes(t *testing.T) []byte {
 	return b.Bytes()
 }
 
+func TestFetchSendsTheUserAgent(t *testing.T) {
+	agent := make(chan string, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		agent <- r.UserAgent()
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(pngBytes(t))
+	}))
+	defer server.Close()
+	if _, err := Fetch(context.Background(), server.URL+"/photo.png", t.TempDir(), "probe/1.0"); err != nil {
+		t.Fatal(err)
+	}
+	if got := <-agent; got != "probe/1.0" {
+		t.Fatalf("User-Agent = %q", got)
+	}
+}
+
 func TestFetch(t *testing.T) {
 	served := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -103,7 +119,7 @@ func TestFetch(t *testing.T) {
 	fetch := func(url string) (string, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		return Fetch(ctx, url, dir)
+		return Fetch(ctx, url, dir, "gloss/test")
 	}
 	path, err := fetch(served.URL + "/photos/holiday.png")
 	if err != nil || filepath.Base(path) != "holiday.png" || filepath.Dir(path) != dir {
@@ -158,7 +174,7 @@ func TestFetchRequiredContentAndCleanup(t *testing.T) {
 	}))
 	defer server.Close()
 	dir := t.TempDir()
-	if _, err := Fetch(context.Background(), server.URL+"/photo.png", dir, AcceptFilter("image/*")); err == nil || !strings.Contains(err.Error(), "received html") {
+	if _, err := Fetch(context.Background(), server.URL+"/photo.png", dir, "gloss/test", AcceptFilter("image/*")); err == nil || !strings.Contains(err.Error(), "received html") {
 		t.Fatalf("error: %v", err)
 	}
 	files, err := os.ReadDir(dir)

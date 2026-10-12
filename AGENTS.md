@@ -179,7 +179,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `--info` reports it as an `error` entry and names downloads by their
   address (`Origins`/`Failed` in `options`). A detached start downloads in
   the parent into the session `dir` before the server runs
-  (`detachArguments`). `GLOSS_NO_FETCH`, set and not empty,
+  (`detachArguments`). Downloads send `gloss/<version>` as their
+  User-Agent, or `--user-agent`, or else `GLOSS_USER_AGENT` (`userAgent` in
+  `cmd/gloss/fetch.go`, resolved in `parse`). `GLOSS_NO_FETCH`, set and not empty,
   refuses address arguments and `--fetch`. With `--fetch`, `Enter` on a
   table cell holding an http(s) address, or dropping/pasting one URL,
   downloads and opens it.

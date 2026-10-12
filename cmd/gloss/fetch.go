@@ -26,6 +26,39 @@ const noFetchVariable = "GLOSS_NO_FETCH"
 
 func fetchDisabled() bool { return os.Getenv(noFetchVariable) != "" }
 
+// userAgentVariable names the User-Agent downloads send when --user-agent
+// does not; without either, it is gloss and its version.
+const userAgentVariable = "GLOSS_USER_AGENT"
+
+// userAgent resolves what downloads send as their User-Agent: the option,
+// else the environment, else gloss and its version. A value is one line of
+// at most 1 KiB without control characters, which a header cannot carry.
+func userAgent(option string) (string, error) {
+	if option != "" {
+		if err := validUserAgent(option); err != nil {
+			return "", fmt.Errorf("--user-agent %w", err)
+		}
+		return option, nil
+	}
+	if env := os.Getenv(userAgentVariable); env != "" {
+		if err := validUserAgent(env); err != nil {
+			return "", fmt.Errorf("%s %w", userAgentVariable, err)
+		}
+		return env, nil
+	}
+	return "gloss/" + version, nil
+}
+
+func validUserAgent(agent string) error {
+	if len(agent) > 1024 {
+		return fmt.Errorf("must be at most 1 KiB")
+	}
+	if strings.ContainsFunc(agent, func(r rune) bool { return r < 0x20 || r == 0x7f }) {
+		return fmt.Errorf("must be one line without control characters")
+	}
+	return nil
+}
+
 // webAddress reports whether an argument names a web address rather than a
 // file: an http or https URL with a host. Nothing else is one, so a path
 // with a drive letter or a dot-slash in front stays a path.
@@ -50,8 +83,9 @@ func otherScheme(arg string) bool {
 // runs as a command of the viewer while the model asks what is a download,
 // so the folder is locked.
 type fetchFolder struct {
-	mu  sync.Mutex
-	dir string
+	mu    sync.Mutex
+	dir   string
+	agent string // What downloads send as their User-Agent.
 }
 
 // path makes the folder if it does not yet exist.
@@ -100,7 +134,7 @@ func (f *fetchFolder) fetch(ctx context.Context, address string, accept document
 	}
 	ctx, cancel := context.WithTimeout(ctx, fetchTimeout)
 	defer cancel()
-	return document.Fetch(ctx, address, dir, accept)
+	return document.Fetch(ctx, address, dir, f.agent, accept)
 }
 
 // downloadArguments puts, in the place of each web address among the
@@ -155,7 +189,7 @@ func redacted(address string) string {
 // input, when named, is kept in the session folder, and so is what each web
 // address names, so the server starts at once with files, and a download
 // that fails is the caller's error rather than a server that never comes up.
-func detachArguments(ctx context.Context, args []string, dir string, stdin io.Reader, accept document.AcceptFilter) ([]string, error) {
+func detachArguments(ctx context.Context, args []string, dir string, stdin io.Reader, accept document.AcceptFilter, agent string) ([]string, error) {
 	child := slices.Clone(args)
 	for i, arg := range child {
 		if arg != "-" {
@@ -176,6 +210,6 @@ func detachArguments(ctx context.Context, args []string, dir string, stdin io.Re
 		}
 		break
 	}
-	child, _, err := downloadArguments(ctx, child, &fetchFolder{dir: dir}, accept, nil)
+	child, _, err := downloadArguments(ctx, child, &fetchFolder{dir: dir, agent: agent}, accept, nil)
 	return child, err
 }

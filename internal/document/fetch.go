@@ -19,9 +19,10 @@ import (
 
 // Fetch downloads what a URL names into dir and returns its path. It takes
 // only http and https, follows redirects only to the same, reads no more
-// than a file may be, and keeps only what gloss can show. Nothing is fetched
-// unless the user asked: gloss does not reach the network on its own.
-func Fetch(ctx context.Context, address, dir string, filters ...AcceptFilter) (string, error) {
+// than a file may be, and keeps only what gloss can show. The request names
+// agent as its User-Agent. Nothing is fetched unless the user asked: gloss
+// does not reach the network on its own.
+func Fetch(ctx context.Context, address, dir, agent string, filters ...AcceptFilter) (string, error) {
 	u, err := url.Parse(strings.TrimSpace(address))
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 		return "", fmt.Errorf("only http and https addresses are fetched")
@@ -31,7 +32,7 @@ func Fetch(ctx context.Context, address, dir string, filters ...AcceptFilter) (s
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("User-Agent", "gloss")
+	req.Header.Set("User-Agent", agent)
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("%s: %s", svg.SanitizeForTerminal(u.Host), sanitizeErr(err))

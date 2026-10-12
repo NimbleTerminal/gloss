@@ -142,7 +142,7 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 			os.Remove(file)
 		}
 	}()
-	child, err := detachArguments(context.Background(), args, dir, os.Stdin, opts.Accept)
+	child, err := detachArguments(context.Background(), args, dir, os.Stdin, opts.Accept, opts.UserAgent)
 	if err != nil {
 		return err
 	}

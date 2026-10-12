@@ -61,6 +61,12 @@ the address and removed when gloss exits, unless it was picked. A detached
 `--serve` or `--pick` downloads before the server starts, into the session's
 private folder, where a picked download then stays for the caller.
 
+Downloads identify themselves as `gloss/` and the version, as `gloss --version`
+prints it. A host that wants another name gets it from `--user-agent`, or from
+`GLOSS_USER_AGENT` in the environment when the option is not given: one line of
+at most 1 KiB without control characters. The same name is sent for addresses
+opened inside documents with `--fetch`.
+
 A URL argument is a network request. A script that passes names it did not
 choose can forbid it by setting `GLOSS_NO_FETCH` to any non-empty value in the
 environment: address arguments then fail, and `--fetch` is refused. Keep

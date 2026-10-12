@@ -7,7 +7,8 @@
   budget. Animated WebP previously failed to open at all.
 - Accept http(s) addresses in place of files: `gloss https://…/report.pdf`
   downloads and shows, exports, describes, or extracts it. `GLOSS_NO_FETCH`
-  turns all fetching off, including `--fetch`.
+  turns all fetching off, including `--fetch`. Downloads identify themselves
+  as `gloss/<version>`; `--user-agent` or `GLOSS_USER_AGENT` sets another name.
 - Display local HTML images in Markdown, including linked GIFs inside README
   wrappers, with animation, size bounds, and alignment in both renderers.
 

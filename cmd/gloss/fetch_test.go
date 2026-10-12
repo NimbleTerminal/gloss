@@ -153,6 +153,50 @@ func TestDownloadArgumentsCanKeepGoing(t *testing.T) {
 	}
 }
 
+func TestDownloadArgumentsSendTheUserAgent(t *testing.T) {
+	agent := make(chan string, 1)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		agent <- r.UserAgent()
+		http.FileServer(http.Dir("../../examples")).ServeHTTP(w, r)
+	}))
+	defer srv.Close()
+	folder := fetchFolder{agent: "custom/2"}
+	t.Cleanup(func() { folder.discard(nil) })
+	if _, _, err := downloadArguments(context.Background(), []string{srv.URL + "/shapes.svg"}, &folder, "", nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := <-agent; got != "custom/2" {
+		t.Fatalf("User-Agent = %q", got)
+	}
+}
+
+func TestUserAgentOption(t *testing.T) {
+	t.Setenv("GLOSS_USER_AGENT", "")
+	opts, _, err := parse([]string{"a.png"}, io.Discard)
+	if err != nil || opts.UserAgent != "gloss/"+version {
+		t.Fatalf("default agent %q, %v", opts.UserAgent, err)
+	}
+	t.Setenv("GLOSS_USER_AGENT", "env/1")
+	if opts, _, err = parse([]string{"a.png"}, io.Discard); err != nil || opts.UserAgent != "env/1" {
+		t.Fatalf("environment agent %q, %v", opts.UserAgent, err)
+	}
+	if opts, _, err = parse([]string{"--user-agent", "flag/1", "a.png"}, io.Discard); err != nil || opts.UserAgent != "flag/1" {
+		t.Fatalf("flag over environment %q, %v", opts.UserAgent, err)
+	}
+	if opts, _, err = parse([]string{"--user-agent", "", "a.png"}, io.Discard); err != nil || opts.UserAgent != "env/1" {
+		t.Fatalf("empty flag %q, %v", opts.UserAgent, err)
+	}
+	for _, bad := range []string{"two\nlines", "tab\there", strings.Repeat("x", 1025)} {
+		if _, _, err := parse([]string{"--user-agent", bad, "a.png"}, io.Discard); err == nil || !strings.Contains(err.Error(), "--user-agent") {
+			t.Fatalf("%q accepted: %v", bad, err)
+		}
+	}
+	t.Setenv("GLOSS_USER_AGENT", "bad\x7fagent")
+	if _, _, err := parse([]string{"a.png"}, io.Discard); err == nil || !strings.Contains(err.Error(), "GLOSS_USER_AGENT") {
+		t.Fatalf("bad environment agent accepted: %v", err)
+	}
+}
+
 func TestFetchFolderIsSafeForConcurrentUse(t *testing.T) {
 	// A fetch command makes the folder on one goroutine while the model
 	// asks on another whether a path is a download.
@@ -193,7 +237,7 @@ func TestDetachDownloadsAddressesIntoTheSession(t *testing.T) {
 	srv := httptest.NewServer(http.FileServer(http.Dir("../../examples")))
 	defer srv.Close()
 	dir := t.TempDir()
-	args, err := detachArguments(context.Background(), []string{"--serve", srv.URL + "/shapes.svg", "-"}, dir, strings.NewReader("hello\n"), "")
+	args, err := detachArguments(context.Background(), []string{"--serve", srv.URL + "/shapes.svg", "-"}, dir, strings.NewReader("hello\n"), "", "gloss/test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +250,7 @@ func TestDetachDownloadsAddressesIntoTheSession(t *testing.T) {
 		}
 	}
 	// A failed download fails the start before any server runs.
-	if _, err := detachArguments(context.Background(), []string{srv.URL + "/missing.png"}, dir, strings.NewReader(""), ""); err == nil || !strings.Contains(err.Error(), "HTTP 404") {
+	if _, err := detachArguments(context.Background(), []string{srv.URL + "/missing.png"}, dir, strings.NewReader(""), "", "gloss/test"); err == nil || !strings.Contains(err.Error(), "HTTP 404") {
 		t.Fatalf("err=%v", err)
 	}
 }

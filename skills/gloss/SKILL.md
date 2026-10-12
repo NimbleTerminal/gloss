@@ -427,7 +427,9 @@ anywhere. Say that when you send the link.
   that fails is an error, except under `--info`, which reports it as an `error`
   entry under its address and describes the rest; `--info` names a downloaded
   file by its address. A detached start downloads before the server starts,
-  into the session `dir`, where a picked download stays. `--fetch` is an
+  into the session `dir`, where a picked download stays. Downloads send
+  `User-Agent: gloss/<version>`; `--user-agent STRING`, else `GLOSS_USER_AGENT`,
+  replaces it (one line, at most 1 KiB, no control characters). `--fetch` is an
   interactive option for addresses inside documents (Enter on a cell's
   address, or drop/paste one URL); the headless modes never need it. With
   `GLOSS_NO_FETCH` set and not empty, an address argument fails and `--fetch`
