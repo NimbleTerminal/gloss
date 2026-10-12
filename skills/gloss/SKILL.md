@@ -420,8 +420,20 @@ anywhere. Say that when you send the link.
   parameters, and ambiguous stream lengths are refused. PDF metadata/text
   parsing and SVG rendering use isolated workers stopped after 15 seconds;
   a timeout is an error, not a task still running in the background.
-- gloss never fetches the network on its own. `--fetch` is an interactive
-  option (Enter on a cell's address, or drop/paste one http(s) URL); the headless modes never need it.
+- gloss fetches only what it is asked for. An http(s) address in place of a
+  file is downloaded first and then viewed, exported, described, or extracted
+  like the file it became (one minute, 128 MiB, no redirect from https to http, `--accept`
+  applies, deleted on exit unless picked); other schemes are errors. A download
+  that fails is an error, except under `--info`, which reports it as an `error`
+  entry under its address and describes the rest; `--info` names a downloaded
+  file by its address. A detached start downloads before the server starts,
+  into the session `dir`, where a picked download stays. `--fetch` is an
+  interactive option for addresses inside documents (Enter on a cell's
+  address, or drop/paste one URL); the headless modes never need it. With
+  `GLOSS_NO_FETCH` set and not empty, an address argument fails and `--fetch`
+  is refused, for wrappers that pass names they do not control. A URL
+  argument is a network request: do not put one from an untrusted document on
+  the command line without meaning to, and keep credentials out of it.
 - `--accept 'image/*'` restricts a session to images including SVG; use comma-separated gloss formats such as `image/*,pdf` for alternatives. Content mismatches are errors, independent of `--type`, and rejected downloads are removed. The restriction also applies to local choices and drops. Public app links accept `?accept=image%2F*`; their URL drops fetch directly in the browser with CORS and never through a proxy.
 - Use gloss's extraction and rendering when they answer the task. Prefer
   `--text` for document content; add PNGs when appearance matters. Specialized

@@ -172,8 +172,17 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   writing. Other SQLite databases are refused.
 - **CSV/TSV**: separator auto-detected; shown like a sheet. Table columns can
   be hidden interactively or via `--cols`/`--coln`.
-- **Fetching** (CLI opt-in `--fetch`): `Enter` on a table cell holding an
-  http(s) address, or dropping/pasting one URL, downloads and opens it.
+- **Fetching**: an http(s) address among the command-line arguments is
+  downloaded into the session's fetch folder (`cmd/gloss/fetch.go`) before
+  anything else and stands in for the file, in the viewer and every headless
+  mode; other schemes are errors. A failed download is an error, except that
+  `--info` reports it as an `error` entry and names downloads by their
+  address (`Origins`/`Failed` in `options`). A detached start downloads in
+  the parent into the session `dir` before the server runs
+  (`detachArguments`). `GLOSS_NO_FETCH`, set and not empty,
+  refuses address arguments and `--fetch`. With `--fetch`, `Enter` on a
+  table cell holding an http(s) address, or dropping/pasting one URL,
+  downloads and opens it.
   Table addresses are marked 🔗 and drawn as terminal hyperlinks (OSC 8), so
   the terminal opens them in a browser when clicked. URL drops on `--serve`
   pages also require `--fetch`. The public landing demo and app enable URL
@@ -404,8 +413,9 @@ pinned in `go.mod`; builds use `-mod=readonly`. Bubble Tea's renderer,
 - Go, formatted with `gofmt` (enforced by `task ci`); follow NTCharts' layout
   conventions and the existing code style.
 - All loaders must stay bounded: respect the 128 MiB input cap and per-format
-  pixel/row/face limits. Loaders never fetch remote assets. CLI document fetching
-  requires `--fetch` and an explicit user action; public pages fetch only a URL
+  pixel/row/face limits. Loaders never fetch remote assets. The CLI fetches only
+  an address the user names on the command line or, with `--fetch`, chooses
+  inside a document; `GLOSS_NO_FETCH` forbids both. Public pages fetch only a URL
   the user drops or asks to open through `?src=`, directly with browser CORS.
   Do not add a public fetch proxy or a fallback that bypasses CORS.
 - Never overwrite an existing output file; number the name instead.

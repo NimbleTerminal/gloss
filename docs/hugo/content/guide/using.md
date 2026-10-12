@@ -6,7 +6,7 @@ bookToC: false
 
 # Using gloss
 
-gloss shows the files you name, or the contents of a folder, or what you pipe into it. With no file it opens empty: drop files on it, or press `o` to browse.
+gloss shows the files you name, or the contents of a folder, or what you pipe into it. With no file it opens empty: drop files on it, or press `o` to browse. An `http://` or `https://` address in place of a file is downloaded first, then shown like the file it is; see [Opening a web address](#opening-a-web-address).
 
 ```sh
 gloss photo.png drawing.svg report.pdf model.stl
@@ -42,7 +42,31 @@ gloss --pick --prompt "The invoice, please"   # and say what for
 gloss --glob images --glob meshes ~/models    # open every match under a folder
 gloss                            # no file yet; drop files or press o to browse
 gloss ~/Pictures                 # browse a folder for a file to open
+gloss https://example.org/a.pdf  # download a web address and show it
 ```
+
+## Opening a web address
+
+Any argument that is an `http` or `https` URL is downloaded before gloss starts
+and takes the file's place, so it works wherever a file does: the viewer, the
+menu, `--serve`, and the headless modes `--info`, `--text`, `--grep`, and
+`--output`. Naming the address is the request, so no option is needed. The
+download has one minute and the 128 MiB file limit, follows at most ten
+redirects and never from https to http, sends no cookies or stored credentials,
+and must be a format gloss shows; `--type` and `--accept` apply to it as to a file.
+Other schemes, such as `ftp://`, are errors, and so is a download that fails,
+exactly as a file that cannot be opened, except that `--info` reports it among
+the others, under its address, and goes on. The file is named after the end of
+the address and removed when gloss exits, unless it was picked. A detached
+`--serve` or `--pick` downloads before the server starts, into the session's
+private folder, where a picked download then stays for the caller.
+
+A URL argument is a network request. A script that passes names it did not
+choose can forbid it by setting `GLOSS_NO_FETCH` to any non-empty value in the
+environment: address arguments then fail, and `--fetch` is refused. Keep
+passwords out of addresses; they would be sent as Basic authentication and
+remain in your shell history. A local file whose name begins with `http://`
+cannot be named on the command line; there are none.
 
 Options use `pflag` GNU syntax and may appear before or after filenames. Both
 `--page=3` and `-p3` work; boolean short flags can be grouped (`-mP`). Use `--` to

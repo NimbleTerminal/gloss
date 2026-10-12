@@ -51,6 +51,8 @@ type options struct {
 	Info, JSON    bool
 	Apps          bool
 	FetchAllowed  bool
+	Origins       map[string]string // The address each downloaded argument came from, by file.
+	Failed        map[string]string // Why an address among the arguments could not be downloaded, when --info goes on without it.
 	Globs         []string
 	Text          bool           // Take the text out, rather than draw.
 	Grep          *regexp.Regexp // Search the text layer of PDF pages for this, and report the matches.
@@ -97,7 +99,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	cols := f.String("cols", "", "show only these columns of a table, by header or letter: name,name")
 	coln := f.String("coln", "", "show only these columns of a table, counted from 1: 2,4-6")
 	f.StringArrayVar(&opts.Globs, "glob", nil, "search the folders named, or the current one, for files: a glob, an extension, or a kind such as images (repeatable)")
-	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; gloss never fetches on its own")
+	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
 	f.BoolVar(&opts.Apps, "apps", false, "list installed apps for each file kind without opening a file; --json for scripts")
 	f.BoolVar(&opts.Info, "info", false, "print what each file says about itself, and do not open the viewer")
 	f.BoolVar(&opts.JSON, "json", false, "with --apps, --info, --text, --grep, an export, --pick-web, or --resume, print JSON")
@@ -339,6 +341,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if (opts.Output != "" || opts.OutputDir != "") && (opts.Serve || opts.Pick || opts.FetchAllowed) {
 		return opts, false, fmt.Errorf("export cannot be combined with --serve, --pick, or --fetch")
 	}
+	if opts.FetchAllowed && fetchDisabled() {
+		return opts, false, fmt.Errorf("--fetch is disabled by %s", noFetchVariable)
+	}
 	if opts.Serve && opts.KeepScreen {
 		return opts, false, fmt.Errorf("--serve draws on a page; it cannot be combined with --no-alt-screen")
 	}
@@ -464,6 +469,26 @@ func run(args []string) (err error) {
 			continue
 		}
 	}
+	// A web address among the arguments is downloaded first, and shown or
+	// exported as the file it became. Downloads last the session; an
+	// interrupt meanwhile ends the download, and so the session, in order.
+	var downloads fetchFolder
+	defer func() { downloads.discard(picked) }()
+	var failed func(address string, err error)
+	if opts.Info {
+		failed = func(address string, err error) {
+			if opts.Failed == nil {
+				opts.Failed = map[string]string{}
+			}
+			opts.Failed[address] = err.Error()
+		}
+	}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	opts.Files, opts.Origins, err = downloadArguments(ctx, opts.Files, &downloads, opts.Accept, failed)
+	stop()
+	if err != nil {
+		return err
+	}
 	if len(opts.Globs) > 0 {
 		if opts.Files, err = expandGlobs(opts.Files, opts.Globs, os.Stderr); err != nil {
 			return err
@@ -494,20 +519,10 @@ func run(args []string) (err error) {
 	if exporting {
 		return exportFiles(opts, os.Stdout, os.Stderr)
 	}
-	fetchDir := ""
 	if opts.FetchAllowed {
-		// Fetched files are the session's; a picked one is the caller's.
-		dir, err := os.MkdirTemp("", "gloss-fetch-")
-		if err != nil {
-			return err
-		}
-		fetchDir = dir
 		opts.Fetch = func(address string) (string, error) {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-			defer cancel()
-			return document.Fetch(ctx, address, dir, opts.Accept)
+			return downloads.fetch(context.Background(), address, opts.Accept)
 		}
-		defer func() { discardFetched(dir, picked) }()
 	}
 	if opts.Serve {
 		return served(opts, os.Stdout, os.Stderr)
@@ -520,11 +535,7 @@ func run(args []string) (err error) {
 		if path == stdinPath && stdinPath != "" {
 			return true
 		}
-		if fetchDir == "" {
-			return false
-		}
-		rel, e := filepath.Rel(fetchDir, path)
-		return e == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel)
+		return downloads.holds(path)
 	}
 	opts.OpenLink = browse
 	opts.ThemeChoices = theme.Available()

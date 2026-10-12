@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -13,11 +14,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
-
-	"nimbleterminal.dev/gloss/internal/document"
 )
 
 // A pick asked for with no terminal to answer it must not hold its caller.
@@ -144,25 +142,9 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 			os.Remove(file)
 		}
 	}()
-	child := slices.Clone(args)
-	for i, arg := range child {
-		if arg != "-" {
-			continue
-		}
-		data, err := document.ReadLimited(os.Stdin)
-		if err != nil {
-			return fmt.Errorf("stdin: %w", err)
-		}
-		kept, err := document.WriteNew(filepath.Join(dir, "stdin"), data)
-		if err != nil {
-			return err
-		}
-		for j := i; j < len(child); j++ {
-			if child[j] == "-" {
-				child[j] = kept
-			}
-		}
-		break
+	child, err := detachArguments(context.Background(), args, dir, os.Stdin, opts.Accept)
+	if err != nil {
+		return err
 	}
 	timeout := opts.Timeout
 	idle := time.Duration(0)

@@ -37,7 +37,12 @@ func describe(opts options, stdout, stderr io.Writer) error {
 		if opts.IsStdin(path) {
 			d.Path = "stdin"
 		}
-		if err := opts.Accept.CheckFile(nil, path); err != nil {
+		if origin, ok := opts.Origins[path]; ok {
+			d.Path = origin
+		}
+		if why, ok := opts.Failed[path]; ok {
+			d.Error = why
+		} else if err := opts.Accept.CheckFile(nil, path); err != nil {
 			d.Error = document.SkipReason(err)
 		} else if kind, err := document.Probe(path, opts.Type); err != nil {
 			d.Error = document.SkipReason(err)

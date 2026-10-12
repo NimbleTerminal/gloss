@@ -148,7 +148,9 @@ Drag files from a file manager onto the terminal to add them to the list.
 Terminals deliver a drop as a bracketed paste of paths or `file://` URIs; text
 that does not read as paths is ignored, except that `--fetch` also enables a
 single pasted or dropped http(s) URL. Dropped files follow the same format and
-size rules as arguments, and any that are skipped are reported on exit. A
+size rules as arguments, and any that are skipped are reported on exit. An
+address named on the command line needs no `--fetch`: it is downloaded before
+gloss starts, as [Using gloss](../using/#opening-a-web-address) describes. A
 folder dropped on its own opens the file browser there, as a folder named on
 the command line does; one dropped beside files is skipped.
 `gloss` alone opens the viewer with no file, as a drop target. In the

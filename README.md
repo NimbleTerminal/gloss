@@ -61,8 +61,8 @@ gloss -N -S main.go                    # numbered source, long lines scroll side
 | `,` / `.` on a GIF or animated WebP | Step frames; click or drag the bottom bar to seek |
 
 Pictures use Kitty graphics where the terminal has them, and colored half-blocks
-where it does not. Drag files onto the terminal to open them; add `--fetch`
-to open a dropped web URL. The [file browser](https://nimbleterminal.github.io/gloss/docs/guide/browser/)
+where it does not. Name an `https://` address to download and view it. Drag
+files onto the terminal to open them; add `--fetch` to open a dropped web URL. The [file browser](https://nimbleterminal.github.io/gloss/docs/guide/browser/)
 offers list, columns, and places layouts, with filtering and Tab completion.
 
 ## Markdown
