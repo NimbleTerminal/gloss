@@ -104,7 +104,7 @@ func fetchedName(u *url.URL, contentType string) string {
 	if filepath.Ext(name) == "" {
 		kind, _, _ := mime.ParseMediaType(contentType)
 		if ext, ok := map[string]string{
-			"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/bmp": ".bmp", "image/tiff": ".tiff", "image/heic": ".heic", "image/heif": ".heif",
+			"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/bmp": ".bmp", "image/tiff": ".tiff", "image/heic": ".heic", "image/heif": ".heif", "image/jxl": ".jxl",
 			"image/svg+xml": ".svg", "application/pdf": ".pdf", "model/stl": ".stl", "application/sla": ".stl", "model/3mf": ".3mf", "application/vnd.ms-package.3dmanufacturing-3dmodel+xml": ".3mf",
 			"text/markdown": ".md", "text/plain": ".md", "text/csv": ".csv", "text/tab-separated-values": ".tsv",
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",

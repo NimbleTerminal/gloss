@@ -53,7 +53,7 @@ task ci                         # formatting, modules, race tests, vet (also for
 Tests cover CLI validation, malformed files, STL geometry, PDF rendering and
 navigation, SVG rasterization, viewport cropping, terminal-safe labels, and
 stale asynchronous results. The example SVG and STL are small original
-fixtures; `task gen-assets` regenerates the PNG, HEIC, PDF, the block-letter
+fixtures; `task gen-assets` regenerates the PNG, HEIC, JPEG XL, PDF, the block-letter
 STL, and, with `python3`, the Grist document, which is written by hand to
 Grist's layout rather than saved from Grist.
 

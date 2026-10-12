@@ -293,7 +293,7 @@ tasks:
     cmds:
       - 'dir="$(mktemp -d)" && go run ./cmd/gloss --docs-man "$dir/man" --docs-completions "$dir/completions" --docs-markdown "$dir/md" --docs-hugo && go run ./internal/tools/docsite -o "$dir/guide"; status=$?; rm -rf "$dir"; exit $status'
   gen-assets:
-    desc: Regenerate the original PNG, HEIC, GIF, WebP, PDF, and Grist fixtures
+    desc: Regenerate the original PNG, HEIC, JPEG XL, GIF, WebP, PDF, and Grist fixtures
     cmds:
       - go run ./scripts/gen-assets
       - python3 scripts/gen-grist.py

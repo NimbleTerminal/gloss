@@ -26,7 +26,7 @@ var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "gri
 // Kind maps loader image kinds to their shared preference key.
 func Kind(kind string) string {
 	switch kind {
-	case "png", "jpeg", "gif", "webp", "bmp", "tiff", "heic", "heif", "image":
+	case "png", "jpeg", "gif", "webp", "bmp", "tiff", "heic", "heif", "jxl", "image":
 		return "image/*"
 	}
 	return kind

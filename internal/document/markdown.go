@@ -159,7 +159,7 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 							asset.Image, asset.Err = renderSVG(resolved, data, 1600)
 						case "gif", "webp":
 							asset.Image, asset.Animation, asset.Err = animations.decode(ctx, data, play)
-						case "heic", "image", "png", "jpeg", "bmp", "tiff":
+						case "heic", "jxl", "image", "png", "jpeg", "bmp", "tiff":
 							asset.Image, asset.Err = decodeRaster(data)
 						default:
 							asset.Err = fmt.Errorf("embedded format %s is not an image or SVG", kind)

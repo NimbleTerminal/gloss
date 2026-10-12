@@ -34,6 +34,12 @@ bookToC: false
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder
   errors. HEIC works in Markdown, previews, PNG exports, and the browser demo.
+- JPEG XL: the first frame of a bare codestream or a `.jxl` container, lossless
+  or lossy, up to 32 megapixels, oriented as the file asks. Uses the
+  [pure-Go jxl decoder](https://github.com/gen2brain/jxl), without CGO or
+  external converters; embedded ICC profiles are not applied, and animated
+  files show their first frame. Exif in the container feeds the info box. JPEG
+  XL works in Markdown, previews, PNG exports, and the browser demo.
 - SVG: NTCharts' pure-Go SVG renderer, rasterized to a 2400-pixel maximum edge.
   SVG support follows the underlying oksvg renderer, not a full browser engine.
   Rendering runs in an isolated worker that is stopped after 15 seconds.

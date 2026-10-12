@@ -48,7 +48,7 @@ it itself does; `gloss skill install` writes it where the agents on the
 machine look for skills. A file named `skill`, `view` or `help` is opened as
 `gloss view skill`.
 
-It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, SVG, PDF, STL, 3MF,
+It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL, SVG, PDF, STL, 3MF,
 Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
 documents, and CSV. One binary, no external converters, no CGO. Inputs are limited to 128 MiB.
 

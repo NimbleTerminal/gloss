@@ -25,6 +25,7 @@ import (
 	_ "github.com/NimbleMarkets/ntcharts/v2/picture/decoders"
 	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/gen2brain/h265/heic"
+	"github.com/gen2brain/jxl"
 )
 
 const MaxFileBytes = 128 << 20
@@ -32,7 +33,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -120,7 +121,8 @@ func rasterSignature(b []byte) bool {
 			return true
 		}
 	}
-	for _, magic := range []string{"\x89PNG\r\n\x1a\n", "\xff\xd8\xff", "GIF87a", "GIF89a", "BM", "II\x2a\x00", "MM\x00\x2a"} {
+	// JPEG XL is a bare codestream or that codestream boxed in an ISOBMFF container.
+	for _, magic := range []string{"\x89PNG\r\n\x1a\n", "\xff\xd8\xff", "GIF87a", "GIF89a", "BM", "II\x2a\x00", "MM\x00\x2a", "\xff\x0a", "\x00\x00\x00\x0cJXL \r\n\x87\n"} {
 		if bytes.HasPrefix(b, []byte(magic)) {
 			return true
 		}
@@ -537,6 +539,9 @@ func decodeRaster(data []byte) (image.Image, error) {
 	if format == "heic" {
 		return heic.Decode(bytes.NewReader(data), heic.Options{AutoRotate: true, FrameSizeLimit: MaxPixels, Threads: 2})
 	}
+	if format == "jxl" {
+		return jxl.Decode(bytes.NewReader(data), jxl.Options{FrameSizeLimit: MaxPixels, Threads: 2})
+	}
 	img, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -759,7 +764,7 @@ func Detect(path string, data []byte, forced string) (string, error) {
 		return "text", nil
 	case ".docx", ".docm":
 		return "docx", nil
-	case ".heic", ".heif", ".hif", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff":
+	case ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff":
 		return "image", nil
 	}
 	// Whatever is not binary can be read as text, as less would.

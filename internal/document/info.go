@@ -98,7 +98,7 @@ func imageFields(data []byte) []Field {
 	if err != nil {
 		return nil
 	}
-	name, ok := map[string]string{"png": "PNG", "jpeg": "JPEG", "gif": "GIF", "heic": "HEIC", "webp": "WebP", "bmp": "BMP", "tiff": "TIFF"}[format]
+	name, ok := map[string]string{"png": "PNG", "jpeg": "JPEG", "gif": "GIF", "heic": "HEIC", "jxl": "JPEG XL", "webp": "WebP", "bmp": "BMP", "tiff": "TIFF"}[format]
 	if !ok {
 		name = strings.ToUpper(format)
 	}

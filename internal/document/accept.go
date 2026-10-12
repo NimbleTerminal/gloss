@@ -48,7 +48,7 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 		switch item {
 		case "image", "images", "image/*":
 			switch kind {
-			case "png", "jpeg", "gif", "webp", "bmp", "tiff", "heic", "heif", "svg":
+			case "png", "jpeg", "gif", "webp", "bmp", "tiff", "heic", "heif", "jxl", "svg":
 				return nil
 			}
 		case "md":

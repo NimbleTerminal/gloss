@@ -125,7 +125,7 @@ func FuzzDecodeRaster(f *testing.F) {
 	f.Add(seedImage(f, func(b *bytes.Buffer, i image.Image) error { return png.Encode(b, i) }))
 	f.Add(seedImage(f, func(b *bytes.Buffer, i image.Image) error { return jpeg.Encode(b, i, nil) }))
 	f.Add(seedImage(f, func(b *bytes.Buffer, i image.Image) error { return gif.Encode(b, i, nil) }))
-	for _, name := range []string{"landscape.png", "landscape.heic"} {
+	for _, name := range []string{"landscape.png", "landscape.heic", "landscape.jxl"} {
 		if data, err := examples.Files.ReadFile(name); err == nil {
 			f.Add(data)
 		}
@@ -133,6 +133,8 @@ func FuzzDecodeRaster(f *testing.F) {
 	f.Add([]byte("BM"))
 	f.Add([]byte("II*\x00"))
 	f.Add([]byte("RIFF\x00\x00\x00\x00WEBPVP8 "))
+	f.Add([]byte("\xff\x0a"))
+	f.Add([]byte("\x00\x00\x00\x0cJXL \r\n\x87\n"))
 	f.Fuzz(func(t *testing.T, data []byte) {
 		// Dimensions are read before pixels are allocated, so whatever the
 		// header claims, the decode stays inside the pixel budget.

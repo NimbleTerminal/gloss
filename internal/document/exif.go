@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gen2brain/h265/heic"
+	"github.com/gen2brain/jxl"
 )
 
 // exifPayload finds the TIFF structure that carries a photograph's Exif tags.
@@ -17,6 +18,12 @@ func exifPayload(format string, data []byte) []byte {
 		return data
 	case "heic":
 		payload, err := heic.RawExif(bytes.NewReader(data))
+		if err != nil {
+			return nil
+		}
+		return payload
+	case "jxl":
+		payload, err := jxl.RawExif(bytes.NewReader(data))
 		if err != nil {
 			return nil
 		}

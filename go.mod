@@ -21,6 +21,7 @@ require (
 	github.com/coder/websocket v1.8.15
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gen2brain/h265 v0.2.3
+	github.com/gen2brain/jxl v0.2.0
 	github.com/go-text/render v0.2.1
 	github.com/go-text/typesetting v0.3.5
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510

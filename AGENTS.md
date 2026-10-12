@@ -67,8 +67,10 @@ Update source docs and regenerate the generated guide pages with `task docs`.
 Supported inputs (with per-format limits detailed in the guide's "Formats and
 limits" page, `docs/hugo/content/guide/formats.md`):
 
-- **Images**: PNG, JPEG, WebP, BMP, TIFF (first frame, up to 32 MP) and
-  HEIC/HEIF via a pure-Go HEVC decoder — no CGO or external converters.
+- **Images**: PNG, JPEG, WebP, BMP, TIFF (first frame, up to 32 MP),
+  HEIC/HEIF via a pure-Go HEVC decoder, and JPEG XL (bare codestream or
+  container, first frame, oriented by the decoder, Exif from the container)
+  via the pure-Go `gen2brain/jxl` decoder — no CGO or external converters.
 - **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar
@@ -404,7 +406,7 @@ Uses [Task](https://taskfile.dev/); without it, `go build -o gloss ./cmd/gloss`.
   cask (`.goreleaser.yaml`; `task release-check` validates it). Pushing a
   `v*` tag publishes them via GitHub Actions, the cask to
   `NimbleTerminal/homebrew-tap`.
-- `task gen-assets` — regenerates the original PNG/HEIC/GIF/PDF/STL fixtures,
+- `task gen-assets` — regenerates the original PNG/HEIC/JPEG XL/GIF/PDF/STL fixtures,
   the animated WebP (needs `gif2webp`), and the Grist ones (needs `python3`).
 
 Version is stamped via `-ldflags "-X main.version=$VERSION"`. Dependencies are

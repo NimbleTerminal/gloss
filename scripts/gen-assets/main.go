@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/gen2brain/h265/heic"
+	"github.com/gen2brain/jxl"
 )
 
 func main() {
@@ -42,6 +43,8 @@ func main() {
 	}
 	write("examples/landscape.png", func(b *bytes.Buffer) error { return png.Encode(b, img) })
 	write("examples/landscape.heic", func(b *bytes.Buffer) error { return heic.Encode(b, desert(), heic.EncodeOptions{Quality: 85}) })
+	// The same hills as the PNG, losslessly, so the two must decode alike.
+	write("examples/landscape.jxl", func(b *bytes.Buffer) error { return jxl.Encode(b, img, jxl.EncodeOptions{Lossless: true}) })
 	if err := os.WriteFile("examples/field-guide.pdf", pdf(), 0644); err != nil {
 		panic(err)
 	}

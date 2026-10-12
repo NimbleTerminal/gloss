@@ -31,8 +31,8 @@ type Found struct {
 
 // The kinds a pattern may name, and the globs each stands for.
 var kindGlobs = map[string][]string{
-	"images":    {"*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tif", "*.tiff", "*.heic", "*.heif", "*.hif"},
-	"pictures":  {"*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tif", "*.tiff", "*.heic", "*.heif", "*.hif"},
+	"images":    {"*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tif", "*.tiff", "*.heic", "*.heif", "*.hif", "*.jxl"},
+	"pictures":  {"*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tif", "*.tiff", "*.heic", "*.heif", "*.hif", "*.jxl"},
 	"svg":       {"*.svg"},
 	"pdf":       {"*.pdf"},
 	"docs":      {"*.pdf", "*.docx", "*.docm"},

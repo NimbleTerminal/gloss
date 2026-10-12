@@ -270,7 +270,7 @@ and modification time, followed by:
 
 | Format | Details |
 | --- | --- |
-| Images | Format, pixel dimensions, color model; from Exif in JPEG, TIFF, and HEIC: camera, lens, date taken, exposure, orientation, location, software, artist, copyright |
+| Images | Format, pixel dimensions, color model; from Exif in JPEG, TIFF, HEIC, and JPEG XL: camera, lens, date taken, exposure, orientation, location, software, artist, copyright |
 | SVG | Declared size, view box, title, description, element count |
 | PDF | Version, page count, size of the current page, title, author, subject, keywords, creator, producer, dates |
 | STL | Encoding, name, triangle count, extent, surface area (STL records no unit) |

@@ -30,7 +30,7 @@ var orderNames = []string{"name", "date", "kind"}
 // The marks of the kinds of file, by extension; a folder has its own, and
 // what gloss cannot open has none.
 var kindMarks = map[string]string{
-	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".bmp": "📷", ".tif": "📷", ".tiff": "📷", ".heic": "📷", ".heif": "📷", ".hif": "📷",
+	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".bmp": "📷", ".tif": "📷", ".tiff": "📷", ".heic": "📷", ".heif": "📷", ".hif": "📷", ".jxl": "📷",
 	".svg": "🎨", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊",
 	".md": "📝", ".markdown": "📝", ".mdown": "📝", ".html": "📝", ".htm": "📝", ".txt": "📝", ".text": "📝", ".log": "📝",
 	".json": "🧾", ".jsonl": "🧾", ".ndjson": "🧾", ".ipynb": "📓",

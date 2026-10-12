@@ -39,6 +39,7 @@ require (
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gen2brain/h265 v0.2.3 // indirect
+	github.com/gen2brain/jxl v0.2.0 // indirect
 	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-text/typesetting v0.3.5 // indirect
 	github.com/go-webgpu/goffi v0.6.3 // indirect
