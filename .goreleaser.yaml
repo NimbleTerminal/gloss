@@ -107,7 +107,10 @@ release:
 
 # A cask installs the binary as it was built, so macOS must know who built
 # it: without the signing secrets the binary is left unsigned, and Gatekeeper
-# refuses it.
+# refuses it. Notarization signs with the hardened runtime, which kills a
+# process executing code it wrote into memory itself, as the WebAssembly
+# compiler behind PDFium does; the entitlements file allows that, or every
+# released macOS binary dies on its first PDF (internal/tools/releasecheck).
 notarize:
   macos:
     - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
@@ -116,6 +119,7 @@ notarize:
       sign:
         certificate: "{{.Env.MACOS_SIGN_P12}}"
         password: "{{.Env.MACOS_SIGN_PASSWORD}}"
+        entitlements: .goreleaser.entitlements.plist
       notarize:
         issuer_id: "{{.Env.MACOS_NOTARY_ISSUER_ID}}"
         key_id: "{{.Env.MACOS_NOTARY_KEY_ID}}"

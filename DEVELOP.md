@@ -559,7 +559,15 @@ packages, and SHA-256 checksums go to a GitHub Release, and a cask to the
 [Homebrew tap](https://github.com/NimbleTerminal/homebrew-tap). Locally,
 `task release` produces the same in `dist/` as a snapshot, without publishing.
 Release binaries use software STL rendering when native GPU support is
-unavailable.
+unavailable. The macOS binaries are signed and notarized with the hardened
+runtime, which forbids executing memory the process wrote itself unless an
+entitlement allows it; `.goreleaser.entitlements.plist` grants
+`com.apple.security.cs.allow-unsigned-executable-memory` for PDFium's
+compiled WebAssembly (wazero maps code without `MAP_JIT`, so `allow-jit` alone
+does not suffice). Without it, macOS kills the process with `Code Signature
+Invalid` on its first PDF; a test in `internal/tools/releasecheck` keeps the
+file and the entitlement in the configuration. Builds from source are
+ad-hoc signed without the hardened runtime and never needed it.
 
 ## Plain web picker
 
