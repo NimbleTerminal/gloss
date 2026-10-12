@@ -2,22 +2,18 @@
 
 ## Unreleased
 
-- Make mesh camera updates cheaper to draw and use shared pixel buffers in
-  terminals that support them, including the browser demo. Avoid exposing
-  partial browser screen updates and flashing image-placeholder glyphs.
-- Open JPEG XL images (`.jxl`, bare codestream or container) like any other
-  picture: standalone, in Markdown, previews, exports, `--info` with Exif, and
-  the browser demo. Pure Go, no CGO; animated files show their first frame.
-- Play animated WebP files like GIFs: standalone with the same pause, speed,
-  step and seek controls, and embedded in Markdown under the shared animation
-  budget. Frames are decoded as they are shown, so long full-canvas clips play
-  within a small memory footprint. Animated WebP previously failed to open at all.
-- Accept http(s) addresses in place of files: `gloss https://…/report.pdf`
-  downloads and shows, exports, describes, or extracts it. `GLOSS_NO_FETCH`
-  turns all fetching off, including `--fetch`. Downloads identify themselves
-  as `gloss/<version>`; `--user-agent` or `GLOSS_USER_AGENT` sets another name.
-- Display local HTML images in Markdown, including linked GIFs inside README
-  wrappers, with animation, size bounds, and alignment in both renderers.
+## `v0.3.2` (2026-10-12)
+
+- Fix signed macOS releases crashing when opening or exporting PDFs.
+- Make mesh rotation smoother and reduce flicker in the browser demo.
+- Open JPEG XL (`.jxl`) images, including in Markdown and the browser demo.
+  Support previews, exports, and image metadata; animated files show frame one.
+- Play animated WebP with the same controls as GIFs, including in Markdown.
+- Open URLs directly: `gloss https://…/report.pdf`. Downloads also work with
+  exports and text extraction. Add `GLOSS_NO_FETCH` to disable downloads and
+  `--user-agent` or `GLOSS_USER_AGENT` to set their User-Agent.
+- Show local HTML images in Markdown, including linked GIFs, with animation,
+  sizing, and alignment.
 
 ## `v0.3.1` (2026-10-11)
 
