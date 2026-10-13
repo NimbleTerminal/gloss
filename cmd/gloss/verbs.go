@@ -40,8 +40,9 @@ const skillUsage = `Usage: gloss skill [show]
 show prints the skill (SKILL.md) that teaches an agent gloss's headless
 surface, so it always matches this binary. It is the default.
 
-install writes it as gloss/SKILL.md under the skills folder of each agent found
-on this machine, or under FOLDER, and prints the paths it wrote.
+install writes it as gloss/SKILL.md under the shared agents folder
+(~/.agents/skills, which Codex and others read) and the skills folder of each
+agent found on this machine, or under FOLDER, and prints the paths it wrote.
 
 schema prints the JSON Schema of the objects gloss writes for a program:
 the --json results of an export, --text, --grep, and --info, and the objects

@@ -12,8 +12,8 @@ import (
 )
 
 // skillHome is a skills folder an agent reads, detected by the presence of
-// detect. For the shared folder, that is the folder itself: it has no agent's
-// home to give it away.
+// detect: the agent's home. The shared folder has no detect: agents that read
+// it, Codex among them, do not make it, so it is always written.
 type skillHome struct {
 	agent, detect, root string
 }
@@ -33,24 +33,27 @@ func skillHomes() []skillHome {
 	return []skillHome{
 		{"Claude Code", filepath.Join(home, ".claude"), filepath.Join(home, ".claude", "skills")},
 		{"Kimi Code", kimi, filepath.Join(kimi, "skills")},
-		{"the shared agents folder (Codex, Cursor, Gemini, Copilot, Kimi)", shared, shared},
+		{"shared agents folder (Codex and others)", "", shared},
 	}
 }
 
-// installSkill writes the embedded skill as gloss/SKILL.md under each skills
-// folder found on this machine, or under the one named. The paths written go
-// to stdout, one to a line; who each is for goes to stderr. A skill already
-// there is updated: it is meant to match the binary.
+// installSkill writes the embedded skill as gloss/SKILL.md under the shared
+// agents folder and the folder of each agent found on this machine, or under
+// the one named. The paths written go to stdout, one to a line; who each is
+// for goes to stderr. A skill already there is updated: it is meant to match
+// the binary.
 func installSkill(where string, stdout, stderr io.Writer) error {
 	var homes []skillHome
 	if where == "auto" {
 		for _, h := range skillHomes() {
-			if _, err := os.Stat(h.detect); err == nil {
+			if h.detect == "" {
+				homes = append(homes, h)
+			} else if _, err := os.Stat(h.detect); err == nil {
 				homes = append(homes, h)
 			}
 		}
 		if len(homes) == 0 {
-			return errors.New("found no agent's skills folder; name one: gloss skill install $HOME/.claude/skills")
+			return errors.New("no home folder to install under; name one: gloss skill install $HOME/.agents/skills")
 		}
 	} else {
 		homes = []skillHome{{root: expandHome(where)}}

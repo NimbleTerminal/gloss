@@ -11,14 +11,17 @@ headless surface, in the order an agent needs it: `--text`, a sized PNG export,
 binary carries it, so it always matches the flags it was built with:
 
 ```sh
-gloss skill install                              # install it for the agents found on this machine
+gloss skill install                              # install it for the agents on this machine
 gloss skill install ~/.claude/skills             # or into the skills folder named
 gloss skill                                      # print it, to place it by hand
 ```
 
-Installation reports each agent and skill path once in the terminal. Redirected
-stdout contains just the installed paths, one per line, for scripts; progress
-messages go to stderr.
+Installation always writes the shared `~/.agents/skills` folder, which Codex
+and other agents read but do not create, and the folder of each agent found by
+its home: Claude Code (`~/.claude/skills`) and Kimi Code (`~/.kimi-code/skills`,
+or `$KIMI_CODE_HOME`). It reports each agent and skill path once in the
+terminal. Redirected stdout contains just the installed paths, one per line,
+for scripts; progress messages go to stderr.
 
 Or, with Node, the [skills CLI](https://github.com/vercel-labs/skills) installs
 it from the repository for every agent it finds:

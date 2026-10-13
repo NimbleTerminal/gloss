@@ -59,12 +59,15 @@ func TestSkillInstallAuto(t *testing.T) {
 	if err := installSkill("auto", &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(home, ".claude", "skills", "gloss", "SKILL.md")
-	if strings.TrimSpace(stdout.String()) != want || !strings.Contains(stderr.String(), "Claude Code") {
+	claude := filepath.Join(home, ".claude", "skills", "gloss", "SKILL.md")
+	shared := filepath.Join(home, ".agents", "skills", "gloss", "SKILL.md")
+	if stdout.String() != claude+"\n"+shared+"\n" || !strings.Contains(stderr.String(), "Claude Code") || !strings.Contains(stderr.String(), "Codex") {
 		t.Fatalf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
 	}
-	if _, err := os.Stat(want); err != nil {
-		t.Fatal(err)
+	for _, path := range []string{claude, shared} {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatal(err)
+		}
 	}
 	// Kimi Code's home, moved by KIMI_CODE_HOME, is found as well.
 	kimi := filepath.Join(home, "kimi-home")
@@ -81,12 +84,22 @@ func TestSkillInstallAuto(t *testing.T) {
 	}
 }
 
-func TestSkillInstallFindsNoAgent(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+func TestSkillInstallSharedAlways(t *testing.T) {
+	// The shared folder is written whether or not anything is found: the
+	// agents that read it, Codex among them, do not make it (issue 6).
+	home := t.TempDir()
+	t.Setenv("HOME", home)
 	t.Setenv("KIMI_CODE_HOME", "")
-	var stdout bytes.Buffer
-	if err := installSkill("auto", &stdout, &bytes.Buffer{}); err == nil || stdout.Len() != 0 {
-		t.Fatalf("err = %v, stdout = %q", err, stdout.String())
+	var stdout, stderr bytes.Buffer
+	if err := installSkill("auto", &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	shared := filepath.Join(home, ".agents", "skills", "gloss", "SKILL.md")
+	if strings.TrimSpace(stdout.String()) != shared || !strings.Contains(stderr.String(), "Codex") {
+		t.Fatalf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
+	}
+	if content, err := os.ReadFile(shared); err != nil || string(content) != skills.Gloss {
+		t.Fatalf("%s: %v", shared, err)
 	}
 }
 
