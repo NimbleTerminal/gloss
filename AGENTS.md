@@ -291,6 +291,15 @@ changing files, or reloading cancels. Images and meshes have no text search.
 
 Agent-facing / scriptable surface:
 
+- `--print`: one initial content viewport per file to stdout, no TTY or Tea
+  program. `--print-width 1..512` and `--print-height 1..256` override stdout
+  terminal geometry (capped), with 80×24 for a pipe. Text and tables retain
+  their terminal layout; pictures use ANSI-colored half-blocks, first frame
+  only; meshes use software. Only text, newlines and numeric SGR cross stdout
+  (`internal/app/print.go`); no cursor, query, OSC or graphics escapes. Auto
+  theme is light. `cmd/gloss/print.go` shares export loading.
+  Single pages only; an error stops the batch with exit 1.
+
 - `--output file.png` / `--output-dir` / `--output -`: headless PNG export for
   vision models, no TTY needed; `--max-edge 1..4096`, aspect preserved, white
   flattening, never overwrites.

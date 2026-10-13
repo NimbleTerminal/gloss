@@ -82,12 +82,14 @@ saved preferences. See [Markdown, fonts, and themes](https://nimbleterminal.gith
 
 ## From a script or an agent
 
-gloss works without a terminal too: it exports PNGs sized for vision models,
+gloss works without a terminal too: it prints a static view into command output,
+exports PNGs sized for vision models,
 extracts text and metadata, and can ask a person for files and a reply.
 For 3D inspection, export named views as a contact sheet or isolate parts of a
 3MF assembly.
 
 ```sh
+gloss --print photo.png                      # a static view, including in captured shell output
 gloss --output page.png --page 3 report.pdf   # a PNG, with no terminal
 gloss --text report.docx                      # Markdown on stdout
 gloss --grep '(?i)total' report.pdf           # the PDF pages that match, and where

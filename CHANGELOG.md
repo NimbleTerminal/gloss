@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `--print` draws one content viewport to stdout and exits, without a terminal.
+  Pictures use colored half-blocks; `--print-width` and `--print-height` size
+  captured output. Text, tables and the selected document page work too.
+
 - Show the build version in the `?` help heading.
 
 - Keep the displayed still picture visible while a background-color change renders.
