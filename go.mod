@@ -19,7 +19,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/coder/websocket v1.8.15
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/gen2brain/h265 v0.2.3
 	github.com/gen2brain/jxl v0.2.0
 	github.com/go-text/render v0.2.1
