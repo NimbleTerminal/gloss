@@ -111,9 +111,20 @@ func TestSkillVerb(t *testing.T) {
 			t.Errorf("accepted %v", args)
 		}
 	}
-	var out bytes.Buffer
-	if _, done, err := parse([]string{"skill", "--help"}, &out); err != nil || !done || !strings.Contains(out.String(), "gloss skill install [FOLDER]") {
-		t.Fatalf("skill --help: done=%v err=%v\n%s", done, err, out.String())
+	// Help is help after the subcommand too (issue 6: gloss skill install
+	// --help once installed the skill under a folder named --help).
+	for _, args := range [][]string{{"skill", "--help"}, {"skill", "-h"}, {"skill", "install", "--help"}, {"skill", "install", "-h"}, {"skill", "show", "--help"}, {"skill", "schema", "--help"}} {
+		var out bytes.Buffer
+		opts, done, err := parse(args, &out)
+		if err != nil || !done || opts.SkillInstall != "" || !strings.Contains(out.String(), "gloss skill install [FOLDER]") {
+			t.Fatalf("%v: done=%v err=%v opts=%+v\n%s", args, done, err, opts, out.String())
+		}
+	}
+	// An option it does not know is not a folder either.
+	for _, args := range [][]string{{"skill", "install", "--bogus"}, {"skill", "install", "-x"}, {"skill", "show", "--bogus"}} {
+		if opts, _, err := parse(args, &bytes.Buffer{}); err == nil || opts.SkillInstall != "" {
+			t.Errorf("accepted %v: opts=%+v err=%v", args, opts, err)
+		}
 	}
 	// The old options are not in the help, so they cannot be learned from it.
 	var help bytes.Buffer

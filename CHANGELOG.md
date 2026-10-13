@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Show help for `gloss skill install --help` instead of installing the skill
+  under a folder named `--help`, and reject unknown `gloss skill` options.
+
 ## `v0.3.2` (2026-10-12)
 
 - Fix signed macOS releases crashing when opening or exporting PDFs.

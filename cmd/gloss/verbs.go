@@ -50,9 +50,17 @@ of a session started without a terminal (start, --status, --resume --json).`
 // parseSkill is the skill verb: show prints it, and done says nothing more is
 // to be done; install leaves the folder in opts for run, as an option does.
 func parseSkill(args []string, opts options, out io.Writer) (options, bool, error) {
-	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help") {
-		fmt.Fprintln(out, skillUsage)
-		return opts, true, nil
+	// Help is help wherever it comes, after the subcommand too; and the skill
+	// verb has no other option, so one is never a folder: gloss skill install
+	// --help once wrote the skill under a folder named --help (issue 6).
+	for _, a := range args {
+		switch {
+		case a == "-h" || a == "--help":
+			fmt.Fprintln(out, skillUsage)
+			return opts, true, nil
+		case strings.HasPrefix(a, "-"):
+			return opts, false, fmt.Errorf("skill: unknown option %s (see gloss skill --help)", a)
+		}
 	}
 	sub := "show"
 	if len(args) > 0 {
