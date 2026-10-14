@@ -135,7 +135,7 @@ func rasterSignature(b []byte) bool {
 const MaxPages = 10000
 
 type Request struct {
-	Playback      *animate.CompositeSource
+	Playback      *animation.Composite
 	Context       context.Context
 	TypesetView   *TypesetViewport
 	TypesetSelect *TypesetSelection // Text to highlight, and to return as TypesetSelected.
@@ -178,7 +178,7 @@ type Result struct {
 	TypesetSelected  string            // Its text.
 	Animated         []TypesetRegion
 	AnimationBase    image.Image
-	Playback         *animate.CompositeSource
+	Playback         *animation.Composite
 	TypesetDone      bool
 	Theme            string
 	FontKey          string

@@ -1,12 +1,13 @@
 package document
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"testing/fstest"
 
 	"github.com/yuin/goldmark/ast"
-	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/ntpicture/animation"
 )
 
 func TestReadmeHTMLImages(t *testing.T) {
@@ -34,8 +35,12 @@ func TestReadmeHTMLImages(t *testing.T) {
 					t.Fatalf("HTML figure missing: %q", source)
 				}
 				before := r.Playback.Image()
-				next := r.Playback.Clone().(*animate.CompositeSource)
-				after, _, more := next.Next()
+				advanced, more, err := r.Playback.Advance(context.Background())
+				if err != nil {
+					t.Fatal(err)
+				}
+				next := advanced.(*animation.Composite)
+				after := next.Image()
 				rect := r.Animated[0].Rect
 				x, y := rect.Min.X+rect.Dx()/2, rect.Min.Y+rect.Dy()/2
 				if !more || before.At(x, y) == after.At(x, y) {

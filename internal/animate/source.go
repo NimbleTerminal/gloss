@@ -1,8 +1,11 @@
 package animate
 
 import (
+	"context"
 	"image"
 	"time"
+
+	"nimbleterminal.dev/ntpicture/animation"
 )
 
 // Source snapshots isolate off-loop composition from the event loop. Clone must
@@ -18,6 +21,34 @@ type Source interface {
 type PlayerSource struct {
 	Player *Player
 	Speed  int // powers of two, -2..2
+}
+
+// PictureSource bridges ntpicture's immutable composite positions to the
+// legacy Gloss scheduler while the event-loop controller migration proceeds.
+type PictureSource struct{ Composite *animation.Composite }
+
+func NewPictureSource(c *animation.Composite) *PictureSource { return &PictureSource{Composite: c} }
+func (s *PictureSource) Clone() Source {
+	if s == nil || s.Composite == nil {
+		return &PictureSource{}
+	}
+	return &PictureSource{Composite: s.Composite}
+}
+func (s *PictureSource) Image() image.Image   { return s.Composite.Image() }
+func (s *PictureSource) Delay() time.Duration { return s.Composite.Delay() }
+func (s *PictureSource) Next() (image.Image, time.Duration, bool) {
+	n, more, err := s.Composite.Advance(context.Background())
+	if err != nil {
+		return s.Image(), 0, false
+	}
+	s.Composite = n.(*animation.Composite)
+	return s.Image(), s.Delay(), more
+}
+func (s *PictureSource) Restart() {
+	n, err := s.Composite.Reset(context.Background())
+	if err == nil {
+		s.Composite = n.(*animation.Composite)
+	}
 }
 
 func (s *PlayerSource) Clone() Source      { n := *s; return &n }

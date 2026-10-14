@@ -315,15 +315,13 @@ and QR consumers to avoid overlapping IDs during migration.
 
 The migration currently uses the sibling `../ntpicture` checkout. Its temporary
 module replacement must be replaced with a published pin before releasing
-this integration. Next steps are standalone playback and Markdown
-regions, followed by a shared terminal session and single-ID allocator.
-Animation and composite playback still use `internal/animate.Animator`, but
-its players and decoders now come from `ntpicture/animation`. The remaining
-compositor migration needs lightweight position snapshots: Gloss carries a
-destination's position through offscreen layouts, while ntpicture's Composite
-drops absent keys. Retaining full old page composites would retain large
-rasters unnecessarily. Playback controller migration must also preserve crop
-transforms, seek/export state, and late cleanup without public mutable state.
+this integration. Typeset composites now use ntpicture's immutable Composite,
+context-aware construction and windowing, and lightweight position snapshots;
+Gloss carries those snapshots through reflow without retaining old page rasters.
+The current Gloss scheduler still uses a small adapter for those composite
+positions. Standalone and Markdown playback remain on `internal/animate.Animator`.
+Moving them to `playback.Controller` must preserve crop transforms, seek/export
+state, overlay presentation, shared picture IDs, and late cleanup.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.
@@ -362,18 +360,19 @@ The package has no document or application dependencies. `Clip` describes
 immutable paletted/RGBA frames, frame rectangles, blend/disposal, delays and loop
 counts; `NewPlayer` validates 64 MiB of decoded storage (RGBA costs four bytes
 per pixel; frames with a `Load` hold none). `DecodeGIF` and `DecodeWebP` are the bounded producers. `Source.Clone` snapshots mutable
-playback state before asynchronous composition. `PlayerSource` drives one clip;
-`CompositeSource` drives independently timed regions over a page raster that
-omits animated images, so transparent frames reveal the original page background.
+playback state before asynchronous composition. `PlayerSource` drives one clip.
+Typeset regions use ntpicture's immutable `animation.Composite`; a small Gloss
+adapter feeds its positions to the remaining legacy scheduler.
 
 Each inline Markdown picture owns an Animator; the host supplies capability,
 cell geometry, visibility and `nextKittyID`. Hiding cancels the epoch and retires
 placements without discarding the playback position. Typeset results carry full
-region rectangles and a composite snapshot; reflow preserves positions by
-asset destination, and only visible regions advance. Reload starts fresh.
+region rectangles and an ntpicture composite; reflow preserves positions by
+asset destination with lightweight snapshots, and only visible regions advance.
+Reload starts fresh.
 Under Kitty graphics the page picture stays still and each group of cells the
 regions cover gets an overlay: its own picture and Animator, fed
-`CompositeSource.Window`, the page's base and regions cropped to those cells.
+`animation.Composite.Window`, the page's base and regions cropped to those cells.
 A frame is then the GIF's cells rather than the whole viewport, and the page
 is not sent again while a GIF plays. A page drawn above a GIF's resolution gets
 its overlay at the GIF's own (the picture's `KittyResolutionFactor`), the base

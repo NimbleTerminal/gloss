@@ -40,7 +40,7 @@ func typesetGIFModel(t testing.TB, render string, cols, rows int) *Model {
 	t.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})
 	drainStill(t, m, m.load(false))
-	if m.typeset == nil || m.typesetPlayback == nil || len(m.typesetPlayback.Regions) != 1 {
+	if m.typeset == nil || m.typesetPlayback == nil || len(m.typesetPlayback.Regions()) != 1 {
 		t.Fatal("no typeset page with one animated region")
 	}
 	return m
@@ -77,7 +77,7 @@ func TestTypesetOverlaysPlayGIFRegions(t *testing.T) {
 	}
 	o := m.typesetOverlays[0]
 	cw, ch := m.pic.CellPixelSize()
-	region := m.typesetPlayback.Regions[0].Rect
+	region := m.typesetPlayback.Regions()[0].Rect
 	want := image.Rect(region.Min.X/cw, region.Min.Y/ch, (region.Max.X+cw-1)/cw, (region.Max.Y+ch-1)/ch)
 	if o.cells != want || !o.cells.In(image.Rect(0, 0, m.width, m.bodyHeight())) {
 		t.Fatalf("overlay cells %v, want %v inside the body", o.cells, want)
@@ -167,7 +167,7 @@ func TestTypesetOverlayAtGIFResolution(t *testing.T) {
 		t.Fatalf("overlays %d, shown %+v", len(m.typesetOverlays), m.typesetShown)
 	}
 	o := m.typesetOverlays[0]
-	region := m.typesetPlayback.Regions[0].Rect
+	region := m.typesetPlayback.Regions()[0].Rect
 	if region.Dx() <= 40 {
 		t.Fatalf("GIF not drawn above its 40 pixels: %v", region)
 	}
@@ -176,12 +176,13 @@ func TestTypesetOverlayAtGIFResolution(t *testing.T) {
 		t.Fatalf("resolution factor %v, want about 1/1.2", f)
 	}
 	cw, ch := int(20*f), int(40*f)
-	src := o.anim.Source.(*animate.CompositeSource)
+	src := o.anim.Source.(*animate.PictureSource).Composite
 	if got := src.Image().Bounds().Size(); got != image.Pt(o.cells.Dx()*cw, o.cells.Dy()*ch) {
 		t.Fatalf("window %v, want %d×%d cells at %d×%d", got, o.cells.Dx(), o.cells.Dy(), cw, ch)
 	}
-	if len(src.Regions) != 1 || src.Regions[0].Rect.Size() != image.Pt(40, 20) {
-		t.Fatalf("region not at the GIF's own size: %+v", src.Regions)
+	regions := src.Regions()
+	if len(regions) != 1 || regions[0].Rect.Size() != image.Pt(40, 20) {
+		t.Fatalf("region not at the GIF's own size: %+v", regions)
 	}
 	if o.anim.Front == nil || !o.anim.Exact(o.cells.Dx(), o.cells.Dy()) {
 		t.Fatal("overlay not presented at its cells")

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"image"
 	"image/draw"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	xdraw "golang.org/x/image/draw"
 	"nimbleterminal.dev/gloss/internal/animate"
 	"nimbleterminal.dev/gloss/internal/document"
+	ntanimation "nimbleterminal.dev/ntpicture/animation"
 )
 
 // Under Kitty graphics the typeset page is one still picture and its animated
@@ -61,7 +63,11 @@ func (m *Model) layoutTypesetOverlays(v document.Result) tea.Cmd {
 		o.pic = picture.NewWithConfig(picture.Config{KittyID: nextKittyID(), KittyZ: -1, Background: pictureBackground, CellPixelWidth: cw, CellPixelHeight: ch, KittyResolutionFactor: g.factor, KittyFormat: picture.KittyFormatZlib})
 		o.pic.Toggle()
 		o.anim = animate.New(&o.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
-		o.anim.SetSource(v.Playback.Window(window, image.Pt(cells.Dx()*opw, cells.Dy()*oph)))
+		source, err := v.Playback.Window(context.Background(), window, image.Pt(cells.Dx()*opw, cells.Dy()*oph))
+		if err != nil {
+			continue
+		}
+		o.anim.SetSource(animate.NewPictureSource(source))
 		o.anim.SetSize(cells.Dx(), cells.Dy())
 		cmds = append(cmds, o.anim.Show(o.anim.Source.Image()))
 		m.typesetOverlays = append(m.typesetOverlays, o)
@@ -109,11 +115,11 @@ func (m *Model) keepTypesetOverlays() tea.Cmd {
 
 // typesetOverlaySources are the overlays' playback states, which a new page
 // view continues from.
-func (m *Model) typesetOverlaySources() []*animate.CompositeSource {
-	var sources []*animate.CompositeSource
+func (m *Model) typesetOverlaySources() []ntanimation.PositionSource {
+	var sources []ntanimation.PositionSource
 	for _, o := range m.typesetOverlays {
-		if s, ok := o.anim.Source.(*animate.CompositeSource); ok {
-			sources = append(sources, s)
+		if s, ok := o.anim.Source.(*animate.PictureSource); ok {
+			sources = append(sources, s.Composite.Positions())
 		}
 	}
 	return sources

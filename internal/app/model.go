@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 
 	"nimbleterminal.dev/gloss/internal/animate"
+	ntanimation "nimbleterminal.dev/ntpicture/animation"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
@@ -110,7 +111,7 @@ type textState struct {
 	hoverLinkPoint          image.Point
 	hoverLinkActive         bool
 	linkPoint               image.Point
-	typesetPlayback         *animate.CompositeSource
+	typesetPlayback         *ntanimation.Composite
 	typesetOverlays         []*typesetOverlay
 	typesetPending          *document.Result // A page view whose overlays wait for the view to settle.
 	typesetSettle           uint64
@@ -339,7 +340,9 @@ func (m *Model) request(reload bool) document.Request {
 	if !reload {
 		q.Playback = m.typesetPlayback
 		if sources := m.typesetOverlaySources(); q.Playback != nil && len(sources) > 0 {
-			q.Playback = q.Playback.WithPositions(sources...)
+			if carried, err := q.Playback.WithPositions(context.Background(), sources...); err == nil {
+				q.Playback = carried
+			}
 		}
 	}
 	if m.opts.typesetEnabled() && !m.isPreview {
@@ -920,7 +923,7 @@ func (m *Model) refreshImage() tea.Cmd {
 			return m.queueTypesetReflow()
 		}
 		if m.presentation.Source == nil && m.typesetPlayback != nil && len(m.typesetOverlays) == 0 && m.typesetPending == nil {
-			m.presentation.SetSource(m.typesetPlayback)
+			m.presentation.SetSource(animate.NewPictureSource(m.typesetPlayback))
 		}
 		return m.showPicture(m.source)
 	}

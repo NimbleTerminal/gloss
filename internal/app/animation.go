@@ -74,8 +74,8 @@ func (m *Model) animationFrame(f animationFrame) tea.Cmd {
 	cmd, _ := m.presentation.Update(f)
 	if f.Owner == m.presentation && f.Epoch == m.presentation.Epoch && m.presentation.Source != nil {
 		m.source = m.presentation.Source.Image()
-		if s, ok := m.presentation.Source.(*animate.CompositeSource); ok {
-			m.typesetPlayback = s
+		if s, ok := m.presentation.Source.(*animate.PictureSource); ok {
+			m.typesetPlayback = s.Composite
 		}
 	}
 	m.picID = m.presentation.ID

@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"image"
 	"math"
-	"nimbleterminal.dev/gloss/internal/animate"
 	"nimbleterminal.dev/gloss/internal/theme"
+	"nimbleterminal.dev/ntpicture/animation"
 	"time"
 )
 
 // TypesetViewport uses pixels at the 150-DPI reading scale. Nil on Request
 // selects a numbered 800×1125 export slice instead of a continuous viewport.
-type TypesetRegion = animate.Region
+type TypesetRegion struct {
+	Rect        image.Rectangle
+	Player      *animation.Player
+	Destination string
+}
 
 // TypesetLink is a web or document-local link hit area in rendered-image pixels.
 type TypesetLink struct {
@@ -211,7 +215,20 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		if q.Reload {
 			previous = nil
 		}
-		out.Playback = animate.NewComposite(base, out.Animated, previous)
+		ctx := q.Context
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		regions := make([]animation.Region, 0, len(out.Animated))
+		for _, r := range out.Animated {
+			regions = append(regions, animation.Region{Rect: r.Rect, Player: r.Player, Key: r.Destination})
+		}
+		playback, err := animation.NewCompositeImmutable(ctx, base, regions, previous)
+		if err != nil {
+			out.Err = err
+			return
+		}
+		out.Playback = playback
 		out.Image = out.Playback.Image()
 	}
 	for _, op := range lay.ops {

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/animate"
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
@@ -192,7 +193,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	case m.typesetPending != nil:
 		m.presentation.SetSource(nil) // The overlays will play the regions; the page stands at their current frames.
 	case v.Playback != nil:
-		m.presentation.SetSource(v.Playback)
+		m.presentation.SetSource(animate.NewPictureSource(v.Playback))
 		m.presentation.Paused = false
 		m.presentation.SetSpeed(0)
 	}

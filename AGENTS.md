@@ -40,13 +40,16 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
   `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
   before PDF libraries run. Unsupported or ambiguous encodings fail closed.
-- `internal/animate`: per-picture event-loop animators with Kitty pacing/cleanup
-  and the typeset region compositor. Bounded GIF/WebP decoding and immutable
-  clips/players come from `nimbleterminal.dev/ntpicture/animation`. `internal/app/animation.go` adapts standalone controls.
+- `internal/animate`: the remaining legacy event-loop playback adapter with
+  Kitty pacing/cleanup. Bounded GIF/WebP decoding, immutable clips/players,
+  and typeset region composition/position snapshots come from
+  `nimbleterminal.dev/ntpicture/animation`. `internal/app/animation.go` adapts
+  standalone controls.
 - `internal/app/still.go`: still images, PDF/typeset pages, previews, and thumbnail
   grids use `ntpicture.Picture` for coalesced preparation, retained fronts,
-  retirement, and keep-screen cleanup. Animation/composite playback remains on
-  `internal/animate.Animator`; terminal discovery and the shared block ID
+  retirement, and keep-screen cleanup. Typeset composites use ntpicture's
+  immutable animation API; their playback still crosses a legacy Gloss adapter.
+  Standalone/Markdown playback, terminal discovery, and the shared block ID
   allocator remain host-owned during the migration. The temporary sibling
   module replacement must become a published pin before release.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,

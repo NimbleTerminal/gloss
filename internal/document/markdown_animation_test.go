@@ -7,8 +7,6 @@ import (
 	"nimbleterminal.dev/ntpicture/animation"
 	"testing"
 	"testing/fstest"
-
-	"nimbleterminal.dev/gloss/internal/animate"
 )
 
 func TestMarkdownAnimationModesBudgetAndDuplicates(t *testing.T) {
@@ -88,8 +86,12 @@ func TestTypesetAnimatedRegionsAndReflow(t *testing.T) {
 		t.Fatal("region outside viewport")
 	}
 	before := r.Playback.Image()
-	next := r.Playback.Clone().(*animate.CompositeSource)
-	after, _, more := next.Next()
+	advanced, more, err := r.Playback.Advance(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	next := advanced.(*animation.Composite)
+	after := next.Image()
 	if !more {
 		t.Fatal("no composite frame")
 	}
