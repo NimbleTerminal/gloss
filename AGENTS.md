@@ -156,7 +156,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   operations, 16,384 runes per paragraph/code line, 8,192 lines per code block,
   262,144 glyphs, 15 seconds, 10,000 export slices, 32 Mi raster pixels.
   The shaping cache has a 32 MiB estimated-entry budget, and rendered glyph
-  masks (`engine.glyph` in `typeset_layout.go`) another 32 MiB. See the Markdown guide
+  masks in `internal/typeset/raster` another 32 MiB. See the Markdown guide
   for the supported subset and limits.
 - **Plain text and source**: readable text is accepted even without a known
   extension; source is syntax-highlighted. `--typeset` or `t` switches text, source

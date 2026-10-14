@@ -92,8 +92,7 @@ func (e *engine) setFonts(name, override string) (bool, error) {
 	e.fallbackUsed = map[string]bool{}
 	e.cache = map[string]*shaped{}
 	e.cacheBytes = 0
-	e.glyphs = map[glyphKey]*glyphMask{}
-	e.glyphBytes = 0
+	e.rasterizer.Clear()
 	return true, nil
 }
 

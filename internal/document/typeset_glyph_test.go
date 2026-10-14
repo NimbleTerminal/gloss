@@ -25,13 +25,14 @@ func TestTypesetGlyphMasks(t *testing.T) {
 		t.Fatal(r.Err)
 	}
 	e := l.typesetEngine
-	if e.glyphMisses == 0 || e.glyphHits == 0 || len(e.glyphs) == 0 {
-		t.Fatalf("cache unused: %d misses, %d hits, %d masks", e.glyphMisses, e.glyphHits, len(e.glyphs))
+	stats := e.rasterizer.Stats()
+	if stats.Misses == 0 || stats.Hits == 0 || stats.Entries == 0 {
+		t.Fatalf("cache unused: %d misses, %d hits, %d masks", stats.Misses, stats.Hits, stats.Entries)
 	}
-	misses := e.glyphMisses
+	misses := stats.Misses
 	again := l.Load(q)
-	if again.Err != nil || e.glyphMisses != misses {
-		t.Fatalf("a second raster missed %d more glyphs", e.glyphMisses-misses)
+	if again.Err != nil || e.rasterizer.Stats().Misses != misses {
+		t.Fatalf("a second raster missed %d more glyphs", e.rasterizer.Stats().Misses-misses)
 	}
 	first, second := r.Image.(*image.RGBA), again.Image.(*image.RGBA)
 	for i := range first.Pix {
@@ -63,10 +64,9 @@ func TestTypesetGlyphMasks(t *testing.T) {
 		if e.theme == "dark" && op.darkInk.A != 0 {
 			ink = op.darkInk
 		}
-		e.renderer.FontSize, e.renderer.PixScale, e.renderer.Color = float32(op.size), float32(scale), ink
 		pad := int(float64(op.size)*scale) + 1
 		tile := image.NewRGBA(image.Rect(0, 0, rr.Dx()+2*pad, rr.Dy()+2*pad))
-		e.renderer.DrawShapedRunAt(*op.run, tile, pad, pad+int(float64(op.baseline-v.Top)*scale+0.5)-rr.Min.Y)
+		e.rasterizer.DrawDirect(tile, op.run, op.size, scale, pad, pad+int(float64(op.baseline-v.Top)*scale+0.5)-rr.Min.Y, rr.Dy(), ink)
 		draw.Draw(direct, tile.Bounds().Add(rr.Min.Sub(image.Pt(pad, pad))), tile, image.Point{}, draw.Over)
 	}
 	if inkRuns == 0 {
@@ -90,9 +90,9 @@ func TestTypesetGlyphMasks(t *testing.T) {
 	// The budget is kept on insertion: a new scale misses on every glyph and
 	// empties the cache as needed, so it holds at most the budget plus the
 	// one mask that overflowed it.
-	e.glyphBudget = 1 << 12
+	e.rasterizer.SetBudget(1 << 12)
 	q.TypesetWidth = 420
-	if again := l.Load(q); again.Err != nil || e.glyphMisses == misses || e.glyphBytes > 2*e.glyphBudget {
-		t.Fatalf("cache over budget: %d bytes after %d misses", e.glyphBytes, e.glyphMisses-misses)
+	if again := l.Load(q); again.Err != nil || e.rasterizer.Stats().Misses == misses || e.rasterizer.Stats().Bytes > 2*e.rasterizer.Stats().Budget {
+		t.Fatalf("cache over budget: %+v after %d misses", e.rasterizer.Stats(), e.rasterizer.Stats().Misses-misses)
 	}
 }

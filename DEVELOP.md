@@ -188,7 +188,10 @@ typeset viewport; embedded GIF blocks animate when visible. Images mixed with pr
 still appear as labels.
 
 The loader serializes each font/shaping engine. It caches prepared blocks,
-decoded images, shaped runs and the current width's display list. Copy glyphs
+decoded images, shaped runs and the current width's display list. The reusable
+go-text run rasterizer and its bounded glyph-mask cache live in
+`internal/typeset/raster`; it owns no document parsing, layout, or theme policy.
+Copy glyphs
 before wrapping: go-text's whitespace trimming mutates their advances. Chroma
 runs during preparation, recording GitHub light and dark foreground colors,
 plain fallback, and exact source preservation. Both colors participate in the
