@@ -24,9 +24,9 @@ import (
 	"github.com/NimbleMarkets/ntcharts-pdf/pdfview"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	_ "github.com/NimbleMarkets/ntcharts/v2/picture/decoders"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
+	"nimbleterminal.dev/nt3d"
 )
 
 const MaxFileBytes = 128 << 20
@@ -194,14 +194,14 @@ type Result struct {
 	Assemble         func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
 	Markdown         *Markdown
 	TypesetWidth     int
-	Typeset          *Markdown      // Terminal text/source representation of a typeset image.
-	Text             string         // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
-	Sheet            *Sheet         // One sheet of a workbook; Page and Pages count sheets.
-	Layer            *TextLayer     // How much of a PDF page its text is, when the text was asked for.
-	Camera           *charts.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
-	Views            []View         // Export views of a mesh: several make a sheet. None uses the default camera.
-	CPU              bool           // Export a mesh without trying the GPU.
-	Info             []Field        // What the file says about itself, for the info panel.
+	Typeset          *Markdown    // Terminal text/source representation of a typeset image.
+	Text             string       // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
+	Sheet            *Sheet       // One sheet of a workbook; Page and Pages count sheets.
+	Layer            *TextLayer   // How much of a PDF page its text is, when the text was asked for.
+	Camera           *nt3d.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
+	Views            []View       // Export views of a mesh: several make a sheet. None uses the default camera.
+	CPU              bool         // Export a mesh without trying the GPU.
+	Info             []Field      // What the file says about itself, for the info panel.
 	// What Image is when it stands in for the document, as a 3MF's
 	// thumbnail does for a mesh too large to show: empty otherwise.
 	Standin string

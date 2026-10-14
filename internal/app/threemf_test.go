@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nt3d"
 )
 
 const facet = "solid t\nfacet normal 0 0 0\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 1 0\nendloop\nendfacet\nendsolid t\n"
@@ -208,7 +208,7 @@ func TestMeshViewKeepsRendererDetailsForTheInfoBox(t *testing.T) {
 	lines := plain(m)
 	title, footer, status := lines[0], lines[len(lines)-3], lines[len(lines)-2]
 	for _, line := range []string{title, footer, status} {
-		for _, word := range []string{"WebGPU", "software", "Kitty", "kitty", "glyph", "ntcharts3d", "legend", "data"} {
+		for _, word := range []string{"WebGPU", "software", "Kitty", "kitty", "glyph", "nt3d", "legend", "data"} {
 			if strings.Contains(line, word) {
 				t.Errorf("%q in %q", word, line)
 			}
@@ -238,7 +238,7 @@ func TestMeshStartsFittedToTheFrame(t *testing.T) {
 	m := viewing(t, Options{Files: []string{"tall.stl"}, Render3D: "software"}, "")
 	send(m, tea.WindowSizeMsg{Width: 100, Height: 30})
 	send(m, document.Result{Generation: m.generation, Kind: "stl", Page: 1, Pages: 1, Mesh: mesh})
-	d := charts.DefaultCamera()
+	d := nt3d.DefaultCamera()
 	want := document.View{Alpha: d.Alpha, Beta: d.Beta, Projection: d.Projection}.CameraFor(mesh, m.frameAspect())
 	if got := m.chart.Camera(); got.Distance != want.Distance || got.Alpha != d.Alpha {
 		t.Fatalf("start camera %+v, want fitted %+v", got, want)
@@ -261,7 +261,7 @@ func TestFitFollowsTheFrameUntilTheCameraMoves(t *testing.T) {
 	m := viewing(t, Options{Files: []string{"part.stl"}, Render3D: "software"}, "")
 	send(m, document.Result{Generation: m.generation, Kind: "stl", Page: 1, Pages: 1, Mesh: mesh})
 	send(m, tea.WindowSizeMsg{Width: 160, Height: 30})
-	d := charts.DefaultCamera()
+	d := nt3d.DefaultCamera()
 	want := document.View{Alpha: d.Alpha, Beta: d.Beta, Projection: d.Projection}.CameraFor(mesh, m.frameAspect())
 	if got := m.chart.Camera(); got.Distance != want.Distance || m.home.Distance != want.Distance {
 		t.Fatalf("after the size came: camera %v home %v, want %v", got.Distance, m.home.Distance, want.Distance)

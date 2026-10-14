@@ -18,13 +18,13 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/pflag"
 	"nimbleterminal.dev/gloss/internal/app"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/gloss/skills"
+	"nimbleterminal.dev/nt3d"
 )
 
 var version = "dev"
@@ -293,7 +293,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		opts.Views = []document.View{at}
 	case f.Changed("projection"):
 		// The camera there would have been, otherwise projected.
-		at := charts.DefaultCamera()
+		at := nt3d.DefaultCamera()
 		opts.Views = []document.View{{Alpha: at.Alpha, Beta: at.Beta, Distance: at.Distance}}
 	}
 	if err != nil {
@@ -304,7 +304,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	}
 	for i := range opts.Views {
 		if *projection == "perspective" {
-			opts.Views[i].Projection = charts.Perspective
+			opts.Views[i].Projection = nt3d.Perspective
 		}
 	}
 	switch {

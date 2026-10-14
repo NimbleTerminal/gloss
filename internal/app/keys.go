@@ -271,7 +271,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 	case "i":
 		return m.toggleInfo(), true
 	case "5":
-		// NTCharts3d binds the projection to o, which opens the browser here.
+		// nt3d binds the projection to o, which opens the browser here.
 		if m.chart != nil {
 			_, cmd := m.chart.Update(tea.KeyPressMsg{Code: 'o', Text: "o"})
 			return cmd, true

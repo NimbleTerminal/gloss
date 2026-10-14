@@ -146,7 +146,7 @@ func (m *Model) paint(c color.RGBA, all bool) tea.Cmd {
 	m.tint, m.tintAll = &c, all
 	m.mesh.RestoreColors()
 	m.mesh.Recolor(c, all)
-	return m.chart.SetSeries(m.mesh)
+	return m.setMesh(m.mesh)
 }
 
 // unpaint puts the file's own colors back.
@@ -156,7 +156,7 @@ func (m *Model) unpaint() tea.Cmd {
 	}
 	m.tint, m.tintAll = nil, false
 	m.mesh.RestoreColors()
-	return m.chart.SetSeries(m.mesh)
+	return m.setMesh(m.mesh)
 }
 
 // resetColor gives back what the picker started from: the file's own colors

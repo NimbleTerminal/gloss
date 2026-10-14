@@ -54,8 +54,8 @@ bookToC: false
   workers with a 15-second deadline; timed-out workers are stopped.
   `/` searches the text layer and jumps to matching
   pages with excerpts; it does not highlight the raster or perform OCR.
-- STL: ASCII and binary, flat-shaded triangles, up to 932,067 faces: as many as
-  NTCharts3d draws, which is as many as any GPU is sure to hold. Normals are recomputed from vertex winding. GPU
+- STL: ASCII and binary, flat-shaded triangles, up to 932,067 faces: nt3d's
+  mesh limit. Normals are recomputed from vertex winding. GPU
   rendering falls back to software and then wireframe. Software draws at full
   size for Kitty output, smaller only while its frames are slow, and samples
   meshes above 20,000 triangles; wireframe samples above 2,000 triangles, so

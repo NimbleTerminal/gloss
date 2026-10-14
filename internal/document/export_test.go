@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
+	"nimbleterminal.dev/nt3d"
 )
 
 func TestExportSizeAndAlpha(t *testing.T) {
@@ -143,7 +143,7 @@ func TestGPUDrawsTheMesh(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	camera := charts.DefaultCamera()
+	camera := nt3d.DefaultCamera()
 	imgs, ok := gpuSnapshot(mesh, 256, []shot{{camera, worldLight}})
 	if !ok {
 		t.Skip("no GPU here; the CPU draws exports")
@@ -237,7 +237,7 @@ func TestExportFromANamedView(t *testing.T) {
 		t.Fatalf("%d pixels of writing on a single view", ink)
 	}
 	// What the viewer's camera sees is what is saved, whatever was asked for at the start.
-	camera := charts.DefaultCamera()
+	camera := nt3d.DefaultCamera()
 	saved, err := ExportImage(Result{Mesh: mesh, CPU: true, Views: views, Camera: &camera}, 300)
 	if err != nil || saved.Bounds() != plain.Bounds() {
 		t.Fatal(err)
@@ -368,7 +368,7 @@ func TestEveryViewIsLit(t *testing.T) {
 	}
 	// With no view asked for the light is where the viewer has it.
 	plain, _ := ExportImage(Result{Mesh: mesh, CPU: true}, 300)
-	camera := charts.DefaultCamera()
+	camera := nt3d.DefaultCamera()
 	saved, _ := ExportImage(Result{Mesh: mesh, CPU: true, Camera: &camera, Views: views}, 300)
 	if brightness(plain, plain.Bounds()) != brightness(saved, saved.Bounds()) {
 		t.Error("what the viewer saves is lit differently from what it shows")

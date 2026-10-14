@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	math3d "nimbleterminal.dev/nt3d/math"
 )
 
 const facetSTL = "solid t\nfacet normal 0 0 0\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 1 0\nendloop\nendfacet\nendsolid t\n"
@@ -19,11 +19,11 @@ func TestMeshRecolor(t *testing.T) {
 		t.Fatal("an STL has colors of its own")
 	}
 	mesh.Recolor(red, false)
-	if g, _ := mesh.Geometry(nil); g.Vertices[0].Color != red {
+	if g, _ := mesh.Geometry(); g.Vertices[0].Color != red {
 		t.Fatalf("plain faces not recolored: %v", g.Vertices[0].Color)
 	}
 	mesh.RestoreColors()
-	if g, _ := mesh.Geometry(nil); g.Vertices[0].Color != meshColor {
+	if g, _ := mesh.Geometry(); g.Vertices[0].Color != meshColor {
 		t.Fatalf("not restored: %v", g.Vertices[0].Color)
 	}
 	// A mesh with its own colors keeps them unless all faces are asked for.
@@ -35,17 +35,17 @@ func TestMeshRecolor(t *testing.T) {
 		t.Fatal("colors not seen")
 	}
 	mesh.Recolor(red, false)
-	g, _ := mesh.Geometry(nil)
+	g, _ := mesh.Geometry()
 	if g.Vertices[0].Color != blue || g.Vertices[3].Color != red {
 		t.Fatalf("plain only: %v %v", g.Vertices[0].Color, g.Vertices[3].Color)
 	}
 	mesh.Recolor(red, true)
-	g, _ = mesh.Geometry(nil)
+	g, _ = mesh.Geometry()
 	if g.Vertices[0].Color != red {
 		t.Fatalf("all: %v", g.Vertices[0].Color)
 	}
 	mesh.RestoreColors()
-	g, _ = mesh.Geometry(nil)
+	g, _ = mesh.Geometry()
 	if g.Vertices[0].Color != blue || g.Vertices[3].Color != meshColor {
 		t.Fatalf("restored: %v %v", g.Vertices[0].Color, g.Vertices[3].Color)
 	}
@@ -76,7 +76,7 @@ func TestLoaderPaintsAMeshAsAsked(t *testing.T) {
 	if r.Err != nil || r.Mesh == nil {
 		t.Fatal(r.Err)
 	}
-	if g, _ := r.Mesh.Geometry(nil); g.Vertices[0].Color != red {
+	if g, _ := r.Mesh.Geometry(); g.Vertices[0].Color != red {
 		t.Fatalf("color %v", g.Vertices[0].Color)
 	}
 }

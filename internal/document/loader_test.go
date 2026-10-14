@@ -14,7 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 )
 
 const triangleSTL = `solid triangle
@@ -43,7 +44,7 @@ func TestSTLFormatsAndNormals(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		g, _ := mesh.Geometry(nil)
+		g, _ := mesh.Geometry()
 		if mesh.Triangles() != 1 || g.Vertices[0].Normal.Z != 1 || g.Bounds.Max.X != 1 || g.Bounds.Max.Y != 1 {
 			t.Fatalf("unexpected geometry: %+v", g)
 		}
@@ -243,22 +244,22 @@ func manySTL(n int) []byte {
 }
 
 func TestMeshLimitIsTheGPUs(t *testing.T) {
-	if MaxTriangles != charts.MaxMeshTriangles || MaxTriangles < 900000 {
-		t.Fatalf("MaxTriangles = %d, NTCharts3d draws %d", MaxTriangles, charts.MaxMeshTriangles)
+	if MaxTriangles != nt3d.MaxMeshTriangles || MaxTriangles < 900000 {
+		t.Fatalf("MaxTriangles = %d, nt3d draws %d", MaxTriangles, nt3d.MaxMeshTriangles)
 	}
 	// More than the 87,381 that a chart's limits once allowed.
 	mesh, err := ParseSTL(manySTL(200000))
 	if err != nil || mesh.Triangles() != 200000 {
 		t.Fatalf("200,000 triangles: %v", err)
 	}
-	if _, err := mesh.Geometry(nil); err != nil {
+	if _, err := mesh.Geometry(); err != nil {
 		t.Fatal(err)
 	}
-	// What NTCharts3d is given, it accepts.
-	chart := charts.New(1, 3, charts.WithRenderMode(charts.Software))
+	// What nt3d is given, it accepts.
+	chart := widget.New(nil, 1, 3, widget.WithRenderMode(nt3d.Software))
 	defer chart.Close()
-	if chart.SetSeries(mesh); chart.Err() != nil {
-		t.Fatalf("NTCharts3d refused the mesh: %v", chart.Err())
+	if err := mesh.SetScene(chart.Scene()); err != nil {
+		t.Fatalf("nt3d refused the mesh: %v", err)
 	}
 	img, err := ExportImage(Result{Mesh: mesh, CPU: true}, 256)
 	if err != nil || img.Bounds().Dx() != 256 {

@@ -26,7 +26,7 @@ func options(sample string) (app.Options, bool) {
 		}
 		files = append(files[i:], files[:i]...)
 	}
-	// Meshes are drawn with WebGPU where the browser has it; NTCharts3d
+	// Meshes are drawn with WebGPU where the browser has it; nt3d
 	// falls back to software, and then wireframe, where it does not. Each
 	// starts fitted to its frame.
 	return app.Options{Save: saveExport, Files: files, Render: "auto", Render3D: "auto", Page: 1, DPI: 96, Menu: sample == "", Preview: sample == ""}, true

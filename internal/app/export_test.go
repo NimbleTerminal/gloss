@@ -12,8 +12,9 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 )
 
 type saved struct {
@@ -72,7 +73,7 @@ func TestExportKeySavesTheCurrentDocument(t *testing.T) {
 func TestExportFollowsTheCamera(t *testing.T) {
 	var out saved
 	m := viewing(t, Options{Files: []string{samples + "gloss.stl"}, MaxEdge: 96, Save: out.save(t)}, "stl")
-	m.chart = charts.New(100, 28, charts.WithRenderMode(charts.Software))
+	m.chart = widget.New(nil, 100, 28, widget.WithRenderMode(nt3d.Software))
 	for _, beta := range []float64{40, 130} {
 		camera := m.chart.Camera()
 		camera.Beta = beta
@@ -217,7 +218,7 @@ func TestViewerStartsFromTheViewAskedFor(t *testing.T) {
 	if got := m.chart.Camera(); got.Alpha != 89 || got.Beta != -90 || got.Distance != want.Distance {
 		t.Fatalf("camera %+v, want the first view asked for, fitted: %+v", got, want)
 	}
-	// Reset returns there, not to NTCharts3d's own view.
+	// Reset returns there, not to nt3d's own view.
 	m.Update(tea.KeyPressMsg{Code: tea.KeyRight})
 	m.Update(press("f"))
 	if got := m.chart.Camera(); got.Alpha != 89 || got.Beta != -90 || got.Distance != want.Distance {
@@ -226,8 +227,8 @@ func TestViewerStartsFromTheViewAskedFor(t *testing.T) {
 	plain := viewing(t, Options{Files: []string{"part.stl"}, Render3D: "software"}, "")
 	plain.Update(document.Result{Generation: plain.generation, Kind: "stl", Page: 1, Pages: 1, Mesh: mesh})
 	// With no view asked for, the default angles, at a distance fitted to
-	// the mesh rather than NTCharts3d's own.
-	d := charts.DefaultCamera()
+	// the mesh rather than nt3d's own.
+	d := nt3d.DefaultCamera()
 	fitted := document.View{Alpha: d.Alpha, Beta: d.Beta, Projection: d.Projection}.CameraFor(mesh, plain.frameAspect())
 	if got := plain.chart.Camera(); got.Alpha != d.Alpha || got.Distance != fitted.Distance || got.Distance == d.Distance {
 		t.Fatalf("with no view asked for: %+v, want %+v", got, fitted)

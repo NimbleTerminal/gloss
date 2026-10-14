@@ -9,9 +9,10 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 )
 
 func press(s string) tea.KeyPressMsg { return tea.KeyPressMsg{Code: []rune(s)[0], Text: s} }
@@ -19,7 +20,7 @@ func press(s string) tea.KeyPressMsg { return tea.KeyPressMsg{Code: []rune(s)[0]
 func TestMouseOrbitDirection(t *testing.T) {
 	m := New(Options{Files: []string{"model.stl"}, Render: "glyph"})
 	m.width, m.height = 80, 30
-	m.chart = charts.New(80, 28, charts.WithRenderMode(charts.Software))
+	m.chart = widget.New(nil, 80, 28, widget.WithRenderMode(nt3d.Software))
 	defer m.Close()
 	m.chart.View() // NTCharts registers its mouse zone asynchronously.
 	before := m.chart.Camera()

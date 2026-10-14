@@ -10,17 +10,20 @@ require (
 )
 
 require (
+	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
+	nimbleterminal.dev/ntgpuimage v0.2.0 // indirect
+)
+
+require (
 	charm.land/bubbles/v2 v2.2.1 // indirect
 	charm.land/glamour/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
 	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
-	github.com/NimbleMarkets/go-gpuimage v0.1.0 // indirect
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1 // indirect
 	github.com/NimbleMarkets/ntcharts-svg v0.3.0 // indirect
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0 // indirect
-	github.com/NimbleMarkets/ntcharts3d v0.2.2 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
@@ -74,6 +77,7 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
+	nimbleterminal.dev/nt3d v0.0.0 // indirect
 	nimbleterminal.dev/ntpicture v0.0.0 // indirect
 	nimbleterminal.dev/ntqrcode v0.2.0 // indirect
 )
@@ -87,3 +91,5 @@ tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
 tool github.com/NimbleMarkets/booba-shim/cmd/booba-shim-assets
 
 replace nimbleterminal.dev/ntpicture => ../../../ntpicture
+
+replace nimbleterminal.dev/nt3d => ../../../nt3d

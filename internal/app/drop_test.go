@@ -10,10 +10,11 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/examples"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 )
 
 const samples = "../../examples/"
@@ -208,7 +209,7 @@ func TestDropLeavesTheCameraAlone(t *testing.T) {
 	defer m.Close()
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 30})
 	m.kind = "stl"
-	m.chart = charts.New(80, 28, charts.WithRenderMode(charts.Software))
+	m.chart = widget.New(nil, 80, 28, widget.WithRenderMode(nt3d.Software))
 	camera := m.chart.Camera()
 	camera.Beta += 30
 	m.chart.SetCamera(camera)

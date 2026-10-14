@@ -32,7 +32,7 @@ func painted(t *testing.T) *Model {
 }
 
 func shade(m *Model) color.RGBA {
-	g, _ := m.mesh.Geometry(nil)
+	g, _ := m.mesh.Geometry()
 	return g.Vertices[0].Color
 }
 
@@ -132,8 +132,8 @@ func TestBackgroundPickerRecolorsTheBackdrop(t *testing.T) {
 	if hints := plain(m)[len(plain(m))-1]; !strings.Contains(hints, "B bg-color") {
 		t.Fatalf("hints: %s", hints)
 	}
-	if m.chart.Background() != meshBackground || m.bg != nil {
-		t.Fatalf("default: chart=%v bg=%v", m.chart.Background(), m.bg)
+	if renderedBackdrop(t, m) != meshBackground || m.bg != nil {
+		t.Fatalf("default: chart=%v bg=%v", renderedBackdrop(t, m), m.bg)
 	}
 	send(m, press("B"))
 	if !m.pickingColor() || !strings.Contains(ansi.Strip(m.View().Content), "Background") {
@@ -142,29 +142,29 @@ func TestBackgroundPickerRecolorsTheBackdrop(t *testing.T) {
 	// A swatch applies at once, to the backdrop and not to the mesh.
 	meshBefore := shade(m)
 	send(m, press("l"), press("l"), press("l"), press("l"), press("l"), press("l"), press("l"), press("j"), press(" "))
-	chosen := m.chart.Background()
+	chosen := renderedBackdrop(t, m)
 	if chosen == meshBackground || m.bg == nil || *m.bg != chosen || shade(m) != meshBefore {
 		t.Fatalf("swatch: chart=%v bg=%v mesh=%v want %v", chosen, m.bg, shade(m), meshBefore)
 	}
 	// Esc puts the old backdrop back; Enter keeps the new one.
 	send(m, tea.KeyPressMsg{Code: tea.KeyEscape})
-	if m.pickingColor() || m.bg != nil || m.chart.Background() != meshBackground {
-		t.Fatalf("Esc: picking=%v bg=%v chart=%v", m.pickingColor(), m.bg, m.chart.Background())
+	if m.pickingColor() || m.bg != nil || renderedBackdrop(t, m) != meshBackground {
+		t.Fatalf("Esc: picking=%v bg=%v chart=%v", m.pickingColor(), m.bg, renderedBackdrop(t, m))
 	}
 	send(m, press("B"), press("l"), press(" "), enter)
-	kept := m.chart.Background()
+	kept := renderedBackdrop(t, m)
 	if m.pickingColor() || kept == meshBackground || m.bg == nil || *m.bg != kept {
 		t.Fatalf("Enter: picking=%v bg=%v chart=%v", m.pickingColor(), m.bg, kept)
 	}
 	// Hex takes a typed color; r restores the default.
 	send(m, press("B"), tea.KeyPressMsg{Code: tea.KeyTab}, tea.KeyPressMsg{Code: tea.KeyTab})
 	send(m, typed("3f3080")...)
-	if got := m.chart.Background(); got != (color.RGBA{R: 0x3f, G: 0x30, B: 0x80, A: 255}) {
+	if got := renderedBackdrop(t, m); got != (color.RGBA{R: 0x3f, G: 0x30, B: 0x80, A: 255}) {
 		t.Fatalf("hex: %v", got)
 	}
 	send(m, press("r"))
-	if m.bg != nil || m.chart.Background() != meshBackground {
-		t.Fatalf("r: bg=%v chart=%v", m.bg, m.chart.Background())
+	if m.bg != nil || renderedBackdrop(t, m) != meshBackground {
+		t.Fatalf("r: bg=%v chart=%v", m.bg, renderedBackdrop(t, m))
 	}
 	// The mesh picker is unchanged by all this, and the info line names the backdrop.
 	send(m, enter, press("C"))
@@ -183,8 +183,8 @@ func TestEnterChoosesTheSwatchItIsOn(t *testing.T) {
 		t.Fatalf("Enter alone changed the mesh: picking=%v color=%v tint=%v", m.pickingColor(), shade(m), m.tint)
 	}
 	send(m, press("B"), enter)
-	if m.pickingColor() || m.bg != nil || m.chart.Background() != meshBackground {
-		t.Fatalf("Enter alone changed the background: bg=%v chart=%v", m.bg, m.chart.Background())
+	if m.pickingColor() || m.bg != nil || renderedBackdrop(t, m) != meshBackground {
+		t.Fatalf("Enter alone changed the background: bg=%v chart=%v", m.bg, renderedBackdrop(t, m))
 	}
 	// Move to a swatch and press Enter: that is a choice.
 	send(m, press("C"), press("l"), enter)
@@ -352,4 +352,13 @@ func TestColoredModelCanBeRecoloredAndReset(t *testing.T) {
 	if shade(m) != red {
 		t.Fatalf("plain faces only repainted the file's color: %v", shade(m))
 	}
+}
+
+func renderedBackdrop(t *testing.T, m *Model) color.RGBA {
+	t.Helper()
+	img, _, err := m.chart.Snapshot(16, 16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return color.RGBAModel.Convert(img.At(0, 0)).(color.RGBA)
 }

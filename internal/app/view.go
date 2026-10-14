@@ -7,7 +7,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 )
@@ -87,10 +86,10 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	case m.chart != nil:
 		v := m.chart.View()
 		body, mouse, plain = m.meshFrame(v.Content, w), v.MouseMode, false
-		// Kitty's grid already fills the chart's viewport, including its
-		// header and footer. Measuring its placeholder graphemes again to
-		// pad the same rectangle is expensive on every camera update.
-		exact = h >= 3 && m.chart.PictureMode() == picture.PictureKitty
+		// Kitty's grid already fills the widget's viewport. Measuring its
+		// placeholder graphemes again to pad the same rectangle is expensive
+		// on every camera update.
+		exact = h >= 3 && m.meshKitty()
 	case m.markdown != nil:
 		body, mouse, plain = m.markdown.view(), tea.MouseModeCellMotion, false
 	case m.sheet != nil:

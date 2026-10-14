@@ -6,7 +6,7 @@ A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3M
 meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
 Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
-Tea, NTCharts, NTCharts SVG, NTCharts PDF, and NTCharts3d. The README is the
+Tea, NTCharts, NTCharts SVG, NTCharts PDF, and nt3d. The README is the
 short introduction; the user reference is the guide on the documentation site
 (`docs/hugo/content/guide`); DEVELOP.md is for working on gloss. Keep them and
 this file consistent with the code.
@@ -49,6 +49,10 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   `internal/animate.Animator`; terminal discovery and the shared block ID
   allocator remain host-owned during the migration. The temporary sibling
   module replacement must become a published pin before release.
+- STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
+  camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
+  and its `widget` package. Gloss owns the projection/title rows around the
+  widget; do not add a second mesh renderer through the retired NTCharts3d module.
 - `internal/app/qr.go`: table URL overlay using the external
   `nimbleterminal.dev/ntqrcode/qrcode` component. Gloss provides
   capability, cell geometry, and fresh image IDs. `u` opens, `Esc` closes,

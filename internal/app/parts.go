@@ -126,7 +126,7 @@ func (m *Model) assembled(r partsResult) tea.Cmd {
 	}
 	// The chart draws only through the commands it returns: every one must
 	// reach the runtime, or it waits for a frame that never comes.
-	shown := m.chart.SetSeries(r.mesh)
+	shown := m.setMesh(r.mesh)
 	if !r.focus {
 		return shown
 	}
@@ -183,8 +183,8 @@ func (m *Model) refit() tea.Cmd {
 	return m.chart.SetCamera(m.home)
 }
 
-// frameAspect is the mesh's picture's width over its height in pixels:
-// the plot's cells, less the chart's title and footer rows, by the size
+// frameAspect is the mesh picture's width over its height in pixels:
+// the widget rows, between Gloss's title and footer, by the size
 // of a cell, which is taken as twice as tall as wide until the terminal
 // says.
 func (m *Model) frameAspect() float64 {
@@ -196,15 +196,13 @@ func (m *Model) frameAspect() float64 {
 	return float64(max(1, m.width)*cw) / float64(rows*ch)
 }
 
-// meshFrame keeps the chart's picture and replaces the rows it writes
-// above and below with gloss's own: the projection, and any trouble, on
+// meshFrame adds Gloss-owned rows around the widget's picture: the projection,
+// and any trouble, on
 // the first; the mouse and keys that work here on the last. How the mesh
 // is drawn is the info box's to say.
 func (m *Model) meshFrame(content string, w int) string {
-	lines := strings.Split(content, "\n")
-	if len(lines) < 2 {
-		return content
-	}
+	lines := append([]string{""}, strings.Split(content, "\n")...)
+	lines = append(lines, "")
 	title := " " + m.chart.Camera().Projection.String()
 	if err := m.chart.Err(); err != nil {
 		title += " · " + safe(err.Error())

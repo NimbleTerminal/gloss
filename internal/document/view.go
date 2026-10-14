@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d"
+	math3d "nimbleterminal.dev/nt3d/math"
 )
 
 const maxViews = 16 // In one picture.
@@ -17,12 +17,12 @@ const maxViews = 16 // In one picture.
 type View struct {
 	Name        string  // As asked for; it labels the view among others.
 	Alpha, Beta float64 // Elevation and azimuth of the camera, in degrees.
-	Distance    float64 // From the mesh, in NTCharts3d's units; zero fits the mesh to the picture.
-	Projection  charts.Projection
+	Distance    float64 // From the mesh, in nt3d's units; zero fits the mesh to the picture.
+	Projection  nt3d.Projection
 }
 
 // The azimuth counts from the X axis, so the front, on the near side of Y,
-// is at -90. NTCharts3d keeps the camera a degree short of straight up and
+// is at -90. nt3d keeps the camera a degree short of straight up and
 // down, where which way is up is decided by the azimuth.
 var namedViews = map[string][2]float64{
 	"front": {0, -90}, "back": {0, 90}, "right": {0, 0}, "left": {0, 180},
@@ -105,20 +105,20 @@ func (v View) light() math3d.Vec3 {
 	return math3d.Vec3{X: float32(l[0]), Y: float32(l[1]), Z: float32(l[2])}.Normalize()
 }
 
-// Camera places NTCharts3d's camera for the view of a square picture, as
+// Camera places nt3d's camera for the view of a square picture, as
 // an export is. Where no distance was asked for, the mesh fills nine tenths
-// of it; without a mesh, the distance is NTCharts3d's own.
-func (v View) Camera(mesh *Mesh) charts.Camera { return v.CameraFor(mesh, 1) }
+// of it; without a mesh, the distance is nt3d's own.
+func (v View) Camera(mesh *Mesh) nt3d.Camera { return v.CameraFor(mesh, 1) }
 
 // CameraFor is Camera for a picture of the given aspect, its width over
 // its height in pixels: in a wide frame a wide mesh is fitted by its
 // height, and the camera comes as close as that allows. An aspect that
 // says nothing means a square.
-func (v View) CameraFor(mesh *Mesh, aspect float64) charts.Camera {
+func (v View) CameraFor(mesh *Mesh, aspect float64) nt3d.Camera {
 	if aspect <= 0 || math.IsNaN(aspect) || math.IsInf(aspect, 0) {
 		aspect = 1
 	}
-	camera := charts.DefaultCamera()
+	camera := nt3d.DefaultCamera()
 	camera.Alpha, camera.Beta, camera.Projection, camera.AutoRotate = math.Max(-89, math.Min(89, v.Alpha)), v.Beta, v.Projection, false
 	if v.Distance > 0 {
 		camera.Distance = v.Distance
@@ -127,7 +127,7 @@ func (v View) CameraFor(mesh *Mesh, aspect float64) charts.Camera {
 	if mesh == nil || !mesh.geometry.Bounds.IsValid() {
 		return camera
 	}
-	// NTCharts3d centers the mesh at the origin and scales its longest side
+	// nt3d centers the mesh at the origin and scales its longest side
 	// to two units. Its corners, seen from the camera, say how much room
 	// the mesh takes across the picture, up it, and toward the camera.
 	size := mesh.geometry.Bounds.Max.Sub(mesh.geometry.Bounds.Min)
@@ -143,11 +143,11 @@ func (v View) CameraFor(mesh *Mesh, aspect float64) charts.Camera {
 	// The picture is as tall as the fit says, and aspect times as wide.
 	across, near := math.Max(reach(right)/aspect, reach(up)), reach(toward)
 	const fill = .9
-	if v.Projection == charts.Perspective {
+	if v.Projection == nt3d.Perspective {
 		// The field of view is 45 degrees, and what is nearest looks largest.
 		camera.Distance = near + across/fill/math.Tan(math.Pi/8)
 	} else {
-		// The picture is as tall as the camera is far: in NTCharts3d's
+		// The picture is as tall as the camera is far: in nt3d's
 		// orthographic projection, distance is also scale. The camera must
 		// still stand clear of the mesh, so one that is long toward the
 		// camera, a plank seen from its end, is drawn smaller than it could be.

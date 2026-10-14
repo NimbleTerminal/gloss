@@ -10,27 +10,27 @@ import (
 	"math"
 	"strings"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d"
+	math3d "nimbleterminal.dev/nt3d/math"
 )
 
-// MaxTriangles is the most faces a mesh may have: as many as NTCharts3d
+// MaxTriangles is the most faces a mesh may have: as many as nt3d
 // draws, which is as many as any GPU is sure to hold. Each face has vertices
 // of its own, so that its flat normal is preserved.
-const MaxTriangles = charts.MaxMeshTriangles
+const MaxTriangles = nt3d.MaxMeshTriangles
 
 // maxTriangles is the limit in force. Tests lower it.
 var maxTriangles = MaxTriangles
 
 type Mesh struct {
-	geometry charts.Geometry
+	geometry nt3d.Geometry
 	plain    []bool       // Per vertex: the file gave the face no color.
 	saved    []color.RGBA // The file's colors, while all faces are painted over.
 }
 
-func (m *Mesh) Name() string                                     { return "STL" }
-func (m *Mesh) Geometry(charts.Palette) (charts.Geometry, error) { return m.geometry, nil }
-func (m *Mesh) Triangles() int                                   { return len(m.geometry.Indices) / 3 }
+func (m *Mesh) Name() string                     { return "STL" }
+func (m *Mesh) Geometry() (nt3d.Geometry, error) { return m.geometry, nil }
+func (m *Mesh) Triangles() int                   { return len(m.geometry.Indices) / 3 }
 
 // meshColor is given to faces whose file names none.
 var meshColor = color.RGBA{R: 100, G: 180, B: 230, A: 255}
@@ -157,7 +157,7 @@ func (m *Mesh) add(v [3]math3d.Vec3, shade color.RGBA) error {
 	n := v[1].Sub(v[0]).Cross(v[2].Sub(v[0])).Normalize()
 	for _, p := range v {
 		m.geometry.Indices = append(m.geometry.Indices, uint32(len(m.geometry.Vertices)))
-		m.geometry.Vertices = append(m.geometry.Vertices, charts.Vertex{Position: p, Normal: n, Color: shade})
+		m.geometry.Vertices = append(m.geometry.Vertices, nt3d.Vertex{Position: p, Normal: n, Color: shade})
 		m.plain = append(m.plain, shade == meshColor)
 		m.geometry.Bounds.Include(p)
 	}

@@ -133,7 +133,7 @@ Exports preserve aspect ratio, fit within the requested edge (1–4096), flatten
 transparency onto white, and contain no terminal chrome. Smaller raster sources
 are not enlarged. SVG and PDF are rasterized for the requested size (PDF remains
 subject to the 600-DPI and pixel-budget caps). Mesh exports are square and use
-the default NTCharts3d camera, or the viewer's when saved with `e`. They are
+the default nt3d camera, or the viewer's when saved with `e`. They are
 drawn on the GPU, and in software where there is none or where `--3d` names
 another renderer. Software draws every face, without the viewer's triangle
 sampling, and the same picture. A single view does not reveal hidden surfaces.
@@ -163,7 +163,7 @@ all of them.
 
 A view fits the mesh to nine tenths of the picture, unless `--camera` gives a
 distance. A mesh that is long toward the camera, a plank seen from its end, is
-drawn smaller: in NTCharts3d's orthographic projection distance is also scale,
+drawn smaller: in nt3d's orthographic projection distance is also scale,
 and the camera must stand clear of the mesh. Views asked for are lit from over
 the viewer's shoulder, so that the back and the underside show as much as the
 front, and have their edges outlined in a darker shade of the faces: faces

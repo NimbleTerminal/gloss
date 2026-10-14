@@ -2,13 +2,11 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"io/fs"
 	"math/rand/v2"
-	"os"
 	"sync/atomic"
 
 	"nimbleterminal.dev/gloss/internal/animate"
@@ -16,11 +14,12 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/gloss/internal/theme"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
+	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
 type Options struct {
@@ -29,7 +28,7 @@ type Options struct {
 	// OpenLink asks the embedding host to open an explicitly clicked web URL.
 	// Nil leaves link activation to the terminal (OSC 8). It never fetches a document.
 	OpenLink               func(string) error
-	STLCamera              *charts.Camera  // Optional initial/reset view for an embedded gallery.
+	STLCamera              *nt3d.Camera    // Optional initial/reset view for an embedded gallery.
 	Views                  []document.View // Views of a mesh asked for: the first is where the viewer starts.
 	FilesFS                fs.FS           // Optional embedded files for the browser demo.
 	Files                  []string
@@ -81,7 +80,8 @@ type Options struct {
 // the parts and paint chosen for it, and the camera it starts from. It is
 // embedded in Model, so its fields read as the model's own.
 type meshState struct {
-	chart       *charts.Model
+	chart       *widget.Model
+	meshSession *ntpicture.TerminalSession
 	chartID     int
 	triangles   int
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
@@ -93,8 +93,8 @@ type meshState struct {
 	bg          *color.RGBA    // Background chosen behind the mesh, if any.
 	tintAll     bool           // On every face, not only the plain ones.
 	colorPicker *colorPicker
-	savedCamera *charts.Camera
-	home        charts.Camera  // Where the camera starts, and returns on reset.
+	savedCamera *nt3d.Camera
+	home        nt3d.Camera    // Where the camera starts, and returns on reset.
 	homeView    *document.View // The view the home is fitted from, when it is a fit.
 }
 
@@ -293,6 +293,9 @@ func (m *Model) Close() error {
 	if m.chart != nil {
 		_ = m.chart.Close()
 	}
+	if m.meshSession != nil {
+		m.meshSession.Close()
+	}
 	return m.loader.Close()
 }
 
@@ -318,7 +321,11 @@ func (m *Model) quit() tea.Cmd {
 	if m.markdown != nil {
 		markdownCleanup = m.markdown.keep()
 	}
-	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepTypesetOverlays(), m.keepAnimationPicture()), tea.Quit)
+	var keepMesh tea.Cmd
+	if m.chart != nil {
+		keepMesh = m.chart.Keep()
+	}
+	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepTypesetOverlays(), m.keepAnimationPicture(), keepMesh), tea.Quit)
 }
 
 // IsStdin says whether path is the file standard input was read into.
@@ -413,17 +420,15 @@ func (m *Model) clearChart() tea.Cmd {
 	if m.chart == nil {
 		return nil
 	}
-	kitty := m.chart.PictureMode() == picture.PictureKitty
-	_ = m.chart.Close()
+	chart := m.chart
 	m.chart = nil
-	if !kitty {
-		return nil
+	cleanup := chart.Dispose()
+	_ = chart.Close()
+	if m.meshSession != nil {
+		m.meshSession.Close()
+		m.meshSession = nil
 	}
-	seq := fmt.Sprintf("\x1b_Ga=d,d=I,i=%d,q=2\x1b\\", m.chartID)
-	if os.Getenv("TMUX") != "" {
-		seq = ansi.TmuxPassthrough(seq)
-	}
-	return tea.Raw(seq)
+	return cleanup
 }
 
 func (m *Model) clearGraphics() tea.Cmd {
@@ -661,7 +666,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd = tea.Batch(cmd, m.queueTypesetReflow())
 		}
 		if m.chart != nil {
-			return m, tea.Batch(cmd, m.chart.SetSize(m.width, m.bodyHeight()), m.refit())
+			return m, tea.Batch(cmd, m.chart.SetSize(m.width, m.meshHeight()), m.refit())
 		}
 		return m, cmd
 	case tea.PasteMsg:
@@ -767,7 +772,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	_, mouseMessage := msg.(tea.MouseMsg)
 	if m.chart != nil && !((m.help || m.listing()) && mouseMessage) {
 		before := m.chart.Camera()
-		_, cmd := m.chart.Update(msg)
+		_, cmd := m.chart.Update(meshMessage(msg))
 		cmds = append(cmds, cmd)
 		// NTCharts orbits the camera toward horizontal drags. In a model
 		// viewer, drag the object instead. Preserve picking, pan, and keys.
@@ -845,33 +850,41 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 
 // showMesh puts a loaded mesh on a new chart, at the camera it starts from.
 func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
-	mode := charts.WebGPU
+	mode := nt3d.WebGPU
 	switch m.opts.Render3D {
 	case "software":
-		mode = charts.Software
+		mode = nt3d.Software
 	case "wireframe":
-		mode = charts.Wireframe
+		mode = nt3d.Wireframe
 	}
-	m.chartID = nextKittyID()
-	m.chart = charts.New(
-		m.width, m.bodyHeight(),
-		charts.WithKittyID(m.chartID),
-		charts.WithKittyMedium(picture.KittyMediumSharedMemory),
-		charts.WithAutoRotate(false),
-		charts.WithRenderMode(mode),
-		charts.WithBackground(m.background()))
-	// The chart draws only through the commands it returns, so each
-	// is kept, whether or not it has anything to say before Init.
+	scene, err := v.Mesh.Scene()
+	if err != nil {
+		m.err = err
+		return cleanup
+	}
+	cw, ch := m.pic.CellPixelSize()
+	capability := ntpicture.KittyCapabilityUnknown
+	if m.pic.Mode() == picture.PictureKitty {
+		capability = ntpicture.KittyCapabilitySupported
+	}
+	if m.opts.Render == "glyph" {
+		capability = ntpicture.KittyCapabilityUnsupported
+	}
+	m.meshSession = ntpicture.NewTerminalSession(ntpicture.TerminalOptions{Kitty: capability, CellPixelWidth: cw, CellPixelHeight: ch})
+	m.chart = widget.New(scene, m.width, m.meshHeight(),
+		widget.WithTerminalSession(m.meshSession),
+		widget.WithImageIDAllocator(func() (int, error) { id := m.presentation.NextImageID(); m.chartID = id; return id, nil }),
+		widget.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
+		widget.WithGPUFailure(widget.FallBackOnGPUFailure),
+		widget.WithRenderMode(mode), widget.WithBackground(m.background()))
 	var setup []tea.Cmd
-	setup = append(setup, m.chart.SetAxes(charts.Axes{X: charts.Axis{Hidden: true}, Y: charts.Axis{Hidden: true}, Z: charts.Axis{Hidden: true}}))
-	setup = append(setup, m.chart.SetColorLegendVisible(false), m.chart.SetSeries(v.Mesh))
 	m.mesh = v.Mesh
 	m.parts, m.assemble, m.partsShown = v.Parts, v.Assemble, v.Shown
 	m.keepLayer()
 	// The start, and where f returns to, is fitted to this mesh: the
 	// view asked for, or the default angles at a distance that shows
 	// the whole of it, as an export would.
-	d := charts.DefaultCamera()
+	d := nt3d.DefaultCamera()
 	home := document.View{Alpha: d.Alpha, Beta: d.Beta, Projection: d.Projection}
 	m.homeView = &home
 	switch {

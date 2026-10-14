@@ -4,7 +4,7 @@ gloss is written in Go on [Bubble Tea](https://github.com/charmbracelet/bubblete
 and [NTCharts](https://github.com/NimbleMarkets/ntcharts), with
 [NTCharts SVG](https://github.com/NimbleMarkets/ntcharts-svg),
 [NTCharts PDF](https://github.com/NimbleMarkets/ntcharts-pdf), and
-[NTCharts3d](https://github.com/NimbleMarkets/ntcharts3d). The user
+[nt3d](https://github.com/NimbleMarkets/nt3d). The user
 documentation is on the [documentation site](https://nimbleterminal.github.io/gloss/docs/);
 this file is for working on gloss itself. [AGENTS.md](AGENTS.md) is the same
 ground for coding agents.

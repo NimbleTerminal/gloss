@@ -54,7 +54,7 @@ Two original landscapes, decoded locally: blue hills at dusk in PNG and a sunny 
 | --- | --- |
 | Markdown | Glamour |
 | SVG | NTCharts SVG |
-| STL | NTCharts3d |
+| STL | nt3d |
 
 ```sh
 gloss --preview examples/readme.md examples/shapes.svg examples/gloss.stl

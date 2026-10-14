@@ -7,12 +7,12 @@ import (
 	"image/draw"
 	"math"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
+	"nimbleterminal.dev/nt3d"
+	math3d "nimbleterminal.dev/nt3d/math"
 )
 
 // ExportImage produces an opaque image bounded by maxEdge on both axes.
@@ -48,7 +48,7 @@ func ExportImage(r Result, maxEdge int) (image.Image, error) {
 // asked for. Several views make a sheet: square tiles, as many across as
 // down or one more, each named in its corner.
 func exportMesh(r Result, maxEdge int) (image.Image, error) {
-	shots, names := []shot{{charts.DefaultCamera(), worldLight}}, []string{""}
+	shots, names := []shot{{nt3d.DefaultCamera(), worldLight}}, []string{""}
 	named := false
 	switch {
 	case r.Camera != nil:
@@ -114,34 +114,34 @@ func label(sheet *image.RGBA, tile image.Rectangle, name string) {
 
 // shot is one picture of a mesh: where the camera is, and the light.
 type shot struct {
-	camera charts.Camera
+	camera nt3d.Camera
 	light  math3d.Vec3 // Toward the light.
 }
 
-// worldLight is where the viewer has its light: NTCharts3d's own.
+// worldLight is where the viewer has its light: nt3d's own.
 var worldLight = (math3d.Vec3{X: 1, Y: -1, Z: 2}).Normalize()
 
-// gpuSnapshot draws the mesh alone, on white, with NTCharts3d's GPU renderer:
+// gpuSnapshot draws the mesh alone, on white, with nt3d's GPU renderer:
 // once for each shot, from one upload of the mesh. It reports false where
 // there is no GPU to draw with. It is a variable so that tests can stand in
 // for the hardware.
 var gpuSnapshot = func(mesh *Mesh, size int, shots []shot) ([]image.Image, bool) {
-	chart := charts.New(1, 3, charts.WithAutoRotate(false), charts.WithBackground(color.White))
-	defer chart.Close()
-	chart.SetAxes(charts.Axes{X: charts.Axis{Hidden: true}, Y: charts.Axis{Hidden: true}, Z: charts.Axis{Hidden: true}})
-	chart.SetColorLegendVisible(false)
-	chart.SetSeries(mesh)
+	scene, err := mesh.Scene()
+	if err != nil {
+		return nil, false
+	}
+	renderer := nt3d.NewGPURenderer()
+	defer renderer.Close()
 	var out []image.Image
 	for _, s := range shots {
-		chart.SetCamera(s.camera)
-		chart.SetLight(charts.Light{Direction: s.light, Ambient: .3})
-		if chart.Err() != nil {
+		frame, err := scene.Frame(s.camera, size, size)
+		if err != nil {
 			return nil, false
 		}
-		// NTCharts3d falls back to its software renderer. The one below
-		// is preferred to that: it was written for exports.
-		img, mode, err := chart.Snapshot(size, size)
-		if err != nil || mode != charts.WebGPU {
+		frame.Background = color.RGBA{255, 255, 255, 255}
+		frame.Light = nt3d.Light{Direction: s.light, Ambient: .3}
+		img, mode, err := nt3d.Snapshot(frame, nt3d.WebGPU, renderer)
+		if err != nil || mode != nt3d.WebGPU {
 			return nil, false
 		}
 		out = append(out, img)
@@ -149,9 +149,9 @@ var gpuSnapshot = func(mesh *Mesh, size int, shots []shot) ([]image.Image, bool)
 	return out, true
 }
 
-// The CPU's export uses NTCharts3d geometry, normalization, and camera.
+// The CPU's export uses nt3d geometry, normalization, and camera.
 // It rasterizes every face at the requested size with a depth buffer.
-func renderMesh(mesh *Mesh, size int, camera charts.Camera, light math3d.Vec3) image.Image {
+func renderMesh(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 	draw.Draw(img, img.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
 	rasterize(mesh, size, camera, light, img)
@@ -160,14 +160,14 @@ func renderMesh(mesh *Mesh, size int, camera charts.Camera, light math3d.Vec3) i
 
 // meshDepth is the depth of the nearest face at each pixel, as renderMesh
 // finds it: from 0, near, to 1, far; 2 where there is none.
-func meshDepth(mesh *Mesh, size int, camera charts.Camera) []float32 {
+func meshDepth(mesh *Mesh, size int, camera nt3d.Camera) []float32 {
 	return rasterize(mesh, size, camera, math3d.Vec3{}, nil)
 }
 
 // rasterize draws the faces of the mesh into img, nil for none, and gives the
 // depth buffer.
-func rasterize(mesh *Mesh, size int, camera charts.Camera, light math3d.Vec3, img *image.RGBA) []float32 {
-	g, _ := mesh.Geometry(nil)
+func rasterize(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3, img *image.RGBA) []float32 {
+	g, _ := mesh.Geometry()
 	normalize, _, _ := g.Bounds.Normalization()
 	matrix := camera.Matrix(1).Mul(normalize)
 	depth := make([]float32, size*size)

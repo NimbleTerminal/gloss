@@ -2,9 +2,9 @@ package app
 
 import (
 	"fmt"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"image"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 	"reflect"
 	"strings"
 	"testing"
@@ -115,7 +115,7 @@ func TestPreviewMouseCoordinatesAndCapture(t *testing.T) {
 	defer m.Close()
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 	m.preview.loading = false
-	m.preview.chart = charts.New(m.previewWidth(), m.bodyHeight(), charts.WithRenderMode(charts.Software))
+	m.preview.chart = widget.New(nil, m.previewWidth(), m.bodyHeight(), widget.WithRenderMode(nt3d.Software))
 	if m.View().MouseMode != tea.MouseModeAllMotion {
 		t.Fatal("preview does not request mouse events")
 	}
@@ -156,12 +156,16 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 			defer m.Close()
 			m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 			old := m.preview
-			old.chartID = old.kittyID + 1
-			old.chart = charts.New(59, 28, charts.WithKittyID(old.chartID), charts.WithRenderMode(charts.Software))
-			old.chart.Update(struct{}{})
-			if old.chart.PictureMode() != picture.PictureKitty {
-				t.Fatal("chart not in Kitty mode")
+			mesh, err := document.ParseSTL([]byte(facet))
+			if err != nil {
+				t.Fatal(err)
 			}
+			old.opts.Render3D = "software"
+			drainAnimation(t, m, old.showMesh(document.Result{Mesh: mesh}, nil))
+			if !old.meshKitty() || old.chart.PictureStatus().Presented == 0 {
+				t.Fatal("mesh was not presented in Kitty mode")
+			}
+
 			old.pic.SetImage(image.NewRGBA(image.Rect(0, 0, 2, 2)))
 			old.markdown = newMarkdownView(&document.Markdown{Images: []document.MarkdownImage{{}}}, old.kittyID+10)
 			old.markdown.setKitty(true)
@@ -233,7 +237,7 @@ func TestMenuSuspendsHiddenDocument(t *testing.T) {
 
 func TestPreviewDrawsMeshesAsTheViewerDoes(t *testing.T) {
 	// The GPU comes first in the preview too, and software is what
-	// NTCharts3d falls back to; a renderer asked for by name is kept.
+	// nt3d falls back to; a renderer asked for by name is kept.
 	for _, mode := range []string{"auto", "software", "wireframe"} {
 		m := New(Options{Files: []string{"a.stl", "b.stl"}, Render: "glyph", Render3D: mode, Menu: true, Preview: true, Page: 1, DPI: 150})
 		m.Update(tea.WindowSizeMsg{Width: 100, Height: 24})

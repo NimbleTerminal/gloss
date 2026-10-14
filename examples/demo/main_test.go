@@ -7,7 +7,7 @@ import (
 )
 
 func TestDemoPrefersTheGPU(t *testing.T) {
-	// The browser draws meshes with WebGPU where it can. NTCharts3d falls
+	// The browser draws meshes with WebGPU where it can. nt3d falls
 	// back to software by itself where it cannot.
 	opts, ok := options("")
 	if !ok || opts.Render3D != "auto" {

@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	math3d "nimbleterminal.dev/nt3d/math"
 )
 
 const (

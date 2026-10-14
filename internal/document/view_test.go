@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
-	"github.com/NimbleMarkets/ntcharts3d/math3d"
+	"nimbleterminal.dev/nt3d"
+	math3d "nimbleterminal.dev/nt3d/math"
 )
 
 // box is a mesh filling a block of the given size, with a corner at the origin.
@@ -46,7 +46,7 @@ func TestNamedViews(t *testing.T) {
 			t.Fatalf("%s: %+v %v", name, views, err)
 		}
 		camera := views[0].Camera(nil)
-		if camera.Projection != charts.Orthographic || camera.AutoRotate {
+		if camera.Projection != nt3d.Orthographic || camera.AutoRotate {
 			t.Errorf("%s: %+v", name, camera)
 		}
 		matrix := camera.Matrix(1)
@@ -147,7 +147,7 @@ func TestViewsFitTheMeshToThePicture(t *testing.T) {
 		{"a cube from the front", box(t, 3, 3, 3), "front", .9, .9},
 	} {
 		views, _ := ParseViews(tt.view)
-		for _, projection := range []charts.Projection{charts.Orthographic, charts.Perspective} {
+		for _, projection := range []nt3d.Projection{nt3d.Orthographic, nt3d.Perspective} {
 			view := views[0]
 			view.Projection = projection
 			img := renderMesh(tt.mesh, 400, view.Camera(tt.mesh), worldLight)
@@ -155,11 +155,11 @@ func TestViewsFitTheMeshToThePicture(t *testing.T) {
 			if clipped {
 				t.Errorf("%s, %v: the mesh runs off the picture", tt.name, projection)
 			}
-			if projection == charts.Orthographic && (math.Abs(wide-tt.wide) > .03 || math.Abs(high-tt.high) > .03) {
+			if projection == nt3d.Orthographic && (math.Abs(wide-tt.wide) > .03 || math.Abs(high-tt.high) > .03) {
 				t.Errorf("%s: covers %.2f by %.2f of the picture, want %.2f by %.2f", tt.name, wide, high, tt.wide, tt.high)
 			}
 			// Perspective enlarges what is near; the fit allows for it.
-			if projection == charts.Perspective && (max(wide, high) < .6 || max(wide, high) > .97) {
+			if projection == nt3d.Perspective && (max(wide, high) < .6 || max(wide, high) > .97) {
 				t.Errorf("%s in perspective: covers %.2f by %.2f", tt.name, wide, high)
 			}
 		}
@@ -196,7 +196,7 @@ func TestCameraFitsTheFrameItIsFor(t *testing.T) {
 		t.Errorf("tall frame %v, square %v", n, square)
 	}
 	// Perspective fits the same way.
-	front.Projection = charts.Perspective
+	front.Projection = nt3d.Perspective
 	if w, s := front.CameraFor(wide, 3).Distance, front.Camera(wide).Distance; w >= s {
 		t.Errorf("perspective: wide %v, square %v", w, s)
 	}

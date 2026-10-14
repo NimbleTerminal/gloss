@@ -12,10 +12,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"nimbleterminal.dev/gloss/examples"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 )
 
 // pumpPatience is how long pump waits on one command before taking it for a
@@ -244,7 +245,7 @@ func TestEitherCaseOfOOpensTheBrowser(t *testing.T) {
 
 func TestProjectionMovesToFive(t *testing.T) {
 	m := viewing(t, Options{Files: []string{filepath.Join(folder(t), "alpha.png")}}, "stl")
-	m.chart = charts.New(100, 28, charts.WithRenderMode(charts.Software))
+	m.chart = widget.New(nil, 100, 28, widget.WithRenderMode(nt3d.Software))
 	before := m.chart.Camera().Projection
 	send(m, press("5"))
 	if m.chart.Camera().Projection == before {

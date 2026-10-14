@@ -11,26 +11,26 @@ import (
 	"strings"
 	"testing"
 
-	charts "github.com/NimbleMarkets/ntcharts3d"
+	"nimbleterminal.dev/nt3d"
 )
 
 func TestViewFlags(t *testing.T) {
 	opts, _, err := parse([]string{"--view", "front,top", "-o", "out.png", "model.stl"}, &bytes.Buffer{})
-	if err != nil || len(opts.Views) != 2 || opts.Views[0].Name != "front" || opts.Views[1].Alpha != 89 || opts.Views[0].Projection != charts.Orthographic {
+	if err != nil || len(opts.Views) != 2 || opts.Views[0].Name != "front" || opts.Views[1].Alpha != 89 || opts.Views[0].Projection != nt3d.Orthographic {
 		t.Fatalf("%+v %v", opts.Views, err)
 	}
 	opts, _, err = parse([]string{"--camera", "30,-60,2.5", "--projection", "perspective", "model.stl"}, &bytes.Buffer{})
-	if err != nil || len(opts.Views) != 1 || opts.Views[0].Alpha != 30 || opts.Views[0].Beta != -60 || opts.Views[0].Distance != 2.5 || opts.Views[0].Projection != charts.Perspective {
+	if err != nil || len(opts.Views) != 1 || opts.Views[0].Alpha != 30 || opts.Views[0].Beta != -60 || opts.Views[0].Distance != 2.5 || opts.Views[0].Projection != nt3d.Perspective {
 		t.Fatalf("%+v %v", opts.Views, err)
 	}
 	opts, _, err = parse([]string{"--view", "all", "--projection", "perspective", "model.stl"}, &bytes.Buffer{})
-	if err != nil || len(opts.Views) != 6 || opts.Views[5].Projection != charts.Perspective {
+	if err != nil || len(opts.Views) != 6 || opts.Views[5].Projection != nt3d.Perspective {
 		t.Fatalf("%+v %v", opts.Views, err)
 	}
 	// The projection alone changes it for the camera there would have been.
 	opts, _, err = parse([]string{"--projection", "perspective", "model.stl"}, &bytes.Buffer{})
-	want := charts.DefaultCamera()
-	if err != nil || len(opts.Views) != 1 || opts.Views[0].Alpha != want.Alpha || opts.Views[0].Beta != want.Beta || opts.Views[0].Distance != want.Distance || opts.Views[0].Projection != charts.Perspective {
+	want := nt3d.DefaultCamera()
+	if err != nil || len(opts.Views) != 1 || opts.Views[0].Alpha != want.Alpha || opts.Views[0].Beta != want.Beta || opts.Views[0].Distance != want.Distance || opts.Views[0].Projection != nt3d.Perspective {
 		t.Fatalf("%+v %v", opts.Views, err)
 	}
 	if opts, _, err = parse([]string{"model.stl"}, &bytes.Buffer{}); err != nil || opts.Views != nil {

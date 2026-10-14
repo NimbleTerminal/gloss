@@ -34,7 +34,7 @@ func kittyMeshModel(tb testing.TB, cols, rows int) *Model {
 	tb.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})
 	drainAnimation(tb, m, m.load(false))
-	if m.chart == nil || m.chart.PictureMode() != picture.PictureKitty {
+	if m.chart == nil || !m.meshKitty() {
 		tb.Fatal("no Kitty mesh")
 	}
 	return m

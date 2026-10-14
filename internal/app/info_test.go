@@ -9,10 +9,11 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	charts "github.com/NimbleMarkets/ntcharts3d"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 )
 
 var landscape = []document.Field{
@@ -78,7 +79,7 @@ func TestInfoKeyOpensABoxInTheCorner(t *testing.T) {
 
 func TestInfoBoxSitsBelowTheTitleOfAMesh(t *testing.T) {
 	m := viewing(t, Options{Files: []string{"part.stl"}}, "stl")
-	m.chart = charts.New(100, 28, charts.WithRenderMode(charts.Software))
+	m.chart = widget.New(nil, 100, m.meshHeight(), widget.WithRenderMode(nt3d.Software))
 	m.fields = landscape
 	title := rows(m)[0]
 	if !strings.Contains(title, "ortho") {
@@ -94,7 +95,7 @@ func TestInfoBoxSitsBelowTheTitleOfAMesh(t *testing.T) {
 	}
 	// One row fewer is left for the box, which must still close.
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 9})
-	m.chart.SetSize(100, 7)
+	m.chart.SetSize(100, m.meshHeight())
 	after = rows(m)
 	if len(after) != 9 || after[0] != rows(m)[0] || !strings.Contains(after[6], "╰") {
 		t.Fatalf("a short terminal:\n%s", strings.Join(after, "\n"))
