@@ -183,10 +183,18 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 			}
 			// Sequence commands contain a slice of commands, just like BatchMsg.
 			output := collectRaw(cmd)
-			for _, id := range []int{old.kittyID, old.chartID, old.kittyID + 10} {
-				if !strings.Contains(output, fmt.Sprintf("a=d,d=I,i=%d,", id)) {
+			deleted := map[string]bool{}
+			for _, command := range strings.Split(output, "a=d,d=I,i=")[1:] {
+				id := strings.SplitN(command, ",", 2)[0]
+				deleted[id] = true
+			}
+			for _, id := range []int{old.kittyID, old.kittyID + 10} {
+				if !deleted[fmt.Sprint(id)] {
 					t.Fatalf("%s: missing delete for %d in %q", action, id, output)
 				}
+			}
+			if len(deleted) < 3 {
+				t.Fatalf("%s: missing mesh image delete in %q", action, output)
 			}
 			if old.chart != nil {
 				t.Fatal("renderer remains open")

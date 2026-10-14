@@ -32,7 +32,7 @@ func painted(t *testing.T) *Model {
 }
 
 func shade(m *Model) color.RGBA {
-	g, _ := m.mesh.Geometry()
+	g := m.mesh.Geometry()
 	return g.Vertices[0].Color
 }
 

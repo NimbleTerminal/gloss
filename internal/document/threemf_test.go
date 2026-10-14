@@ -82,7 +82,7 @@ func TestParse3MF(t *testing.T) {
 	if m.Mesh == nil || m.Mesh.Triangles() != 4 || m.Triangles != 4 || m.Objects != 1 || m.Unit != "millimeter" {
 		t.Fatalf("%+v", m)
 	}
-	g, _ := m.Mesh.Geometry()
+	g := m.Mesh.Geometry()
 	if g.Bounds.Min.X != 0 || g.Bounds.Max.X != 1 || g.Bounds.Max.Y != 1 || g.Bounds.Max.Z != 1 {
 		t.Fatalf("bounds %+v", g.Bounds)
 	}
@@ -129,7 +129,7 @@ func TestPlacement3MF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, _ := m.Mesh.Geometry()
+	g := m.Mesh.Geometry()
 	if m.Triangles != 8 || m.Objects != 1 || g.Bounds.Min.X != 0 || g.Bounds.Max.X != 11 || g.Bounds.Min.Z != 4 || g.Bounds.Max.Z != 6 {
 		t.Fatalf("triangles=%d objects=%d bounds=%+v", m.Triangles, m.Objects, g.Bounds)
 	}
@@ -153,7 +153,7 @@ func TestProduction3MF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, _ := m.Mesh.Geometry(); m.Triangles != 4 || g.Bounds.Min.X != 3 || g.Bounds.Max.X != 4 {
+	if g := m.Mesh.Geometry(); m.Triangles != 4 || g.Bounds.Min.X != 3 || g.Bounds.Max.X != 4 {
 		t.Fatalf("triangles=%d bounds=%+v", m.Triangles, g.Bounds)
 	}
 }
@@ -170,7 +170,7 @@ func TestColors3MF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, _ := m.Mesh.Geometry()
+	g := m.Mesh.Geometry()
 	for vertex, want := range map[int]color.RGBA{0: {B: 255, A: 255}, 9: {G: 255, A: 255}, 12: {R: 100, G: 180, B: 230, A: 255}} {
 		if got := g.Vertices[vertex].Color; got != want {
 			t.Errorf("vertex %d is %v, want %v", vertex, got, want)
@@ -369,7 +369,7 @@ func TestSlicerProject3MF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, _ := m.Mesh.Geometry()
+	g := m.Mesh.Geometry()
 	purple, red := color.RGBA{R: 0x5e, G: 0x43, B: 0xb7, A: 255}, color.RGBA{R: 255, A: 255}
 	// The first part takes the object's filament; the second has its own.
 	if first, second := g.Vertices[0].Color, g.Vertices[12].Color; first != purple || second != red {
@@ -396,7 +396,7 @@ func TestSlicerSettingsGiveWayToTheModel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, _ := m.Mesh.Geometry()
+	g := m.Mesh.Geometry()
 	if first, second := g.Vertices[0].Color, g.Vertices[12].Color; first != (color.RGBA{G: 255, A: 255}) || second != (color.RGBA{R: 255, A: 255}) {
 		t.Errorf("parts are %v and %v", first, second)
 	}
@@ -457,7 +457,7 @@ func TestPartsOf3MF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, _ := mesh.Geometry()
+	g := mesh.Geometry()
 	if mesh.Triangles() != 4 || g.Bounds.Min.X != 10 || g.Bounds.Max.X != 11 {
 		t.Fatalf("lid: triangles=%d bounds=%+v", mesh.Triangles(), g.Bounds)
 	}

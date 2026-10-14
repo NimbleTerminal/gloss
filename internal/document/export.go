@@ -167,7 +167,7 @@ func meshDepth(mesh *Mesh, size int, camera nt3d.Camera) []float32 {
 // rasterize draws the faces of the mesh into img, nil for none, and gives the
 // depth buffer.
 func rasterize(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3, img *image.RGBA) []float32 {
-	g, _ := mesh.Geometry()
+	g := mesh.Geometry()
 	normalize, _, _ := g.Bounds.Normalization()
 	matrix := camera.Matrix(1).Mul(normalize)
 	depth := make([]float32, size*size)

@@ -28,9 +28,8 @@ type Mesh struct {
 	saved    []color.RGBA // The file's colors, while all faces are painted over.
 }
 
-func (m *Mesh) Name() string                     { return "STL" }
-func (m *Mesh) Geometry() (nt3d.Geometry, error) { return m.geometry, nil }
-func (m *Mesh) Triangles() int                   { return len(m.geometry.Indices) / 3 }
+func (m *Mesh) Geometry() nt3d.Geometry { return m.geometry }
+func (m *Mesh) Triangles() int          { return len(m.geometry.Indices) / 3 }
 
 // meshColor is given to faces whose file names none.
 var meshColor = color.RGBA{R: 100, G: 180, B: 230, A: 255}

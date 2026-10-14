@@ -44,7 +44,7 @@ func TestSTLFormatsAndNormals(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		g, _ := mesh.Geometry()
+		g := mesh.Geometry()
 		if mesh.Triangles() != 1 || g.Vertices[0].Normal.Z != 1 || g.Bounds.Max.X != 1 || g.Bounds.Max.Y != 1 {
 			t.Fatalf("unexpected geometry: %+v", g)
 		}
@@ -251,9 +251,6 @@ func TestMeshLimitIsTheGPUs(t *testing.T) {
 	mesh, err := ParseSTL(manySTL(200000))
 	if err != nil || mesh.Triangles() != 200000 {
 		t.Fatalf("200,000 triangles: %v", err)
-	}
-	if _, err := mesh.Geometry(); err != nil {
-		t.Fatal(err)
 	}
 	// What nt3d is given, it accepts.
 	chart := widget.New(nil, 1, 3, widget.WithRenderMode(nt3d.Software))

@@ -82,7 +82,6 @@ type Options struct {
 type meshState struct {
 	chart       *widget.Model
 	meshSession *ntpicture.TerminalSession
-	chartID     int
 	triangles   int
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
 	assemble    func([]bool) (*document.Mesh, error)
@@ -873,7 +872,7 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	m.meshSession = ntpicture.NewTerminalSession(ntpicture.TerminalOptions{Kitty: capability, CellPixelWidth: cw, CellPixelHeight: ch})
 	m.chart = widget.New(scene, m.width, m.meshHeight(),
 		widget.WithTerminalSession(m.meshSession),
-		widget.WithImageIDAllocator(func() (int, error) { id := m.presentation.NextImageID(); m.chartID = id; return id, nil }),
+		widget.WithImageIDAllocator(func() (int, error) { return m.presentation.NextImageID(), nil }),
 		widget.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
 		widget.WithGPUFailure(widget.FallBackOnGPUFailure),
 		widget.WithRenderMode(mode), widget.WithBackground(m.background()))
