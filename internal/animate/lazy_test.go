@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"nimbleterminal.dev/ntpicture/animation"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -19,15 +20,15 @@ func solid(rect image.Rectangle, c color.NRGBA) *image.NRGBA {
 
 // A clip whose frames after the first are decoded when painted: the second
 // frame counts its loads, the third fails to decode.
-func lazyClip(t *testing.T, loads *atomic.Int32) *Clip {
+func lazyClip(t *testing.T, loads *atomic.Int32) *animation.Clip {
 	t.Helper()
-	return &Clip{Bounds: image.Rect(0, 0, 3, 1), LoopCount: 0, Frames: []ClipFrame{
+	return &animation.Clip{Bounds: image.Rect(0, 0, 3, 1), LoopCount: 0, Frames: []animation.ClipFrame{
 		{Image: solid(image.Rect(0, 0, 3, 1), red), Rect: image.Rect(0, 0, 3, 1), Delay: time.Second, Blend: draw.Src},
 		{Rect: image.Rect(1, 0, 2, 1), Delay: time.Second, Blend: draw.Src, Load: func() (image.Image, error) {
 			loads.Add(1)
 			return solid(image.Rect(1, 0, 2, 1), green), nil
 		}},
-		{Rect: image.Rect(2, 0, 3, 1), Delay: time.Second, Blend: draw.Src, Disposal: DisposalBackground, Load: func() (image.Image, error) {
+		{Rect: image.Rect(2, 0, 3, 1), Delay: time.Second, Blend: draw.Src, Disposal: animation.DisposalBackground, Load: func() (image.Image, error) {
 			return nil, errors.New("corrupt frame")
 		}},
 		{Rect: image.Rect(0, 0, 1, 1), Delay: time.Second, Blend: draw.Src, Load: func() (image.Image, error) {
@@ -38,7 +39,7 @@ func lazyClip(t *testing.T, loads *atomic.Int32) *Clip {
 
 func TestLazyFramesDecodeWhenPainted(t *testing.T) {
 	var loads atomic.Int32
-	p, err := NewPlayer(lazyClip(t, &loads))
+	p, err := animation.NewPlayer(lazyClip(t, &loads))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,22 +75,22 @@ func TestLazyFramesValidation(t *testing.T) {
 	// Lazy frames hold no decoded storage, so a huge placement is fine.
 	c.Bounds = image.Rect(0, 0, 4000, 4000)
 	c.Frames[1].Rect = image.Rect(0, 0, 4000, 4000)
-	if _, err := NewPlayer(c); err != nil {
+	if _, err := animation.NewPlayer(c); err != nil {
 		t.Fatal(err)
 	}
 	bad := lazyClip(t, &loads)
 	bad.Frames[1].Rect = image.Rectangle{}
-	if _, err := NewPlayer(bad); err == nil {
+	if _, err := animation.NewPlayer(bad); err == nil {
 		t.Fatal("lazy frame without a placement accepted")
 	}
 	bad = lazyClip(t, &loads)
 	bad.Frames[1].Load = nil
-	if _, err := NewPlayer(bad); err == nil {
+	if _, err := animation.NewPlayer(bad); err == nil {
 		t.Fatal("frame without image or loader accepted")
 	}
 	bad = lazyClip(t, &loads)
 	bad.Frames[0].Rect = image.Rect(0, 0, 1, 1)
-	if _, err := NewPlayer(bad); err == nil {
+	if _, err := animation.NewPlayer(bad); err == nil {
 		t.Fatal("decoded frame whose placement disagrees with its image accepted")
 	}
 }

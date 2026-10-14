@@ -4,7 +4,7 @@ import (
 	"context"
 	"image"
 
-	"nimbleterminal.dev/gloss/internal/animate"
+	animate "nimbleterminal.dev/ntpicture/animation"
 )
 
 const MaxMarkdownAnimations = 8
@@ -21,23 +21,26 @@ func (b *markdownAnimations) decode(ctx context.Context, data []byte, play bool)
 			return nil, nil, err
 		}
 	}
-	stats, err := animate.Preflight(data)
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	stats, err := animate.PreflightWithLimits(ctx, data, animate.Limits{})
 	if err != nil {
 		b.seen++
 		b.over++
-		return decodeAnimation(data, false)
+		return decodeAnimation(ctx, data, false)
 	}
 	if stats.Frames < 2 {
-		return decodeAnimation(data, false)
+		return decodeAnimation(ctx, data, false)
 	}
 	b.seen++
 	if b.eligible >= MaxMarkdownAnimations || stats.Bytes > MaxMarkdownAnimationBytes-b.bytes {
 		b.over++
-		return decodeAnimation(data, false)
+		return decodeAnimation(ctx, data, false)
 	}
 	b.eligible++
 	b.bytes += stats.Bytes
-	return decodeAnimation(data, play)
+	return decodeAnimation(ctx, data, play)
 }
 func (b markdownAnimations) apply(md *Markdown) {
 	md.Animations, md.Animated, md.AnimationOverBudget = b.seen, b.eligible, b.over

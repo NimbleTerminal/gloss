@@ -245,13 +245,13 @@ resize, scrolling and glyph fallback remain manual checks after renderer work.
 
 ## Animated GIFs and WebPs
 
-`internal/animate/gif.go` scans GIF blocks before `image/gif.DecodeAll` to
+`nimbleterminal.dev/ntpicture/animation` scans GIF blocks before `image/gif.DecodeAll` to
 bound the logical canvas (32 MP), frame count (1,000), and aggregate paletted
 frame pixels (64 Mi). The standard library decodes LZW and palettes. Static
 loads decode only the first frame and composite it onto the logical canvas;
 previews and headless exports do not enable animation.
 
-`internal/animate/webp.go` does the same for animated WebP. It walks the RIFF
+The same library does the same for animated WebP. It walks the RIFF
 container itself (VP8X flags, the ANIM background and loop count, each ANMF's
 placement, duration, blend and dispose bits), checking declared chunk lengths
 against the file and the frame rectangles against the canvas. Pixels are
@@ -263,11 +263,13 @@ are `ClipFrame.Load` closures over the file's bytes that the player runs as it
 paints (`ClipFrame.paint`), so memory is the canvases plus one frame and the
 128 MiB file limit bounds the rest. A frame that fails to decode, or decodes
 to another size, is skipped; its delay and disposal still apply. Preflight
-reports the canvas plus compressed frame bytes. A 1080p lossy frame decodes
-in about 25 ms. `animate.Decode`, `Preflight` and `Animated` dispatch on the
-file signature; the document loader and both Markdown renderers use those.
+reports the canvas plus the complete retained compressed container. A 1080p lossy frame decodes
+in about 25 ms. `animation.DecodeContext`, `PreflightWithLimits` and `Animated` dispatch on
+the file signature. The document loader and both Markdown renderers pass their
+request context through preflight and decoding; previews still decode only the
+first frame but validate the complete container before allocation.
 
-`animate.Player` holds immutable decoded frames and a playback position. `Next`
+`animation.Player` holds immutable decoded frames and a playback position. `Next`
 returns a fresh composed canvas, honoring transparency and the
 [GIF89a disposal rules](https://www.w3.org/Graphics/GIF/spec-gif89a.txt).
 It uses [Go's loop-count semantics](https://pkg.go.dev/image/gif#GIF): -1 plays
@@ -282,7 +284,7 @@ pause, finished playback, and Kitty transmission backpressure still apply.
 Speed belongs to the loaded animation: resize/zoom and Space restart retain it;
 reload or loading another file starts at 1×. Headless output is unaffected.
 
-`animate.Player.Seek` accepts a one-based frame, clamps to the endpoints, resets
+`animation.Player.Seek` accepts a one-based frame, clamps to the endpoints, resets
 the repeat count, and checks cancellation between frames. Forward seeks copy
 the current position; backward seeks replay from the first frame. Each seek
 reuses at most two private canvases for disposal, without caching full frames.
@@ -315,7 +317,13 @@ The migration currently uses the sibling `../ntpicture` checkout. Its temporary
 module replacement must be replaced with a published pin before releasing
 this integration. Next steps are standalone playback and Markdown
 regions, followed by a shared terminal session and single-ID allocator.
-Animation and composite playback still use `internal/animate.Animator`.
+Animation and composite playback still use `internal/animate.Animator`, but
+its players and decoders now come from `ntpicture/animation`. The remaining
+compositor migration needs lightweight position snapshots: Gloss carries a
+destination's position through offscreen layouts, while ntpicture's Composite
+drops absent keys. Retaining full old page composites would retain large
+rasters unnecessarily. Playback controller migration must also preserve crop
+transforms, seek/export state, and late cleanup without public mutable state.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.

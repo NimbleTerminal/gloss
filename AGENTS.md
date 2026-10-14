@@ -40,9 +40,9 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
   `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
   before PDF libraries run. Unsupported or ambiguous encodings fail closed.
-- `internal/animate`: bounded GIF and animated-WebP decoding, format-neutral immutable clips and
-  players, per-picture event-loop animators with Kitty pacing/cleanup, and the
-  typeset region compositor. `internal/app/animation.go` adapts standalone controls.
+- `internal/animate`: per-picture event-loop animators with Kitty pacing/cleanup
+  and the typeset region compositor. Bounded GIF/WebP decoding and immutable
+  clips/players come from `nimbleterminal.dev/ntpicture/animation`. `internal/app/animation.go` adapts standalone controls.
 - `internal/app/still.go`: still images, PDF/typeset pages, previews, and thumbnail
   grids use `ntpicture.Picture` for coalesced preparation, retained fronts,
   retirement, and keep-screen cleanup. Animation/composite playback remains on
@@ -89,8 +89,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   compressed and are decoded by `x/image/webp` per ANMF chunk as the player
   paints them (`ClipFrame.Load`), so memory is the canvases plus one frame; a
   frame that fails to decode is skipped. The container is parsed in
-  `internal/animate/webp.go`; preflight counts a WebP's canvas plus compressed
-  frames. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
+  `ntpicture/animation`; preflight counts a WebP's canvas plus the complete
+  retained compressed container. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
   pages; file navigation is unchanged except Space while an animation is open.
 - **SVG**: rasterized by NTCharts' pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.

@@ -28,7 +28,7 @@ bookToC: false
   use the first frame on the full logical canvas. Frames are not `--page`s.
   Embedded Markdown GIFs and WebPs animate when visible: at most eight distinct
   destinations and 64 MiB of animation storage per document (decoded GIF
-  frames; a WebP's canvas plus its compressed frames); excess animations
+  frames; a WebP's canvas plus its retained compressed container); excess animations
   remain still.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),

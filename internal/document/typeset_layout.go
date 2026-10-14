@@ -25,8 +25,8 @@ import (
 	"github.com/yuin/goldmark/util"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/fixed"
-	"nimbleterminal.dev/gloss/internal/animate"
 	"nimbleterminal.dev/gloss/internal/theme"
+	animate "nimbleterminal.dev/ntpicture/animation"
 )
 
 const (

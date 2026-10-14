@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"image"
+	"nimbleterminal.dev/ntpicture/animation"
 	"testing"
 	"testing/fstest"
 
@@ -55,7 +56,7 @@ func TestMarkdownAnimationModesBudgetAndDuplicates(t *testing.T) {
 }
 func TestMarkdownAnimationAggregateBytesAndCancellation(t *testing.T) {
 	data := gifTestData(t, 0)
-	stats, err := animate.PreflightGIF(data)
+	stats, err := animation.PreflightGIF(data)
 	if err != nil {
 		t.Fatal(err)
 	}

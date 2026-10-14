@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"image"
 	"image/color"
+	"nimbleterminal.dev/ntpicture/animation"
 	"testing"
 	"time"
 
@@ -146,7 +147,7 @@ func webpFourFrames(loop int) webpAnim {
 }
 
 func TestWebPCompositionAndDisposal(t *testing.T) {
-	img, p, err := DecodeWebP(webpTestData(t, webpFourFrames(1)), true)
+	img, p, err := animation.DecodeWebP(webpTestData(t, webpFourFrames(1)), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,7 +175,7 @@ func TestWebPCompositionAndDisposal(t *testing.T) {
 
 func TestWebPLoopsAndDelays(t *testing.T) {
 	for _, plays := range []int{0, 1, 2, 3} {
-		_, p, err := DecodeWebP(webpTestData(t, webpFourFrames(plays)), true)
+		_, p, err := animation.DecodeWebP(webpTestData(t, webpFourFrames(plays)), true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -214,7 +215,7 @@ func TestWebPLossyFramesWithAlpha(t *testing.T) {
 		{bitstream: "blue1lossy", duration: 50},
 		{bitstream: "half2", x: 2, duration: 50, blend: true},
 	}})
-	_, p, err := DecodeWebP(data, true)
+	_, p, err := animation.DecodeWebP(data, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -241,7 +242,7 @@ func TestWebPLossyFramesWithAlpha(t *testing.T) {
 }
 
 func TestWebPFirstFrameOnlyAndStill(t *testing.T) {
-	img, p, err := DecodeWebP(webpTestData(t, webpFourFrames(0)), false)
+	img, p, err := animation.DecodeWebP(webpTestData(t, webpFourFrames(0)), false)
 	if err != nil || p != nil {
 		t.Fatalf("first frame only: player %v, err %v", p, err)
 	}
@@ -249,24 +250,22 @@ func TestWebPFirstFrameOnlyAndStill(t *testing.T) {
 	if b := img.Bounds(); b != image.Rect(0, 0, 3, 1) {
 		t.Fatalf("canvas %v", b)
 	}
-	img, p, err = DecodeWebP(webpStill(t, "tg2"), true)
+	img, p, err = animation.DecodeWebP(webpStill(t, "tg2"), true)
 	if err != nil || p != nil {
 		t.Fatalf("still: player %v, err %v", p, err)
 	}
 	assertRow(t, img, clear, green)
-	stats, err := PreflightWebP(webpStill(t, "tg2"))
+	stats, err := animation.PreflightWebP(webpStill(t, "tg2"))
 	if err != nil || stats.Frames != 1 || stats.Bytes != 8 || stats.Bounds != image.Rect(0, 0, 2, 1) {
 		t.Fatalf("still preflight %+v, %v", stats, err)
 	}
-	// An animation holds its RGBA canvas and its compressed frames.
-	compressed := 0
-	for _, name := range []string{"red3", "tg2", "blue1", "yellow1"} {
-		compressed += len(webpBitstream(t, name))
+	// The library owns the complete compressed container, including headers.
+	data := webpTestData(t, webpFourFrames(0))
+	stats, err = animation.PreflightWebP(data)
+	if err != nil || stats.Frames != 4 || stats.Bytes != 3*1*4+len(data) || stats.Bounds != image.Rect(0, 0, 3, 1) {
+		t.Fatalf("animation preflight %+v, %v", stats, err)
 	}
-	stats, err = PreflightWebP(webpTestData(t, webpFourFrames(0)))
-	if err != nil || stats.Frames != 4 || stats.Bytes != 3*1*4+compressed || stats.Bounds != image.Rect(0, 0, 3, 1) {
-		t.Fatalf("animation preflight %+v, %v (want %d bytes)", stats, err, 3*1*4+compressed)
-	}
+
 }
 
 // Frames after the first stay compressed until painted, so a long,
@@ -279,18 +278,14 @@ func TestWebPFramesDecodeOnDemand(t *testing.T) {
 	put24(hdr[6:], 2)
 	a.extra = chunk("ANMF", append(hdr, webpBitstream(t, "blue1")...))
 	data := webpTestData(t, a)
-	img, p, err := DecodeWebP(data, true)
+	img, p, err := animation.DecodeWebP(data, true)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if p.Frames() != 5 {
 		t.Fatalf("%d frames", p.Frames())
 	}
-	for i, f := range p.data.Frames {
-		if (f.Image != nil) != (i == 0) || (f.Load != nil) == (i == 0) {
-			t.Fatalf("frame %d: image %v, loader %v", i, f.Image != nil, f.Load != nil)
-		}
-	}
+
 	assertRow(t, img, red, red, red)
 	for range 3 {
 		p, _ = p.Next()
@@ -306,11 +301,11 @@ func TestWebPFramesDecodeOnDemand(t *testing.T) {
 		put24(h[9:], 4000-1)
 		big.extra = append(big.extra, chunk("ANMF", append(h, webpBitstream(t, "red3")...))...)
 	}
-	stats, err := PreflightWebP(webpTestData(t, big))
+	stats, err := animation.PreflightWebP(webpTestData(t, big))
 	if err != nil || stats.Frames != 201 || stats.Bytes < 4000*4000*4 {
 		t.Fatalf("large preflight %+v, %v", stats, err)
 	}
-	if _, p, err := DecodeWebP(webpTestData(t, big), true); err != nil || p.Frames() != 201 {
+	if _, p, err := animation.DecodeWebP(webpTestData(t, big), true); err != nil || p.Frames() != 201 {
 		t.Fatalf("large animation: %v", err)
 	}
 }
@@ -321,7 +316,7 @@ func TestWebPOpaqueBackground(t *testing.T) {
 		{bitstream: "blue1", x: 2, duration: 20, toBackgound: true},
 		{bitstream: "yellow1", duration: 20},
 	}}
-	_, p, err := DecodeWebP(webpTestData(t, a), true)
+	_, p, err := animation.DecodeWebP(webpTestData(t, a), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -329,7 +324,7 @@ func TestWebPOpaqueBackground(t *testing.T) {
 	p, _ = p.Next()
 	assertRow(t, p.Image(), yellow, red, color.NRGBA{0x2e, 0x1b, 0x12, 0xff})
 	a.opaque = false
-	_, p, err = DecodeWebP(webpTestData(t, a), true)
+	_, p, err = animation.DecodeWebP(webpTestData(t, a), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -340,11 +335,11 @@ func TestWebPOpaqueBackground(t *testing.T) {
 
 func TestIsAnimatedWebP(t *testing.T) {
 	anim := webpTestData(t, webpFourFrames(0))
-	if !IsAnimatedWebP(anim) {
+	if !animation.IsAnimatedWebP(anim) {
 		t.Fatal("animation not recognized")
 	}
 	for name, data := range map[string][]byte{"still": webpStill(t, "red3"), "extended still": webpStill(t, "half2"), "short": anim[:29], "gif": []byte("GIF89a..............................")} {
-		if IsAnimatedWebP(data) {
+		if animation.IsAnimatedWebP(data) {
 			t.Fatalf("%s recognized as an animation", name)
 		}
 	}
@@ -360,7 +355,7 @@ func TestWebPPreflightRejects(t *testing.T) {
 		return chunk("ANMF", append(hdr, webpBitstream(t, "red3")...))
 	}
 	var manyFrames []byte
-	for range MaxGIFFrames + 1 {
+	for range animation.MaxGIFFrames + 1 {
 		manyFrames = append(manyFrames, bigFrame(1, 1)...)
 	}
 	cases := map[string][]byte{
@@ -377,10 +372,10 @@ func TestWebPPreflightRejects(t *testing.T) {
 	put24(huge[27:], 1<<24-1)
 	cases["canvas too large"] = huge
 	for name, data := range cases {
-		if _, err := PreflightWebP(data); err == nil {
+		if _, err := animation.PreflightWebP(data); err == nil {
 			t.Errorf("%s: preflight accepted", name)
 		}
-		if _, _, err := DecodeWebP(data, true); err == nil {
+		if _, _, err := animation.DecodeWebP(data, true); err == nil {
 			t.Errorf("%s: decode accepted", name)
 		}
 	}
@@ -389,11 +384,11 @@ func TestWebPPreflightRejects(t *testing.T) {
 	h := make([]byte, 16)
 	put24(h[6:], 2)
 	bad := webpTestData(t, webpAnim{width: 3, height: 1, extra: chunk("ANMF", append(h, webpBitstream(t, "blue1")...))})
-	if _, err := PreflightWebP(bad); err != nil {
+	if _, err := animation.PreflightWebP(bad); err != nil {
 		t.Error("preflight decoded pixels:", err)
 	}
 	for _, animate := range []bool{false, true} {
-		if _, _, err := DecodeWebP(bad, animate); err == nil {
+		if _, _, err := animation.DecodeWebP(bad, animate); err == nil {
 			t.Errorf("animate %v: mismatched first frame decoded", animate)
 		}
 	}

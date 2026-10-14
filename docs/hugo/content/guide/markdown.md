@@ -90,7 +90,7 @@ or resize burst, resuming once the view settles.
 
 A document can animate up to eight distinct GIF or animated WebP destinations
 with a combined 64 MiB of animation storage, checked before full decoding: a
-GIF's decoded frames, or a WebP's RGBA canvas plus its compressed frames.
+GIF's decoded frames, or a WebP's RGBA canvas plus its retained compressed container.
 Duplicate references share decoded frames. Animations beyond either budget keep
 their first frame; `i` reports the animated and over-budget counts. Each
 animation also has the usual 32 MP canvas and 1,000-frame limits. Previews and

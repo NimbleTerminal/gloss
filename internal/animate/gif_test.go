@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/color"
 	"image/gif"
+	"nimbleterminal.dev/ntpicture/animation"
 	"strings"
 	"sync"
 	"testing"
@@ -45,7 +46,7 @@ func assertGIFPixels(t *testing.T, img image.Image, indexes ...int) {
 }
 
 func TestGIFCompositionAndImmutableFrames(t *testing.T) {
-	img, p, err := DecodeGIF(gifTestData(t, -1), true)
+	img, p, err := animation.DecodeGIF(gifTestData(t, -1), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +78,7 @@ func TestGIFCompositionAndImmutableFrames(t *testing.T) {
 
 func TestGIFLoopsAndDelays(t *testing.T) {
 	for _, loop := range []int{-1, 0, 1, 2} {
-		_, p, err := DecodeGIF(gifTestData(t, loop), true)
+		_, p, err := animation.DecodeGIF(gifTestData(t, loop), true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -122,7 +123,7 @@ func TestGIFLogicalCanvasAndStillLoading(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, animate := range []bool{false, true} {
-		img, p, err := DecodeGIF(data.Bytes(), animate)
+		img, p, err := animation.DecodeGIF(data.Bytes(), animate)
 		if err != nil || p != nil || img.Bounds() != image.Rect(0, 0, 3, 2) {
 			t.Fatalf("single frame canvas: %v %v", p, err)
 		}
@@ -136,7 +137,7 @@ func TestGIFLogicalCanvasAndStillLoading(t *testing.T) {
 func TestGIFPreflightBoundsAndTruncation(t *testing.T) {
 	data := gifTestData(t, 0)
 	for i := 0; i < len(data); i++ {
-		if err := checkGIF(data[:i]); err == nil {
+		if err := checkGIFHeaders(data[:i]); err == nil {
 			t.Fatalf("accepted truncated input of %d bytes", i)
 		}
 	}
@@ -144,7 +145,7 @@ func TestGIFPreflightBoundsAndTruncation(t *testing.T) {
 		w, h, n int
 		want    string
 	}{
-		{1, 1, MaxGIFFrames + 1, "frames"},
+		{1, 1, animation.MaxGIFFrames + 1, "frames"},
 		{8192, 4096, 3, "decoded pixels"},
 		{8192, 4097, 1, "canvas"},
 		{0, 1, 1, "canvas"},
@@ -163,18 +164,18 @@ func TestGIFPreflightBoundsAndTruncation(t *testing.T) {
 			raw = append(raw, d...)
 		}
 		raw = append(raw, 0x3b)
-		if err := checkGIF(raw); err == nil || !strings.Contains(err.Error(), tc.want) {
+		if err := checkGIFHeaders(raw); err == nil || !strings.Contains(err.Error(), tc.want) {
 			t.Fatalf("%+v: %v", tc, err)
 		}
 	}
 	// A valid 1,000-frame file reaches the decoder, while 1,001 does not.
 	frame := image.NewPaletted(image.Rect(0, 0, 1, 1), gifPalette)
 	g := &gif.GIF{LoopCount: -1}
-	for range MaxGIFFrames + 1 {
+	for range animation.MaxGIFFrames + 1 {
 		g.Image = append(g.Image, frame)
 		g.Delay = append(g.Delay, 2)
 	}
-	for _, n := range []int{MaxGIFFrames, MaxGIFFrames + 1} {
+	for _, n := range []int{animation.MaxGIFFrames, animation.MaxGIFFrames + 1} {
 		var b bytes.Buffer
 		part := *g
 		part.Image = part.Image[:n]
@@ -182,8 +183,8 @@ func TestGIFPreflightBoundsAndTruncation(t *testing.T) {
 		if err := gif.EncodeAll(&b, &part); err != nil {
 			t.Fatal(err)
 		}
-		_, p, err := DecodeGIF(b.Bytes(), true)
-		if n == MaxGIFFrames {
+		_, p, err := animation.DecodeGIF(b.Bytes(), true)
+		if n == animation.MaxGIFFrames {
 			if err != nil || p.Frames() != n {
 				t.Fatalf("boundary rejected: %v", err)
 			}
@@ -199,7 +200,7 @@ func FuzzGIFPreflight(f *testing.F) {
 		if len(data) > 1<<20 {
 			t.Skip()
 		}
-		_ = checkGIF(data)
+		_ = checkGIFHeaders(data)
 	})
 }
 
@@ -213,14 +214,14 @@ func TestGIFRejectsEmptyAndOutOfBoundsFrames(t *testing.T) {
 	for _, width := range []uint16{0, 4} {
 		bad := bytes.Clone(data)
 		binary.LittleEndian.PutUint16(bad[index+5:index+7], width)
-		if _, _, err := DecodeGIF(bad, true); err == nil {
+		if _, _, err := animation.DecodeGIF(bad, true); err == nil {
 			t.Fatal(fmt.Sprint("accepted width ", width))
 		}
 	}
 }
 
 func TestGIFSeekDisposalCancellationAndImmutability(t *testing.T) {
-	_, first, err := DecodeGIF(gifTestData(t, 1), true)
+	_, first, err := animation.DecodeGIF(gifTestData(t, 1), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,3 +273,5 @@ func TestGIFSeekDisposalCancellationAndImmutability(t *testing.T) {
 	wg.Wait()
 	assertGIFPixels(t, last.Image(), want[3]...)
 }
+
+func checkGIFHeaders(data []byte) error { _, err := animation.PreflightGIF(data); return err }

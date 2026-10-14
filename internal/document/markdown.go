@@ -6,7 +6,7 @@ import (
 	"image"
 	"io/fs"
 	"net/url"
-	"nimbleterminal.dev/gloss/internal/animate"
+	animate "nimbleterminal.dev/ntpicture/animation"
 	"os"
 	"path"
 	"path/filepath"

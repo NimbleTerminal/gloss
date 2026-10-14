@@ -1,6 +1,7 @@
 package animate
 
 import (
+	"nimbleterminal.dev/ntpicture/animation"
 	"testing"
 	"time"
 
@@ -20,7 +21,7 @@ func TestReplacedFrontIsRetiredAfterTheFrame(t *testing.T) {
 	pic := picture.New()
 	pic.Toggle()
 	a := New(&pic, Config{NextID: func() int { next += 1000; return next }})
-	_, p, _ := DecodeGIF(gifTestData(t, 0), true)
+	_, p, _ := animation.DecodeGIF(gifTestData(t, 0), true)
 	a.SetPlayer(p)
 	a.Show(p.Image())
 	a.Update(Presented{a, a.ID})

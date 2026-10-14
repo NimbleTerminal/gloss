@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/fs"
 	"nimbleterminal.dev/gloss/internal/animate"
+	"nimbleterminal.dev/ntpicture/animation"
 	"os"
 	"path/filepath"
 	"strings"
@@ -505,10 +506,10 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		details = func() []Field { return model.fields(shown) }
 	default:
-		if q.Animate && !q.Preview && animate.Animated(data) {
-			out.Image, out.Animation, out.Err = decodeAnimation(data, true)
+		if q.Animate && !q.Preview && animation.Animated(data) {
+			out.Image, out.Animation, out.Err = decodeAnimation(q.Context, data, true)
 		} else {
-			out.Image, out.Err = decodeRaster(data)
+			out.Image, out.Err = decodeRasterContext(q.Context, data)
 		}
 		details = func() []Field {
 			fields := imageFields(data)
@@ -525,6 +526,16 @@ func (l *Loader) Load(q Request) (out Result) {
 }
 
 func decodeRaster(data []byte) (image.Image, error) {
+	return decodeRasterContext(context.Background(), data)
+}
+
+func decodeRasterContext(ctx context.Context, data []byte) (image.Image, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	cfg, format, err := image.DecodeConfig(bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -533,7 +544,7 @@ func decodeRaster(data []byte) (image.Image, error) {
 		return nil, fmt.Errorf("image exceeds %d pixels", MaxPixels)
 	}
 	if format == "gif" || format == "webp" {
-		img, _, err := decodeAnimation(data, false)
+		img, _, err := decodeAnimation(ctx, data, false)
 		return img, err
 	}
 	if format == "heic" {

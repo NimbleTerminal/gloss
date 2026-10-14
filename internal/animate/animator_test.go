@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"nimbleterminal.dev/ntpicture/animation"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestAnimatorClockEpochAndVisibility(t *testing.T) {
-	_, player, err := DecodeGIF(gifTestData(t, -1), true)
+	_, player, err := animation.DecodeGIF(gifTestData(t, -1), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +76,7 @@ func TestAnimatorKittyIDsPacingAndRetirement(t *testing.T) {
 	pic.Toggle()
 	other.Toggle()
 	a, b := New(&pic, cfg), New(&other, cfg)
-	_, p, _ := DecodeGIF(gifTestData(t, 0), true)
+	_, p, _ := animation.DecodeGIF(gifTestData(t, 0), true)
 	a.SetPlayer(p)
 	b.SetPlayer(p)
 	a.Show(p.Image())
@@ -111,7 +112,7 @@ func rgbaPlayer(t *testing.T, d time.Duration) *Player {
 	r := image.Rect(0, 0, 2, 2)
 	red, transparent := image.NewRGBA(r), image.NewRGBA(r)
 	draw.Draw(red, r, image.NewUniform(color.RGBA{255, 0, 0, 255}), image.Point{}, draw.Src)
-	p, err := NewPlayer(&Clip{Bounds: r, Frames: []ClipFrame{{Image: red, Delay: d, Blend: draw.Src}, {Image: transparent, Delay: d, Blend: draw.Src}}, LoopCount: 0})
+	p, err := animation.NewPlayer(&animation.Clip{Bounds: r, Frames: []animation.ClipFrame{{Image: red, Delay: d, Blend: draw.Src}, {Image: transparent, Delay: d, Blend: draw.Src}}, LoopCount: 0})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,15 +157,15 @@ func TestClipStorageBudget(t *testing.T) {
 	// Shared backing storage still counts per frame: future RGBA decoders cannot
 	// accidentally treat the GIF's byte budget as a four-times-larger pixel budget.
 	img := image.NewRGBA(image.Rect(0, 0, 1024, 1024))
-	c := &Clip{Bounds: img.Bounds()}
+	c := &animation.Clip{Bounds: img.Bounds()}
 	for range 16 {
-		c.Frames = append(c.Frames, ClipFrame{Image: img, Delay: time.Second, Blend: draw.Src})
+		c.Frames = append(c.Frames, animation.ClipFrame{Image: img, Delay: time.Second, Blend: draw.Src})
 	}
-	if _, err := NewPlayer(c); err != nil {
+	if _, err := animation.NewPlayer(c); err != nil {
 		t.Fatal(err)
 	}
 	c.Frames = append(c.Frames, c.Frames[0])
-	if _, err := NewPlayer(c); err == nil {
+	if _, err := animation.NewPlayer(c); err == nil {
 		t.Fatal("accepted over-budget RGBA clip")
 	}
 }

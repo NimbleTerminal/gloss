@@ -488,7 +488,8 @@ Local paths resolve relative to the Markdown file, or cwd for stdin. Missing or
 remote images become placeholders; no images/fonts are fetched. Images alone
 in paragraphs render as blocks; inline images currently appear as labels.
 Visible GIF and animated WebP blocks animate in the interactive Markdown viewer,
-up to eight distinct destinations and 64 MiB total decoded frame storage; excess
+up to eight distinct destinations and 64 MiB total animation storage (decoded
+GIF frames; a WebP canvas plus its retained compressed container); excess
 animations keep frame one and are reported in info. Headless exports and previews stay on frame
 one. `e` exports the first visible GIF’s displayed frame in normal Markdown,
 or the displayed viewport in typeset mode. Tables

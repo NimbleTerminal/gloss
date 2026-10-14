@@ -7,7 +7,7 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"image"
 	"io/fs"
-	"nimbleterminal.dev/gloss/internal/animate"
+	animate "nimbleterminal.dev/ntpicture/animation"
 	"os"
 	"path/filepath"
 	"unicode/utf8"

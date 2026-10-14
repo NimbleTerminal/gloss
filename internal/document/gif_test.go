@@ -2,6 +2,8 @@ package document
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"image"
 	"image/color"
 	"image/gif"
@@ -53,5 +55,19 @@ func TestGIFLoaderModes(t *testing.T) {
 			t.Fatalf("wrong playback mode for %+v", q)
 		}
 		assertGIFPixels(t, r.Image, 1, 1, 1)
+	}
+}
+
+func TestGIFLoaderCancellationInEveryMode(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	loader := &Loader{Files: fstest.MapFS{"motion.gif": {Data: gifTestData(t, 0)}}}
+	defer loader.Close()
+	for _, q := range []Request{{}, {Animate: true}, {Animate: true, Preview: true}} {
+		q.Path, q.Context = "motion.gif", ctx
+		r := loader.Load(q)
+		if !errors.Is(r.Err, context.Canceled) || r.Image != nil || r.Animation != nil {
+			t.Fatalf("cancelled load produced content: request %+v, error %v", q, r.Err)
+		}
 	}
 }

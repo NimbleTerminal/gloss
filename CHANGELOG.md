@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Honor cancellation while decoding GIF/WebP images and count the complete
+  retained WebP container against Markdown's animation storage budget.
+
 - Show help for `gloss skill install --help` instead of installing the skill
   under a folder named `--help`, and reject unknown `gloss skill` options.
 - Always install the skill under the shared `~/.agents/skills` folder, which

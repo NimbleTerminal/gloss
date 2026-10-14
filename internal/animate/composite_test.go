@@ -3,6 +3,7 @@ package animate
 import (
 	"image"
 	"image/color"
+	"nimbleterminal.dev/ntpicture/animation"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func TestCompositeWindowMatchesPage(t *testing.T) {
 			base.SetRGBA(x, y, color.RGBA{uint8(x * 4), uint8(y * 6), 90, 255})
 		}
 	}
-	_, player, err := DecodeGIF(gifTestData(t, 0), true)
+	_, player, err := animation.DecodeGIF(gifTestData(t, 0), true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +72,7 @@ func TestCompositeWindowAtOwnResolution(t *testing.T) {
 			base.SetRGBA(x, y, color.RGBA{uint8(x), uint8(y), 0, 255})
 		}
 	}
-	_, player, _ := DecodeGIF(gifTestData(t, 0), true)
+	_, player, _ := animation.DecodeGIF(gifTestData(t, 0), true)
 	own := player.Image().Bounds().Size() // 3×1
 	// The page shows the GIF at 1.5× its pixels: 3×1 drawn in a 5×2 (rounded) rectangle.
 	page := NewComposite(base, []Region{{Rect: image.Rect(30, 15, 35, 17), Player: player, Destination: "a.gif"}}, nil)

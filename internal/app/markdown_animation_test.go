@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	ntanimation "nimbleterminal.dev/ntpicture/animation"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -21,7 +22,7 @@ func inlineAnimated(t *testing.T) *markdownView {
 	red, green := image.NewRGBA(r), image.NewRGBA(r)
 	draw.Draw(red, r, image.NewUniform(color.RGBA{255, 0, 0, 255}), image.Point{}, draw.Src)
 	draw.Draw(green, r, image.NewUniform(color.RGBA{0, 255, 0, 255}), image.Point{}, draw.Src)
-	p, err := animate.NewPlayer(&animate.Clip{Bounds: r, Frames: []animate.ClipFrame{{Image: red, Delay: time.Second, Blend: draw.Src}, {Image: green, Delay: time.Second, Blend: draw.Src}}})
+	p, err := ntanimation.NewPlayer(&ntanimation.Clip{Bounds: r, Frames: []ntanimation.ClipFrame{{Image: red, Delay: time.Second, Blend: draw.Src}, {Image: green, Delay: time.Second, Blend: draw.Src}}})
 	if err != nil {
 		t.Fatal(err)
 	}
