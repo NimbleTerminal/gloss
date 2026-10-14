@@ -77,9 +77,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		if m.screen == screenGrid {
 			mouse = tea.MouseModeCellMotion
 		}
-	case m.loading && m.presentation.Front != nil:
+	case m.loading && m.hasPictureFront():
 		body, plain = m.pictureView(), false
-		exact = !m.quitting && m.presentation.Exact(w, h)
+		exact = !m.quitting && m.pictureExact(w, h)
 	case m.loading:
 		body = "Loading " + safe(filepath.Base(m.opts.Files[m.index])) + "…"
 	case m.err != nil:
@@ -97,7 +97,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body, mouse, plain = m.sheet.view(w, h), tea.MouseModeCellMotion, false
 	default:
 		body, plain = m.pictureView(), false
-		exact = !m.quitting && m.presentation.Exact(w, h)
+		exact = !m.quitting && m.pictureExact(w, h)
 		if m.typeset != nil {
 			mouse = tea.MouseModeCellMotion
 			if len(m.typesetLinks) > 0 && !m.isPreview && m.layer == layerNone {

@@ -34,6 +34,7 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.5
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.59.0
+	nimbleterminal.dev/ntpicture v0.0.0
 	nimbleterminal.dev/ntqrcode v0.2.0
 )
 
@@ -88,3 +89,5 @@ require (
 )
 
 replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2
+
+replace nimbleterminal.dev/ntpicture => ../ntpicture

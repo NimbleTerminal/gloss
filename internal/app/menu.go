@@ -196,7 +196,7 @@ func (m *Model) menuKey(k string) tea.Cmd {
 
 func (m *Model) menuView() string {
 	if m.screen == screenGrid {
-		return m.pic.View().Content
+		return m.pictureView()
 	}
 	w, h := max(1, m.width), m.bodyHeight()
 	pw := m.previewWidth()

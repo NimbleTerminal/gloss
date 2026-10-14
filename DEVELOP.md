@@ -301,9 +301,21 @@ transmission before starting the next delay; it never builds a frame backlog.
 The last transmitted Kitty picture stays visible while its replacement encodes.
 Only after transmission does the view swap grids and delete the old image, so
 picture's transitional glyph fallback never flashes between animation frames.
-Still images, PDF page changes, and typeset Markdown redraws share this staging
-path: keep the previous Kitty image until the replacement is transmitted, or
-show Preparing image on the first draw. Explicit glyph mode is unchanged.
+Still images, PDF page changes, typeset pages without composite playback,
+previews, and thumbnail grids use `ntpicture.Picture` through
+`internal/app/still.go`. Picture owns retained fronts, one active preparation,
+latest-request coalescing, output ordering, retirement, and keep-screen cleanup.
+Both Kitty and glyph preparation run through returned commands. The host retains
+the last presented full-resolution source for export and forwards messages even
+when an overlay hides the page. The existing terminal model supplies capability
+and cell geometry; the existing block allocator is shared with animation, mesh,
+and QR consumers to avoid overlapping IDs during migration.
+
+The migration currently uses the sibling `../ntpicture` checkout. Its temporary
+module replacement must be replaced with a published pin before releasing
+this integration. Next steps are standalone playback and Markdown
+regions, followed by a shared terminal session and single-ID allocator.
+Animation and composite playback still use `internal/animate.Animator`.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.

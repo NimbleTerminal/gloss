@@ -78,7 +78,9 @@ func (m *Model) export() tea.Cmd {
 	}
 	if m.animation != nil || (m.typeset != nil && m.markdown == nil) {
 		frame = m.source
-		if m.presentation.Front != nil {
+		if m.still != nil && m.still.front != nil {
+			frame = m.still.front
+		} else if m.presentation.Front != nil {
 			frame = m.presentation.Front.Image
 		}
 	}

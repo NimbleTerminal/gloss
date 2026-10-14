@@ -43,6 +43,12 @@ Update source docs and regenerate the generated guide pages with `task docs`.
 - `internal/animate`: bounded GIF and animated-WebP decoding, format-neutral immutable clips and
   players, per-picture event-loop animators with Kitty pacing/cleanup, and the
   typeset region compositor. `internal/app/animation.go` adapts standalone controls.
+- `internal/app/still.go`: still images, PDF/typeset pages, previews, and thumbnail
+  grids use `ntpicture.Picture` for coalesced preparation, retained fronts,
+  retirement, and keep-screen cleanup. Animation/composite playback remains on
+  `internal/animate.Animator`; terminal discovery and the shared block ID
+  allocator remain host-owned during the migration. The temporary sibling
+  module replacement must become a published pin before release.
 - `internal/app/qr.go`: table URL overlay using the external
   `nimbleterminal.dev/ntqrcode/qrcode` component. Gloss provides
   capability, cell geometry, and fresh image IDs. `u` opens, `Esc` closes,

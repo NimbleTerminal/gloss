@@ -20,7 +20,7 @@ func stillKitty(t *testing.T) *Model {
 		t.Fatal("initial image flashed glyphs")
 	}
 	drainAnimation(t, m, draw)
-	if m.presentation.Front == nil || glyphs(m.pictureView()) {
+	if !m.hasPictureFront() || glyphs(m.pictureView()) {
 		t.Fatal("initial image was not presented")
 	}
 	return m
@@ -28,48 +28,50 @@ func stillKitty(t *testing.T) *Model {
 
 func TestStillKittyRetainsFrontAcrossReplacements(t *testing.T) {
 	m := stillKitty(t)
-	front := m.presentation.Front
+	front := m.pictureView()
 	draw := m.refreshImage()
-	obsolete := m.presentation.Flight
 	m.zoom = 1
 	zoom := m.refreshImage()
-	if obsolete.Active.Load() || m.pictureView() != front.View {
-		t.Fatal("replacement lost the front or retained obsolete work")
+	if m.pictureView() != front || !m.pictureBusy() {
+		t.Fatal("replacement lost retained front")
 	}
+	// Picture coalesces the latest request behind the one active preparation.
 	drainAnimation(t, m, draw)
-	if m.presentation.Front != front {
-		t.Fatal("obsolete replacement was presented")
-	}
 	drainAnimation(t, m, zoom)
-	if m.presentation.Front == front || front.Flight.Active.Load() || glyphs(m.pictureView()) {
-		t.Fatal("replacement failed to retire and swap the front")
+	if m.pictureView() == front || m.pictureBusy() || glyphs(m.pictureView()) {
+		t.Fatal("latest replacement did not settle")
+	}
+	status := m.still.pic.Status()
+	if status.Presented != status.Generation {
+		t.Fatal("obsolete generation presented")
 	}
 }
 
 func TestStillKittyPageLoadRetainsFront(t *testing.T) {
 	m := stillKitty(t)
-	front := m.presentation.Front
+	front := m.pictureView()
 	m.loading = true
 	body, _ := m.body(m.width, m.bodyHeight())
 	if glyphs(body) || body == "" {
 		t.Fatal("loading did not retain the image")
 	}
 	cmd := m.loaded(document.Result{Generation: m.generation, Kind: "pdf", Image: m.source, Page: 2, Pages: 3})
-	if m.presentation.Front != front || !front.Flight.Active.Load() {
+	if m.pictureView() != front {
 		t.Fatal("page load retired the image before replacement")
 	}
 	drainAnimation(t, m, cmd)
-	if m.presentation.Front == front || front.Flight.Active.Load() {
+	if m.pictureView() == front || m.pictureBusy() {
 		t.Fatal("page replacement did not settle")
 	}
 }
 
 func TestStillKittyPendingCleanup(t *testing.T) {
-	for _, action := range []string{"clear", "glyph", "resize"} {
+	for _, action := range []string{"clear", "glyph", "resize", "keep"} {
 		t.Run(action, func(t *testing.T) {
 			m := stillKitty(t)
+			old := m.still.pic
+			front := m.pictureView()
 			draw := m.refreshImage()
-			pending := m.presentation.Flight
 			var cmd tea.Cmd
 			switch action {
 			case "clear":
@@ -78,19 +80,73 @@ func TestStillKittyPendingCleanup(t *testing.T) {
 				_, cmd = m.Update(tea.KeyPressMsg{Code: 'g', Text: "g"})
 			case "resize":
 				_, cmd = m.Update(tea.WindowSizeMsg{Width: 20, Height: 8})
+			case "keep":
+				cmd = m.keepAnimationPicture()
 			}
 			drainAnimation(t, m, cmd)
-			front := m.presentation.Front
 			drainAnimation(t, m, draw)
-			if pending.Active.Load() || m.presentation.Front != front {
-				t.Fatal("late replacement restored a retired placement")
+			if old.Status().Busy {
+				t.Fatal("late work did not settle")
 			}
-			if action == "glyph" && !glyphs(m.pictureView()) {
-				t.Fatal("explicit glyph fallback did not render")
-			}
-			if action == "resize" && (front == nil || glyphs(m.pictureView())) {
-				t.Fatal("resize did not present a Kitty image")
+			switch action {
+			case "clear":
+				if m.hasPictureFront() || old.View() != "" {
+					t.Fatal("late replacement restored cleared image")
+				}
+			case "glyph":
+				if !glyphs(m.pictureView()) {
+					t.Fatal("glyph fallback did not render")
+				}
+			case "resize":
+				if !m.pictureExact(20, m.bodyHeight()) || glyphs(m.pictureView()) {
+					t.Fatal("resize did not present Kitty image")
+				}
+			case "keep":
+				if m.pictureView() != front {
+					t.Fatal("late replacement changed kept image")
+				}
 			}
 		})
+	}
+}
+
+// Export metadata follows the committed picture, not a newer source still
+// being prepared. This is also the source retained across a coalesced redraw.
+func TestStillExportSourceFollowsPresentation(t *testing.T) {
+	m := stillKitty(t)
+	first := m.source
+	second := image.NewRGBA(image.Rect(0, 0, 80, 60))
+	m.source = second
+	cmd := m.refreshImage()
+	if m.still.front != first {
+		t.Fatal("pending redraw changed export source")
+	}
+	drainAnimation(t, m, cmd)
+	if m.still.front != second {
+		t.Fatal("presented redraw did not update export source")
+	}
+}
+
+func TestStillAndPlaybackTransferOwnership(t *testing.T) {
+	m := animated(t, "kitty", 0)
+	source := m.presentation.Source
+	m.presentation.Paused = true
+	m.stopAnimation()
+	drainAnimation(t, m, m.showPicture(m.source))
+	if m.still == nil || !m.hasPictureFront() || m.presentation.Front != nil {
+		t.Fatal("still presentation did not replace playback")
+	}
+	old := m.still.pic
+	pending := m.refreshImage()
+	m.presentation.SetSource(source)
+	m.presentation.Paused = true
+	cmd := m.showPicture(m.source)
+	if m.still != nil || old.View() != "" {
+		t.Fatal("playback retained the still presenter")
+	}
+	drainAnimation(t, m, cmd)
+	drainAnimation(t, m, pending)
+	if m.presentation.Front == nil || m.still != nil {
+		t.Fatal("late still work changed playback")
 	}
 }

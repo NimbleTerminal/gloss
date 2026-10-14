@@ -74,6 +74,7 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
+	nimbleterminal.dev/ntpicture v0.0.0 // indirect
 	nimbleterminal.dev/ntqrcode v0.2.0 // indirect
 )
 
@@ -84,3 +85,5 @@ replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-2026
 tool github.com/NimbleMarkets/go-booba/cmd/booba-assets
 
 tool github.com/NimbleMarkets/booba-shim/cmd/booba-shim-assets
+
+replace nimbleterminal.dev/ntpicture => ../../../ntpicture

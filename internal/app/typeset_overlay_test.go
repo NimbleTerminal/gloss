@@ -91,7 +91,7 @@ func TestTypesetOverlaysPlayGIFRegions(t *testing.T) {
 	if len(lines) != h {
 		t.Fatalf("%d body lines, want %d", len(lines), h)
 	}
-	overlay, page := idSGR(o.anim.ID), idSGR(m.presentation.ID)
+	overlay, page := idSGR(o.anim.ID), idSGR(m.picID)
 	for y, line := range lines {
 		if n := cellCount(line); n != w {
 			t.Fatalf("row %d has %d cells, want %d", y, n, w)

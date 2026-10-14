@@ -24,10 +24,10 @@ func TestEachKittyPictureHasItsOwnID(t *testing.T) {
 	defer m.Close()
 	m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
 	first = m.picID
-	m.showPicture(img)
+	drainAnimation(t, m, m.showPicture(img))
 	second := m.picID
 	m.source, m.zoom = img, 1
-	m.refreshImage()
+	drainAnimation(t, m, m.refreshImage())
 	if second == first || m.picID == second || m.pic.Mode() != picture.PictureKitty {
 		t.Fatalf("ids %d, %d, %d; mode %v", first, second, m.picID, m.pic.Mode())
 	}

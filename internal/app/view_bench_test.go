@@ -21,7 +21,7 @@ func kittyTypesetModel(tb testing.TB, cols, rows int) *Model {
 	tb.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})
 	drainAnimation(tb, m, m.load(false))
-	if m.typeset == nil || m.pic.Mode() != picture.PictureKitty || m.presentation.Front == nil {
+	if m.typeset == nil || m.pic.Mode() != picture.PictureKitty || !m.hasPictureFront() {
 		tb.Fatal("no presented Kitty typeset picture")
 	}
 	return m
@@ -76,7 +76,7 @@ func BenchmarkPictureView(b *testing.B) {
 func TestPictureBodyIsUnframed(t *testing.T) {
 	m := kittyTypesetModel(t, 200, 52)
 	w, h := m.width, m.bodyHeight()
-	grid := m.presentation.View()
+	grid := m.pictureView()
 	body, mouse := m.body(w, h)
 	if body != grid || mouse != tea.MouseModeCellMotion {
 		t.Fatal("picture body differs from the presented grid")
@@ -94,7 +94,7 @@ func TestPictureBodyIsUnframed(t *testing.T) {
 func BenchmarkPictureViewStale(b *testing.B) {
 	m := kittyTypesetModel(b, 200, 52)
 	m.Update(tea.WindowSizeMsg{Width: 180, Height: 48}) // Reflow queued, not drained: the grid is the old 200×52 one.
-	if m.presentation.Front == nil || m.presentation.Front.Cols != 200 {
+	if !m.hasPictureFront() || m.still.pic.Status().Presented == m.still.pic.Status().Generation {
 		b.Fatal("front grid was replaced")
 	}
 	b.ReportAllocs()

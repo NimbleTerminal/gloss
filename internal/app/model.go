@@ -180,6 +180,7 @@ type Model struct {
 	source                   image.Image
 	animation                *animation
 	presentation             *animate.Animator
+	still                    *stillPicture
 	zoom                     int
 	panX, panY               float64
 	screen                   screen // What fills the body.
@@ -274,6 +275,7 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Close() error {
 	m.stopTypeset()
+	m.clearStill()
 	m.clearFontPicker()
 	m.clearSearch()
 	m.stopAnimation()
@@ -443,7 +445,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	frontCleanup := m.clearAnimationFront()
 	cleanup := m.pic.SetImage(nil)
 	m.retireAnimationPicture(cleanup)
-	return tea.Batch(m.clearFontPicker(), frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
+	return tea.Batch(m.clearStill(), m.clearFontPicker(), frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -486,7 +488,7 @@ func (m *Model) movePage(page int) tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	defer func() {
-		cmd = tea.Batch(cmd, m.syncSearch())
+		cmd = tea.Batch(cmd, m.syncSearch(), m.updateStill(msg))
 		if m.pic.Mode() != picture.PictureKitty {
 			cmd = tea.Batch(cmd, m.clearAnimationFront())
 		}
@@ -648,7 +650,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		} else {
 			resize = m.pic.SetSize(m.width, m.bodyHeight())
 		}
-		cmd := tea.Batch(resize, m.resizePreview(), m.layoutMarkdown(), m.layoutGrid())
+		cmd := tea.Batch(resize, m.resizeStill(), m.resizePreview(), m.layoutMarkdown(), m.layoutGrid())
 		if m.typesetWaitSize && !m.suspended {
 			cmd = tea.Batch(cmd, m.load(false))
 		}
@@ -796,7 +798,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	var animationCleanup tea.Cmd
 	if v.Image == nil || v.Animation != nil {
-		animationCleanup = m.clearAnimationFront()
+		animationCleanup = tea.Batch(m.clearStill(), m.clearAnimationFront())
 	}
 	if m.presentation.Flight != nil && (m.presentation.Front == nil || m.presentation.Front.ID != m.picID) {
 		pendingCleanup := m.pic.SetImage(nil)
@@ -926,6 +928,10 @@ var pictureBackground = color.RGBA{R: 24, G: 26, B: 30, A: 255}
 // that lands at the same place in its memory, so another page, file, or zoom
 // would show the last one again.
 func (m *Model) showPicture(img image.Image) tea.Cmd {
+	if m.presentation.Source == nil {
+		return m.showStill(img)
+	}
+	cleanup := m.clearStill()
 	m.presentation.SetSize(m.width, m.bodyHeight())
 	m.presentation.SetBackground(m.pictureBackground())
 	zoom, panX, panY := m.zoom, m.panX, m.panY
@@ -933,7 +939,7 @@ func (m *Model) showPicture(img image.Image) tea.Cmd {
 	if m.typeset != nil {
 		m.presentation.Transform = nil
 	}
-	cmd := m.presentation.Show(img)
+	cmd := tea.Batch(cleanup, m.presentation.Show(img))
 	m.picID = m.presentation.ID
 	return cmd
 }

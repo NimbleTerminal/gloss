@@ -4017,6 +4017,59 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
+## nimbleterminal.dev/ntpicture v0.0.0
+
+```
+MIT License
+
+Copyright (c) 2024-2026 Neomantra Corp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+# Notices
+
+Source code is MIT licensed; see LICENSE. The simple and grid examples are
+adapted from NTCharts, Copyright (c) 2024–2026 Neomantra Corp.
+
+`examples/simple/Fuji-01.png` is copied unchanged from NTCharts. It is by
+hypertalking, from
+https://www.hypertalking.com/2023/05/08/1-bit-pixel-art-of-hokusais-the-great-wave-off-kanagawa/
+and distributed under Creative Commons Attribution-NonCommercial-NoDerivatives
+4.0 International: https://creativecommons.org/licenses/by-nc-nd/4.0/.
+The artwork is embedded in the simple demo binary, including its WASM build.
+
+The generated demo site includes booba and ghostty-web runtime assets.
+Go dependency and browser runtime license texts are collected in
+THIRD_PARTY_NOTICES.md, generated with `task notices` and copied into the site.
+The browser licenses in `web/licenses/` were copied from go-booba's local
+vendored ghostty-web, Ghostty, and pako sources; review them when updating the
+pinned booba runtime. `wasm_exec.js` retains its Go BSD license header.
+
+`examples/animation/motion.gif` and `motion.webp` are original orbit fixtures
+copied unchanged from Gloss (Neomantra Corp, MIT). Their generator is
+Gloss's `scripts/gen-assets/gif.go`; its `task gen-assets` builds the GIF and
+converts it to animated WebP with `gif2webp`. No external artwork is used in
+these two fixtures. Animation decoder/player source and baseline tests are
+also adapted from Gloss under the same MIT license.
+```
+
 ## nimbleterminal.dev/ntqrcode v0.2.0
 
 ```

@@ -78,7 +78,7 @@ func (m *Model) linkAt(x, y int) string {
 		}
 		return oscLinkAt(md.lines[row].text, x)
 	}
-	if m.typeset == nil || m.source == nil || !m.typesetViewMatches() || m.typesetActive != 0 || m.presentation.Awaiting {
+	if m.typeset == nil || m.source == nil || !m.typesetViewMatches() || m.typesetActive != 0 || m.pictureBusy() {
 		return ""
 	}
 	at, ok := m.typesetPixel(x, y, false)

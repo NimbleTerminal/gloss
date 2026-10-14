@@ -26,7 +26,8 @@ func loaded(t *testing.T, files ...string) *Model {
 	m := viewing(t, Options{Files: files}, "")
 	picture := image.NewRGBA(image.Rect(0, 0, 64, 40))
 	draw.Draw(picture, picture.Bounds(), image.NewUniform(color.RGBA{R: 200, G: 80, B: 40, A: 255}), image.Point{}, draw.Src)
-	m.Update(document.Result{Generation: m.generation, Kind: "png", Page: 1, Pages: 1, Image: picture, Info: landscape})
+	_, cmd := m.Update(document.Result{Generation: m.generation, Kind: "png", Page: 1, Pages: 1, Image: picture, Info: landscape})
+	drainAnimation(t, m, cmd)
 	return m
 }
 
