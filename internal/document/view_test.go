@@ -150,7 +150,10 @@ func TestViewsFitTheMeshToThePicture(t *testing.T) {
 		for _, projection := range []nt3d.Projection{nt3d.Orthographic, nt3d.Perspective} {
 			view := views[0]
 			view.Projection = projection
-			img := renderMesh(tt.mesh, 400, view.Camera(tt.mesh), worldLight)
+			img, err := renderMesh(tt.mesh, 400, view.Camera(tt.mesh), worldLight)
+			if err != nil {
+				t.Fatal(err)
+			}
 			wide, high, clipped := spread(img)
 			if clipped {
 				t.Errorf("%s, %v: the mesh runs off the picture", tt.name, projection)
@@ -167,7 +170,11 @@ func TestViewsFitTheMeshToThePicture(t *testing.T) {
 	// Seen from a corner, a cube is wider than any of its faces.
 	for _, mesh := range []*Mesh{box(t, 3, 3, 3), box(t, 10, 1, 2), box(t, 1, 1, 8)} {
 		views, _ := ParseViews("iso")
-		wide, high, clipped := spread(renderMesh(mesh, 400, views[0].Camera(mesh), worldLight))
+		img, err := renderMesh(mesh, 400, views[0].Camera(mesh), worldLight)
+		if err != nil {
+			t.Fatal(err)
+		}
+		wide, high, clipped := spread(img)
 		if clipped || max(wide, high) < .8 || max(wide, high) > .95 {
 			t.Errorf("iso: covers %.2f by %.2f, clipped=%v", wide, high, clipped)
 		}
@@ -177,7 +184,12 @@ func TestViewsFitTheMeshToThePicture(t *testing.T) {
 	if got := view.Camera(box(t, 3, 3, 3)).Distance; got != 6 {
 		t.Errorf("distance %v, want the 6 asked for", got)
 	}
-	if wide, _, _ := spread(renderMesh(box(t, 3, 3, 3), 400, view.Camera(box(t, 3, 3, 3)), worldLight)); math.Abs(wide-2.0/6) > .03 {
+	cube := box(t, 3, 3, 3)
+	img, err := renderMesh(cube, 400, view.Camera(cube), worldLight)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wide, _, _ := spread(img); math.Abs(wide-2.0/6) > .03 {
 		t.Errorf("at distance 6 a cube covers %.2f of the picture", wide)
 	}
 }

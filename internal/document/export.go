@@ -71,20 +71,37 @@ func exportMesh(r Result, maxEdge int) (image.Image, error) {
 		return nil, fmt.Errorf("%d views do not fit %d pixels", len(shots), maxEdge)
 	}
 	var tiles []image.Image
+	var depths [][]float32
 	if !r.CPU {
 		if drawn, ok := gpuSnapshot(r.Mesh, tile, shots); ok && len(drawn) == len(shots) {
 			tiles = drawn
 		}
 	}
-	for i := 0; tiles == nil && i < len(shots) || len(tiles) < len(shots); i++ {
-		tiles = append(tiles, renderMesh(r.Mesh, tile, shots[i].camera, shots[i].light))
+	if tiles == nil {
+		for _, s := range shots {
+			frame, err := softwareSnapshot(r.Mesh, tile, s.camera, s.light)
+			if err != nil {
+				return nil, err
+			}
+			tiles = append(tiles, frame.Image)
+			depths = append(depths, frame.Depth)
+		}
 	}
 	// Faces that look the same way are shaded alike, so that from straight
 	// ahead a hole, or the floor of a box seen from the top, vanishes into
 	// what is behind it. Views asked for by name have their edges drawn.
 	if named {
+		if depths == nil {
+			for _, s := range shots {
+				frame, err := softwareSnapshot(r.Mesh, tile, s.camera, s.light)
+				if err != nil {
+					return nil, err
+				}
+				depths = append(depths, frame.Depth)
+			}
+		}
 		for i, img := range tiles {
-			tiles[i] = outline(img, meshDepth(r.Mesh, tile, shots[i].camera), tile)
+			tiles[i] = outline(img, depths[i], tile)
 		}
 	}
 	if len(tiles) == 1 {
@@ -149,68 +166,44 @@ var gpuSnapshot = func(mesh *Mesh, size int, shots []shot) ([]image.Image, bool)
 	return out, true
 }
 
-// The CPU's export uses nt3d geometry, normalization, and camera.
-// It rasterizes every face at the requested size with a depth buffer.
-func renderMesh(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, size, size))
-	draw.Draw(img, img.Bounds(), image.NewUniform(color.White), image.Point{}, draw.Src)
-	rasterize(mesh, size, camera, light, img)
-	return img
-}
-
-// meshDepth is the depth of the nearest face at each pixel, as renderMesh
-// finds it: from 0, near, to 1, far; 2 where there is none.
-func meshDepth(mesh *Mesh, size int, camera nt3d.Camera) []float32 {
-	return rasterize(mesh, size, camera, math3d.Vec3{}, nil)
-}
-
-// rasterize draws the faces of the mesh into img, nil for none, and gives the
-// depth buffer.
-func rasterize(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3, img *image.RGBA) []float32 {
-	g := mesh.Geometry()
-	normalize, _, _ := g.Bounds.Normalization()
-	matrix := camera.Matrix(1).Mul(normalize)
+// softwareSnapshot uses nt3d's renderer and depth buffer for CPU exports.
+// Large square contact-sheet tiles render at the largest square within its
+// frame-pixel budget, then scale back to the requested output size.
+func softwareSnapshot(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3) (nt3d.SoftwareResult, error) {
+	scene, err := mesh.Scene()
+	if err != nil {
+		return nt3d.SoftwareResult{}, err
+	}
+	renderSize := min(size, int(math.Sqrt(float64(nt3d.MaxFramePixels))))
+	frame, err := scene.Frame(camera, renderSize, renderSize)
+	if err != nil {
+		return nt3d.SoftwareResult{}, err
+	}
+	frame.Background = color.RGBA{255, 255, 255, 255}
+	frame.Light = nt3d.Light{Direction: light, Ambient: .3}
+	frame.Complete = true
+	result, err := nt3d.RenderSoftware(frame)
+	if err != nil || renderSize == size {
+		return result, err
+	}
+	up := image.NewRGBA(image.Rect(0, 0, size, size))
+	xdraw.CatmullRom.Scale(up, up.Bounds(), result.Image, result.Image.Bounds(), draw.Src, nil)
 	depth := make([]float32, size*size)
-	for i := range depth {
-		depth[i] = 2
-	}
-	for i := 0; i < len(g.Indices); i += 3 {
-		a, b, c := g.Vertices[g.Indices[i]], g.Vertices[g.Indices[i+1]], g.Vertices[g.Indices[i+2]]
-		ax, ay, az, _ := matrix.Project(a.Position, size, size)
-		bx, by, bz, _ := matrix.Project(b.Position, size, size)
-		cx, cy, cz, _ := matrix.Project(c.Position, size, size)
-		area := (bx-ax)*(cy-ay) - (by-ay)*(cx-ax)
-		if area >= -1e-6 {
-			continue
-		}
-		x0, x1 := max(0, int(math.Floor(float64(min(ax, bx, cx))))), min(size-1, int(math.Ceil(float64(max(ax, bx, cx)))))
-		y0, y1 := max(0, int(math.Floor(float64(min(ay, by, cy))))), min(size-1, int(math.Ceil(float64(max(ay, by, cy)))))
-		var shade color.RGBA
-		if img != nil {
-			brightness := .3 + .7*max(float32(0), a.Normal.Dot(light))
-			shade = color.RGBA{R: uint8(float32(a.Color.R) * brightness), G: uint8(float32(a.Color.G) * brightness), B: uint8(float32(a.Color.B) * brightness), A: 255}
-		}
-		for y := y0; y <= y1; y++ {
-			for x := x0; x <= x1; x++ {
-				px, py := float32(x)+.5, float32(y)+.5
-				u := ((bx-px)*(cy-py) - (by-py)*(cx-px)) / area
-				v := ((cx-px)*(ay-py) - (cy-py)*(ax-px)) / area
-				w := 1 - u - v
-				if min(u, v, w) < 0 {
-					continue
-				}
-				z := u*az + v*bz + w*cz
-				if z < 0 || z > 1 || z > depth[y*size+x] {
-					continue
-				}
-				depth[y*size+x] = z
-				if img != nil {
-					img.SetRGBA(x, y, shade)
-				}
-			}
+	for y := range size {
+		for x := range size {
+			depth[y*size+x] = result.Depth[(y*renderSize/size)*renderSize+x*renderSize/size]
 		}
 	}
-	return depth
+	return nt3d.SoftwareResult{Image: up, Depth: depth, Width: size, Height: size}, nil
+}
+
+// renderMesh keeps camera and light policy at the Gloss export boundary.
+func renderMesh(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec3) (image.Image, error) {
+	result, err := softwareSnapshot(mesh, size, camera, light)
+	if err != nil {
+		return nil, err
+	}
+	return result.Image, nil
 }
 
 // outline darkens the edges of a mesh's picture, in the colors of its faces,

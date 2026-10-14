@@ -391,7 +391,10 @@ func TestGPULightsEveryView(t *testing.T) {
 		t.Fatalf("the front is lit %.0f and the back %.0f", front, back)
 	}
 	// The GPU and the CPU draw the same picture.
-	cpu := renderMesh(mesh, 256, shots[1].camera, shots[1].light)
+	cpu, err := renderMesh(mesh, 256, shots[1].camera, shots[1].light)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if got := brightness(cpu, cpu.Bounds()); got < .95*back || got > 1.05*back {
 		t.Fatalf("the CPU lights the back %.0f, the GPU %.0f", got, back)
 	}
