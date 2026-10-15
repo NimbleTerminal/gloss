@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use nt3d's bounded STL and 3MF decoders, including STL binary face colors,
+  while preserving Gloss's part selection and oversized-model summaries.
 - Honor cancellation while decoding GIF/WebP images and count the complete
   retained WebP container against Markdown's animation storage budget.
 

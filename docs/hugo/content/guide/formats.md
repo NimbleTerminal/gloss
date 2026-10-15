@@ -55,7 +55,9 @@ bookToC: false
   `/` searches the text layer and jumps to matching
   pages with excerpts; it does not highlight the raster or perform OCR.
 - STL: ASCII and binary, flat-shaded triangles, up to 932,067 faces: nt3d's
-  mesh limit. Normals are recomputed from vertex winding. GPU
+  mesh limit. Normals are recomputed from vertex winding; binary STL face
+  colors using the VisCAM/SolidView or Materialise Magics convention are
+  honored. GPU
   rendering falls back to software and then wireframe. Software draws at full
   size for Kitty output, smaller only while its frames are slow, and samples
   meshes above 20,000 triangles; wireframe samples above 2,000 triangles, so
