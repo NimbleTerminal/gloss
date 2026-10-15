@@ -32,13 +32,15 @@ func syncLegacyCapability(session *ntpicture.TerminalSession) {
 	picture.ForceKittyCapability(picture.KittyCapability(session.Snapshot().Kitty))
 }
 
+// resetKittyIDs avoids image IDs left in scrollback by earlier Gloss processes.
+func resetKittyIDs() { nextModelID.Store(rand.Int64N(8000)) }
+
 // terminalPicture creates a legacy presentation model without starting its
 // process-wide discovery. The connection's TerminalSession owns discovery.
 func terminalPicture(render string, fresh bool, session *ntpicture.TerminalSession) (picture.Model, int) {
 	syncLegacyCapability(session)
 	if fresh {
-		// Avoid image IDs left in scrollback by earlier Gloss processes.
-		nextModelID.Store(rand.Int64N(8000))
+		resetKittyIDs()
 	}
 	id := nextKittyID()
 	s := session.Snapshot()

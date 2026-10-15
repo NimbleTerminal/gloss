@@ -21,7 +21,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
-	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
+	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
@@ -83,3 +83,5 @@ replace nimbleterminal.dev/ntpicture => ../../../ntpicture
 replace nimbleterminal.dev/nt3d => ../../../nt3d
 
 replace nimbleterminal.dev/ntpdf => ../../../ntcharts-pdf
+
+replace nimbleterminal.dev/ntqrcode => ../../../ntqrcode

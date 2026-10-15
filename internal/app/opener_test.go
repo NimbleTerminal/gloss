@@ -11,7 +11,6 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"nimbleterminal.dev/gloss/examples"
@@ -83,7 +82,7 @@ func pump(m tea.Model, cmd tea.Cmd, depth int) {
 		case *Model:
 			return model.loading
 		case *Handoff:
-			return !model.finished && model.pic.Mode() == picture.PictureKitty && model.qr.Err() == nil &&
+			return !model.finished && model.kitty && model.qr.Err() == nil &&
 				!strings.ContainsRune(model.qr.View(), kitty.Placeholder)
 		}
 		return false

@@ -318,7 +318,8 @@ the last presented full-resolution source for export and forwards messages even
 when an overlay hides the page. One explicit `ntpicture.TerminalSession` owns
 capability discovery and cell geometry per terminal connection. The pager shares
 it with previews, still pictures, and mesh widgets; only its owner closes it.
-The QR handoff screen owns its own session. Legacy picture models receive
+The QR handoff screen owns its own session and tracks graphics mode directly,
+without a legacy picture model. Legacy picture models receive
 session geometry and a compatibility capability flag, and never start probes.
 The existing block allocator is shared with animation, mesh, and QR consumers
 to avoid overlapping IDs during migration.
@@ -406,19 +407,19 @@ snapshots the displayed viewport. There are no inline playback controls.
 
 The reusable encoder and terminal component live in
 [ntqrcode](https://github.com/NimbleTerminal/ntqrcode), imported as
-`nimbleterminal.dev/ntqrcode/qrcode`. Gloss pins a tagged
-release in `go.mod`; there is no local replacement or copied implementation.
+`nimbleterminal.dev/ntqrcode/qrcode`. Gloss currently uses the sibling `../ntqrcode` checkout through local
+replacements in the root and companion modules, pending coordinated releases.
 The library owns module/image generation, quiet zones, Kitty and half-block
 rendering, bounds, fit errors, and image cleanup. Its decoder and lifecycle
 unit tests live with the component. See its README and DEVELOP for the API,
-encoder assessment, and NTCharts exact-size rendering contract.
+encoder assessment, and ntpicture exact-size rendering contract.
 
-The pinned release (`v0.2.0`) uses `piglig/go-qr/v2 v2.6.0`. Gloss uses the
+The local library uses `piglig/go-qr/v2 v2.6.0`. Gloss uses the
 default options: medium error correction or higher, boosted when a stronger
 level fits without increasing the symbol version. Numeric, alphanumeric, byte,
 and Kanji segments are optimized to fit the content. Non-ASCII payloads include
 UTF-8 ECI; ambiguous Kanji mappings stay in UTF-8 byte segments to preserve the
-exact text. Both the native module and browser demo pin this release.
+exact text. Both the native module and browser demo use this checkout.
 
 `internal/app/qr.go` owns the overlay, selected table URL, and export through
 gloss's existing non-overwriting save hook. The app supplies `nextKittyID`,
@@ -448,12 +449,12 @@ With an active workspace, `task build` always invokes Go so edits in sibling
 modules cannot leave a stale binary. Go's own incremental cache still applies.
 `task ci`, `task notices`, `task notices-check`, and `task release` always set
 `GOWORK=off`: release checks and notices must describe the committed module
-pins, not sibling checkouts. CI also forces a build so an earlier workspace
+requirements and replacements, not workspace overrides. CI also forces a build so an earlier workspace
 binary cannot be reused. GoReleaser disables workspaces as well.
 Run `GOWORK=off task ci` and `GOWORK=off task demo-check` before tagging.
 When updating the library, update both module pins (prefer a published tag),
-regenerate notices, and validate with workspaces disabled. Do not commit a
-filesystem `replace` into either module.
+regenerate notices, and validate with workspaces disabled. Replace the temporary
+filesystem replacements with published versions for the coordinated release.
 
 The standalone library's `examples/qrcode` demonstrates two components and
 has native and WASM builds. Real terminal/font/tmux and phone-camera checks

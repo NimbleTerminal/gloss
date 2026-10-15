@@ -7,24 +7,68 @@ import (
 	"image"
 	"image/color"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"github.com/makiuchi-d/gozxing"
 	decoder "github.com/makiuchi-d/gozxing/qrcode"
+	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
 const handoffURL = "http://192.168.9.216:54321/0123456789abcdef0123456789abcdef/"
 
+func TestHandoffSessionGraphicsChoice(t *testing.T) {
+	t.Setenv("NTCHARTS_KITTY", "")
+	t.Setenv("TERM", "xterm-kitty")
+	t.Setenv("NTCHARTS_TMUX_PASSTHROUGH", "false")
+	for _, manual := range []bool{false, true} {
+		m := handoff(t, "")
+		if m.kitty {
+			t.Fatal("enabled graphics before discovery")
+		}
+		raw := collectRaw(m.terminal.Init())
+		match := regexp.MustCompile(`a=q,t=d,f=24,s=1,v=1,i=(\d+)`).FindStringSubmatch(raw)
+		if len(match) != 2 {
+			t.Fatalf("missing session probe: %q", raw)
+		}
+		if manual {
+			m.Update(press("g")) // Stay in glyph mode while support is unknown.
+		}
+		id, _ := strconv.Atoi(match[1])
+		_, cmd := m.Update(uv.KittyGraphicsEvent{Options: kitty.Options{ID: id}, Payload: []byte("OK")})
+		pump(m, cmd, 0)
+		if m.kitty == manual || strings.ContainsRune(m.qr.View(), kitty.Placeholder) == manual {
+			t.Fatalf("discovery ignored graphics policy: manual=%v kitty=%v", manual, m.kitty)
+		}
+		if !manual {
+			_, cmd = m.Update(press("g"))
+			pump(m, cmd, 0)
+		}
+		m.Update(ntpicture.TerminalSessionMsg{Session: m.terminal, State: m.terminal.Snapshot()})
+		if m.kitty {
+			t.Fatal("session notification overrode the user's glyph choice")
+		}
+		_, cmd = m.Update(press("g"))
+		pump(m, cmd, 0)
+		if !strings.ContainsRune(m.qr.View(), kitty.Placeholder) {
+			t.Fatal("could not reenable discovered graphics")
+		}
+	}
+	m := handoff(t, "glyph")
+	m.Update(press("g"))
+	if m.kitty {
+		t.Fatal("forced unsupported capability enabled graphics")
+	}
+}
+
 func handoff(t *testing.T, render string) *Handoff {
 	t.Helper()
-	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
 	m, err := NewHandoff(handoffURL, "Send a photo", render, make(chan struct{}), func() {})
 	if err != nil {
 		t.Fatal(err)
@@ -121,7 +165,6 @@ func TestHandoffKittyCleanupAndCancellation(t *testing.T) {
 }
 
 func TestHandoffPumpWaitsForSlowKittyFrame(t *testing.T) {
-	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
 	m, err := NewHandoff(handoffURL, "Send a photo", "kitty", make(chan struct{}), func() {})
 	if err != nil {
 		t.Fatal(err)

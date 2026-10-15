@@ -1059,7 +1059,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/NimbleMarkets/booba-shim v0.1.0
+## github.com/NimbleMarkets/booba-shim v0.5.0
 
 ```
 MIT License

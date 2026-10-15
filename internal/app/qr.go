@@ -22,7 +22,7 @@ func (m *Model) openQR(address string) tea.Cmd {
 		m.note = "QR: " + err.Error()
 		return nil
 	}
-	model, err := qrcode.New(code, qrcode.Config{NextID: nextKittyID})
+	model, err := qrcode.New(code, qrcode.Config{Session: m.terminal, NextID: nextKittyID})
 	if err != nil {
 		m.note = "QR: " + err.Error()
 		return nil

@@ -482,7 +482,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 		if m.qr != nil {
 			cw, ch := m.cellPixelSize()
-			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(legacyPictureMessage(msg)))
+			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
 		}
 	}()
 	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {

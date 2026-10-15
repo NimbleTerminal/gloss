@@ -45,7 +45,7 @@ require (
 
 require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
-	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
+	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -101,3 +101,5 @@ replace nimbleterminal.dev/nt3d => ../nt3d
 replace nimbleterminal.dev/ntsvg => ../ntcharts-svg
 
 replace nimbleterminal.dev/ntpdf => ../ntcharts-pdf
+
+replace nimbleterminal.dev/ntqrcode => ../ntqrcode

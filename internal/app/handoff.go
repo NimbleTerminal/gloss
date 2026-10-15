@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	"nimbleterminal.dev/ntqrcode/qrcode"
@@ -14,7 +13,7 @@ import (
 // server, its lifetime, and results; this screen owns only terminal graphics.
 type Handoff struct {
 	terminal        *ntpicture.TerminalSession
-	pic             picture.Model
+	kitty           bool
 	qr              *qrcode.Model
 	address, prompt string
 	width, height   int
@@ -33,13 +32,13 @@ func NewHandoff(address, prompt, render string, done <-chan struct{}, cancel fun
 		return nil, err
 	}
 	terminal := newTerminalSession(render)
-	pic, _ := terminalPicture(render, true, terminal)
-	qr, err := qrcode.New(code, qrcode.Config{NextID: nextKittyID})
+	resetKittyIDs()
+	qr, err := qrcode.New(code, qrcode.Config{Session: terminal, NextID: nextKittyID})
 	if err != nil {
 		terminal.Close()
 		return nil, err
 	}
-	return &Handoff{terminal: terminal, pic: pic, qr: qr, address: address, prompt: prompt, autoKitty: render != "glyph", done: done, cancel: cancel}, nil
+	return &Handoff{terminal: terminal, kitty: terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported, qr: qr, address: address, prompt: prompt, autoKitty: render != "glyph", done: done, cancel: cancel}, nil
 }
 
 func (m *Handoff) Init() tea.Cmd {
@@ -54,14 +53,13 @@ func (m *Handoff) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	commands := []tea.Cmd{m.terminal.Update(msg)}
-	syncLegacyCapability(m.terminal)
+	state := m.terminal.Snapshot()
 	switch v := msg.(type) {
 	case handoffFinished:
 		m.finished = true
 		return m, tea.Sequence(m.qr.Close(), tea.Quit)
 	case tea.WindowSizeMsg:
 		m.width, m.height = max(0, v.Width), max(0, v.Height)
-		commands = append(commands, m.pic.SetSize(m.width, m.height))
 	case tea.KeyPressMsg:
 		switch v.String() {
 		case "q", "esc", "ctrl+c":
@@ -71,12 +69,13 @@ func (m *Handoff) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "g":
 			m.autoKitty = false
-			commands = append(commands, m.pic.Toggle())
+			m.kitty = !m.kitty && state.Kitty == ntpicture.KittyCapabilitySupported
 		}
 	}
-	commands = append(commands, updateTerminalPicture(&m.pic, m.terminal, m.autoKitty, msg))
-	cw, ch := m.cellPixelSize()
-	commands = append(commands, m.qr.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.qr.SetSize(m.width, max(0, m.height-m.textRows())), m.qr.Update(legacyPictureMessage(msg)))
+	if m.autoKitty && state.Kitty == ntpicture.KittyCapabilitySupported {
+		m.kitty = true
+	}
+	commands = append(commands, m.qr.SetTerminal(m.kitty, state.CellPixelWidth, state.CellPixelHeight), m.qr.SetSize(m.width, max(0, m.height-m.textRows())), m.qr.Update(msg))
 	return m, tea.Batch(commands...)
 }
 
@@ -120,9 +119,4 @@ func (m *Handoff) Close() error {
 	m.qr.Close()
 	m.terminal.Close()
 	return nil
-}
-
-func (m *Handoff) cellPixelSize() (int, int) {
-	s := m.terminal.Snapshot()
-	return s.CellPixelWidth, s.CellPixelHeight
 }

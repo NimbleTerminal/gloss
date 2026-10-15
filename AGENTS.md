@@ -261,7 +261,8 @@ or hidden in Manage apps; binary/converted documents are excluded.
 
 Terminal discovery: `internal/app/terminal.go` owns one explicit
 `ntpicture.TerminalSession` per pager or handoff connection. Previews, still
-pictures, and meshes share the pager session; only the owner closes it. Legacy
+pictures, meshes, and QR overlays share the pager session; only the owner closes it. The
+handoff tracks graphics mode directly without a legacy picture model. Legacy
 pictures follow its geometry and compatibility capability flag without probing.
 
 Key viewer features: Kitty graphics with colored half-block glyph fallback;
