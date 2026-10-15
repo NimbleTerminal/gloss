@@ -21,11 +21,11 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/NimbleMarkets/ntcharts/v2/picture/decoders"
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
 	"nimbleterminal.dev/nt3d"
 	"nimbleterminal.dev/ntpdf"
+	_ "nimbleterminal.dev/ntpicture/decoders"
 	svg "nimbleterminal.dev/ntsvg"
 )
 
