@@ -12,8 +12,6 @@ import (
 
 // stillPicture keeps only host policy and the full-resolution export source.
 // Picture owns preparation, retained placements, cancellation and retirement.
-// The legacy model remains the terminal capability bridge until playback and
-// the remaining NTCharts consumers migrate to a shared terminal session.
 type stillPicture struct {
 	pic              *ntpicture.Picture
 	background       color.RGBA64
@@ -47,7 +45,8 @@ func (m *Model) showStill(img image.Image) tea.Cmd {
 		cleanup = tea.Batch(cleanup, pending, m.clearAnimationFront())
 		m.still = &stillPicture{background: background}
 		m.still.pic = ntpicture.New(ntpicture.Options{
-			Render: ntpicture.Config{KittyZ: -1, Background: background, KittyFormat: ntpicture.KittyFormatZlib},
+			Session: m.terminal,
+			Render:  ntpicture.Config{KittyZ: -1, Background: background, KittyFormat: ntpicture.KittyFormatZlib},
 			// The existing components reserve ID blocks; using that same allocator
 			// prevents collisions until they too adopt ntpicture's single-ID allocator.
 			NextID: func() (int, error) { id := m.presentation.NextImageID(); m.picID = id; return id, nil },
@@ -58,7 +57,7 @@ func (m *Model) showStill(img image.Image) tea.Cmd {
 	if s.submitted == nil {
 		s.submitted = img
 	}
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	s.width, s.height = max(1, m.width), max(1, m.bodyHeight())
 	return tea.Batch(cleanup, s.pic.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), s.pic.SetSize(s.width, s.height), s.pic.SetImageImmutable(img))
 }
@@ -68,7 +67,7 @@ func (m *Model) updateStill(msg tea.Msg) tea.Cmd {
 	if s == nil {
 		return nil
 	}
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	cmd := tea.Batch(s.pic.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), s.pic.Update(msg))
 	status := s.pic.Status()
 	if status.Presented != s.presented && status.Presented == status.Generation {

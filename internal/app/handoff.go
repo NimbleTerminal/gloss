@@ -6,12 +6,14 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
+	ntpicture "nimbleterminal.dev/ntpicture"
 	"nimbleterminal.dev/ntqrcode/qrcode"
 )
 
 // Handoff displays the already-running web picker's URL. The CLI owns the
 // server, its lifetime, and results; this screen owns only terminal graphics.
 type Handoff struct {
+	terminal        *ntpicture.TerminalSession
 	pic             picture.Model
 	qr              *qrcode.Model
 	address, prompt string
@@ -30,16 +32,18 @@ func NewHandoff(address, prompt, render string, done <-chan struct{}, cancel fun
 	if err != nil {
 		return nil, err
 	}
-	pic, _ := terminalPicture(render, true)
+	terminal := newTerminalSession(render)
+	pic, _ := terminalPicture(render, true, terminal)
 	qr, err := qrcode.New(code, qrcode.Config{NextID: nextKittyID})
 	if err != nil {
+		terminal.Close()
 		return nil, err
 	}
-	return &Handoff{pic: pic, qr: qr, address: address, prompt: prompt, autoKitty: render != "glyph", done: done, cancel: cancel}, nil
+	return &Handoff{terminal: terminal, pic: pic, qr: qr, address: address, prompt: prompt, autoKitty: render != "glyph", done: done, cancel: cancel}, nil
 }
 
 func (m *Handoff) Init() tea.Cmd {
-	return tea.Batch(m.pic.Init(), func() tea.Msg {
+	return tea.Batch(m.terminal.Init(), func() tea.Msg {
 		<-m.done
 		return handoffFinished{}
 	})
@@ -49,7 +53,8 @@ func (m *Handoff) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.finished {
 		return m, nil
 	}
-	var commands []tea.Cmd
+	commands := []tea.Cmd{m.terminal.Update(msg)}
+	syncLegacyCapability(m.terminal)
 	switch v := msg.(type) {
 	case handoffFinished:
 		m.finished = true
@@ -69,9 +74,9 @@ func (m *Handoff) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			commands = append(commands, m.pic.Toggle())
 		}
 	}
-	commands = append(commands, updateTerminalPicture(&m.pic, m.autoKitty, msg))
-	cw, ch := m.pic.CellPixelSize()
-	commands = append(commands, m.qr.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.qr.SetSize(m.width, max(0, m.height-m.textRows())), m.qr.Update(msg))
+	commands = append(commands, updateTerminalPicture(&m.pic, m.terminal, m.autoKitty, msg))
+	cw, ch := m.cellPixelSize()
+	commands = append(commands, m.qr.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.qr.SetSize(m.width, max(0, m.height-m.textRows())), m.qr.Update(legacyPictureMessage(msg)))
 	return m, tea.Batch(commands...)
 }
 
@@ -108,4 +113,16 @@ func (m *Handoff) View() tea.View {
 	v := tea.NewView(strings.Join(lines, "\n"))
 	v.AltScreen = true
 	return v
+}
+
+// Close releases discovery resources after the terminal event loop exits.
+func (m *Handoff) Close() error {
+	m.qr.Close()
+	m.terminal.Close()
+	return nil
+}
+
+func (m *Handoff) cellPixelSize() (int, int) {
+	s := m.terminal.Snapshot()
+	return s.CellPixelWidth, s.CellPixelHeight
 }

@@ -259,6 +259,11 @@ choices; its result is included in `gloss skill schema`. Temporary files retain
 their original lifetime. No headless launch option. Terminal editors cannot be stored as GUI defaults
 or hidden in Manage apps; binary/converted documents are excluded.
 
+Terminal discovery: `internal/app/terminal.go` owns one explicit
+`ntpicture.TerminalSession` per pager or handoff connection. Previews, still
+pictures, and meshes share the pager session; only the owner closes it. Legacy
+pictures follow its geometry and compatibility capability flag without probing.
+
 Key viewer features: Kitty graphics with colored half-block glyph fallback;
 alternate screen by default, `-X` for main screen; file menu (`--menu`),
 preview pane (`--preview` or `v`), file browser (`o`), drag-and-drop and

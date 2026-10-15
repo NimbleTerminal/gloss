@@ -315,9 +315,13 @@ previews, and thumbnail grids use `ntpicture.Picture` through
 latest-request coalescing, output ordering, retirement, and keep-screen cleanup.
 Both Kitty and glyph preparation run through returned commands. The host retains
 the last presented full-resolution source for export and forwards messages even
-when an overlay hides the page. The existing terminal model supplies capability
-and cell geometry; the existing block allocator is shared with animation, mesh,
-and QR consumers to avoid overlapping IDs during migration.
+when an overlay hides the page. One explicit `ntpicture.TerminalSession` owns
+capability discovery and cell geometry per terminal connection. The pager shares
+it with previews, still pictures, and mesh widgets; only its owner closes it.
+The QR handoff screen owns its own session. Legacy picture models receive
+session geometry and a compatibility capability flag, and never start probes.
+The existing block allocator is shared with animation, mesh, and QR consumers
+to avoid overlapping IDs during migration.
 
 The migration currently uses the sibling `../ntpicture` checkout. Its temporary
 module replacement must be replaced with a published pin before releasing

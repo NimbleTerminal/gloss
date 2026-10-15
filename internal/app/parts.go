@@ -188,7 +188,7 @@ func (m *Model) refit() tea.Cmd {
 // of a cell, which is taken as twice as tall as wide until the terminal
 // says.
 func (m *Model) frameAspect() float64 {
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	if cw <= 1 || ch <= 1 {
 		cw, ch = 8, 16
 	}

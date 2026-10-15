@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
@@ -18,9 +17,19 @@ import (
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
-func qrTable(t *testing.T) *Model {
+func qrTable(t *testing.T, render ...string) *Model {
 	t.Helper()
-	return tabulated(t, &document.Sheet{Name: "Links", Columns: 1, Rows: [][]string{{DocsURL}, {"https://example.org/second"}}}, 1, 1)
+	graphics := "glyph"
+	if len(render) > 0 {
+		graphics = render[0]
+	}
+	m := New(Options{Files: []string{"book.xlsx"}, Render: graphics, Page: 1, DPI: 72})
+	t.Cleanup(func() { m.Close() })
+	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	m.generation = 1
+	m.Update(document.Result{Generation: m.generation, Kind: "xlsx", Page: 1, Pages: 1,
+		Sheet: &document.Sheet{Name: "Links", Columns: 1, Rows: [][]string{{DocsURL}, {"https://example.org/second"}}}})
+	return m
 }
 
 func TestTableQRIsExplicitAndPreservesTheURL(t *testing.T) {
@@ -76,12 +85,9 @@ func TestTableQRIsExplicitAndPreservesTheURL(t *testing.T) {
 }
 
 func TestTableQRKittyLifecycle(t *testing.T) {
-	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
 	for _, action := range []string{"esc", "q", "Q", "replace", "load", "browser", "resize", "fallback"} {
 		t.Run(action, func(t *testing.T) {
-			m := qrTable(t)
-			picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-			m.pic.Toggle()
+			m := qrTable(t, "kitty")
 			_, cmd := m.Update(press("u"))
 			// QR encoding is finite work. Wait for its graphics messages even
 			// when a loaded race-test runner exceeds pump's timer cutoff.

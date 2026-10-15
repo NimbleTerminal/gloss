@@ -12,6 +12,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"nimbleterminal.dev/gloss/internal/animate"
 )
@@ -161,7 +162,7 @@ func TestTypesetOverlayAtGIFResolution(t *testing.T) {
 	m := New(Options{Files: []string{"page.md"}, FilesFS: gifPage(t), MarkdownMode: "typeset", Render: "kitty", DPI: 150, Page: 1})
 	t.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: 120, Height: 30})
-	m.pic.SetCellPixelSize(20, 40) // 2400 pixels across: past the 960-point measure, so the page is drawn at 1.2×.
+	m.terminal.Update(uv.CellSizeEvent{Width: 20, Height: 40}) // 2400 pixels across: past the 960-point measure, so the page is drawn at 1.2×.
 	drainStill(t, m, m.load(false))
 	if len(m.typesetOverlays) != 1 || m.typesetShown == nil || m.typesetShown.Pixels.X != 2400 {
 		t.Fatalf("overlays %d, shown %+v", len(m.typesetOverlays), m.typesetShown)

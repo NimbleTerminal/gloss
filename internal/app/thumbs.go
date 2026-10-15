@@ -74,7 +74,7 @@ func (m *Model) layoutGrid() tea.Cmd {
 	w, h := max(1, m.width), max(1, m.bodyHeight())
 	g.cols = max(1, w/tileCells)
 	g.rows = max(1, h/tileRows)
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	if cw <= 1 || ch <= 1 {
 		cw, ch = 8, 16
 	}

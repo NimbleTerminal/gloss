@@ -40,7 +40,7 @@ func (m *Model) setFont(name, mono string) tea.Cmd {
 }
 func (m *Model) openFontPicker() tea.Cmd {
 	id := nextKittyID()
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	p := &fontPicker{owner: id, font: m.opts.Font, mono: m.opts.Mono, pic: picture.NewWithConfig(picture.Config{KittyID: id, KittyZ: -1, Background: m.palette().Background, CellPixelWidth: cw, CellPixelHeight: ch})}
 	for i, l := range document.FontLooks() {
 		if l.Name == m.opts.Font {
@@ -56,7 +56,7 @@ func (m *Model) layoutFontPicker() tea.Cmd {
 	if p == nil {
 		return nil
 	}
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	w, h := max(1, min(64, m.width-4)), max(1, min(24, m.bodyHeight()-5))
 	var mode tea.Cmd
 	if p.pic.Mode() != m.pic.Mode() {

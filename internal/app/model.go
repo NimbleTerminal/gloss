@@ -6,7 +6,6 @@ import (
 	"image/color"
 	"image/draw"
 	"io/fs"
-	"math/rand/v2"
 	"sync/atomic"
 
 	"nimbleterminal.dev/gloss/internal/animate"
@@ -68,7 +67,8 @@ type Options struct {
 	Color *color.RGBA
 	// Background is the color behind a mesh; nil keeps the default.
 	Background *color.RGBA
-	keptScreen bool // Set once picture numbers have been moved; previews inherit it.
+	terminal   *ntpicture.TerminalSession // Shared with previews on this terminal.
+	keptScreen bool                       // Set once picture numbers have been moved; previews inherit it.
 	// Save stores an export and returns the name it was given. Nil writes to
 	// the working directory; the browser demo offers a download instead.
 	Save              func(name string, png []byte) (string, error)
@@ -82,7 +82,6 @@ type Options struct {
 // embedded in Model, so its fields read as the model's own.
 type meshState struct {
 	chart       *widget.Model
-	meshSession *ntpicture.TerminalSession
 	triangles   int
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
 	assemble    func([]bool) (*document.Mesh, error)
@@ -165,6 +164,8 @@ type Model struct {
 
 	opts                     Options
 	loader                   *document.Loader
+	terminal                 *ntpicture.TerminalSession
+	ownTerminal              bool
 	pic                      picture.Model
 	qr                       *qrOverlay
 	width, height, index     int
@@ -210,9 +211,13 @@ var nextModelID atomic.Int64
 func nextKittyID() int { return 100 + int(nextModelID.Add(1))*1000 }
 
 func New(opts Options) *Model {
-	pic, id := terminalPicture(opts.Render, !opts.keptScreen)
+	ownTerminal := opts.terminal == nil
+	if ownTerminal {
+		opts.terminal = newTerminalSession(opts.Render)
+	}
+	pic, id := terminalPicture(opts.Render, !opts.keptScreen, opts.terminal)
 	opts.keptScreen = true
-	m := &Model{opts: opts, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, pic: pic, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
+	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, pic: pic, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
 	m.lineNumbers, m.chopLines = opts.LineNumbers, opts.ChopLines
 	m.presentation = animate.New(&m.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
 	m.presentation.ID = id
@@ -228,39 +233,6 @@ func New(opts Options) *Model {
 	return m
 }
 
-// terminalPicture is shared by the pager and the handoff screen. Capability
-// detection and geometry replies always run through picture's Tea commands.
-func terminalPicture(render string, fresh bool) (picture.Model, int) {
-	switch render {
-	case "kitty":
-		picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-	case "glyph":
-		picture.ForceKittyCapability(picture.KittyCapabilityUnsupported)
-	}
-	if fresh {
-		// Pictures left in the scrollback, by -X or by Q, are owned by the
-		// terminal, under their numbers. Every run starts somewhere new, so
-		// that the next gloss does not draw over what the last one left.
-		nextModelID.Store(rand.Int64N(8000))
-	}
-	id := nextKittyID()
-	// Frames go as zlib-compressed raw pixels: PNG's encoder tries every
-	// filter on every row and took three times as long for the same bytes.
-	pic := picture.NewWithConfig(picture.Config{KittyID: id, KittyZ: -1, Background: pictureBackground, KittyFormat: picture.KittyFormatZlib})
-	if render == "kitty" {
-		pic.Toggle()
-	}
-	return pic, id
-}
-
-func updateTerminalPicture(pic *picture.Model, autoKitty bool, msg tea.Msg) tea.Cmd {
-	cmd := pic.Update(msg)
-	if autoKitty && pic.KittySupported() == picture.KittyCapabilitySupported && pic.Mode() != picture.PictureKitty {
-		return tea.Batch(cmd, pic.Toggle())
-	}
-	return cmd
-}
-
 func (m *Model) Init() tea.Cmd {
 	var browse tea.Cmd
 	if m.opts.Browse != "" {
@@ -268,9 +240,9 @@ func (m *Model) Init() tea.Cmd {
 	}
 	if m.screen == screenList {
 		m.suspended = true
-		return tea.Batch(m.themeRequest(), m.pic.Init(), m.updatePreview(), browse, m.awaitDrops())
+		return tea.Batch(m.themeRequest(), m.terminal.Init(), m.updatePreview(), browse, m.awaitDrops())
 	}
-	return tea.Batch(m.themeRequest(), m.pic.Init(), m.load(false), browse, m.awaitDrops())
+	return tea.Batch(m.themeRequest(), m.terminal.Init(), m.load(false), browse, m.awaitDrops())
 }
 
 func (m *Model) Close() error {
@@ -293,8 +265,8 @@ func (m *Model) Close() error {
 	if m.chart != nil {
 		_ = m.chart.Close()
 	}
-	if m.meshSession != nil {
-		m.meshSession.Close()
+	if m.ownTerminal {
+		m.terminal.Close()
 	}
 	return m.loader.Close()
 }
@@ -426,10 +398,6 @@ func (m *Model) clearChart() tea.Cmd {
 	m.chart = nil
 	cleanup := chart.Dispose()
 	_ = chart.Close()
-	if m.meshSession != nil {
-		m.meshSession.Close()
-		m.meshSession = nil
-	}
 	return cleanup
 }
 
@@ -470,7 +438,7 @@ func (m *Model) layoutMarkdown() tea.Cmd {
 	}
 	m.markdown.setTheme(m.theme)
 	m.markdown.numbers, m.markdown.fenced, m.markdown.chop = m.lineNumbers, m.kind == "text" || m.kind == "json", m.chopLines
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	return m.markdown.layout(m.width, m.bodyHeight(), cw, ch)
 }
 
@@ -494,8 +462,10 @@ func (m *Model) movePage(page int) tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
+	terminalCmd := m.terminal.Update(msg)
+	syncLegacyCapability(m.terminal)
 	defer func() {
-		cmd = tea.Batch(cmd, m.syncSearch(), m.updateStill(msg))
+		cmd = tea.Batch(terminalCmd, cmd, m.syncSearch(), m.updateStill(msg))
 		if m.pic.Mode() != picture.PictureKitty {
 			cmd = tea.Batch(cmd, m.clearAnimationFront())
 		}
@@ -508,11 +478,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument))
 		}
 		if p := m.fontPicker; p != nil {
-			cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
+			cmd = tea.Batch(cmd, p.pic.Update(legacyPictureMessage(msg)), m.layoutFontPicker())
 		}
 		if m.qr != nil {
-			cw, ch := m.pic.CellPixelSize()
-			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
+			cw, ch := m.cellPixelSize()
+			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(legacyPictureMessage(msg)))
 		}
 	}()
 	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {
@@ -751,8 +721,8 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	// Picture messages carry image IDs and sequence numbers, so late frames
 	// from an earlier page cannot overwrite the current source.
 	cw, ch := m.pic.CellPixelSize()
-	picCmd := updateTerminalPicture(&m.pic, m.autoKitty, msg)
-	if nw, nh := m.pic.CellPixelSize(); (cw != nw || ch != nh) && m.source != nil && m.pic.Mode() == picture.PictureKitty {
+	picCmd := updateTerminalPicture(&m.pic, m.terminal, m.autoKitty, msg)
+	if nw, nh := m.cellPixelSize(); (cw != nw || ch != nh) && m.source != nil && m.pic.Mode() == picture.PictureKitty {
 		// Font-size changes have the same placement lifetime as window resizes.
 		if m.animation != nil {
 			picCmd = m.resizeAnimation()
@@ -761,16 +731,16 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 	}
 	cmds = append(cmds, m.animationTransmission(msg, picCmd))
-	if nw, nh := m.pic.CellPixelSize(); (cw != nw || ch != nh) && m.typeset != nil {
+	if nw, nh := m.cellPixelSize(); (cw != nw || ch != nh) && m.typeset != nil {
 		cmds = append(cmds, m.queueTypesetReflow())
 		if m.markdown == nil {
 			cmds = append(cmds, m.refreshImage())
 		}
 	}
 	if m.markdown != nil {
-		cmds = append(cmds, m.markdown.update(msg), m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
+		cmds = append(cmds, m.markdown.update(legacyPictureMessage(msg)), m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
 	}
-	cmds = append(cmds, m.updateTypesetOverlayPictures(msg))
+	cmds = append(cmds, m.updateTypesetOverlayPictures(legacyPictureMessage(msg)))
 	_, mouseMessage := msg.(tea.MouseMsg)
 	if m.chart != nil && !((m.help || m.listing()) && mouseMessage) {
 		before := m.chart.Camera()
@@ -864,17 +834,8 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 		m.err = err
 		return cleanup
 	}
-	cw, ch := m.pic.CellPixelSize()
-	capability := ntpicture.KittyCapabilityUnknown
-	if m.pic.Mode() == picture.PictureKitty {
-		capability = ntpicture.KittyCapabilitySupported
-	}
-	if m.opts.Render == "glyph" {
-		capability = ntpicture.KittyCapabilityUnsupported
-	}
-	m.meshSession = ntpicture.NewTerminalSession(ntpicture.TerminalOptions{Kitty: capability, CellPixelWidth: cw, CellPixelHeight: ch})
 	m.chart = widget.New(scene, m.width, m.meshHeight(),
-		widget.WithTerminalSession(m.meshSession),
+		widget.WithTerminalSession(m.terminal),
 		widget.WithImageIDAllocator(func() (int, error) { return m.presentation.NextImageID(), nil }),
 		widget.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
 		widget.WithGPUFailure(widget.FallBackOnGPUFailure),

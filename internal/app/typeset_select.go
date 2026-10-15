@@ -29,7 +29,7 @@ func (m *Model) clearTypesetSelection() {
 // whole cells. With clamp, a cell beside the picture maps to its nearest
 // edge pixel, for a drag that leaves it.
 func (m *Model) typesetPixel(x, y int, clamp bool) (image.Point, bool) {
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	tw, th := m.width*cw, m.bodyHeight()*ch
 	b := m.source.Bounds()
 	sw, sh := b.Dx(), b.Dy()

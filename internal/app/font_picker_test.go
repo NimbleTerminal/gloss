@@ -53,9 +53,7 @@ func TestFontPickerPreviewCancelConfirm(t *testing.T) {
 }
 func TestFontPickerKittyCleanupAndResize(t *testing.T) {
 	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
-	m := themedModel(t, "light", true)
-	picture.ForceKittyCapability(picture.KittyCapabilitySupported)
-	m.pic.Toggle()
+	m := themedModel(t, "light", true, "kitty")
 	_, cmd := m.Update(press("f"))
 	// The preview and Kitty encoding are finite work, not timers. Wait for
 	// both even when rendering exceeds pump's patience on a loaded CI runner.

@@ -41,7 +41,7 @@ func (m *Model) layoutTypesetOverlays(v document.Result) tea.Cmd {
 	if v.Playback == nil || v.TypesetView == nil || v.Image == nil || m.pic.Mode() != picture.PictureKitty {
 		return tea.Batch(cmds...)
 	}
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	cw, ch = max(1, cw), max(1, ch)
 	bounds := v.Image.Bounds()
 	var groups []overlayGroup
@@ -204,7 +204,7 @@ func (m *Model) typesetExportFrame() image.Image {
 	}
 	out := image.NewRGBA(m.source.Bounds())
 	draw.Draw(out, out.Bounds(), m.source, m.source.Bounds().Min, draw.Src)
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	for _, o := range m.typesetOverlays {
 		frame := o.anim.Source.Image()
 		dst := image.Rect(o.cells.Min.X*cw, o.cells.Min.Y*ch, o.cells.Max.X*cw, o.cells.Max.Y*ch)

@@ -29,6 +29,7 @@ func handoff(t *testing.T, render string) *Handoff {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = m.Close() })
 	_, cmd := m.Update(tea.WindowSizeMsg{Width: 100, Height: 45})
 	pump(m, cmd, 0)
 	return m
@@ -125,6 +126,7 @@ func TestHandoffPumpWaitsForSlowKittyFrame(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = m.Close() })
 	_, cmd := m.Update(tea.WindowSizeMsg{Width: 100, Height: 45})
 	// Force a render command past the helper's timer cutoff, as can happen
 	// under the race detector on a busy CI runner.

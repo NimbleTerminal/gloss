@@ -59,11 +59,11 @@ func (m *Model) typesetMeasure() int {
 	if !m.opts.typesetEnabled() || m.isPreview || m.width < 1 {
 		return 0
 	}
-	cw, _ := m.pic.CellPixelSize()
+	cw, _ := m.cellPixelSize()
 	return max(192, min(960, int(math.Round(float64(m.width*max(1, cw))*72/150))))
 }
 func (m *Model) typesetViewport() document.TypesetViewport {
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	width := float64(m.typesetMeasure()) * 150 / 72
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
 	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}

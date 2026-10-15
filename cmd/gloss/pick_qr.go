@@ -55,6 +55,7 @@ func runWebPickQR(ctx context.Context, s *server, opts options, stderr io.Writer
 		fmt.Fprintf(stderr, "gloss: QR unavailable: %v\n", err)
 		return s.waitWebPick(ctx, opts.Timeout)
 	}
+	defer m.Close()
 	result := make(chan webPickResult, 1)
 	go func() {
 		paths, message, err := s.waitWebPick(ctx, opts.Timeout)

@@ -9,9 +9,13 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-func themedModel(t *testing.T, mode string, typeset bool) *Model {
+func themedModel(t *testing.T, mode string, typeset bool, render ...string) *Model {
+	graphics := "glyph"
+	if len(render) > 0 {
+		graphics = render[0]
+	}
 	t.Helper()
-	m := New(Options{Files: []string{"page.md"}, FilesFS: fstest.MapFS{"page.md": {Data: []byte("# Heading\n\n" + strings.Repeat("Text and **bold**.\n\n", 50))}}, Render: "glyph", Theme: mode, Typeset: typeset, Page: 1})
+	m := New(Options{Files: []string{"page.md"}, FilesFS: fstest.MapFS{"page.md": {Data: []byte("# Heading\n\n" + strings.Repeat("Text and **bold**.\n\n", 50))}}, Render: graphics, Theme: mode, Typeset: typeset, Page: 1})
 	t.Cleanup(func() { m.Close() })
 	m.width, m.height = 80, 24
 	drainAnimation(t, m, m.load(false))

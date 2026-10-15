@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/theme"
+	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
 // infoBox draws the details of the current file, no larger than w by h cells.
@@ -56,7 +57,7 @@ func (m *Model) infoBox(w, h int) string {
 // the box says when there is no file, and what it ends with when there is.
 func (m *Model) terminalFields() []document.Field {
 	size := fmt.Sprintf("%d × %d cells", m.width, m.height)
-	if cw, ch := m.pic.CellPixelSize(); cw > 1 && ch > 1 {
+	if cw, ch := m.cellPixelSize(); cw > 1 && ch > 1 {
 		size += fmt.Sprintf(", %d × %d pixels each", cw, ch)
 	}
 	pictures := "glyphs"
@@ -66,10 +67,10 @@ func (m *Model) terminalFields() []document.Field {
 	if m.opts.Render == "glyph" {
 		pictures += " (asked for)"
 	}
-	kitty := map[picture.KittyCapability]string{
-		picture.KittyCapabilitySupported:   "supported",
-		picture.KittyCapabilityUnsupported: "not supported",
-	}[m.pic.KittySupported()]
+	kitty := map[ntpicture.KittyCapability]string{
+		ntpicture.KittyCapabilitySupported:   "supported",
+		ntpicture.KittyCapabilityUnsupported: "not supported",
+	}[m.terminal.Snapshot().Kitty]
 	if kitty == "" {
 		kitty = "not yet known"
 	}
