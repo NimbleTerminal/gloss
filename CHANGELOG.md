@@ -11,6 +11,9 @@
   under a folder named `--help`, and reject unknown `gloss skill` options.
 - Always install the skill under the shared `~/.agents/skills` folder, which
   Codex and other agents read but do not create, besides the agents found.
+- Replace a broken link left at a skill folder (for example by a moved
+  checkout) instead of failing with "file exists", and refuse to write
+  through a link to a folder that exists.
 
 ## `v0.3.2` (2026-10-12)
 
