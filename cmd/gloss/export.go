@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"nimbleterminal.dev/gloss/internal/app"
 	"nimbleterminal.dev/gloss/internal/document"
+	svg "nimbleterminal.dev/ntsvg"
 )
 
 func exportRequest(opts app.Options, path string, generation int) document.Request {

@@ -10,7 +10,6 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/NimbleMarkets/go-booba v0.9.2
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
-	github.com/NimbleMarkets/ntcharts-svg v0.3.0
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/colorprofile v0.4.3
@@ -32,10 +31,11 @@ require (
 	github.com/yuin/goldmark v1.8.2
 	github.com/yuin/goldmark-emoji v1.0.5
 	golang.org/x/image v0.47.0
-	golang.org/x/net v0.59.0
+	golang.org/x/net v0.61.0
 	nimbleterminal.dev/nt3d v0.0.0
 	nimbleterminal.dev/ntpicture v0.0.0
 	nimbleterminal.dev/ntqrcode v0.2.0
+	nimbleterminal.dev/ntsvg v0.0.0
 )
 
 require (
@@ -84,7 +84,7 @@ require (
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
-	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
@@ -97,3 +97,5 @@ replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet
 replace nimbleterminal.dev/ntpicture => ../ntpicture
 
 replace nimbleterminal.dev/nt3d => ../nt3d
+
+replace nimbleterminal.dev/ntsvg => ../ntcharts-svg

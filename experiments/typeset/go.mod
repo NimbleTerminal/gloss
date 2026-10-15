@@ -22,10 +22,7 @@ require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
 	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
-	github.com/NimbleMarkets/go-gpuimage v0.1.0 // indirect
-	github.com/NimbleMarkets/ntcharts-svg v0.3.0 // indirect
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0 // indirect
-	github.com/NimbleMarkets/ntcharts3d v0.2.1 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
@@ -39,8 +36,9 @@ require (
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/gen2brain/h265 v0.2.3 // indirect
+	github.com/gen2brain/jxl v0.2.0 // indirect
 	github.com/go-swiss/fonts v0.0.0-20230807175105-90067c2f5042 // indirect
-	github.com/go-webgpu/goffi v0.6.3 // indirect
+	github.com/go-webgpu/goffi v0.6.4 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect
@@ -65,10 +63,21 @@ require (
 	github.com/xo/terminfo v1.2.0 // indirect
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
+	nimbleterminal.dev/nt3d v0.0.0 // indirect
+	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
+	nimbleterminal.dev/ntgpuimage v0.2.0 // indirect
+	nimbleterminal.dev/ntpicture v0.0.0 // indirect
+	nimbleterminal.dev/ntsvg v0.0.0 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..
+
+replace nimbleterminal.dev/ntsvg => ../../../ntcharts-svg
+
+replace nimbleterminal.dev/ntpicture => ../../../ntpicture
+
+replace nimbleterminal.dev/nt3d => ../../../nt3d

@@ -2,7 +2,7 @@
 
 gloss is written in Go on [Bubble Tea](https://github.com/charmbracelet/bubbletea)
 and [NTCharts](https://github.com/NimbleMarkets/ntcharts), with
-[NTCharts SVG](https://github.com/NimbleMarkets/ntcharts-svg),
+[ntsvg](https://github.com/NimbleMarkets/ntcharts-svg),
 [NTCharts PDF](https://github.com/NimbleMarkets/ntcharts-pdf), and
 [nt3d](https://github.com/NimbleMarkets/nt3d). The user
 documentation is on the [documentation site](https://nimbleterminal.github.io/gloss/docs/);
@@ -22,8 +22,11 @@ a version published after the migration. Existing tags are unchanged.
 Requires Go **1.26.9+** and [Task](https://taskfile.dev/) for the development
 commands. Without Task, build with `go build -o gloss ./cmd/gloss`. Go's
 automatic toolchain selection can download that version. Dependencies are
-pinned in `go.mod`; sibling checkouts aren't needed. One dependency is
-replaced: Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
+pinned in `go.mod`. During the NT library migration, local replacements require
+sibling checkouts of `ntpicture`, `nt3d`, and `ntcharts-svg` (module
+`nimbleterminal.dev/ntsvg`). The separate demo and typesetting experiment
+carry the same replacements. Replace these with published versions before
+release. Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
 taken from the `perf/consolidated` branch of `github.com/neomantra/ultraviolet`
 by a `replace` directive pinned to a commit, until that branch's renderer
 changes are upstream (a Kitty placeholder grid frame costs about 40% less;

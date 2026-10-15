@@ -13,7 +13,6 @@ import (
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/openwith"
@@ -21,6 +20,7 @@ import (
 	"nimbleterminal.dev/nt3d"
 	widget "nimbleterminal.dev/nt3d/widget"
 	ntpicture "nimbleterminal.dev/ntpicture"
+	svg "nimbleterminal.dev/ntsvg"
 )
 
 type Options struct {

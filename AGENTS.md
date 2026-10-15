@@ -6,7 +6,7 @@ A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3M
 meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
 Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
-Tea, NTCharts, NTCharts SVG, NTCharts PDF, and nt3d. The README is the
+Tea, NTCharts, ntsvg, NTCharts PDF, ntpicture, and nt3d. The README is the
 short introduction; the user reference is the guide on the documentation site
 (`docs/hugo/content/guide`); DEVELOP.md is for working on gloss. Keep them and
 this file consistent with the code.
@@ -99,7 +99,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `ntpicture/animation`; preflight counts a WebP's canvas plus the complete
   retained compressed container. Delays under 20 ms use 100 ms. Previews and headless PNG exports stay on the first composited frame. Frames are not
   pages; file navigation is unchanged except Space while an animation is open.
-- **SVG**: rasterized by NTCharts' pure-Go renderer (oksvg feature set), up to
+- **SVG**: rasterized by ntsvg’s pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.
 - **PDF**: PDFium over embedded WebAssembly; pages at 150 DPI default
   (`--dpi 36..600`), 32 MP budget, 10,000-page limit, no password-protected

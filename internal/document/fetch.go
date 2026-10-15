@@ -14,7 +14,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
+	svg "nimbleterminal.dev/ntsvg"
 )
 
 // Fetch downloads what a URL names into dir and returns its path. It takes

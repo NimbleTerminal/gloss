@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	"nimbleterminal.dev/gloss/internal/document"
+	svg "nimbleterminal.dev/ntsvg"
 )
 
 // described is what a file says about itself, for a program to read.

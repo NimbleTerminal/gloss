@@ -22,11 +22,11 @@ import (
 	"time"
 
 	"github.com/NimbleMarkets/ntcharts-pdf/pdfview"
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
 	_ "github.com/NimbleMarkets/ntcharts/v2/picture/decoders"
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
 	"nimbleterminal.dev/nt3d"
+	svg "nimbleterminal.dev/ntsvg"
 )
 
 const MaxFileBytes = 128 << 20
@@ -571,11 +571,15 @@ func renderSVG(name string, data []byte, edge int) (image.Image, error) {
 }
 
 func renderSVGUnbounded(name string, data []byte, edge int) (image.Image, error) {
-	r, err := svg.DefaultRendererFactory()(name, data)
+	r, err := svg.DefaultRendererFactoryWithLimits(svg.Limits{
+		MaxFileBytes: MaxFileBytes, MaxRenderPixels: MaxPixels, MaxRenderEdge: edge,
+	})(name, data)
+	if r != nil {
+		defer r.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer r.Close()
 	return r.Render(edge, edge)
 }
 

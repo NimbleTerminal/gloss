@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
+	svg "nimbleterminal.dev/ntsvg"
 )
 
 const maxDropBytes = 64 << 10

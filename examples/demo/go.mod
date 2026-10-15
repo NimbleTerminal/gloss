@@ -22,7 +22,6 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
 	github.com/NimbleMarkets/booba-shim v0.1.0 // indirect
 	github.com/NimbleMarkets/ntcharts-pdf v0.3.1 // indirect
-	github.com/NimbleMarkets/ntcharts-svg v0.3.0 // indirect
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
 	github.com/NimbleMarkets/pixterm v0.0.0-20260501211346-dc18ac6c1a0f // indirect
@@ -73,13 +72,14 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/image v0.47.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	nimbleterminal.dev/nt3d v0.0.0 // indirect
 	nimbleterminal.dev/ntpicture v0.0.0 // indirect
 	nimbleterminal.dev/ntqrcode v0.2.0 // indirect
+	nimbleterminal.dev/ntsvg v0.0.0 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..
@@ -93,3 +93,5 @@ tool github.com/NimbleMarkets/booba-shim/cmd/booba-shim-assets
 replace nimbleterminal.dev/ntpicture => ../../../ntpicture
 
 replace nimbleterminal.dev/nt3d => ../../../nt3d
+
+replace nimbleterminal.dev/ntsvg => ../../../ntcharts-svg

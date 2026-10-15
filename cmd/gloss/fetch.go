@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NimbleMarkets/ntcharts-svg/svg"
+	svg "nimbleterminal.dev/ntsvg"
 
 	"nimbleterminal.dev/gloss/internal/document"
 )

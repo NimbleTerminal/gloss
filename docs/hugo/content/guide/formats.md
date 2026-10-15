@@ -40,7 +40,7 @@ bookToC: false
   external converters; embedded ICC profiles are not applied, and animated
   files show their first frame. Exif in the container feeds the info box. JPEG
   XL works in Markdown, previews, PNG exports, and the browser demo.
-- SVG: NTCharts' pure-Go SVG renderer, rasterized to a 2400-pixel maximum edge.
+- SVG: ntsvg's pure-Go SVG renderer, rasterized to a 2400-pixel maximum edge.
   SVG support follows the underlying oksvg renderer, not a full browser engine.
   Rendering runs in an isolated worker that is stopped after 15 seconds.
 - PDF: PDFium via embedded WebAssembly; no Poppler, MuPDF, CGO, or external
