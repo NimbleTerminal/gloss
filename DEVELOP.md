@@ -135,7 +135,7 @@ separate browser-demo module:
 - `examples`: small runnable fixtures.
 - `scripts`: site building and fixture generation.
 - `docs/hugo`: the documentation site, published at `/docs/` beside the demo.
-- `skills/gloss`: the agent skill the binary carries (`gloss skill`).
+- `skills/gloss`: the agent skill the binary carries (`gloss skill show`).
 
 ## Document search
 

@@ -43,7 +43,7 @@ timeout, as described below. `--status` exits 0 whenever it reports a state
 session. `gloss skill schema` prints a JSON Schema of the JSON gloss writes,
 made from the types that write it; the session objects carry `"protocol": 1`.
 
-`gloss skill` prints this file, so the installed binary can always say what
+`gloss skill show` prints this file, so the installed binary can always say what
 it itself does; `gloss skill install` writes it where the agents on the
 machine look for skills. A file named `skill`, `view` or `help` is opened as
 `gloss view skill`.

@@ -33,12 +33,13 @@ func splitVerb(args []string) (name string, rest []string) {
 	return "view", args
 }
 
-const skillUsage = `Usage: gloss skill [show]
+const skillUsage = `Usage: gloss skill show
        gloss skill install [FOLDER]
        gloss skill schema
 
 show prints the skill (SKILL.md) that teaches an agent gloss's headless
-surface, so it always matches this binary. It is the default.
+surface, so it always matches this binary. Without a command, gloss skill
+prints this help.
 
 install writes it as gloss/SKILL.md under the shared agents folder
 (~/.agents/skills, which Codex and others read) and the skills folder of each
@@ -63,10 +64,12 @@ func parseSkill(args []string, opts options, out io.Writer) (options, bool, erro
 			return opts, false, fmt.Errorf("skill: unknown option %s (see gloss skill --help)", a)
 		}
 	}
-	sub := "show"
-	if len(args) > 0 {
-		sub, args = args[0], args[1:]
+	// The skill is long, so bare skill is help; printing it takes asking.
+	if len(args) == 0 {
+		fmt.Fprintln(out, skillUsage)
+		return opts, true, nil
 	}
+	sub, args := args[0], args[1:]
 	switch {
 	case sub == "show" && len(args) == 0:
 		fmt.Fprint(out, skills.Gloss)

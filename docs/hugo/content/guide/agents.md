@@ -13,7 +13,7 @@ binary carries it, so it always matches the flags it was built with:
 ```sh
 gloss skill install                              # install it for the agents on this machine
 gloss skill install ~/.claude/skills             # or into the skills folder named
-gloss skill                                      # print it, to place it by hand
+gloss skill show                                 # print it, to place it by hand
 ```
 
 Installation always writes the shared `~/.agents/skills` folder, which Codex

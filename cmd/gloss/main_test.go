@@ -23,9 +23,14 @@ func TestCLI(t *testing.T) {
 			t.Fatalf("failed %s", flag)
 		}
 	}
-	// gloss skill prints the skill whole, frontmatter and all, as it would be
-	// installed; so do show and the old --skill.
-	for _, args := range [][]string{{"skill"}, {"skill", "show"}, {"--skill"}} {
+	// gloss skill show prints the skill whole, frontmatter and all, as it
+	// would be installed; so does the old --skill. Bare skill is help: the
+	// skill is long, so printing it takes asking.
+	var bare bytes.Buffer
+	if _, done, err := parse([]string{"skill"}, &bare); err != nil || !done || !strings.Contains(bare.String(), "gloss skill install [FOLDER]") || strings.Contains(bare.String(), "name: gloss") {
+		t.Fatalf("bare skill: done=%v err=%v\n%s", done, err, bare.String())
+	}
+	for _, args := range [][]string{{"skill", "show"}, {"--skill"}} {
 		var skill bytes.Buffer
 		if _, done, err := parse(args, &skill); err != nil || !done {
 			t.Fatalf("%v: done=%v err=%v", args, done, err)

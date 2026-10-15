@@ -128,7 +128,7 @@ func bashCompletion(f *pflag.FlagSet) string {
     fi
     COMPREPLY=()
     if [[ ${COMP_WORDS[1]} == skill && ${COMP_CWORD} -ge 2 ]]; then
-        # gloss skill [show | install [FOLDER]]
+        # gloss skill show | install [FOLDER]
         if [[ ${COMP_CWORD} -eq 2 ]]; then
             COMPREPLY=( $(compgen -W "show install" -- "$cur") )
         elif [[ ${COMP_CWORD} -eq 3 && ${COMP_WORDS[2]} == install ]]; then
