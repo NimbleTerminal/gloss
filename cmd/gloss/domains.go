@@ -27,7 +27,7 @@ type example struct {
 
 // usageLines and usageAbout are the first words of --help, and of the
 // reference.
-var usageLines = []string{"gloss [view] [options] [file | folder]...", "command | gloss [options] -", "gloss skill show | install [folder]", "gloss help [command]"}
+var usageLines = []string{"gloss [view] [options] [file | folder]...", "command | gloss [options] -", "gloss skill show", "gloss skill install [folder]", "gloss help [command]"}
 
 const usageAbout = "A visual pager for images, SVG, PDF, STL, 3MF, Markdown, Word, Excel and CSV.\nWith no file, gloss opens empty: drop files on it, or press o to browse.\nA folder opens the file browser there.\nOptions may appear before or after filenames. Use -- to end options.\nA file named like a command (view, skill, help) is opened with the command spelled out: gloss view skill."
 

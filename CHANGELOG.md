@@ -13,7 +13,7 @@
   Codex and other agents read but do not create, besides the agents found.
 - Replace a broken link left at a skill folder (for example by a moved
   checkout) instead of failing with "file exists", and refuse to write
-  through a link to a folder that exists.
+  through or replace a link to a folder that exists or cannot be checked.
 - `gloss skill` alone now prints its help; `gloss skill show` prints the skill.
 
 ## `v0.3.2` (2026-10-12)
