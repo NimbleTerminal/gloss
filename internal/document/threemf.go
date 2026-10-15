@@ -2,6 +2,7 @@ package document
 
 import (
 	"cmp"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"html"
@@ -11,7 +12,7 @@ import (
 	"strings"
 
 	nt3dmath "nimbleterminal.dev/nt3d/math"
-	"nimbleterminal.dev/nt3d/mesh"
+	nt3dmesh "nimbleterminal.dev/nt3d/mesh"
 )
 
 // Model3MF adapts nt3d's decoded 3MF model to Gloss's document and part
@@ -36,7 +37,18 @@ type Model3MF struct {
 var errUncountable = errors.New("3MF has too many triangles to count")
 
 // Part is one thing a 3MF build places: an object, with whatever it holds.
-type Part = mesh.Part
+type Part = nt3dmesh.Part
+
+// attribute reads an XML attribute by its local name. Office parsers share
+// this helper with the 3MF decoder.
+func attribute(e xml.StartElement, name string) string {
+	for _, a := range e.Attr {
+		if a.Name.Local == name {
+			return a.Value
+		}
+	}
+	return ""
+}
 
 func (m *Model3MF) triangles() int {
 	if m == nil {
@@ -54,9 +66,9 @@ func (m *Model3MF) tooLarge() string {
 }
 
 func Parse3MF(data []byte) (*Model3MF, error) {
-	decoded, err := mesh.Decode3MF(data, &mesh.Options{MaxTriangles: maxTriangles, MaxBytes: MaxFileBytes, Color: meshColor})
-	tooMany := errors.Is(err, mesh.ErrTooManyTriangles)
-	tooLarge := errors.Is(err, mesh.ErrTooLarge)
+	decoded, err := nt3dmesh.Decode3MF(data, &nt3dmesh.Options{MaxTriangles: maxTriangles, MaxBytes: maxUnpacked, Color: meshColor})
+	tooMany := errors.Is(err, nt3dmesh.ErrTooManyTriangles)
+	tooLarge := errors.Is(err, nt3dmesh.ErrTooLarge)
 	uncountable := tooMany && strings.Contains(err.Error(), "3MF has more than")
 	if err != nil && !tooMany && !tooLarge {
 		return nil, err
@@ -91,7 +103,7 @@ func Parse3MF(data []byte) (*Model3MF, error) {
 }
 
 func (m *Model3MF) Assemble(shown []bool) (*Mesh, error) {
-	decoded, err := mesh.Decode3MF(m.data, &mesh.Options{MaxTriangles: maxTriangles, MaxBytes: MaxFileBytes, Color: meshColor, Parts: shown})
+	decoded, err := nt3dmesh.Decode3MF(m.data, &nt3dmesh.Options{MaxTriangles: maxTriangles, MaxBytes: maxUnpacked, Color: meshColor, Parts: shown})
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +116,7 @@ func (m *Model3MF) Assemble(shown []bool) (*Mesh, error) {
 
 // meshFromObjects flattens decoded object geometries into the single geometry
 // Gloss's mesh viewer expects, preserving face colors and plain-color flags.
-func meshFromObjects(objects []mesh.Object) *Mesh {
+func meshFromObjects(objects []nt3dmesh.Object) *Mesh {
 	out := &Mesh{}
 	for _, object := range objects {
 		base := uint32(len(out.geometry.Vertices))

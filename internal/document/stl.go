@@ -1,6 +1,7 @@
 package document
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"math"
@@ -46,6 +47,9 @@ func (m *Mesh) area() float64 {
 func ParseSTL(data []byte) (*Mesh, error) {
 	decoded, err := nt3dmesh.DecodeSTL(data, &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor})
 	if err != nil {
+		if errors.Is(err, nt3dmesh.ErrTooManyTriangles) {
+			return nil, fmt.Errorf("mesh exceeds %s triangles", grouped(maxTriangles))
+		}
 		return nil, err
 	}
 	m := &Mesh{}
@@ -63,4 +67,27 @@ func ParseSTL(data []byte) (*Mesh, error) {
 		return nil, fmt.Errorf("STL contains no triangles")
 	}
 	return m, nil
+}
+
+// add appends a flat-shaded face. The parser now delegates to nt3d/mesh;
+// this helper remains for Gloss's geometry-focused tests and adapters.
+func (m *Mesh) add(v [3]math3d.Vec3, shade color.RGBA) error {
+	if m.Triangles() >= maxTriangles {
+		return fmt.Errorf("mesh exceeds %s triangles", grouped(maxTriangles))
+	}
+	for _, p := range v {
+		for _, x := range []float32{p.X, p.Y, p.Z} {
+			if math.IsNaN(float64(x)) || math.IsInf(float64(x), 0) || math.Abs(float64(x)) > 1e15 {
+				return fmt.Errorf("mesh vertex is non-finite or exceeds coordinate limits")
+			}
+		}
+	}
+	n := v[1].Sub(v[0]).Cross(v[2].Sub(v[0])).Normalize()
+	for _, p := range v {
+		m.geometry.Indices = append(m.geometry.Indices, uint32(len(m.geometry.Vertices)))
+		m.geometry.Vertices = append(m.geometry.Vertices, nt3d.Vertex{Position: p, Normal: n, Color: shade})
+		m.plain = append(m.plain, shade == meshColor)
+		m.geometry.Bounds.Include(p)
+	}
+	return nil
 }
