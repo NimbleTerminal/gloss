@@ -183,5 +183,5 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 nimbleterminal.dev/ntcanvas v0.1.0 h1:a3Ic7siZlAAO8rb2AQjNx/r9FNr/wP1816ZSF/HCmBk=
 nimbleterminal.dev/ntcanvas v0.1.0/go.mod h1:WMTAXxNeQsxN/seXUyVlWXA+WDYEhgeRW6ukJEPjZsk=
-nimbleterminal.dev/ntgpuimage v0.2.0 h1:VtAwNTIUxAlHgkb3J/rt/sVE8AS2Jf64/pS58u4xu7Q=
-nimbleterminal.dev/ntgpuimage v0.2.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=
+nimbleterminal.dev/ntgpuimage v0.3.0 h1:x3/wbnS6xHFsMbKg+vXTbbEv2pDfnJTbGpKiUoSnAjM=
+nimbleterminal.dev/ntgpuimage v0.3.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=

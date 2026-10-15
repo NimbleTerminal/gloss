@@ -4000,7 +4000,7 @@ Browser runtime licenses are in web/licenses; regenerate dependency notices with
 `task notices`. Generated runtime assets retain their upstream licenses.
 ```
 
-## nimbleterminal.dev/ntgpuimage v0.2.0
+## nimbleterminal.dev/ntgpuimage v0.3.0
 
 ```
 MIT License
