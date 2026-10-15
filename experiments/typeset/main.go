@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"bytes"
-	"github.com/NimbleMarkets/ntcharts-pdf/pdfview"
 	"github.com/ledongthuc/pdf"
+	"nimbleterminal.dev/ntpdf"
 )
 
 type measurement struct {
@@ -136,7 +136,7 @@ func measure(backend, path, fonts, out string) (m measurement, err error) {
 			return m, er
 		}
 		m.PDFPages = reader.NumPage()
-		renderer, er := pdfview.DefaultRendererFactoryWithLimits(pdfview.Limits{MaxRenderPixels: 32 << 20})(path, data)
+		renderer, er := ntpdf.DefaultRendererFactoryWithLimits(ntpdf.Limits{MaxRenderPixels: 32 << 20})(path, data)
 		if er != nil {
 			return m, er
 		}
@@ -156,7 +156,7 @@ func measure(backend, path, fonts, out string) (m measurement, err error) {
 		if er != nil {
 			return m, er
 		}
-		renderer, er = pdfview.DefaultRendererFactoryWithLimits(pdfview.Limits{MaxRenderPixels: 32 << 20})(path, data)
+		renderer, er = ntpdf.DefaultRendererFactoryWithLimits(ntpdf.Limits{MaxRenderPixels: 32 << 20})(path, data)
 		if er != nil {
 			return m, er
 		}

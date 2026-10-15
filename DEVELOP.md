@@ -3,7 +3,7 @@
 gloss is written in Go on [Bubble Tea](https://github.com/charmbracelet/bubbletea)
 and [NTCharts](https://github.com/NimbleMarkets/ntcharts), with
 [ntsvg](https://github.com/NimbleMarkets/ntcharts-svg),
-[NTCharts PDF](https://github.com/NimbleMarkets/ntcharts-pdf), and
+[ntpdf](https://github.com/NimbleMarkets/ntcharts-pdf), and
 [nt3d](https://github.com/NimbleMarkets/nt3d). The user
 documentation is on the [documentation site](https://nimbleterminal.github.io/gloss/docs/);
 this file is for working on gloss itself. [AGENTS.md](AGENTS.md) is the same
@@ -23,9 +23,9 @@ Requires Go **1.26.9+** and [Task](https://taskfile.dev/) for the development
 commands. Without Task, build with `go build -o gloss ./cmd/gloss`. Go's
 automatic toolchain selection can download that version. Dependencies are
 pinned in `go.mod`. During the NT library migration, local replacements require
-sibling checkouts of `ntpicture`, `nt3d`, and `ntcharts-svg` (module
-`nimbleterminal.dev/ntsvg`). The separate demo and typesetting experiment
-carry the same replacements. Replace these with published versions before
+sibling checkouts of `ntpicture`, `nt3d`, `ntcharts-svg` (module
+`nimbleterminal.dev/ntsvg`), and `ntcharts-pdf` (module `nimbleterminal.dev/ntpdf`).
+The separate demo and typesetting experiment carry the same replacements. Replace these with published versions before
 release. Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
 taken from the `perf/consolidated` branch of `github.com/neomantra/ultraviolet`
 by a `replace` directive pinned to a commit, until that branch's renderer
@@ -712,7 +712,7 @@ app with `go:embed` and read through the same document loaders. User files are n
 links fetch directly in the browser with CORS, credentials omitted, no referrer,
 a one-minute deadline, and a streamed byte limit. `--accept` (or `?accept=`
 in the public app) validates content using the Go document code before adding it.
-There is no public fetch proxy. Browser PDF rendering uses the NTCharts PDFium bridge,
+There is no public fetch proxy. Browser PDF rendering uses the ntpdf PDFium bridge,
 which loads PDFium from the `@embedpdf/pdfium` npm package. The generated shim
 points at a CDN, so `scripts/build-site.sh` instead downloads that exact version
 from the npm registry, checks it against a pinned SHA-512, serves it from

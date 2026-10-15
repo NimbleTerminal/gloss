@@ -12,8 +12,6 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/NimbleMarkets/booba-shim v0.1.0 h1:oy4hrfKJw+Loyc0SmebYP7NzDLR7j3jDakA+OJ2ygQw=
 github.com/NimbleMarkets/booba-shim v0.1.0/go.mod h1:+3ch4kZuCLtrwGK2s3ALo/I1Dzcz4e888PC3f2lLbgs=
-github.com/NimbleMarkets/ntcharts-pdf v0.3.1 h1:gm5EDfcNVLz7HVlZKP9NnATwL6xJ1gOdu4gJHmjo1qg=
-github.com/NimbleMarkets/ntcharts-pdf v0.3.1/go.mod h1:T3VEhsT/AOPiVjIWKeApPAX57ZOBb4Q2VMr+1VYKwUk=
 github.com/NimbleMarkets/ntcharts/v2 v2.8.0 h1:80ticj4+1zmJKswSd2QJHS/n022BaW8jio4ZGJrhcmc=
 github.com/NimbleMarkets/ntcharts/v2 v2.8.0/go.mod h1:w+5yLPICduptuEeOk8ogPi2gYU9qmaim1Elol3TUI1k=
 github.com/NimbleMarkets/oksvg v0.1.1 h1:ryK0nmpe6rTO/VybmE3HY7dnxLFh6V3iJeDO6cZcZoA=

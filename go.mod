@@ -9,7 +9,6 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/NimbleMarkets/go-booba v0.9.2
-	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/colorprofile v0.4.3
@@ -33,6 +32,7 @@ require (
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
 	nimbleterminal.dev/nt3d v0.0.0
+	nimbleterminal.dev/ntpdf v0.0.0
 	nimbleterminal.dev/ntpicture v0.0.0
 	nimbleterminal.dev/ntqrcode v0.2.0
 	nimbleterminal.dev/ntsvg v0.0.0
@@ -99,3 +99,5 @@ replace nimbleterminal.dev/ntpicture => ../ntpicture
 replace nimbleterminal.dev/nt3d => ../nt3d
 
 replace nimbleterminal.dev/ntsvg => ../ntcharts-svg
+
+replace nimbleterminal.dev/ntpdf => ../ntcharts-pdf

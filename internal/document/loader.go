@@ -21,11 +21,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NimbleMarkets/ntcharts-pdf/pdfview"
 	_ "github.com/NimbleMarkets/ntcharts/v2/picture/decoders"
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
 	"nimbleterminal.dev/nt3d"
+	"nimbleterminal.dev/ntpdf"
 	svg "nimbleterminal.dev/ntsvg"
 )
 
@@ -216,7 +216,7 @@ type Loader struct {
 	closed          bool
 	generation      uint64
 	path            string
-	pdf             pdfview.Renderer // Made when the first page is drawn: text alone never needs it.
+	pdf             ntpdf.Renderer // Made when the first page is drawn: text alone never needs it.
 	pdfData         []byte
 	typeset         *Markdown
 	typesetEngine   *engine
@@ -603,7 +603,7 @@ func (l *Loader) renderPDF(q Request) Result {
 		return out
 	}
 	if l.pdf == nil {
-		if l.pdf, err = pdfview.DefaultRendererFactoryWithLimits(pdfview.Limits{MaxRenderPixels: MaxPixels})(q.Path, l.pdfData); err != nil {
+		if l.pdf, err = ntpdf.DefaultRendererFactoryWithLimits(ntpdf.Limits{MaxRenderPixels: MaxPixels})(q.Path, l.pdfData); err != nil {
 			l.pdf = nil
 			out.Err = err
 			return out

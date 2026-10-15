@@ -3,7 +3,6 @@ module nimbleterminal.dev/gloss/experiments/typeset
 go 1.26.9
 
 require (
-	github.com/NimbleMarkets/ntcharts-pdf v0.3.1
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/go-text/render v0.2.1
 	github.com/go-text/typesetting v0.3.5
@@ -13,6 +12,7 @@ require (
 	github.com/yuin/goldmark v1.8.2
 	golang.org/x/image v0.47.0
 	nimbleterminal.dev/gloss v0.0.0
+	nimbleterminal.dev/ntpdf v0.0.0
 )
 
 require (
@@ -81,3 +81,5 @@ replace nimbleterminal.dev/ntsvg => ../../../ntcharts-svg
 replace nimbleterminal.dev/ntpicture => ../../../ntpicture
 
 replace nimbleterminal.dev/nt3d => ../../../nt3d
+
+replace nimbleterminal.dev/ntpdf => ../../../ntcharts-pdf
