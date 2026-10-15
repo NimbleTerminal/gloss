@@ -15,6 +15,9 @@
   checkout) instead of failing with "file exists", and refuse to write
   through or replace a link to a folder that exists or cannot be checked.
 - `gloss skill` alone now prints its help; `gloss skill show` prints the skill.
+- `gloss skill install auto` installs under a folder named `auto`, like any
+  other name; only `gloss skill install` alone looks for the agents. A `~`
+  folder with no home folder set is an error rather than a literal `~`.
 
 ## `v0.3.2` (2026-10-12)
 

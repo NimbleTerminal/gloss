@@ -56,7 +56,7 @@ func TestSkillInstallAuto(t *testing.T) {
 		t.Fatal(err)
 	}
 	var stdout, stderr bytes.Buffer
-	if err := installSkill("auto", &stdout, &stderr); err != nil {
+	if err := installSkill("", &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
 	claude := filepath.Join(home, ".claude", "skills", "gloss", "SKILL.md")
@@ -76,7 +76,7 @@ func TestSkillInstallAuto(t *testing.T) {
 		t.Fatal(err)
 	}
 	stdout.Reset()
-	if err := installSkill("auto", &stdout, &stderr); err != nil {
+	if err := installSkill("", &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(stdout.String(), filepath.Join(kimi, "skills", "gloss", "SKILL.md")) {
@@ -91,7 +91,7 @@ func TestSkillInstallSharedAlways(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("KIMI_CODE_HOME", "")
 	var stdout, stderr bytes.Buffer
-	if err := installSkill("auto", &stdout, &stderr); err != nil {
+	if err := installSkill("", &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
 	shared := filepath.Join(home, ".agents", "skills", "gloss", "SKILL.md")
@@ -108,15 +108,17 @@ func TestExpandHome(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	if expandHome("~/skills") != filepath.Join(home, "skills") || expandHome("~") != home || expandHome("/tmp/x") != "/tmp/x" {
-		t.Fatalf("expandHome: ~=%q ~/skills=%q", expandHome("~"), expandHome("~/skills"))
+	for path, want := range map[string]string{"~/skills": filepath.Join(home, "skills"), "~": home, "/tmp/x": "/tmp/x", "~x": "~x"} {
+		if got, err := expandHome(path); err != nil || got != want {
+			t.Errorf("expandHome(%q) = %q, %v; want %q", path, got, err, want)
+		}
 	}
 }
 
 func TestSkillVerb(t *testing.T) {
 	// Bare install looks for the agents here.
 	opts, done, err := parse([]string{"skill", "install"}, &bytes.Buffer{})
-	if err != nil || done || opts.SkillInstall != "auto" {
+	if err != nil || done || !opts.SkillDetect || opts.SkillInstall != "" {
 		t.Fatalf("skill install = %+v, done=%v, %v", opts, done, err)
 	}
 	for _, args := range [][]string{{"skill", "uninstall"}, {"skill", "show", "x"}, {"skill", "install", "a", "b"}, {"skill", "--bogus"}} {
@@ -206,5 +208,42 @@ func TestSkillInstallKeepsLinkItCannotCheck(t *testing.T) {
 	}
 	if info, err := os.Lstat(link); err != nil || info.Mode()&os.ModeSymlink == 0 {
 		t.Fatalf("%s is no longer the link: %v", link, err)
+	}
+}
+
+func TestSkillInstallFolderNamedAuto(t *testing.T) {
+	// auto is a folder like any other; only no folder at all means detection.
+	opts, done, err := parse([]string{"skill", "install", "auto"}, &bytes.Buffer{})
+	if err != nil || done || opts.SkillDetect || opts.SkillInstall != "auto" {
+		t.Fatalf("skill install auto = %+v, done=%v, %v", opts, done, err)
+	}
+	home, dir := t.TempDir(), t.TempDir()
+	t.Setenv("HOME", home)
+	t.Chdir(dir)
+	var stdout bytes.Buffer
+	if err := installSkill("auto", &stdout, &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.Join("auto", "gloss", "SKILL.md"); strings.TrimSpace(stdout.String()) != want {
+		t.Fatalf("stdout = %q, want %q", stdout.String(), want)
+	}
+	if _, err := os.Stat(filepath.Join(home, ".agents")); !os.IsNotExist(err) {
+		t.Fatalf("installed for the agents found: %v", err)
+	}
+	if _, _, err := parse([]string{"skill", "install", ""}, &bytes.Buffer{}); err == nil {
+		t.Fatal("accepted an empty folder")
+	}
+}
+
+func TestSkillInstallTildeWithoutHome(t *testing.T) {
+	// With no home folder, ~ cannot be resolved; it is an error, not a folder.
+	dir := t.TempDir()
+	t.Chdir(dir)
+	t.Setenv("HOME", "")
+	if err := installSkill("~/skills", &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
+		t.Fatal("installed under a literal ~")
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 0 {
+		t.Fatalf("wrote files: %v", entries)
 	}
 }

@@ -64,7 +64,8 @@ type options struct {
 	Detached      string         // Set on the server a detached start runs: its token.
 	VisionProfile string         // A convenience alias for a max edge; --max-edge is the stable flag.
 	EdgeReason    string         // Why the alias chose its edge, for the manifest.
-	SkillInstall  string         // Where gloss skill install writes, "auto" to find the agents here.
+	SkillInstall  string         // Where gloss skill install writes.
+	SkillDetect   bool           // gloss skill install with no folder: write for the agents found here.
 }
 
 func parse(args []string, out io.Writer) (options, bool, error) {
@@ -180,6 +181,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if *showSkill {
 		if f.Changed("install") {
 			opts.SkillInstall = *skillInstall
+			opts.SkillDetect = *skillInstall == ""
 			return opts, false, nil
 		}
 		fmt.Fprint(out, skills.Gloss)
@@ -393,7 +395,7 @@ func run(args []string) (err error) {
 		}
 		return writeApps(os.Stdout, host, opts.JSON)
 	}
-	if opts.SkillInstall != "" {
+	if opts.SkillDetect || opts.SkillInstall != "" {
 		if term.IsTerminal(os.Stdout.Fd()) {
 			// The diagnostic already includes the path. Emit bare paths only
 			// when stdout is redirected for a script to consume.

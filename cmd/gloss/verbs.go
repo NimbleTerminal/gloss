@@ -74,11 +74,13 @@ func parseSkill(args []string, opts options, out io.Writer) (options, bool, erro
 	case sub == "show" && len(args) == 0:
 		fmt.Fprint(out, skills.Gloss)
 		return opts, true, nil
-	case sub == "install" && len(args) <= 1:
-		opts.SkillInstall = "auto"
-		if len(args) == 1 {
-			opts.SkillInstall = args[0]
-		}
+	case sub == "install" && len(args) == 0:
+		opts.SkillDetect = true
+		return opts, false, nil
+	case sub == "install" && len(args) == 1 && args[0] == "":
+		return opts, false, fmt.Errorf("skill install: the folder is empty (see gloss skill --help)")
+	case sub == "install" && len(args) == 1:
+		opts.SkillInstall = args[0]
 		return opts, false, nil
 	case sub == "schema" && len(args) == 0:
 		return opts, true, writeSchema(out)

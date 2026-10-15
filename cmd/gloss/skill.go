@@ -37,14 +37,14 @@ func skillHomes() []skillHome {
 	}
 }
 
-// installSkill writes the embedded skill as gloss/SKILL.md under the shared
-// agents folder and the folder of each agent found on this machine, or under
-// the one named. The paths written go to stdout, one to a line; who each is
-// for goes to stderr. A skill already there is updated: it is meant to match
-// the binary.
+// installSkill writes the embedded skill as gloss/SKILL.md under the folder
+// named or, when where is empty, under the shared agents folder and the folder
+// of each agent found on this machine. The paths written go to stdout, one to
+// a line; who each is for goes to stderr. A skill already there is updated: it
+// is meant to match the binary.
 func installSkill(where string, stdout, stderr io.Writer) error {
 	var homes []skillHome
-	if where == "auto" {
+	if where == "" {
 		for _, h := range skillHomes() {
 			if h.detect == "" {
 				homes = append(homes, h)
@@ -56,7 +56,11 @@ func installSkill(where string, stdout, stderr io.Writer) error {
 			return errors.New("no home folder to install under; name one: gloss skill install $HOME/.agents/skills")
 		}
 	} else {
-		homes = []skillHome{{root: expandHome(where)}}
+		root, err := expandHome(where)
+		if err != nil {
+			return err
+		}
+		homes = []skillHome{{root: root}}
 	}
 	for _, h := range homes {
 		dir := filepath.Join(h.root, "gloss")
@@ -129,11 +133,14 @@ func writeFileAtomic(path string, data []byte, mode os.FileMode) error {
 }
 
 // expandHome resolves a leading ~/ , which the shell leaves alone after =.
-func expandHome(path string) string {
-	if path == "~" || strings.HasPrefix(path, "~/") {
-		if home, err := os.UserHomeDir(); err == nil {
-			return filepath.Join(home, path[1:])
-		}
+// Without a home folder it is an error, not a folder named ~.
+func expandHome(path string) (string, error) {
+	if path != "~" && !strings.HasPrefix(path, "~/") {
+		return path, nil
 	}
-	return path
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("cannot resolve %s: %w", path, err)
+	}
+	return filepath.Join(home, path[1:]), nil
 }
