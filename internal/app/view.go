@@ -112,7 +112,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body = strings.Join(lines[:min(len(lines), h)], "\n")
 	}
 	if exact {
-		return m.spliceTypesetOverlays(body), mouse
+		return body, mouse
 	}
 	frame := lipgloss.NewStyle().Width(w).Height(h)
 	if plain || m.markdown != nil {

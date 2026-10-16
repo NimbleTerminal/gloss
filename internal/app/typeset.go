@@ -9,7 +9,6 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/gloss/internal/animate"
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
@@ -180,22 +179,19 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 		}
 	}
 	m.typesetPlayback = v.Playback
-	overlays := m.stopTypesetOverlays()
+	var overlays tea.Cmd
 	m.typesetPending = nil
-	if m.pic.Mode() == picture.PictureKitty && v.Playback != nil && len(v.Animated) > 0 && v.TypesetView != nil {
-		pending := v
-		m.typesetPending = &pending
-		m.typesetSettle++
-		owner, revision := m.kittyID, m.typesetSettle
-		overlays = tea.Batch(overlays, tea.Tick(typesetSettleDelay, func(time.Time) tea.Msg { return typesetSettled{owner, revision} }))
-	}
-	switch {
-	case m.typesetPending != nil:
-		m.presentation.SetSource(nil) // The overlays will play the regions; the page stands at their current frames.
-	case v.Playback != nil:
-		m.presentation.SetSource(animate.NewPictureSource(v.Playback))
-		m.presentation.Paused = false
-		m.presentation.SetSpeed(0)
+	if v.Playback != nil && !m.isPreview {
+		if m.pic.Mode() == picture.PictureKitty && len(v.Animated) > 0 && v.TypesetView != nil {
+			pending := v
+			m.typesetPending = &pending
+			m.typesetSettle++
+			owner, revision := m.kittyID, m.typesetSettle
+			overlays = tea.Tick(typesetSettleDelay, func(time.Time) tea.Msg { return typesetSettled{owner, revision} })
+		}
+		overlays = tea.Batch(overlays, m.showTypesetLayers(v.Playback))
+	} else {
+		overlays = m.clearTypesetLayers()
 	}
 	m.typesetShown = v.TypesetView
 	m.typesetTheme = v.Theme
@@ -213,9 +209,11 @@ func (m *Model) typesetSettled(msg typesetSettled) tea.Cmd {
 	if msg.owner != m.kittyID || msg.revision != m.typesetSettle || m.typesetPending == nil || m.typesetActive != 0 || !m.typesetMatches() {
 		return nil
 	}
-	v := *m.typesetPending
 	m.typesetPending = nil
-	return m.layoutTypesetOverlays(v)
+	if m.typesetLayers != nil {
+		return m.typesetLayers.SetActive(true)
+	}
+	return nil
 }
 func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
 	step := max(1, 75>>m.zoom)

@@ -26,6 +26,9 @@ func (a *animation) cancelPending()                 { a.CancelPending() }
 func (m *Model) retireAnimationPicture(cmd tea.Cmd) { m.presentation.Retire(cmd) }
 func (m *Model) clearAnimationFront() tea.Cmd       { return m.presentation.ClearFront() }
 func (m *Model) pictureView() string {
+	if m.typesetLayers != nil {
+		return m.typesetLayers.View()
+	}
 	if m.still != nil {
 		return m.still.view()
 	}
@@ -37,6 +40,9 @@ func (m *Model) pictureView() string {
 }
 func (m *Model) resizeAnimation() tea.Cmd { m.presentation.CancelPending(); return m.refreshImage() }
 func (m *Model) keepAnimationPicture() tea.Cmd {
+	if m.typesetLayers != nil {
+		return m.typesetLayers.Keep()
+	}
 	if m.still != nil {
 		return m.still.pic.Keep()
 	}
@@ -74,9 +80,6 @@ func (m *Model) animationFrame(f animationFrame) tea.Cmd {
 	cmd, _ := m.presentation.Update(f)
 	if f.Owner == m.presentation && f.Epoch == m.presentation.Epoch && m.presentation.Source != nil {
 		m.source = m.presentation.Source.Image()
-		if s, ok := m.presentation.Source.(*animate.PictureSource); ok {
-			m.typesetPlayback = s.Composite
-		}
 	}
 	m.picID = m.presentation.ID
 	return cmd
@@ -85,4 +88,10 @@ func (m *Model) toggleAnimation() tea.Cmd { return m.presentation.Toggle() }
 func (m *Model) animationTransmission(msg tea.Msg, cmd tea.Cmd) tea.Cmd {
 	return m.presentation.Transmission(msg, cmd)
 }
-func (m *Model) clearPicture() tea.Cmd { return tea.Batch(m.clearStill(), m.presentation.Clear()) }
+func (m *Model) clearPicture() tea.Cmd {
+	var layers tea.Cmd
+	if m.typesetLayers != nil {
+		layers = m.typesetLayers.SetVisible(false)
+	}
+	return tea.Batch(layers, m.clearStill(), m.presentation.Clear())
+}

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Export the displayed animated typeset viewport, including its current image
+  layers, while retaining the displayed frame during pending reflow.
+
 - Use nt3d's bounded STL and 3MF decoders, including STL binary face colors,
   while preserving Gloss's part selection and oversized-model summaries.
 - Honor cancellation while decoding GIF/WebP images and count the complete

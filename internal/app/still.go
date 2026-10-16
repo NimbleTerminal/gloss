@@ -94,18 +94,27 @@ func (m *Model) clearStill() tea.Cmd {
 }
 
 func (m *Model) hasPictureFront() bool {
+	if m.typesetLayers != nil {
+		return m.typesetLayers.View() != ""
+	}
 	if m.still != nil {
 		return m.still.front != nil
 	}
 	return m.presentation.Front != nil
 }
 func (m *Model) pictureBusy() bool {
+	if m.typesetLayers != nil {
+		return m.typesetLayers.Status().Picture.Busy
+	}
 	if m.still != nil {
 		return m.still.pic.Status().Busy
 	}
 	return m.presentation.Awaiting
 }
 func (m *Model) pictureExact(w, h int) bool {
+	if m.typesetLayers != nil {
+		return m.typesetLayers.Mode() == ntpicture.PictureKitty && m.typesetLayers.View() != ""
+	}
 	if m.still != nil {
 		return m.still.pic.Mode() == ntpicture.PictureKitty && m.still.front != nil && m.still.width == w && m.still.height == h
 	}

@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
+	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
 // Each picture shown with Kitty graphics goes under an id of its own: the
@@ -43,7 +44,7 @@ func TestKittyPicturesSendZlibFrames(t *testing.T) {
 	if m.pic.KittyFormat() != picture.KittyFormatZlib {
 		t.Fatalf("page format %v", m.pic.KittyFormat())
 	}
-	if len(m.typesetOverlays) == 0 || m.typesetOverlays[0].pic.KittyFormat() != picture.KittyFormatZlib {
+	if m.typesetLayers == nil || len(m.typesetLayers.Layers()) == 0 || m.typesetLayers.Layers()[0].Status.Picture.Format != ntpicture.KittyFormatZlib {
 		t.Fatal("overlay format")
 	}
 	cmd, _ := m.documentKey("t") // Normal Markdown rendering, with the GIF as an inline picture.

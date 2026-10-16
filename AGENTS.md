@@ -48,7 +48,8 @@ Update source docs and regenerate the generated guide pages with `task docs`.
 - `internal/app/still.go`: still images, PDF/typeset pages, previews, and thumbnail
   grids use `ntpicture.Picture` for coalesced preparation, retained fronts,
   retirement, and keep-screen cleanup. Typeset composites use ntpicture's
-  immutable animation API; their playback still crosses a legacy Gloss adapter.
+  immutable animation API and `playback.Layers`; Gloss retains layout, visibility,
+  and scroll-settle policy in `internal/app/typeset_layers.go`.
   Standalone/Markdown playback, terminal discovery, and the shared block ID
   allocator remain host-owned during the migration. The temporary sibling
   module replacement must become a published pin before release.
@@ -143,7 +144,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   exports use fixed-width numbered 1125-pixel slices at 150 DPI (`--page`,
   `--dpi`, `--max-edge`), with `kind: "markdown"`. No network assets. Under
   Kitty graphics the page is one still picture and each GIF plays in an
-  overlay picture the size of its cells (`internal/app/typeset_overlay.go`),
+  overlay picture the size of its cells (through `ntpicture/playback.Layers`),
   so a frame is the GIF's area, not the viewport; glyph rendering animates
   the composite page. A left drag over the page selects text
   (`internal/app/typeset_select.go`, `internal/document/typeset_select.go`):

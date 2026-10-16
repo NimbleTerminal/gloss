@@ -76,7 +76,7 @@ func (m *Model) export() tea.Cmd {
 	if m.typeset != nil && m.markdown == nil {
 		frame = m.typesetExportFrame()
 	}
-	if m.animation != nil || (m.typeset != nil && m.markdown == nil) {
+	if m.animation != nil {
 		frame = m.source
 		if m.still != nil && m.still.front != nil {
 			frame = m.still.front

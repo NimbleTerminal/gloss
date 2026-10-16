@@ -10,6 +10,7 @@ import (
 
 	"nimbleterminal.dev/gloss/internal/animate"
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
+	"nimbleterminal.dev/ntpicture/playback"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/NimbleMarkets/ntcharts/v2/picture"
@@ -111,7 +112,8 @@ type textState struct {
 	hoverLinkActive         bool
 	linkPoint               image.Point
 	typesetPlayback         *ntanimation.Composite
-	typesetOverlays         []*typesetOverlay
+	typesetLayers           *playback.Layers
+	typesetPaused           bool
 	typesetPending          *document.Result // A page view whose overlays wait for the view to settle.
 	typesetSettle           uint64
 	search                  *textSearch
@@ -246,6 +248,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Close() error {
+	m.clearTypesetLayers()
 	m.stopTypeset()
 	m.clearStill()
 	m.clearFontPicker()
@@ -297,7 +300,7 @@ func (m *Model) quit() tea.Cmd {
 	if m.chart != nil {
 		keepMesh = m.chart.Keep()
 	}
-	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepTypesetOverlays(), m.keepAnimationPicture(), keepMesh), tea.Quit)
+	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture(), keepMesh), tea.Quit)
 }
 
 // IsStdin says whether path is the file standard input was read into.
@@ -310,11 +313,11 @@ func (m *Model) request(reload bool) document.Request {
 	q.TypesetWidth = m.typesetMeasure()
 	q.TypesetLineNumbers, q.TypesetChop = m.lineNumbers, m.chopLines
 	if !reload {
-		q.Playback = m.typesetPlayback
-		if sources := m.typesetOverlaySources(); q.Playback != nil && len(sources) > 0 {
-			if carried, err := q.Playback.WithPositions(context.Background(), sources...); err == nil {
-				q.Playback = carried
-			}
+		if m.typesetPlayback != nil {
+			q.Playback = m.typesetPlayback.Positions()
+		}
+		if m.typesetLayers != nil {
+			q.Playback = m.typesetLayers.Positions()
 		}
 	}
 	if m.opts.typesetEnabled() && !m.isPreview {
@@ -414,7 +417,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.hoverLinkActive = false
 	m.typesetPlayback = nil
 	m.typesetPending = nil
-	overlayCleanup := m.stopTypesetOverlays()
+	overlayCleanup := m.clearTypesetLayers()
 	m.stopAnimation()
 	m.sheet = nil
 	frontCleanup := m.clearAnimationFront()
@@ -469,11 +472,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		if m.pic.Mode() != picture.PictureKitty {
 			cmd = tea.Batch(cmd, m.clearAnimationFront())
 		}
-		if m.typeset == nil || m.markdown != nil || m.pic.Mode() != picture.PictureKitty {
+		if m.typeset == nil {
 			m.typesetPending = nil
-			cmd = tea.Batch(cmd, m.stopTypesetOverlays())
+			cmd = tea.Batch(cmd, m.clearTypesetLayers())
 		}
-		cmd = tea.Batch(cmd, m.scheduleAnimation(), m.scheduleTypesetOverlays())
+		cmd = tea.Batch(cmd, m.scheduleAnimation(), m.updateTypesetLayers(msg))
 		if m.markdown != nil {
 			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument))
 		}
@@ -533,9 +536,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		if cmd, handled := m.markdown.animationMessage(msg); handled {
 			return m, cmd
 		}
-	}
-	if cmd, handled := m.typesetOverlayMessage(msg); handled {
-		return m, cmd
 	}
 	if cmd, handled := m.terminalEditorMessage(msg); handled {
 		return m, cmd
@@ -740,7 +740,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	if m.markdown != nil {
 		cmds = append(cmds, m.markdown.update(legacyPictureMessage(msg)), m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
 	}
-	cmds = append(cmds, m.updateTypesetOverlayPictures(legacyPictureMessage(msg)))
 	_, mouseMessage := msg.(tea.MouseMsg)
 	if m.chart != nil && !((m.help || m.listing()) && mouseMessage) {
 		before := m.chart.Camera()
@@ -883,9 +882,6 @@ func (m *Model) refreshImage() tea.Cmd {
 		if !m.typesetMatches() {
 			return m.queueTypesetReflow()
 		}
-		if m.presentation.Source == nil && m.typesetPlayback != nil && len(m.typesetOverlays) == 0 && m.typesetPending == nil {
-			m.presentation.SetSource(animate.NewPictureSource(m.typesetPlayback))
-		}
 		return m.showPicture(m.source)
 	}
 	span := 1 / float64(int(1)<<m.zoom)
@@ -904,6 +900,9 @@ var pictureBackground = color.RGBA{R: 24, G: 26, B: 30, A: 255}
 // that lands at the same place in its memory, so another page, file, or zoom
 // would show the last one again.
 func (m *Model) showPicture(img image.Image) tea.Cmd {
+	if m.typesetLayers != nil {
+		return m.syncTypesetLayers()
+	}
 	if m.presentation.Source == nil {
 		return m.showStill(img)
 	}

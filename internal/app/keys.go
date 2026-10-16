@@ -297,7 +297,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			old := m.pic
 			cmd := m.pic.Toggle()
 			if m.source != nil && m.markdown == nil {
-				if m.still != nil || m.pic.Mode() == picture.PictureKitty {
+				if m.still != nil || m.typesetLayers != nil || m.pic.Mode() == picture.PictureKitty {
 					return tea.Batch(cmd, m.refreshImage()), true
 				}
 				cleanup := old.SetImage(nil)

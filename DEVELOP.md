@@ -329,8 +329,8 @@ module replacement must be replaced with a published pin before releasing
 this integration. Typeset composites now use ntpicture's immutable Composite,
 context-aware construction and windowing, and lightweight position snapshots;
 Gloss carries those snapshots through reflow without retaining old page rasters.
-The current Gloss scheduler still uses a small adapter for those composite
-positions. Standalone and Markdown playback remain on `internal/animate.Animator`.
+Typeset presentation uses `playback.Layers` for the base picture, animated
+windows, glyph fallback, committed snapshots, and Close/Keep. Standalone and Markdown playback remain on `internal/animate.Animator`.
 Moving them to `playback.Controller` must preserve crop transforms, seek/export
 state, overlay presentation, shared picture IDs, and late cleanup.
 Window and font-size changes cancel pending composition and render into a fresh
@@ -381,23 +381,19 @@ placements without discarding the playback position. Typeset results carry full
 region rectangles and an ntpicture composite; reflow preserves positions by
 asset destination with lightweight snapshots, and only visible regions advance.
 Reload starts fresh.
-Under Kitty graphics the page picture stays still and each group of cells the
-regions cover gets an overlay: its own picture and Animator, fed
-`animation.Composite.Window`, the page's base and regions cropped to those cells.
-A frame is then the GIF's cells rather than the whole viewport, and the page
-is not sent again while a GIF plays. A page drawn above a GIF's resolution gets
-its overlay at the GIF's own (the picture's `KittyResolutionFactor`), the base
-under it resampled once, so frames are copied in and the terminal enlarges
-them. The view splices a presented overlay's
-placeholders into the page grid (`spliceCells`); one still in flight leaves
-the page's own pixels. A reflow rebuilds the overlays and carries their
-positions through the request (`WithPositions`); leaving, reload and a switch
-to glyphs stop them, and glyph rendering animates the composite page as a
-whole. Overlays are built only once a view has stood for 120 ms
-(`typesetSettleDelay`): a scroll or resize burst costs the page alone, each
-GIF standing at its current frame, which the page carries. A page with
-regions in view is rastered once, without them; the composite draws their
-frames in. `e` composes the overlays' current frames onto the page.
+Typeset presentation uses `ntpicture/playback.Layers` through the host adapter
+in `internal/app/typeset_layers.go`. Under Kitty graphics it keeps the page
+still and updates only cell-aligned animated windows, merging overlapping
+regions and reducing enlarged animations to their native resolution. The
+library owns placeholder composition, retained fronts, glyph fallback, and
+cleanup. Gloss forwards the shared TerminalSession's capability/geometry and
+pauses playback when the document is hidden or waiting for reflow.
+Reflow requests carry `Layers.Positions()` without recomposing pixels on the
+event loop; the loader builds the next immutable composite off-loop.
+Gloss enables overlays only once a view has stood for 120 ms
+(`typesetSettleDelay`), using `SetActive(false)` during replacement.
+Typeset `e` exports `Layers.Snapshot()`, so pending replacements cannot
+substitute unpresented pixels for the displayed viewport.
 Markdown loaders share an eight-destination/64 MiB animation budget and retain
 still first frames when exceeded. The info field reports eligible/total GIFs.
 Normal Markdown `e` snapshots the first visible GIF's full frame; typeset `e`

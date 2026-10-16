@@ -24,9 +24,9 @@ import (
 const handoffURL = "http://192.168.9.216:54321/0123456789abcdef0123456789abcdef/"
 
 func TestHandoffSessionGraphicsChoice(t *testing.T) {
-	t.Setenv("NTCHARTS_KITTY", "")
+	t.Setenv("NTPICTURE_KITTY", "")
 	t.Setenv("TERM", "xterm-kitty")
-	t.Setenv("NTCHARTS_TMUX_PASSTHROUGH", "false")
+	t.Setenv("NTPICTURE_TMUX_PASSTHROUGH", "false")
 	for _, manual := range []bool{false, true} {
 		m := handoff(t, "")
 		if m.kitty {

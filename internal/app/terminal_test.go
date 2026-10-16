@@ -74,7 +74,7 @@ func TestTerminalSessionSharedWithPreviewAndMesh(t *testing.T) {
 }
 
 func TestTerminalSessionRoutesProbeReplies(t *testing.T) {
-	t.Setenv("NTCHARTS_KITTY", "")
+	t.Setenv("NTPICTURE_KITTY", "")
 	t.Setenv("TERM", "xterm-kitty")
 	makeModel := func() *Model {
 		s := ntpicture.NewTerminalSession(ntpicture.TerminalOptions{SharedMemory: ntpicture.KittyCapabilityUnsupported})
