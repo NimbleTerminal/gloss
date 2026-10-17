@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve Kitty images when `Q` leaves the alternate screen, including
+  standalone animations and typeset pages.
+
 - Export the displayed animated typeset viewport, including its current image
   layers, while retaining the displayed frame during pending reflow.
 

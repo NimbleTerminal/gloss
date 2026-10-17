@@ -129,7 +129,7 @@ func TestOpenWithIgnoresMouseAndDoubleSubmit(t *testing.T) {
 }
 func TestOpenWithPausesAnimationAndRestoresView(t *testing.T) {
 	m := animated(t, "glyph", 0)
-	m.animation.Paused = true
+	m.animation.Pause(true)
 	h := &fakeOpenHost{}
 	m.opts.OpenWith = h
 	m.openWithPicker = &openWithPicker{operation: 1, generation: m.generation, busy: true}

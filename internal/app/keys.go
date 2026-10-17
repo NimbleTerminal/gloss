@@ -42,6 +42,7 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	case "Q":
 		// Quit leaving the view where it can be scrolled back to,
 		// whatever the launch asked: the choice is best made now.
+		m.keepOnMainScreen = !m.opts.KeepScreen
 		m.opts.KeepScreen = true
 		return m.quit(), true
 	case "?":
@@ -171,18 +172,15 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		case "home":
 			return m.seekAnimation(1), true
 		case "end":
-			return m.seekAnimation(a.Player.Frames()), true
+			return m.seekAnimation(a.player().Frames()), true
 		case "space":
 			return m.toggleAnimation(), true
 		case "<":
-			a.setSpeed(a.Speed - 1)
-			return nil, true
+			return a.setSpeed(a.speed - 1), true
 		case ">":
-			a.setSpeed(a.Speed + 1)
-			return nil, true
+			return a.setSpeed(a.speed + 1), true
 		case "backspace":
-			a.setSpeed(0)
-			return nil, true
+			return a.setSpeed(0), true
 		}
 	}
 	if m.chart != nil && m.mesh != nil && (k == "C" || k == "B") {
@@ -297,7 +295,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			old := m.pic
 			cmd := m.pic.Toggle()
 			if m.source != nil && m.markdown == nil {
-				if m.still != nil || m.typesetLayers != nil || m.pic.Mode() == picture.PictureKitty {
+				if m.animation != nil || m.still != nil || m.typesetLayers != nil || m.pic.Mode() == picture.PictureKitty {
 					return tea.Batch(cmd, m.refreshImage()), true
 				}
 				cleanup := old.SetImage(nil)

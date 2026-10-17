@@ -129,24 +129,20 @@ func TestStillExportSourceFollowsPresentation(t *testing.T) {
 
 func TestStillAndPlaybackTransferOwnership(t *testing.T) {
 	m := animated(t, "kitty", 0)
-	source := m.presentation.Source
-	m.presentation.Paused = true
+	player := m.animation.player()
+	oldPlayback := m.playback
 	m.stopAnimation()
 	drainAnimation(t, m, m.showPicture(m.source))
-	if m.still == nil || !m.hasPictureFront() || m.presentation.Front != nil {
-		t.Fatal("still presentation did not replace playback")
+	if m.still == nil || !m.hasPictureFront() || m.playback != nil || !oldPlayback.Closed() {
+		t.Fatal("still did not replace playback")
 	}
 	old := m.still.pic
 	pending := m.refreshImage()
-	m.presentation.SetSource(source)
-	m.presentation.Paused = true
-	cmd := m.showPicture(m.source)
-	if m.still != nil || old.View() != "" {
-		t.Fatal("playback retained the still presenter")
-	}
+	cmd := m.startAnimation(player)
+	m.animation.Pause(true)
 	drainAnimation(t, m, cmd)
 	drainAnimation(t, m, pending)
-	if m.presentation.Front == nil || m.still != nil {
+	if m.playback.Status().Presented == nil || m.still != nil || old.View() != "" {
 		t.Fatal("late still work changed playback")
 	}
 }

@@ -315,15 +315,15 @@ func (m *Model) detail(w, h int) string {
 	detail := fmt.Sprintf("%s · %dx", m.kind, 1<<m.zoom)
 	if m.animation != nil {
 		state := "playing"
-		if m.animation.Paused {
+		if m.animation.Status().Paused {
 			state = "paused"
-		} else if m.animation.Finished {
+		} else if m.animation.Status().Finished {
 			state = "finished"
 		}
-		if m.animation.seek != nil {
+		if m.animation.target != 0 {
 			state = fmt.Sprintf("seeking %d", m.animation.target)
 		}
-		detail += fmt.Sprintf(" · %g× speed · frame %d/%d · %s", m.animation.rate(), m.animation.Player.Frame(), m.animation.Player.Frames(), state)
+		detail += fmt.Sprintf(" · %g× speed · frame %d/%d · %s", m.animation.rate(), m.animation.player().Frame(), m.animation.player().Frames(), state)
 	}
 	if m.kind == "pdf" {
 		detail += fmt.Sprintf(" · page %d/%d", m.page, m.pages)

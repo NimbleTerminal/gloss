@@ -157,6 +157,7 @@ type browserState struct {
 // has no preview of its own, it takes no drops or mouse input, and it loads
 // with Request.Preview so the loader keeps it small.
 type Model struct {
+	keepOnMainScreen  bool // Q is moving the retained picture out of the alternate screen.
 	openWithPicker    *openWithPicker
 	openWithOperation int
 	meshState
@@ -183,6 +184,7 @@ type Model struct {
 	source                   image.Image
 	animation                *animation
 	presentation             *animate.Animator
+	playback                 *playback.Controller
 	still                    *stillPicture
 	zoom                     int
 	panX, panY               float64
@@ -248,6 +250,7 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Close() error {
+	m.clearStandalone()
 	m.clearTypesetLayers()
 	m.stopTypeset()
 	m.clearStill()
@@ -283,8 +286,8 @@ func (m *Model) quit() tea.Cmd {
 		m.opts.OnQuit()
 	}
 	m.clearSearch()
-	m.stopAnimation()
-	qrCleanup := tea.Batch(m.clearQR(), m.clearFontPicker())
+	stopped := m.stopAnimation()
+	qrCleanup := tea.Batch(stopped, m.clearQR(), m.clearFontPicker())
 	if !m.opts.KeepScreen {
 		return tea.Sequence(tea.Batch(qrCleanup, m.clearGraphics(), m.disposePreview()), tea.Quit)
 	}
@@ -350,20 +353,20 @@ func (m *Model) load(reload bool) tea.Cmd {
 		return nil
 	}
 	m.typesetWaitSize = false
-	m.stopAnimation()
+	stopped := m.stopAnimation()
 	m.generation++
 	m.loading, m.err = true, nil
 	q := m.request(reload)
 	m.stopTypeset()
 	q.Context, m.typesetCancel = context.WithCancel(context.Background())
 	preview := m.isPreview
-	return func() tea.Msg {
+	return tea.Batch(stopped, func() tea.Msg {
 		r := m.loader.Load(q)
 		if preview {
 			return previewResult{owner: m.kittyID, result: r}
 		}
 		return r
-	}
+	})
 }
 
 func (m *Model) bodyHeight() int {
@@ -418,12 +421,12 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.typesetPlayback = nil
 	m.typesetPending = nil
 	overlayCleanup := m.clearTypesetLayers()
-	m.stopAnimation()
+	stopped := m.stopAnimation()
 	m.sheet = nil
 	frontCleanup := m.clearAnimationFront()
 	cleanup := m.pic.SetImage(nil)
 	m.retireAnimationPicture(cleanup)
-	return tea.Batch(m.clearStill(), m.clearFontPicker(), frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
+	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -476,7 +479,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			m.typesetPending = nil
 			cmd = tea.Batch(cmd, m.clearTypesetLayers())
 		}
-		cmd = tea.Batch(cmd, m.scheduleAnimation(), m.updateTypesetLayers(msg))
+		cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg))
 		if m.markdown != nil {
 			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument))
 		}
@@ -585,12 +588,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, m.themeRequest()
 	case searchResult:
 		return m, m.searched(v)
-	case animationTick:
-		return m, m.animationTick(v)
-	case animationFrame:
-		return m, m.animationFrame(v)
-	case animationSeekResult:
-		return m, m.animationSought(v)
 	case animationPresented:
 		cmd, handled := m.presentation.Update(v)
 		// A menu preview owns its own presentation. Its completion travels
@@ -767,14 +764,14 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	if v.Generation != m.generation || m.suspended {
 		return nil
 	}
-	m.stopAnimation()
+	stopped := m.stopAnimation()
 	m.loading, m.err, m.fields = false, v.Err, v.Info
 	if v.Err != nil {
-		return m.clearGraphics()
+		return tea.Batch(stopped, m.clearGraphics())
 	}
-	var animationCleanup tea.Cmd
+	animationCleanup := tea.Batch(stopped, m.clearStandalone())
 	if v.Image == nil || v.Animation != nil {
-		animationCleanup = tea.Batch(m.clearStill(), m.clearAnimationFront())
+		animationCleanup = tea.Batch(animationCleanup, m.clearStill(), m.clearAnimationFront())
 	}
 	if m.presentation.Flight != nil && (m.presentation.Front == nil || m.presentation.Front.ID != m.picID) {
 		pendingCleanup := m.pic.SetImage(nil)
@@ -811,10 +808,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	m.source = v.Image
 	if v.Animation != nil && !m.isPreview {
-		m.presentation.Speed = 0
-		m.presentation.SetPlayer(v.Animation)
-		m.presentation.Paused = false
-		m.animation = &animation{Animator: m.presentation}
+		return tea.Sequence(cleanup, m.startAnimation(v.Animation))
 	}
 	return tea.Sequence(cleanup, tea.Batch(m.refreshImage(), overlays), m.queueTypesetReflow())
 }
@@ -887,6 +881,9 @@ func (m *Model) refreshImage() tea.Cmd {
 	span := 1 / float64(int(1)<<m.zoom)
 	limit := (1 - span) / 2
 	m.panX, m.panY = max(-limit, min(limit, m.panX)), max(-limit, min(limit, m.panY))
+	if m.animation != nil {
+		return m.syncStandalone()
+	}
 	return m.showPicture(crop(m.source, m.zoom, m.panX, m.panY))
 }
 
@@ -900,6 +897,9 @@ var pictureBackground = color.RGBA{R: 24, G: 26, B: 30, A: 255}
 // that lands at the same place in its memory, so another page, file, or zoom
 // would show the last one again.
 func (m *Model) showPicture(img image.Image) tea.Cmd {
+	if m.animation != nil {
+		return m.syncStandalone()
+	}
 	if m.typesetLayers != nil {
 		return m.syncTypesetLayers()
 	}
@@ -923,14 +923,19 @@ func crop(src image.Image, zoom int, panX, panY float64) image.Image {
 	if zoom == 0 {
 		return src
 	}
-	b := src.Bounds()
+	rect := cropRect(src.Bounds(), zoom, panX, panY)
+	w, h, x, y := rect.Dx(), rect.Dy(), rect.Min.X, rect.Min.Y
+	out := image.NewRGBA(image.Rect(0, 0, w, h))
+	draw.Draw(out, out.Bounds(), src, image.Pt(x, y), draw.Src)
+	return out
+}
+
+func cropRect(b image.Rectangle, zoom int, panX, panY float64) image.Rectangle {
 	w, h := max(1, b.Dx()>>zoom), max(1, b.Dy()>>zoom)
 	x := b.Min.X + int(float64(b.Dx()-w)/2+panX*float64(b.Dx()))
 	y := b.Min.Y + int(float64(b.Dy()-h)/2+panY*float64(b.Dy()))
 	x, y = max(b.Min.X, min(b.Max.X-w, x)), max(b.Min.Y, min(b.Max.Y-h, y))
-	out := image.NewRGBA(image.Rect(0, 0, w, h))
-	draw.Draw(out, out.Bounds(), src, image.Pt(x, y), draw.Src)
-	return out
+	return image.Rect(x, y, x+w, y+h)
 }
 
 func safe(s string) string { return svg.SanitizeForTerminal(s) }

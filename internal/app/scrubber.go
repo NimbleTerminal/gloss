@@ -1,79 +1,23 @@
 package app
 
 import (
-	"context"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/gloss/internal/document"
 )
-
-type animationSeek struct {
-	cancel context.CancelFunc
-	target int
-}
-
-type animationSeekResult struct {
-	owner  *animation
-	job    *animationSeek
-	Player *document.GIFPlayer
-	err    error
-}
 
 func (m *Model) seekAnimation(frame int) tea.Cmd {
 	a := m.animation
-	frame = max(1, min(frame, a.Player.Frames()))
-	a.cancelPending()
-	a.Paused, a.Finished, a.target = true, false, frame
-	if a.seek != nil {
-		// Only one compositor is in flight. Its completion starts the latest
-		// requested position; intermediate mouse motions never allocate canvases.
-		if a.seek.target != frame {
-			a.seek.cancel()
-		}
-		return nil
-	}
-	return m.startAnimationSeek()
-}
-
-func (m *Model) startAnimationSeek() tea.Cmd {
-	a := m.animation
-	ctx, cancel := context.WithCancel(context.Background())
-	job := &animationSeek{cancel: cancel, target: a.target}
-	a.seek = job
-	player := a.Player
-	return func() tea.Msg {
-		p, err := player.Seek(ctx, job.target)
-		return animationSeekResult{a, job, p, err}
-	}
-}
-
-func (m *Model) animationSought(r animationSeekResult) tea.Cmd {
-	a := m.animation
-	if a == nil || a != r.owner || a.seek != r.job {
-		return nil
-	}
-	r.job.cancel()
-	a.seek = nil
-	if !m.animationVisible() {
-		a.target = 0
-		return nil
-	}
-	if r.err != nil || a.target != r.job.target {
-		return m.startAnimationSeek()
-	}
-	a.cancelPending()
-	a.SetPlayer(r.Player)
-	a.target = 0
-	m.source = r.Player.Image()
-	return m.refreshImage()
+	frame = max(1, min(frame, a.player().Frames()))
+	a.target = frame
+	return a.Seek(frame)
 }
 
 func (a *animation) position() int {
 	if a.target != 0 {
 		return a.target
 	}
-	return a.Player.Frame()
+	return a.player().Frame()
 }
 
 func (m *Model) scrubberVisible() bool {
@@ -92,7 +36,7 @@ func (m *Model) scrubberGeometry() (start, cells int, suffix string) {
 func (m *Model) scrubberView() string {
 	start, cells, suffix := m.scrubberGeometry()
 	a := m.animation
-	at := (a.position() - 1) * (cells - 1) / max(1, a.Player.Frames()-1)
+	at := (a.position() - 1) * (cells - 1) / max(1, a.player().Frames()-1)
 	return strings.Repeat(" ", start-1) + "[" + strings.Repeat("─", at) + "●" + strings.Repeat("─", cells-at-1) + "]" + suffix
 }
 
@@ -126,6 +70,6 @@ func (m *Model) scrubberMouse(msg tea.MouseMsg) (tea.Cmd, bool) {
 		return nil, false
 	}
 	x := max(0, min(cells-1, mouse.X-start))
-	frame := 1 + (x*(a.Player.Frames()-1)+(cells-1)/2)/(cells-1)
+	frame := 1 + (x*(a.player().Frames()-1)+(cells-1)/2)/(cells-1)
 	return m.seekAnimation(frame), true
 }

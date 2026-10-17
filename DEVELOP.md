@@ -294,21 +294,26 @@ reload or loading another file starts at 1×. Headless output is unaffected.
 the repeat count, and checks cancellation between frames. Forward seeks copy
 the current position; backward seeks replay from the first frame. Each seek
 reuses at most two private canvases for disposal, without caching full frames.
-`internal/app/scrubber.go` coalesces drag/key requests into one active seek and
-the latest target. Completion messages identify both owner and job; cancelled
-or removed work cannot replace the current picture. Seeking pauses playback,
-preserves speed/zoom, and uses the existing Kitty replacement/cleanup path.
+`internal/app/scrubber.go` maps drag/key requests to
+`playback.Controller.Seek`, which coalesces them into one active seek and the
+latest target. The controller rejects cancelled or removed work. Seeking pauses
+playback, preserves speed/zoom, and uses the existing Kitty replacement/cleanup
+path.
 The frame bar uses the hint row with screen-relative hit testing, so prompts
 and image placement retain their geometry. Arrow keys remain image panning.
 
-`internal/animate.Animator` owns cancellable timers and off-loop composition;
-`internal/app/animation.go` adapts the standalone controls to it.
-Messages carry a playback owner and epoch, so pause, reload, navigation, and
-quit invalidate late work. Hidden documents cancel timers. Kitty waits for
-transmission before starting the next delay; it never builds a frame backlog.
-The last transmitted Kitty picture stays visible while its replacement encodes.
-Only after transmission does the view swap grids and delete the old image, so
-picture's transitional glyph fallback never flashes between animation frames.
+`ntpicture/playback.Controller` owns standalone timers, off-loop composition,
+presentation pacing, and cleanup; `internal/app/animation.go` adapts the
+standalone controls to it. Gloss supplies the shared terminal session, image
+IDs, visibility, and crop rectangle. Exports capture the controller's committed
+full-resolution frame, independently of crop and pending seeks. Loading calls
+`Controller.Stop()` to cancel pending work while retaining the committed frame;
+its returned cleanup/restoration command runs alongside the loader. Hidden
+documents cancel pending work. Frame deadlines include composition and transmission time;
+presentation backpressure prevents a frame backlog.
+The last committed Kitty picture stays visible while its replacement encodes.
+Playback reuses the image ID at unchanged geometry; new placements retire the
+old image after presentation. Glyph fallback never flashes between Kitty frames.
 Still images, PDF page changes, typeset pages without composite playback,
 previews, and thumbnail grids use `ntpicture.Picture` through
 `internal/app/still.go`. Picture owns retained fronts, one active preparation,
@@ -330,9 +335,11 @@ this integration. Typeset composites now use ntpicture's immutable Composite,
 context-aware construction and windowing, and lightweight position snapshots;
 Gloss carries those snapshots through reflow without retaining old page rasters.
 Typeset presentation uses `playback.Layers` for the base picture, animated
-windows, glyph fallback, committed snapshots, and Close/Keep. Standalone and Markdown playback remain on `internal/animate.Animator`.
-Moving them to `playback.Controller` must preserve crop transforms, seek/export
-state, overlay presentation, shared picture IDs, and late cleanup.
+windows, glyph fallback, committed snapshots, and Close/Keep. Normal Markdown
+playback remains on `internal/animate.Animator`; standalone GIF/WebP playback
+uses `playback.Controller`. Migrating the remaining Markdown regions must
+preserve document layout, scrolling, visibility, exports, shared picture IDs,
+and late cleanup.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.
@@ -342,6 +349,9 @@ resize completions cannot present over the latest layout; pause is preserved.
 At most a visible front picture and a pending replacement are retained; leaving
 or explicitly choosing glyphs cleans up both. Keep-screen quit retains the
 visible frame, and PNG export snapshots that frame even during encoding.
+`Q` uses `KeepOnMainScreen` for standalone playback, still pictures, and typeset
+layers so Kitty placements are recreated after leaving the alternate screen.
+Sessions already on the main screen (`-X`) use the ordinary `Keep` fast path.
 Kitty frames are sent as zlib-compressed raw pixels (`KittyFormatZlib`, RGB
 when opaque): PNG's encoder tries every filter on every row and took three
 times as long for the same bytes.

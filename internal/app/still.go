@@ -35,9 +35,9 @@ func (s *stillPicture) view() string {
 
 func (m *Model) showStill(img image.Image) tea.Cmd {
 	background := color.RGBA64Model.Convert(m.pictureBackground()).(color.RGBA64)
-	var cleanup tea.Cmd
+	cleanup := m.clearStandalone()
 	if m.still != nil && m.still.background != background {
-		cleanup = m.clearStill()
+		cleanup = tea.Batch(cleanup, m.clearStill())
 	}
 	if m.still == nil {
 		pending := m.pic.SetImage(nil)
@@ -94,6 +94,9 @@ func (m *Model) clearStill() tea.Cmd {
 }
 
 func (m *Model) hasPictureFront() bool {
+	if m.playback != nil {
+		return m.playback.Status().Presented != nil
+	}
 	if m.typesetLayers != nil {
 		return m.typesetLayers.View() != ""
 	}
@@ -103,6 +106,9 @@ func (m *Model) hasPictureFront() bool {
 	return m.presentation.Front != nil
 }
 func (m *Model) pictureBusy() bool {
+	if m.playback != nil {
+		return m.playback.Status().Picture.Busy
+	}
 	if m.typesetLayers != nil {
 		return m.typesetLayers.Status().Picture.Busy
 	}
@@ -112,6 +118,9 @@ func (m *Model) pictureBusy() bool {
 	return m.presentation.Awaiting
 }
 func (m *Model) pictureExact(w, h int) bool {
+	if m.playback != nil {
+		return m.playback.Mode() == ntpicture.PictureKitty && m.playback.Status().Presented != nil
+	}
 	if m.typesetLayers != nil {
 		return m.typesetLayers.Mode() == ntpicture.PictureKitty && m.typesetLayers.View() != ""
 	}
