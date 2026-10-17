@@ -1,4 +1,4 @@
-// Package document reads local files and renders them through NTCharts backends.
+// Package document reads local files and renders them through the Nimble Terminal libraries.
 package document
 
 import (
@@ -13,8 +13,6 @@ import (
 	"image/color"
 	"io"
 	"io/fs"
-	"nimbleterminal.dev/gloss/internal/animate"
-	"nimbleterminal.dev/ntpicture/animation"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +23,7 @@ import (
 	"github.com/gen2brain/jxl"
 	"nimbleterminal.dev/nt3d"
 	"nimbleterminal.dev/ntpdf"
+	"nimbleterminal.dev/ntpicture/animation"
 	_ "nimbleterminal.dev/ntpicture/decoders"
 	svg "nimbleterminal.dev/ntsvg"
 )
@@ -187,7 +186,7 @@ type Result struct {
 	Kind             string
 	Page, Pages      int
 	Image            image.Image
-	Animation        *GIFPlayer
+	Animation        *animation.Player
 	Mesh             *Mesh
 	Parts            []Part                      // What a 3MF build places, for choosing among.
 	Shown            []bool                      // Which of them the mesh holds; nil for all.
@@ -355,7 +354,7 @@ func (l *Loader) Load(q Request) (out Result) {
 				out.Err = err
 				return out
 			}
-			prep := &prepared{images: map[string]image.Image{}, animations: map[string]*animate.Player{}, ctx: q.Context}
+			prep := &prepared{images: map[string]image.Image{}, animations: map[string]*animation.Player{}, ctx: q.Context}
 			for name, a := range assets {
 				if a != nil {
 					prep.images[name] = a.image

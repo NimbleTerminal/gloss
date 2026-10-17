@@ -4,7 +4,7 @@ import (
 	"context"
 	"image"
 
-	animate "nimbleterminal.dev/ntpicture/animation"
+	"nimbleterminal.dev/ntpicture/animation"
 )
 
 const MaxMarkdownAnimations = 8
@@ -15,7 +15,7 @@ const MaxMarkdownAnimationBytes = 64 << 20
 // GIF or WebP is not counted.
 type markdownAnimations struct{ seen, eligible, over, bytes int }
 
-func (b *markdownAnimations) decode(ctx context.Context, data []byte, play bool) (image.Image, *animate.Player, error) {
+func (b *markdownAnimations) decode(ctx context.Context, data []byte, play bool) (image.Image, *animation.Player, error) {
 	if ctx != nil {
 		if err := ctx.Err(); err != nil {
 			return nil, nil, err
@@ -24,7 +24,7 @@ func (b *markdownAnimations) decode(ctx context.Context, data []byte, play bool)
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	stats, err := animate.PreflightWithLimits(ctx, data, animate.Limits{})
+	stats, err := animation.PreflightWithLimits(ctx, data, animation.Limits{})
 	if err != nil {
 		b.seen++
 		b.over++

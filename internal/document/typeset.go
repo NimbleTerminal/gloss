@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/yuin/goldmark/ast"
 	"image"
 	"io/fs"
-	animate "nimbleterminal.dev/ntpicture/animation"
 	"os"
 	"path/filepath"
 	"unicode/utf8"
+
+	"github.com/yuin/goldmark/ast"
+	"nimbleterminal.dev/ntpicture/animation"
 )
 
 // Default export measure: 800 pixels wide at 150 DPI. Viewer requests can
@@ -31,7 +32,7 @@ type typesetAsset struct {
 	data      []byte
 	svg       bool
 	image     image.Image
-	animation *animate.Player
+	animation *animation.Player
 	gif       bool
 }
 

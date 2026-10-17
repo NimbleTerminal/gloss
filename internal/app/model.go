@@ -67,7 +67,6 @@ type Options struct {
 	// Background is the color behind a mesh; nil keeps the default.
 	Background *color.RGBA
 	terminal   *ntpicture.TerminalSession // Shared with previews on this terminal.
-	keptScreen bool                       // Set once picture numbers have been moved; previews inherit it.
 	// Save stores an export and returns the name it was given. Nil writes to
 	// the working directory; the browser demo offers a download instead.
 	Save              func(name string, png []byte) (string, error)
@@ -191,8 +190,7 @@ type Model struct {
 	selection                int
 	preview                  *Model
 	isPreview                bool
-	kittyID                  int
-	picID                    int // The Kitty image id the document picture goes under now.
+	ownerID                  int
 	previewDrag              bool
 	suspended                bool
 	note                     string // Outcome of the last drop, shown until the next key.
@@ -205,24 +203,18 @@ type Model struct {
 	skipped                  []string // Reported on stderr once the terminal is restored.
 }
 
-var nextModelID atomic.Int64
+var nextMessageOwner atomic.Int64
 
-// nextKittyID gives the next number for pictures to be transmitted under.
-// Each is a thousand apart, so a model's pages and frames have room, and
-// placeholder cells carry the number in a 24-bit color.
-func nextKittyID() int { return 100 + int(nextModelID.Add(1))*1000 }
+// nextOwnerID identifies asynchronous work independently of terminal image IDs.
+func nextOwnerID() int { return int(nextMessageOwner.Add(1)) }
 
 func New(opts Options) *Model {
 	ownTerminal := opts.terminal == nil
 	if ownTerminal {
 		opts.terminal = newTerminalSession(opts.Render)
 	}
-	if !opts.keptScreen {
-		resetKittyIDs()
-	}
-	id := nextKittyID()
-	opts.keptScreen = true
-	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, kitty: opts.Render != "glyph" && opts.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
+	id := nextOwnerID()
+	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, ownerID: id, kitty: opts.Render != "glyph" && opts.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
 	m.lineNumbers, m.chopLines = opts.LineNumbers, opts.ChopLines
 	m.theme = "dark"
 	m.detectedTheme = "dark"
@@ -361,7 +353,7 @@ func (m *Model) load(reload bool) tea.Cmd {
 	return tea.Batch(stopped, func() tea.Msg {
 		r := m.loader.Load(q)
 		if preview {
-			return previewResult{owner: m.kittyID, result: r}
+			return previewResult{owner: m.ownerID, result: r}
 		}
 		return r
 	})
@@ -579,7 +571,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	case searchResult:
 		return m, m.searched(v)
 	case previewResult:
-		if m.preview != nil && v.owner == m.preview.kittyID {
+		if m.preview != nil && v.owner == m.preview.ownerID {
 			_, cmd := m.preview.Update(v.result)
 			return m, cmd
 		}
@@ -808,7 +800,6 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	}
 	m.chart = widget.New(scene, m.width, m.meshHeight(),
 		widget.WithTerminalSession(m.terminal),
-		widget.WithImageIDAllocator(func() (int, error) { return nextKittyID(), nil }),
 		widget.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
 		widget.WithGPUFailure(widget.FallBackOnGPUFailure),
 		widget.WithRenderMode(mode), widget.WithBackground(m.background()))

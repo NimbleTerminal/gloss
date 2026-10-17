@@ -326,8 +326,10 @@ it with previews, still pictures, and mesh widgets; only its owner closes it.
 The QR handoff screen owns its own session and tracks graphics mode directly,
 as does the pager. Picture consumers share session geometry and capability
 without a global compatibility flag or duplicate probes.
-The existing block allocator is shared with animation, mesh, and QR consumers
-to avoid overlapping IDs during migration.
+Pictures, animation, meshes, and QR codes share `ntpicture.NextImageID`: one
+positive 24-bit ID per placement, with no reuse or block reservations.
+Allocator errors propagate directly through each component.
+Async message owners have separate process-local IDs.
 
 The migration currently uses the sibling `../ntpicture` checkout. Its temporary
 module replacement must be replaced with a published pin before releasing
@@ -337,9 +339,8 @@ Gloss carries those snapshots through reflow without retaining old page rasters.
 Typeset presentation uses `playback.Layers` for the base picture, animated
 windows, glyph fallback, committed snapshots, and Close/Keep. Standalone and
 inline Markdown GIF/WebP playback use `playback.Controller`; inline still images
-and the font chooser use `ntpicture.Picture`. The legacy pager presenter and
-transmission handlers have been removed; animation compatibility aliases and
-decoder regression tests remain in `internal/animate`.
+and the font chooser use `ntpicture.Picture`. Document loaders use `ntpicture/animation` directly; the legacy presenter,
+transmission handlers, and `internal/animate` wrappers have been removed.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.
@@ -355,15 +356,14 @@ Sessions already on the main screen (`-X`) use the ordinary `Keep` fast path.
 Kitty frames are sent as zlib-compressed raw pixels (`KittyFormatZlib`, RGB
 when opaque): PNG's encoder tries every filter on every row and took three
 times as long for the same bytes.
-Fresh image IDs avoid ghostty-web's texture cache, consuming the slots inside
-blocks already reserved by `nextKittyID`. Retired placements receive a second
-ID-specific cleanup if an accepted transmission completes late. Glyphs use
+Fresh image IDs from ntpicture avoid ghostty-web's texture cache. Retired
+placements receive a second ID-specific cleanup if an accepted transmission completes late. Glyphs use
 the same picture pipeline as static images. `e` captures the immutable current
 frame before its asynchronous export; it never reloads the first frame.
 
-Tests cover composition, offsets, background/previous disposal, delays, finite
-and infinite loops, immutable snapshots, pre-decode bounds, cancellation,
-stale work, export, and Kitty pacing/cleanup. `examples/motion.gif` is an
+ntpicture tests cover composition, disposal, loop counts, immutable snapshots,
+and decoder bounds. Gloss tests cover loader modes, aggregate animation budgets,
+cancellation, stale work, export, and terminal cleanup. `examples/motion.gif` is an
 original generated fixture; `scripts/gen-assets/gif.go` regenerates it, and
 `gen-assets` converts it to `examples/motion.webp` with `gif2webp` (libwebp)
 when that tool is installed. The WebP unit tests assemble containers from tiny
@@ -431,7 +431,7 @@ UTF-8 ECI; ambiguous Kanji mappings stay in UTF-8 byte segments to preserve the
 exact text. Both the native module and browser demo use this checkout.
 
 `internal/app/qr.go` owns the overlay, selected table URL, and export through
-gloss's existing non-overwriting save hook. The app supplies `nextKittyID`,
+gloss's existing non-overwriting save hook. The app supplies `ntpicture.NextImageID` directly,
 its detected graphics mode and cell geometry, and space inside the overlay.
 It forwards event-loop messages and executes commands from every setter,
 `Update`, and `Close`. `internal/app/qr_test.go` retains the host integration

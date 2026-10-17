@@ -66,7 +66,6 @@ func newMarkdownView(doc *document.Markdown, session *ntpicture.TerminalSession)
 	for i, asset := range doc.Images {
 		opts := ntpicture.Options{Session: session, HostGeometry: true,
 			Render: ntpicture.Config{KittyZ: -1, KittyFormat: ntpicture.KittyFormatZlib, Background: pictureBackground},
-			NextID: func() (int, error) { return nextKittyID(), nil },
 		}
 		var pic markdownPicture
 		if asset.Animation != nil {

@@ -100,7 +100,7 @@ func TestFontPickerKittyCleanupAndResize(t *testing.T) {
 		t.Fatal("missing reopened chooser transmission")
 	}
 	if m.fontPicker.owner == old.owner {
-		t.Fatal("reused picker image ID")
+		t.Fatal("reused picker message owner")
 	}
 	reopened := m.fontPicker
 	if reopened.base == nil || reopened.err != nil || !strings.ContainsRune(reopened.pic.View(), kitty.Placeholder) {

@@ -21,7 +21,6 @@ func (m *Model) showTypesetLayers(composite *ntanimation.Composite) tea.Cmd {
 				Session:      m.terminal,
 				HostGeometry: true,
 				Render:       ntpicture.Config{KittyZ: -1, Background: m.pictureBackground(), KittyFormat: ntpicture.KittyFormatZlib},
-				NextID:       func() (int, error) { return nextKittyID(), nil },
 			},
 		})
 	}

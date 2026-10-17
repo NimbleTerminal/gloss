@@ -109,14 +109,14 @@ func (m *Model) queueTypeset(cancel bool) tea.Cmd {
 		m.stopTypeset()
 	}
 	m.typesetRevision++
-	msg := typesetResize{m.kittyID, m.typesetRevision}
+	msg := typesetResize{m.ownerID, m.typesetRevision}
 	if m.typesetWidth == m.typesetMeasure() {
 		return func() tea.Msg { return msg }
 	}
 	return tea.Tick(typesetResizeDelay, func(time.Time) tea.Msg { return msg })
 }
 func (m *Model) reflowTypeset(msg typesetResize) tea.Cmd {
-	if msg.owner != m.kittyID || msg.revision != m.typesetRevision || m.typeset == nil || m.loading || m.typesetActive != 0 || m.typesetMatches() {
+	if msg.owner != m.ownerID || msg.revision != m.typesetRevision || m.typeset == nil || m.loading || m.typesetActive != 0 || m.typesetMatches() {
 		return nil
 	}
 	m.generation++
@@ -126,7 +126,7 @@ func (m *Model) reflowTypeset(msg typesetResize) tea.Cmd {
 	return func() tea.Msg { return typesetReflowResult{msg.owner, msg.revision, loader.Load(q)} }
 }
 func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
-	if msg.owner != m.kittyID {
+	if msg.owner != m.ownerID {
 		return nil
 	}
 	v := msg.result
@@ -184,7 +184,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 			pending := v
 			m.typesetPending = &pending
 			m.typesetSettle++
-			owner, revision := m.kittyID, m.typesetSettle
+			owner, revision := m.ownerID, m.typesetSettle
 			overlays = tea.Tick(typesetSettleDelay, func(time.Time) tea.Msg { return typesetSettled{owner, revision} })
 		}
 		overlays = tea.Batch(overlays, m.showTypesetLayers(v.Playback))
@@ -204,7 +204,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 
 // typesetSettled gives the last page view its overlays, unless it has moved on.
 func (m *Model) typesetSettled(msg typesetSettled) tea.Cmd {
-	if msg.owner != m.kittyID || msg.revision != m.typesetSettle || m.typesetPending == nil || m.typesetActive != 0 || !m.typesetMatches() {
+	if msg.owner != m.ownerID || msg.revision != m.typesetSettle || m.typesetPending == nil || m.typesetActive != 0 || !m.typesetMatches() {
 		return nil
 	}
 	m.typesetPending = nil

@@ -43,9 +43,6 @@ func (m *Model) showStill(img image.Image) tea.Cmd {
 		m.still.pic = ntpicture.New(ntpicture.Options{
 			Session: m.terminal,
 			Render:  ntpicture.Config{KittyZ: -1, Background: background, KittyFormat: ntpicture.KittyFormatZlib},
-			// The existing components reserve ID blocks; using that same allocator
-			// prevents collisions until they too adopt ntpicture's single-ID allocator.
-			NextID: func() (int, error) { id := nextKittyID(); m.picID = id; return id, nil },
 		})
 	}
 	s := m.still

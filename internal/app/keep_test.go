@@ -67,38 +67,21 @@ func TestQuittingFromTheBrowserLeavesTheDocument(t *testing.T) {
 	}
 }
 
-func TestKeptPicturesAreNotDrawnOverByTheNextGloss(t *testing.T) {
-	// A Kitty picture left in the scrollback belongs to the terminal, under
-	// its number. Each run starts its numbers somewhere new, since Q may
-	// leave a picture behind from the alternate screen too.
+func TestPagerAndPreviewHaveDistinctMessageOwners(t *testing.T) {
 	seen := map[int]bool{}
 	for range 8 {
-		m := New(Options{Files: []string{"a.png", "b.png"}, KeepScreen: true, Menu: true, Preview: true, Render: "glyph", Page: 1})
+		m := New(Options{Files: []string{"a.png", "b.png"}, Menu: true, Preview: true, Render: "glyph", Page: 1})
 		m.Update(tea.WindowSizeMsg{Width: 120, Height: 30})
 		if m.preview == nil {
 			t.Fatal("no preview")
 		}
-		for _, id := range []int{m.kittyID, m.preview.kittyID} {
-			// Placeholder cells carry the number in a 24-bit color.
-			if id < 100 || id >= 1<<24 {
-				t.Fatalf("picture number %d cannot be drawn", id)
+		for _, id := range []int{m.ownerID, m.preview.ownerID} {
+			if id <= 0 || seen[id] {
+				t.Fatalf("reused message owner %d", id)
 			}
+			seen[id] = true
 		}
-		if m.preview.kittyID <= m.kittyID {
-			t.Fatalf("the preview started over: %d after %d", m.preview.kittyID, m.kittyID)
-		}
-		seen[m.kittyID] = true
 		m.Close()
-	}
-	if len(seen) < 2 {
-		t.Fatalf("every run began at the same number: %v", seen)
-	}
-	// Previews within a run follow on from its start, and never start over.
-	nextModelID.Store(41)
-	m := New(Options{Files: []string{"a.png"}, Render: "glyph", Page: 1, keptScreen: true})
-	defer m.Close()
-	if m.kittyID != 100+42*1000 {
-		t.Fatalf("a run already placed moved its numbers: %d", m.kittyID)
 	}
 }
 
@@ -123,16 +106,5 @@ func TestShiftQKeepsTheViewWhateverWasLaunched(t *testing.T) {
 	kept.Update(press("Q"))
 	if view := kept.View(); view.AltScreen || !glyphs(view.Content) {
 		t.Fatalf("with -X:\n%s", view.Content)
-	}
-	// Every run starts its picture numbers somewhere new, so the pictures a
-	// Q left in the scrollback are not drawn over by the next gloss.
-	seen := map[int]bool{}
-	for range 8 {
-		m := New(Options{Files: []string{"a.png"}, Render: "glyph", Page: 1})
-		seen[m.kittyID] = true
-		m.Close()
-	}
-	if len(seen) < 2 {
-		t.Fatalf("every run began at the same number: %v", seen)
 	}
 }

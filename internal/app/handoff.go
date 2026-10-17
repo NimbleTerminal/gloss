@@ -32,8 +32,7 @@ func NewHandoff(address, prompt, render string, done <-chan struct{}, cancel fun
 		return nil, err
 	}
 	terminal := newTerminalSession(render)
-	resetKittyIDs()
-	qr, err := qrcode.New(code, qrcode.Config{Session: terminal, NextID: nextKittyID})
+	qr, err := qrcode.New(code, qrcode.Config{Session: terminal, NextID: ntpicture.NextImageID})
 	if err != nil {
 		terminal.Close()
 		return nil, err

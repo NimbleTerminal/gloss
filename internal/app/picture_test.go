@@ -1,7 +1,11 @@
 package app
 
 import (
+	"fmt"
 	"image"
+	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
@@ -12,27 +16,59 @@ import (
 // browser app's terminal would otherwise keep showing the last picture of the
 // same size. Glyphs have no ids to change.
 func TestEachKittyPictureHasItsOwnID(t *testing.T) {
-
 	img := image.NewRGBA(image.Rect(0, 0, 64, 48))
-	glyph := New(Options{Files: []string{"a.png"}, Render: "glyph", Page: 1, DPI: 72})
+	seen := map[int]bool{}
+	last, err := ntpicture.NextImageID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	capture := func(msg tea.Msg) {
+		raw, ok := msg.(tea.RawMsg)
+		if !ok {
+			return
+		}
+		for _, header := range regexp.MustCompile(`\x1b_G([^;]+);`).FindAllStringSubmatch(fmt.Sprint(raw.Msg), -1) {
+			if !strings.Contains(header[1], "a=T") {
+				continue
+			}
+			match := regexp.MustCompile(`(?:^|,)i=(\d+)`).FindStringSubmatch(header[1])
+			if len(match) != 2 {
+				t.Fatal("transmission missing image ID")
+			}
+			id, _ := strconv.Atoi(match[1])
+			if id <= last || id >= 1<<24 || seen[id] {
+				t.Fatalf("invalid or reused image ID %d after %d", id, last)
+			}
+			seen[id] = true
+			last = id
+		}
+	}
+	glyph := New(Options{Render: "glyph"})
 	defer glyph.Close()
-	first := glyph.picID
-	if glyph.showPicture(img); glyph.picID != first {
-		t.Fatal("a glyph picture changed its id")
+	drainAnimation(t, glyph, glyph.showPicture(img), capture)
+	if len(seen) != 0 {
+		t.Fatal("glyph picture transmitted an image")
 	}
-	m := New(Options{Files: []string{"a.png"}, Render: "kitty", Page: 1, DPI: 72})
-	defer m.Close()
-	m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
-	first = m.picID
-	drainAnimation(t, m, m.showPicture(img))
-	second := m.picID
-	m.source, m.zoom = img, 1
-	drainAnimation(t, m, m.refreshImage())
-	if second == first || m.picID == second || !m.kitty {
-		t.Fatalf("ids %d, %d, %d; kitty %v", first, second, m.picID, m.kitty)
+	// New pagers and previews must not reset the allocator after a kept picture.
+	for range 2 {
+		m := New(Options{Render: "kitty"})
+		m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
+		drainAnimation(t, m, m.showPicture(img), capture)
+		m.source, m.zoom = img, 1
+		drainAnimation(t, m, m.refreshImage(), capture)
+		drainAnimation(t, m, m.keepAnimationPicture(), capture)
+		m.Close()
+		id, err := ntpicture.NextImageID()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if id <= last || id >= 1<<24 {
+			t.Fatalf("shared allocator diverged: %d after %d", id, last)
+		}
+		last = id
 	}
-	if w, h := m.cellPixelSize(); w <= 0 || h <= 0 {
-		t.Fatalf("cell size lost: %d×%d", w, h)
+	if len(seen) != 4 {
+		t.Fatalf("got %d picture transmissions, want 4", len(seen))
 	}
 }
 

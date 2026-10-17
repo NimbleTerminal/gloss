@@ -26,7 +26,7 @@ import (
 	"golang.org/x/image/math/fixed"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/gloss/internal/typeset/raster"
-	animate "nimbleterminal.dev/ntpicture/animation"
+	"nimbleterminal.dev/ntpicture/animation"
 )
 
 const (
@@ -65,7 +65,7 @@ type prepared struct {
 	lines      bool // The blocks are the file's lines, one each.
 	blocks     []block
 	images     map[string]image.Image
-	animations map[string]*animate.Player
+	animations map[string]*animation.Player
 }
 
 func inline(n ast.Node, data []byte, style int) []span {

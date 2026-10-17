@@ -21,7 +21,7 @@ func TestPreviewKittyPresentation(t *testing.T) {
 	t.Cleanup(func() { m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 	p := m.preview
-	_, cmd := m.Update(previewResult{owner: p.kittyID, result: document.Result{
+	_, cmd := m.Update(previewResult{owner: p.ownerID, result: document.Result{
 		Generation: p.generation, Kind: "png", Image: image.NewRGBA(image.Rect(0, 0, 32, 32)),
 	}})
 	drainAnimation(t, m, cmd)
@@ -63,16 +63,16 @@ func TestMenuPreviewIsolation(t *testing.T) {
 	m := New(Options{Files: []string{"a.pdf", "b.svg"}, Render: "glyph", Menu: true, Preview: true, Page: 1, DPI: 150})
 	defer m.Close()
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 24})
-	if m.preview == nil || m.preview.kittyID == m.kittyID {
+	if m.preview == nil || m.preview.ownerID == m.ownerID {
 		t.Fatal("preview is not independent")
 	}
-	owner := m.preview.kittyID
+	owner := m.preview.ownerID
 	m.menuKey("down")
 	m.Update(previewResult{owner: owner, result: document.Result{Generation: m.preview.generation, Kind: "png"}})
 	if m.preview.kind != "" {
 		t.Fatal("retired preview result accepted")
 	}
-	owner = m.preview.kittyID
+	owner = m.preview.ownerID
 	m.Update(previewResult{owner: owner, result: document.Result{Generation: m.preview.generation, Kind: "svg", Page: 1, Pages: 1}})
 	if m.kind != "" || m.index != 0 || m.preview.kind != "svg" {
 		t.Fatal("preview result affected active document")
@@ -213,8 +213,8 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 			if old.chart != nil {
 				t.Fatal("renderer remains open")
 			}
-			if m.preview != nil && m.preview.kittyID == old.kittyID {
-				t.Fatal("replacement reused retired image IDs")
+			if m.preview != nil && m.preview.ownerID == old.ownerID {
+				t.Fatal("replacement reused retired message owner")
 			}
 		})
 	}

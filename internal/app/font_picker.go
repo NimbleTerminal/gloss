@@ -39,11 +39,10 @@ func (m *Model) setFont(name, mono string) tea.Cmd {
 	return m.queueTypesetReflow()
 }
 func (m *Model) openFontPicker() tea.Cmd {
-	id := nextKittyID()
+	id := nextOwnerID()
 	p := &fontPicker{owner: id, font: m.opts.Font, mono: m.opts.Mono}
 	p.pic = ntpicture.New(ntpicture.Options{Session: m.terminal, HostGeometry: true,
 		Render: ntpicture.Config{KittyZ: -1, Background: m.palette().Background, KittyFormat: ntpicture.KittyFormatZlib},
-		NextID: func() (int, error) { return nextKittyID(), nil },
 	})
 	for i, l := range document.FontLooks() {
 		if l.Name == m.opts.Font {

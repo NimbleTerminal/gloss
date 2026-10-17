@@ -1,8 +1,6 @@
 package app
 
 import (
-	"math/rand/v2"
-
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
@@ -31,6 +29,3 @@ func (m *Model) toggleGraphics() {
 		m.kitty = true
 	}
 }
-
-// resetKittyIDs avoids image IDs left in scrollback by earlier Gloss processes.
-func resetKittyIDs() { nextModelID.Store(rand.Int64N(8000)) }

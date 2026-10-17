@@ -180,11 +180,11 @@ func TestTypesetOverlaysWaitForSettle(t *testing.T) {
 	if cmd == nil || len(m.typesetLayers.Layers()) != 0 || m.typesetPending == nil || m.playback != nil {
 		t.Fatalf("overlays %d, pending %v: a moved view should wait", len(m.typesetLayers.Layers()), m.typesetPending != nil)
 	}
-	m.Update(typesetSettled{m.kittyID, m.typesetSettle - 1})
+	m.Update(typesetSettled{m.ownerID, m.typesetSettle - 1})
 	if len(m.typesetLayers.Layers()) != 0 {
 		t.Fatal("an older settle notice built overlays")
 	}
-	_, settled := m.Update(typesetSettled{m.kittyID, m.typesetSettle})
+	_, settled := m.Update(typesetSettled{m.ownerID, m.typesetSettle})
 	drainStill(t, m, settled)
 	if len(m.typesetLayers.Layers()) != 1 || m.typesetPending != nil || settled == nil {
 		t.Fatalf("overlays %d after settling", len(m.typesetLayers.Layers()))

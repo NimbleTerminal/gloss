@@ -7,6 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	ntpicture "nimbleterminal.dev/ntpicture"
 	"nimbleterminal.dev/ntqrcode/qrcode"
 )
 
@@ -22,7 +23,7 @@ func (m *Model) openQR(address string) tea.Cmd {
 		m.note = "QR: " + err.Error()
 		return nil
 	}
-	model, err := qrcode.New(code, qrcode.Config{Session: m.terminal, NextID: nextKittyID})
+	model, err := qrcode.New(code, qrcode.Config{Session: m.terminal, NextID: ntpicture.NextImageID})
 	if err != nil {
 		m.note = "QR: " + err.Error()
 		return nil

@@ -6,7 +6,6 @@ import (
 	"image"
 	"io/fs"
 	"net/url"
-	animate "nimbleterminal.dev/ntpicture/animation"
 	"os"
 	"path"
 	"path/filepath"
@@ -15,6 +14,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/yuin/goldmark/ast"
+	"nimbleterminal.dev/ntpicture/animation"
 )
 
 const MaxMarkdownBytes = 2 << 20
@@ -76,7 +76,7 @@ type MarkdownImage struct {
 	Layout           ImageLayout
 	Destination, Alt string
 	Image            image.Image
-	Animation        *animate.Player
+	Animation        *animation.Player
 	Err              error
 }
 

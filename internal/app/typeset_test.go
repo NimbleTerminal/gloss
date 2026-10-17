@@ -94,7 +94,7 @@ func TestTypesetToggle(t *testing.T) {
 		t.Fatal("t from source did not return to rendered text")
 	}
 	// A late resize response from the old PDF must not restore it.
-	drainAnimation(t, m, m.typesetReflowed(typesetReflowResult{owner: m.kittyID, result: document.Result{Generation: generation, Typeset: &document.Markdown{}}}))
+	drainAnimation(t, m, m.typesetReflowed(typesetReflowResult{owner: m.ownerID, result: document.Result{Generation: generation, Typeset: &document.Markdown{}}}))
 	if m.typeset != nil || m.markdown == nil {
 		t.Fatal("obsolete reflow restored typeset")
 	}
