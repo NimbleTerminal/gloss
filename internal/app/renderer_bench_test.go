@@ -7,7 +7,6 @@ import (
 	"testing/fstest"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/colorprofile"
 	uv "github.com/charmbracelet/ultraviolet"
 )
@@ -17,7 +16,7 @@ import (
 // renderer diff.
 func twoFrames(tb testing.TB, render, mode string, cols, rows int) [2]string {
 	tb.Helper()
-	tb.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 	files := fstest.MapFS{"page.md": &fstest.MapFile{Data: []byte("# A typeset page\n\n" + strings.Repeat("Café and a paragraph of words that wraps across the measure.\n\n", 100))}}
 	m := New(Options{Files: []string{"page.md"}, FilesFS: files, MarkdownMode: mode, Render: render, DPI: 150, Page: 1})
 	tb.Cleanup(func() { _ = m.Close() })

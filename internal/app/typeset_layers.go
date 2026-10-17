@@ -4,7 +4,6 @@ import (
 	"image"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
 	"nimbleterminal.dev/ntpicture/playback"
@@ -15,7 +14,7 @@ import (
 func (m *Model) showTypesetLayers(composite *ntanimation.Composite) tea.Cmd {
 	var cleanup tea.Cmd
 	if m.typesetLayers == nil {
-		cleanup = tea.Batch(m.clearStill(), m.presentation.Clear())
+		cleanup = tea.Batch(m.clearStandalone(), m.clearStill())
 		m.typesetPaused = false
 		m.typesetLayers = playback.NewLayers(nil, playback.Options{
 			Picture: ntpicture.Options{
@@ -38,7 +37,7 @@ func (m *Model) syncTypesetLayers() tea.Cmd {
 	cw, ch := m.cellPixelSize()
 	l := m.typesetLayers
 	return tea.Batch(
-		l.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch),
+		l.SetTerminal(m.kitty, cw, ch),
 		l.SetVisible(m.markdown == nil),
 		m.typesetLayers.SetSize(max(1, m.width), max(1, m.bodyHeight())),
 		m.typesetLayers.SetBackground(m.pictureBackground()),

@@ -7,7 +7,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"nimbleterminal.dev/gloss/examples"
 )
 
@@ -15,13 +14,13 @@ import (
 // with its first picture presented, as the viewer is between keystrokes.
 func kittyTypesetModel(tb testing.TB, cols, rows int) *Model {
 	tb.Helper()
-	tb.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 	files := fstest.MapFS{"page.md": &fstest.MapFile{Data: []byte("# A typeset page\n\n" + strings.Repeat("Café and a paragraph.\n\n", 100))}}
 	m := New(Options{Files: []string{"page.md"}, FilesFS: files, MarkdownMode: "typeset", Render: "kitty", DPI: 150, Page: 1})
 	tb.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})
 	drainAnimation(tb, m, m.load(false))
-	if m.typeset == nil || m.pic.Mode() != picture.PictureKitty || !m.hasPictureFront() {
+	if m.typeset == nil || !m.kitty || !m.hasPictureFront() {
 		tb.Fatal("no presented Kitty typeset picture")
 	}
 	return m
@@ -29,7 +28,7 @@ func kittyTypesetModel(tb testing.TB, cols, rows int) *Model {
 
 func kittyMeshModel(tb testing.TB, cols, rows int) *Model {
 	tb.Helper()
-	tb.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 	m := New(Options{Files: []string{"gloss.stl"}, FilesFS: examples.Files, Render: "kitty", Render3D: "software", Page: 1})
 	tb.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})

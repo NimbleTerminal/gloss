@@ -166,7 +166,6 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 				t.Fatal("mesh was not presented in Kitty mode")
 			}
 
-			old.pic.SetImage(image.NewRGBA(image.Rect(0, 0, 2, 2)))
 			old.markdown = newMarkdownView(&document.Markdown{Source: []byte("![picture](pic.png)"), Images: []document.MarkdownImage{{Destination: "pic.png", Image: image.NewRGBA(image.Rect(0, 0, 2, 2))}}}, old.terminal)
 			old.loading = false
 			var inlineID string
@@ -203,12 +202,12 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 				id := strings.SplitN(command, ",", 2)[0]
 				deleted[id] = true
 			}
-			for _, id := range []string{fmt.Sprint(old.kittyID), inlineID} {
+			for _, id := range []string{inlineID} {
 				if !deleted[id] {
 					t.Fatalf("%s: missing delete for %s in %q", action, id, output)
 				}
 			}
-			if len(deleted) < 3 {
+			if len(deleted) < 2 {
 				t.Fatalf("%s: missing mesh image delete in %q", action, output)
 			}
 			if old.chart != nil {

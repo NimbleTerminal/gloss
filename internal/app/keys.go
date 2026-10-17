@@ -2,7 +2,6 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 )
 
 // key handles a key press for the screen on show, and reports whether it
@@ -292,20 +291,14 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 	case "g":
 		m.autoKitty = false
 		if m.chart == nil {
-			old := m.pic
-			cmd := m.pic.Toggle()
+			m.toggleGraphics()
 			if m.source != nil && m.markdown == nil {
-				if m.animation != nil || m.still != nil || m.typesetLayers != nil || m.pic.Mode() == picture.PictureKitty {
-					return tea.Batch(cmd, m.refreshImage()), true
-				}
-				cleanup := old.SetImage(nil)
-				m.retireAnimationPicture(cleanup)
-				return tea.Batch(cmd, cleanup), true
+				return m.refreshImage(), true
 			}
 			if m.markdown != nil {
-				cmd = tea.Batch(cmd, m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
+				return m.markdown.setKitty(m.kitty), true
 			}
-			return cmd, true
+			return nil, true
 		}
 		return nil, false // The mesh has a glyph toggle of its own.
 	case "r":
@@ -342,7 +335,8 @@ func (m *Model) layerKey(k string) (tea.Cmd, bool) {
 			return m.closeLayer(), true
 		case "g":
 			m.autoKitty = false
-			return m.pic.Toggle(), true
+			m.toggleGraphics()
+			return nil, true
 		case "e":
 			return m.exportQR(), true
 		}

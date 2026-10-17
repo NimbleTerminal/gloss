@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
@@ -13,7 +12,7 @@ import (
 // browser app's terminal would otherwise keep showing the last picture of the
 // same size. Glyphs have no ids to change.
 func TestEachKittyPictureHasItsOwnID(t *testing.T) {
-	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 	img := image.NewRGBA(image.Rect(0, 0, 64, 48))
 	glyph := New(Options{Files: []string{"a.png"}, Render: "glyph", Page: 1, DPI: 72})
 	defer glyph.Close()
@@ -29,10 +28,10 @@ func TestEachKittyPictureHasItsOwnID(t *testing.T) {
 	second := m.picID
 	m.source, m.zoom = img, 1
 	drainAnimation(t, m, m.refreshImage())
-	if second == first || m.picID == second || m.pic.Mode() != picture.PictureKitty {
-		t.Fatalf("ids %d, %d, %d; mode %v", first, second, m.picID, m.pic.Mode())
+	if second == first || m.picID == second || !m.kitty {
+		t.Fatalf("ids %d, %d, %d; kitty %v", first, second, m.picID, m.kitty)
 	}
-	if w, h := m.pic.CellPixelSize(); w <= 0 || h <= 0 {
+	if w, h := m.cellPixelSize(); w <= 0 || h <= 0 {
 		t.Fatalf("cell size lost: %d×%d", w, h)
 	}
 }
@@ -41,9 +40,7 @@ func TestEachKittyPictureHasItsOwnID(t *testing.T) {
 // view's inline pictures and a typeset overlay alike.
 func TestKittyPicturesSendZlibFrames(t *testing.T) {
 	m := typesetGIFModel(t, "kitty", 80, 30)
-	if m.pic.KittyFormat() != picture.KittyFormatZlib {
-		t.Fatalf("page format %v", m.pic.KittyFormat())
-	}
+
 	if m.typesetLayers == nil || len(m.typesetLayers.Layers()) == 0 || m.typesetLayers.Layers()[0].Status.Picture.Format != ntpicture.KittyFormatZlib {
 		t.Fatal("overlay format")
 	}

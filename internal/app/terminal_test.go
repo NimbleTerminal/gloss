@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi/kitty"
 	widget "nimbleterminal.dev/nt3d/widget"
@@ -21,21 +20,18 @@ func TestTerminalSessionConnectionIsolation(t *testing.T) {
 	if w, h := a.cellPixelSize(); w != 11 || h != 23 {
 		t.Fatalf("session geometry: %dx%d", w, h)
 	}
-	if w, h := a.pic.CellPixelSize(); w != 11 || h != 23 {
-		t.Fatalf("legacy renderer geometry: %dx%d", w, h)
-	}
+
 	if w, h := b.cellPixelSize(); w != 8 || h != 16 {
 		t.Fatalf("another connection inherited geometry: %dx%d", w, h)
 	}
 	a.Update(uv.CellSizeEvent{Width: 0, Height: -1})
-	if w, h := a.pic.CellPixelSize(); w != 11 || h != 23 {
+	if w, h := a.cellPixelSize(); w != 11 || h != 23 {
 		t.Fatalf("invalid report changed geometry: %dx%d", w, h)
 	}
-	// Alternating independent event loops must not borrow the compatibility
-	// flag left by the other connection when interpreting a graphics toggle.
+	// Alternating event loops must use their own connection capability.
 	a.Update(struct{}{})
 	b.Update(press("g"))
-	if b.pic.Mode() != picture.PictureGlyph || a.terminal.Snapshot().Kitty != ntpicture.KittyCapabilitySupported {
+	if b.kitty || a.terminal.Snapshot().Kitty != ntpicture.KittyCapabilitySupported {
 		t.Fatal("connections leaked capability or graphics mode")
 	}
 }
@@ -56,8 +52,11 @@ func TestTerminalSessionSharedWithPreviewAndMesh(t *testing.T) {
 		t.Fatal("preview started duplicate discovery")
 	}
 	m.Update(uv.CellSizeEvent{Width: 10, Height: 20})
-	if w, h := m.preview.pic.CellPixelSize(); w != 10 || h != 20 {
+	if w, h := m.preview.cellPixelSize(); w != 10 || h != 20 {
 		t.Fatalf("preview did not follow connection geometry: %dx%d", w, h)
+	}
+	if m.preview.lastCellW != 10 || m.preview.lastCellH != 20 {
+		t.Fatal("preview did not apply geometry already observed by the parent")
 	}
 	m.disposePreview()
 	m.chart = widget.New(nil, 10, 10, widget.WithTerminalSession(m.terminal))
@@ -96,12 +95,12 @@ func TestTerminalSessionRoutesProbeReplies(t *testing.T) {
 		t.Fatal("foreign probe changed session capability")
 	}
 	a.Update(reply)
-	if a.terminal.Snapshot().Kitty != ntpicture.KittyCapabilitySupported || a.pic.Mode() != picture.PictureKitty {
+	if a.terminal.Snapshot().Kitty != ntpicture.KittyCapabilitySupported || !a.kitty {
 		t.Fatal("session discovery did not enable automatic Kitty presentation")
 	}
 	a.Update(press("g"))
 	a.Update(ntpicture.TerminalSessionMsg{Session: a.terminal, State: a.terminal.Snapshot()})
-	if a.pic.Mode() != picture.PictureGlyph {
+	if a.kitty {
 		t.Fatal("discovery notification overrode the user's graphics toggle")
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
@@ -40,16 +39,13 @@ func (m *Model) showStill(img image.Image) tea.Cmd {
 		cleanup = tea.Batch(cleanup, m.clearStill())
 	}
 	if m.still == nil {
-		pending := m.pic.SetImage(nil)
-		m.retireAnimationPicture(pending)
-		cleanup = tea.Batch(cleanup, pending, m.clearAnimationFront())
 		m.still = &stillPicture{background: background}
 		m.still.pic = ntpicture.New(ntpicture.Options{
 			Session: m.terminal,
 			Render:  ntpicture.Config{KittyZ: -1, Background: background, KittyFormat: ntpicture.KittyFormatZlib},
 			// The existing components reserve ID blocks; using that same allocator
 			// prevents collisions until they too adopt ntpicture's single-ID allocator.
-			NextID: func() (int, error) { id := m.presentation.NextImageID(); m.picID = id; return id, nil },
+			NextID: func() (int, error) { id := nextKittyID(); m.picID = id; return id, nil },
 		})
 	}
 	s := m.still
@@ -59,7 +55,7 @@ func (m *Model) showStill(img image.Image) tea.Cmd {
 	}
 	cw, ch := m.cellPixelSize()
 	s.width, s.height = max(1, m.width), max(1, m.bodyHeight())
-	return tea.Batch(cleanup, s.pic.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), s.pic.SetSize(s.width, s.height), s.pic.SetImageImmutable(img))
+	return tea.Batch(cleanup, s.pic.SetTerminal(m.kitty, cw, ch), s.pic.SetSize(s.width, s.height), s.pic.SetImageImmutable(img))
 }
 
 func (m *Model) updateStill(msg tea.Msg) tea.Cmd {
@@ -68,7 +64,7 @@ func (m *Model) updateStill(msg tea.Msg) tea.Cmd {
 		return nil
 	}
 	cw, ch := m.cellPixelSize()
-	cmd := tea.Batch(s.pic.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), s.pic.Update(msg))
+	cmd := tea.Batch(s.pic.SetTerminal(m.kitty, cw, ch), s.pic.Update(msg))
 	status := s.pic.Status()
 	if status.Presented != s.presented && status.Presented == status.Generation {
 		s.presented, s.front = status.Presented, s.submitted
@@ -103,7 +99,7 @@ func (m *Model) hasPictureFront() bool {
 	if m.still != nil {
 		return m.still.front != nil
 	}
-	return m.presentation.Front != nil
+	return false
 }
 func (m *Model) pictureBusy() bool {
 	if m.playback != nil {
@@ -115,7 +111,7 @@ func (m *Model) pictureBusy() bool {
 	if m.still != nil {
 		return m.still.pic.Status().Busy
 	}
-	return m.presentation.Awaiting
+	return false
 }
 func (m *Model) pictureExact(w, h int) bool {
 	if m.playback != nil {
@@ -127,5 +123,5 @@ func (m *Model) pictureExact(w, h int) bool {
 	if m.still != nil {
 		return m.still.pic.Mode() == ntpicture.PictureKitty && m.still.front != nil && m.still.width == w && m.still.height == h
 	}
-	return m.presentation.Exact(w, h)
+	return false
 }

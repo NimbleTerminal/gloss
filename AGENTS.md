@@ -6,7 +6,7 @@ A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3M
 meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
 Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
-Tea, NTCharts, ntsvg, ntpdf, ntpicture, and nt3d. The README is the
+Tea, ntsvg, ntpdf, ntpicture, and nt3d. The README is the
 short introduction; the user reference is the guide on the documentation site
 (`docs/hugo/content/guide`); DEVELOP.md is for working on gloss. Keep them and
 this file consistent with the code.
@@ -40,8 +40,7 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
   `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
   before PDF libraries run. Unsupported or ambiguous encodings fail closed.
-- `internal/animate`: the remaining legacy presentation adapter and animation
-  compatibility aliases. Inline Markdown images use `ntpicture.Picture` and
+- `internal/animate`: animation compatibility aliases and decoder regression tests. Inline Markdown images use `ntpicture.Picture` and
   `playback.Controller`; Gloss owns their document rows, scrolling, and visibility.
   Bounded GIF/WebP decoding, immutable clips/players,
   and typeset region composition/position snapshots come from
@@ -53,8 +52,8 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   retirement, and keep-screen cleanup. Typeset composites use ntpicture's
   immutable animation API and `playback.Layers`; Gloss retains layout, visibility,
   and scroll-settle policy in `internal/app/typeset_layers.go`.
-  Legacy pager presentation plumbing and the shared block ID allocator remain
-  host-owned during the migration. The temporary sibling
+  The font chooser also uses `ntpicture.Picture`. The shared block ID allocator
+  remains host-owned during the migration. The temporary sibling
   module replacement must become a published pin before release.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
   camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
@@ -266,8 +265,8 @@ or hidden in Manage apps; binary/converted documents are excluded.
 Terminal discovery: `internal/app/terminal.go` owns one explicit
 `ntpicture.TerminalSession` per pager or handoff connection. Previews, still
 pictures, meshes, and QR overlays share the pager session; only the owner closes it. The
-handoff tracks graphics mode directly without a legacy picture model. Legacy
-pictures follow its geometry and compatibility capability flag without probing.
+pager and handoff track graphics mode directly. All picture consumers use the
+shared session; no compatibility capability flag or legacy picture model remains.
 
 Key viewer features: Kitty graphics with colored half-block glyph fallback;
 alternate screen by default, `-X` for main screen; file menu (`--menu`),

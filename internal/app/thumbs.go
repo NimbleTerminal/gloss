@@ -61,7 +61,7 @@ func (m *Model) openGrid() tea.Cmd {
 // closeGrid shows the list as a list again.
 func (m *Model) closeGrid() tea.Cmd {
 	m.screen, m.thumbs = screenList, false
-	return tea.Batch(m.pic.SetImage(nil), m.updatePreview())
+	return tea.Batch(m.clearPicture(), m.updatePreview())
 }
 
 // layoutGrid composes the picture for the screen as it is, the selection

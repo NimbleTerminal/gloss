@@ -8,14 +8,14 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
 type fontPicker struct {
 	palette               string
-	pic                   picture.Model
+	pic                   *ntpicture.Picture
 	owner, revision       int
 	width, height, cw, ch int
 	cursor                int
@@ -40,8 +40,11 @@ func (m *Model) setFont(name, mono string) tea.Cmd {
 }
 func (m *Model) openFontPicker() tea.Cmd {
 	id := nextKittyID()
-	cw, ch := m.cellPixelSize()
-	p := &fontPicker{owner: id, font: m.opts.Font, mono: m.opts.Mono, pic: picture.NewWithConfig(picture.Config{KittyID: id, KittyZ: -1, Background: m.palette().Background, CellPixelWidth: cw, CellPixelHeight: ch})}
+	p := &fontPicker{owner: id, font: m.opts.Font, mono: m.opts.Mono}
+	p.pic = ntpicture.New(ntpicture.Options{Session: m.terminal, HostGeometry: true,
+		Render: ntpicture.Config{KittyZ: -1, Background: m.palette().Background, KittyFormat: ntpicture.KittyFormatZlib},
+		NextID: func() (int, error) { return nextKittyID(), nil },
+	})
 	for i, l := range document.FontLooks() {
 		if l.Name == m.opts.Font {
 			p.cursor = i
@@ -58,10 +61,7 @@ func (m *Model) layoutFontPicker() tea.Cmd {
 	}
 	cw, ch := m.cellPixelSize()
 	w, h := max(1, min(64, m.width-4)), max(1, min(24, m.bodyHeight()-5))
-	var mode tea.Cmd
-	if p.pic.Mode() != m.pic.Mode() {
-		mode = p.pic.Toggle()
-	}
+	mode := tea.Batch(p.pic.SetTerminal(m.kitty, cw, ch), p.pic.SetBackground(m.palette().Background))
 	if p.width == w && p.height == h && p.cw == cw && p.ch == ch && p.palette == m.theme {
 		return mode
 	}
@@ -71,10 +71,7 @@ func (m *Model) layoutFontPicker() tea.Cmd {
 	p.width, p.height, p.cw, p.ch = w, h, cw, ch
 	p.palette = m.theme
 	p.revision++
-	cmds := []tea.Cmd{mode, p.pic.SetSize(w, h), p.pic.SetCellPixelSize(cw, ch)}
-	if p.pic.Mode() != m.pic.Mode() {
-		cmds = append(cmds, p.pic.Toggle())
-	}
+	cmds := []tea.Cmd{mode, p.pic.SetSize(w, h)}
 	if w < 24 || h < 10 {
 		p.base = nil
 		return tea.Batch(append(cmds, p.pic.SetImage(nil))...)
@@ -102,7 +99,7 @@ func (m *Model) showFontPreview() tea.Cmd {
 	y := row * p.cursor
 	accent := image.NewUniform(m.palette().Accent)
 	draw.Draw(im, image.Rect(0, y, 3, y+row), accent, image.Point{}, draw.Src)
-	return p.pic.SetImage(im)
+	return p.pic.SetImageImmutable(im)
 }
 func (m *Model) clearFontPicker() tea.Cmd {
 	p := m.fontPicker
@@ -116,7 +113,7 @@ func (m *Model) clearFontPicker() tea.Cmd {
 	if p.cancel != nil {
 		p.cancel()
 	}
-	return p.pic.SetImage(nil)
+	return p.pic.Close()
 }
 func (m *Model) fontPickerKey(k string) tea.Cmd {
 	p := m.fontPicker
@@ -127,6 +124,7 @@ func (m *Model) fontPickerKey(k string) tea.Cmd {
 	case "esc", "f":
 		return m.closeLayer()
 	case "Q":
+		m.keepOnMainScreen = !m.opts.KeepScreen
 		m.opts.KeepScreen = true
 		return m.quit()
 	case "ctrl+c", "q":
@@ -158,7 +156,7 @@ func (m *Model) fontPickerView() string {
 	}
 	var body string
 	if p.base != nil && p.err == nil {
-		body = p.pic.View().Content
+		body = p.pic.View()
 	} else {
 		var lines []string
 		for i, l := range document.FontLooks() {

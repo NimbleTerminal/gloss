@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"context"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"math"
 	"time"
 
@@ -67,7 +66,7 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
 	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}
 	v.Link = m.typesetGoLink
-	if m.pic.Mode() == picture.PictureKitty {
+	if m.kitty {
 		// The picture fills the body's cell area; a raster of exactly that
 		// size is shown as it is instead of being resampled.
 		v.Pixels = image.Pt(m.width*max(1, cw), m.bodyHeight()*max(1, ch))
@@ -107,7 +106,6 @@ func (m *Model) queueTypeset(cancel bool) tea.Cmd {
 		return nil
 	}
 	if cancel {
-		m.presentation.CancelPending()
 		m.stopTypeset()
 	}
 	m.typesetRevision++
@@ -182,7 +180,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	var overlays tea.Cmd
 	m.typesetPending = nil
 	if v.Playback != nil && !m.isPreview {
-		if m.pic.Mode() == picture.PictureKitty && len(v.Animated) > 0 && v.TypesetView != nil {
+		if m.kitty && len(v.Animated) > 0 && v.TypesetView != nil {
 			pending := v
 			m.typesetPending = &pending
 			m.typesetSettle++

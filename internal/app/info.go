@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/theme"
@@ -61,7 +60,7 @@ func (m *Model) terminalFields() []document.Field {
 		size += fmt.Sprintf(", %d × %d pixels each", cw, ch)
 	}
 	pictures := "glyphs"
-	if m.pic.Mode() == picture.PictureKitty {
+	if m.kitty {
 		pictures = "Kitty graphics"
 	}
 	if m.opts.Render == "glyph" {

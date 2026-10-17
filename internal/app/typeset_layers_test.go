@@ -10,7 +10,6 @@ import (
 	"testing/fstest"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"math"
@@ -38,7 +37,7 @@ func gifPage(t testing.TB) fstest.MapFS {
 
 func typesetGIFModel(t testing.TB, render string, cols, rows int) *Model {
 	t.Helper()
-	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 	m := New(Options{Files: []string{"page.md"}, FilesFS: gifPage(t), MarkdownMode: "typeset", Render: render, DPI: 150, Page: 1})
 	t.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: cols, Height: rows})
@@ -66,17 +65,17 @@ func cellCount(line string) int { return strings.Count(line, string(kitty.Placeh
 // and the view splices the overlay's placeholders into the page grid there.
 func TestTypesetOverlaysPlayGIFRegions(t *testing.T) {
 	m := typesetGIFModel(t, "kitty", 80, 30)
-	if m.pic.Mode() != picture.PictureKitty {
+	if !m.kitty {
 		t.Fatal("not under Kitty graphics")
 	}
-	if m.presentation.Source != nil {
-		t.Fatal("the page picture still animates")
+	if m.playback != nil {
+		t.Fatal("typeset page used standalone playback")
 	}
 	if len(m.typesetLayers.Layers()) != 1 {
 		t.Fatalf("%d overlays, want 1", len(m.typesetLayers.Layers()))
 	}
 	o := m.typesetLayers.Layers()[0]
-	cw, ch := m.pic.CellPixelSize()
+	cw, ch := m.cellPixelSize()
 	region := m.typesetPlayback.Regions()[0].Rect
 	want := image.Rect(region.Min.X/cw, region.Min.Y/ch, (region.Max.X+cw-1)/cw, (region.Max.Y+ch-1)/ch)
 	if o.Cells != want || !o.Cells.In(image.Rect(0, 0, m.width, m.bodyHeight())) {
@@ -127,7 +126,7 @@ func TestTypesetGlyphRenderingAnimatesWholePage(t *testing.T) {
 // the picture's resolution factor shrinks the frame it prepares, the window
 // is exactly that size, and the terminal enlarges it.
 func TestTypesetOverlayAtGIFResolution(t *testing.T) {
-	t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 	m := New(Options{Files: []string{"page.md"}, FilesFS: gifPage(t), MarkdownMode: "typeset", Render: "kitty", DPI: 150, Page: 1})
 	t.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: 120, Height: 30})
@@ -178,7 +177,7 @@ func TestTypesetOverlaysWaitForSettle(t *testing.T) {
 	m.typesetShown = nil
 	drainStill(t, m, func() tea.Msg { return nil })
 	cmd := m.acceptTypesetView(v)
-	if cmd == nil || len(m.typesetLayers.Layers()) != 0 || m.typesetPending == nil || m.presentation.Source != nil {
+	if cmd == nil || len(m.typesetLayers.Layers()) != 0 || m.typesetPending == nil || m.playback != nil {
 		t.Fatalf("overlays %d, pending %v: a moved view should wait", len(m.typesetLayers.Layers()), m.typesetPending != nil)
 	}
 	m.Update(typesetSettled{m.kittyID, m.typesetSettle - 1})

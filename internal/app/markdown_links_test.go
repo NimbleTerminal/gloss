@@ -184,11 +184,11 @@ func TestTypesetLinkHitGeometry(t *testing.T) {
 	if m.linkAt(0, 0) != "" {
 		t.Fatal("outside link")
 	}
-	m.presentation.Awaiting = true
+	pending := m.showStill(m.source)
 	if m.linkAt(6, 1) != "" {
 		t.Fatal("pending image used new hit regions")
 	}
-	m.presentation.Awaiting = false
+	drainAnimation(t, m, pending)
 	m.typesetTop++
 	if m.linkAt(6, 1) != "" {
 		t.Fatal("stale viewport hit")
@@ -236,11 +236,11 @@ func TestTypesetLinkHover(t *testing.T) {
 		}
 	}
 	m.linkMouse(hover)
-	m.presentation.Awaiting = true
+	pending := m.showStill(m.source)
 	if preview() {
 		t.Fatal("preview used pending image regions")
 	}
-	m.presentation.Awaiting = false
+	drainAnimation(t, m, pending)
 	m.help = true
 	if preview() || m.View().MouseMode == tea.MouseModeAllMotion {
 		t.Fatal("hover active under help")

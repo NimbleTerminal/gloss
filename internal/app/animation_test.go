@@ -15,7 +15,6 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/examples"
@@ -80,7 +79,7 @@ func animated(t *testing.T, render string, loop int) *Model {
 		t.Fatal(err)
 	}
 	m := New(Options{Files: []string{"motion.gif", "still.gif"}, FilesFS: fstest.MapFS{"motion.gif": {Data: b.Bytes()}, "still.gif": {Data: b.Bytes()}}, Render: render, Page: 1})
-	t.Cleanup(func() { m.Close(); picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+	t.Cleanup(func() { m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
 	m.generation = 1
 	cmd := m.loaded(m.loader.Load(m.request(false)))
@@ -113,7 +112,7 @@ func (m *animationObserver) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.reached = m.reached || done
 		return m, tea.Batch(cmd, next)
 	}
-	if m.animation != nil && m.pic.Mode() == picture.PictureKitty && glyphs(m.pictureView()) {
+	if m.animation != nil && m.kitty && glyphs(m.pictureView()) {
 		m.flickered = true
 	}
 	if m.animation != nil && m.animation.player().Frame() >= 3 {
@@ -145,7 +144,7 @@ func TestGIFFinitePlaybackRestartAndSeek(t *testing.T) {
 			stage := 0
 			model := &animationObserver{Model: New(Options{Files: []string{"once.gif"}, FilesFS: fstest.MapFS{"once.gif": {Data: b.Bytes()}}, Render: render, Page: 1})}
 			defer model.Close()
-			t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 			model.control = func(m *Model) (tea.Cmd, bool) {
 				a := m.animation
 				if a == nil {
@@ -208,7 +207,7 @@ func TestGIFActualEventLoop(t *testing.T) {
 	for _, render := range []string{"glyph", "kitty"} {
 		for _, file := range []string{"motion.gif", "motion.webp"} {
 			t.Run(render+"/"+file, func(t *testing.T) {
-				t.Cleanup(func() { picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+
 				model := &animationObserver{Model: New(Options{Files: []string{file}, FilesFS: examples.Files, Render: render, Page: 1})}
 				defer model.Close()
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -440,7 +439,7 @@ func TestGIFGraphicsToggleAndResizeBurst(t *testing.T) {
 	for _, key := range []string{"g", "g"} {
 		_, cmd := m.Update(press(key))
 		drainAnimation(t, m, cmd)
-		if a.Mode() != ntpicture.PictureMode(m.pic.Mode()) {
+		if (a.Mode() == ntpicture.PictureKitty) != m.kitty {
 			t.Fatal("graphics choice not forwarded")
 		}
 	}

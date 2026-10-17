@@ -8,12 +8,10 @@ import (
 	"io/fs"
 	"sync/atomic"
 
-	"nimbleterminal.dev/gloss/internal/animate"
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
 	"nimbleterminal.dev/ntpicture/playback"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/gloss/internal/theme"
@@ -169,7 +167,8 @@ type Model struct {
 	loader                   *document.Loader
 	terminal                 *ntpicture.TerminalSession
 	ownTerminal              bool
-	pic                      picture.Model
+	lastCellW, lastCellH     int  // Last geometry applied by this consumer of the shared session.
+	kitty                    bool // Current graphics mode; capability and geometry belong to terminal.
 	qr                       *qrOverlay
 	width, height, index     int
 	page, pages              int
@@ -183,7 +182,6 @@ type Model struct {
 	err                      error
 	source                   image.Image
 	animation                *animation
-	presentation             *animate.Animator
 	playback                 *playback.Controller
 	still                    *stillPicture
 	zoom                     int
@@ -219,12 +217,13 @@ func New(opts Options) *Model {
 	if ownTerminal {
 		opts.terminal = newTerminalSession(opts.Render)
 	}
-	pic, id := terminalPicture(opts.Render, !opts.keptScreen, opts.terminal)
+	if !opts.keptScreen {
+		resetKittyIDs()
+	}
+	id := nextKittyID()
 	opts.keptScreen = true
-	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, pic: pic, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
+	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, kittyID: id, picID: id, kitty: opts.Render != "glyph" && opts.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
 	m.lineNumbers, m.chopLines = opts.LineNumbers, opts.ChopLines
-	m.presentation = animate.New(&m.pic, animate.Config{NextID: nextKittyID, Background: pictureBackground})
-	m.presentation.ID = id
 	m.theme = "dark"
 	m.detectedTheme = "dark"
 	m.typesetFont = document.FontKey(opts.Font, opts.Mono)
@@ -234,6 +233,7 @@ func New(opts Options) *Model {
 	if (opts.Menu || opts.Preview) && len(opts.Files) > 0 {
 		m.screen = screenList
 	}
+	m.lastCellW, m.lastCellH = m.cellPixelSize()
 	return m
 }
 
@@ -257,8 +257,6 @@ func (m *Model) Close() error {
 	m.clearFontPicker()
 	m.clearSearch()
 	m.stopAnimation()
-	m.clearAnimationFront()
-	m.retireAnimationPicture(m.pic.SetImage(nil))
 	if m.qr != nil {
 		m.qr.model.Close()
 	}
@@ -423,10 +421,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	overlayCleanup := m.clearTypesetLayers()
 	stopped := m.stopAnimation()
 	m.sheet = nil
-	frontCleanup := m.clearAnimationFront()
-	cleanup := m.pic.SetImage(nil)
-	m.retireAnimationPicture(cleanup)
-	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), frontCleanup, overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown(), cleanup)
+	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown())
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -468,13 +463,13 @@ func (m *Model) movePage(page int) tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
+	cw, ch := m.lastCellW, m.lastCellH
 	terminalCmd := m.terminal.Update(msg)
-	syncLegacyCapability(m.terminal)
+	if m.autoKitty {
+		m.kitty = m.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported
+	}
 	defer func() {
 		cmd = tea.Batch(terminalCmd, cmd, m.syncSearch(), m.updateStill(msg))
-		if m.pic.Mode() != picture.PictureKitty {
-			cmd = tea.Batch(cmd, m.clearAnimationFront())
-		}
 		if m.typeset == nil {
 			m.typesetPending = nil
 			cmd = tea.Batch(cmd, m.clearTypesetLayers())
@@ -484,11 +479,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument), m.markdown.update(msg))
 		}
 		if p := m.fontPicker; p != nil {
-			cmd = tea.Batch(cmd, p.pic.Update(legacyPictureMessage(msg)), m.layoutFontPicker())
+			cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
 		}
 		if m.qr != nil {
 			cw, ch := m.cellPixelSize()
-			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
+			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.kitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
 		}
 	}()
 	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {
@@ -583,14 +578,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		return m, m.themeRequest()
 	case searchResult:
 		return m, m.searched(v)
-	case animationPresented:
-		cmd, handled := m.presentation.Update(v)
-		// A menu preview owns its own presentation. Its completion travels
-		// through this event loop just like the picture frame that preceded it.
-		if !handled && m.preview != nil {
-			_, cmd = m.preview.Update(v)
-		}
-		return m, cmd
 	case previewResult:
 		if m.preview != nil && v.owner == m.preview.kittyID {
 			_, cmd := m.preview.Update(v.result)
@@ -608,7 +595,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		m.width, m.height = max(1, v.Width), max(1, v.Height)
 		m.opener.resize(m.width, m.bodyHeight())
 		var resize tea.Cmd
-		if m.source != nil && m.pic.Mode() == picture.PictureKitty {
+		if m.source != nil && m.kitty {
 			if oldWidth != m.width || oldHeight != m.height {
 				if m.animation != nil {
 					resize = m.resizeAnimation()
@@ -616,8 +603,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 					resize = m.refreshImage()
 				}
 			}
-		} else {
-			resize = m.pic.SetSize(m.width, m.bodyHeight())
 		}
 		cmd := tea.Batch(resize, m.resizeStill(), m.resizePreview(), m.layoutMarkdown(), m.layoutGrid())
 		if m.typesetWaitSize && !m.suspended {
@@ -712,9 +697,9 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 	}
 	// Picture messages carry image IDs and sequence numbers, so late frames
 	// from an earlier page cannot overwrite the current source.
-	cw, ch := m.pic.CellPixelSize()
-	picCmd := updateTerminalPicture(&m.pic, m.terminal, m.autoKitty, msg)
-	if nw, nh := m.cellPixelSize(); (cw != nw || ch != nh) && m.source != nil && m.pic.Mode() == picture.PictureKitty {
+	m.lastCellW, m.lastCellH = m.cellPixelSize()
+	var picCmd tea.Cmd
+	if nw, nh := m.cellPixelSize(); (cw != nw || ch != nh) && m.source != nil && m.kitty {
 		// Font-size changes have the same placement lifetime as window resizes.
 		if m.animation != nil {
 			picCmd = m.resizeAnimation()
@@ -722,7 +707,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			picCmd = m.refreshImage()
 		}
 	}
-	cmds = append(cmds, m.animationTransmission(msg, picCmd))
+	cmds = append(cmds, picCmd)
 	if nw, nh := m.cellPixelSize(); (cw != nw || ch != nh) && m.typeset != nil {
 		cmds = append(cmds, m.queueTypesetReflow())
 		if m.markdown == nil {
@@ -733,14 +718,14 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		if nw, nh := m.cellPixelSize(); cw != nw || ch != nh {
 			cmds = append(cmds, m.layoutMarkdown())
 		}
-		cmds = append(cmds, m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
+		cmds = append(cmds, m.markdown.setKitty(m.kitty))
 	}
 	_, mouseMessage := msg.(tea.MouseMsg)
 	if m.chart != nil && !((m.help || m.listing()) && mouseMessage) {
 		before := m.chart.Camera()
 		_, cmd := m.chart.Update(meshMessage(msg))
 		cmds = append(cmds, cmd)
-		// NTCharts orbits the camera toward horizontal drags. In a model
+		// The mesh widget orbits the camera toward horizontal drags. In a model
 		// viewer, drag the object instead. Preserve picking, pan, and keys.
 		if motion, ok := msg.(tea.MouseMotionMsg); ok && motion.Mod&tea.ModShift == 0 {
 			after := m.chart.Camera()
@@ -769,13 +754,9 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	animationCleanup := tea.Batch(stopped, m.clearStandalone())
 	if v.Image == nil || v.Animation != nil {
-		animationCleanup = tea.Batch(animationCleanup, m.clearStill(), m.clearAnimationFront())
+		animationCleanup = tea.Batch(animationCleanup, m.clearStill())
 	}
-	if m.presentation.Flight != nil && (m.presentation.Front == nil || m.presentation.Front.ID != m.picID) {
-		pendingCleanup := m.pic.SetImage(nil)
-		m.retireAnimationPicture(pendingCleanup)
-		animationCleanup = tea.Batch(animationCleanup, pendingCleanup)
-	}
+
 	cleanup := tea.Batch(animationCleanup, m.clearQR(), m.clearMarkdown(), m.clearChart())
 	m.sheet = nil
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
@@ -790,7 +771,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 			m.sheet.settle(m.width, m.bodyHeight()-1)
 			m.savedSheet = nil
 		}
-		return tea.Sequence(cleanup, m.pic.SetImage(nil))
+		return cleanup
 	}
 	if v.Markdown != nil {
 		m.source = nil
@@ -799,7 +780,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 			m.markdown.raw, m.markdown.offset, m.markdown.left = m.savedMarkdown.raw, m.savedMarkdown.offset, m.savedMarkdown.left
 			m.savedMarkdown = nil
 		}
-		return tea.Sequence(tea.Batch(cleanup, m.pic.SetImage(nil)), tea.Batch(m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty), m.layoutMarkdown()))
+		return tea.Sequence(cleanup, tea.Batch(m.markdown.setKitty(m.kitty), m.layoutMarkdown()))
 	}
 	if v.Mesh != nil {
 		return m.showMesh(v, cleanup)
@@ -827,7 +808,7 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	}
 	m.chart = widget.New(scene, m.width, m.meshHeight(),
 		widget.WithTerminalSession(m.terminal),
-		widget.WithImageIDAllocator(func() (int, error) { return m.presentation.NextImageID(), nil }),
+		widget.WithImageIDAllocator(func() (int, error) { return nextKittyID(), nil }),
 		widget.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
 		widget.WithGPUFailure(widget.FallBackOnGPUFailure),
 		widget.WithRenderMode(mode), widget.WithBackground(m.background()))
@@ -863,7 +844,7 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	_, applied := m.chart.Update(struct{}{})
 	setup = append(setup, applied)
 	m.triangles, m.err = v.Mesh.Triangles(), m.chart.Err()
-	return tea.Sequence(tea.Batch(cleanup, m.pic.SetImage(nil)), tea.Batch(setup...), m.chart.Init())
+	return tea.Sequence(cleanup, tea.Batch(setup...), m.chart.Init())
 }
 
 func (m *Model) refreshImage() tea.Cmd {
@@ -901,20 +882,7 @@ func (m *Model) showPicture(img image.Image) tea.Cmd {
 	if m.typesetLayers != nil {
 		return m.syncTypesetLayers()
 	}
-	if m.presentation.Source == nil {
-		return m.showStill(img)
-	}
-	cleanup := m.clearStill()
-	m.presentation.SetSize(m.width, m.bodyHeight())
-	m.presentation.SetBackground(m.pictureBackground())
-	zoom, panX, panY := m.zoom, m.panX, m.panY
-	m.presentation.Transform = func(frame image.Image) image.Image { return crop(frame, zoom, panX, panY) }
-	if m.typeset != nil {
-		m.presentation.Transform = nil
-	}
-	cmd := tea.Batch(cleanup, m.presentation.Show(img))
-	m.picID = m.presentation.ID
-	return cmd
+	return m.showStill(img)
 }
 
 func crop(src image.Image, zoom int, panX, panY float64) image.Image {

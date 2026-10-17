@@ -5,8 +5,6 @@ import (
 	"math"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
-	"nimbleterminal.dev/gloss/internal/animate"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
 	"nimbleterminal.dev/ntpicture/playback"
@@ -20,8 +18,6 @@ type animation struct {
 	dragging bool
 }
 
-type animationPresented = animate.Presented
-
 func (a *animation) rate() float64 { return a.Status().Rate }
 func (a *animation) player() *ntanimation.Player {
 	s := a.Status()
@@ -34,8 +30,6 @@ func (a *animation) setSpeed(n int) tea.Cmd {
 	a.speed = max(-2, min(2, n))
 	return a.SetRate(math.Exp2(float64(a.speed)))
 }
-func (m *Model) retireAnimationPicture(cmd tea.Cmd) { m.presentation.Retire(cmd) }
-func (m *Model) clearAnimationFront() tea.Cmd       { return m.presentation.ClearFront() }
 func (m *Model) pictureView() string {
 	if m.playback != nil {
 		return m.playback.View()
@@ -46,11 +40,7 @@ func (m *Model) pictureView() string {
 	if m.still != nil {
 		return m.still.view()
 	}
-	if m.quitting {
-		return m.pic.View().Content
-	}
-	m.presentation.SetSize(m.width, m.bodyHeight())
-	return m.presentation.View()
+	return ""
 }
 func (m *Model) resizeAnimation() tea.Cmd { return m.refreshImage() }
 func (m *Model) keepAnimationPicture() tea.Cmd {
@@ -72,12 +62,7 @@ func (m *Model) keepAnimationPicture() tea.Cmd {
 		}
 		return m.still.pic.Keep()
 	}
-	if f := m.presentation.Front; f != nil {
-		m.source = f.Image
-	}
-	cmd := m.presentation.Keep()
-	m.picID = m.presentation.ID
-	return cmd
+	return nil
 }
 
 // Stop controls and composition while retaining the displayed frame during load.
@@ -86,7 +71,6 @@ func (m *Model) stopAnimation() tea.Cmd {
 	if m.playback != nil {
 		cmd = m.playback.Stop()
 	}
-	m.presentation.Stop()
 	m.animation = nil
 	return cmd
 }
@@ -99,7 +83,7 @@ func (m *Model) clearStandalone() tea.Cmd {
 	return c.Close()
 }
 func (m *Model) startAnimation(player *ntanimation.Player) tea.Cmd {
-	cleanup := tea.Batch(m.clearStandalone(), m.clearStill(), m.presentation.Clear())
+	cleanup := tea.Batch(m.clearStandalone(), m.clearStill())
 	c := playback.New(nil, playback.Options{Picture: ntpicture.Options{
 		Session: m.terminal, HostGeometry: true,
 		Render: ntpicture.Config{KittyZ: -1, Background: m.pictureBackground(), KittyFormat: ntpicture.KittyFormatZlib},
@@ -119,7 +103,7 @@ func (m *Model) syncStandalone() tea.Cmd {
 	if m.zoom > 0 && m.source != nil {
 		rect = cropRect(m.source.Bounds(), m.zoom, m.panX, m.panY)
 	}
-	return tea.Batch(c.SetTerminal(m.pic.Mode() == picture.PictureKitty, cw, ch),
+	return tea.Batch(c.SetTerminal(m.kitty, cw, ch),
 		c.SetSize(max(1, m.width), max(1, m.bodyHeight())),
 		c.SetCrop(rect), c.SetBackground(m.pictureBackground()))
 }
@@ -161,13 +145,10 @@ func (m *Model) toggleAnimation() tea.Cmd {
 	a.target = 0
 	return a.Pause(!state.Paused && !state.Finished)
 }
-func (m *Model) animationTransmission(msg tea.Msg, cmd tea.Cmd) tea.Cmd {
-	return m.presentation.Transmission(msg, cmd)
-}
 func (m *Model) clearPicture() tea.Cmd {
 	var layers tea.Cmd
 	if m.typesetLayers != nil {
 		layers = m.typesetLayers.SetVisible(false)
 	}
-	return tea.Batch(layers, m.clearStill(), m.presentation.Clear())
+	return tea.Batch(layers, m.clearStandalone(), m.clearStill())
 }

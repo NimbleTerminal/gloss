@@ -103,7 +103,7 @@ func (m *Model) openMenu(selection int) tea.Cmd {
 // closeMenu leaves the list for the file chosen, or the one set aside.
 func (m *Model) closeMenu(open bool) tea.Cmd {
 	m.screen = screenDocument
-	cleanup := tea.Batch(m.disposePreview(), m.pic.SetImage(nil))
+	cleanup := tea.Batch(m.disposePreview(), m.clearPicture())
 	suspended := m.suspended
 	m.suspended = false
 	if open && m.selection != m.index {

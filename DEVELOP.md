@@ -1,7 +1,7 @@
 # Developing gloss
 
 gloss is written in Go on [Bubble Tea](https://github.com/charmbracelet/bubbletea)
-and [NTCharts](https://github.com/NimbleMarkets/ntcharts), with
+with [ntpicture](https://github.com/NimbleTerminal/ntpicture),
 [ntsvg](https://github.com/NimbleMarkets/ntcharts-svg),
 [ntpdf](https://github.com/NimbleMarkets/ntcharts-pdf), and
 [nt3d](https://github.com/NimbleMarkets/nt3d). The user
@@ -324,8 +324,8 @@ when an overlay hides the page. One explicit `ntpicture.TerminalSession` owns
 capability discovery and cell geometry per terminal connection. The pager shares
 it with previews, still pictures, and mesh widgets; only its owner closes it.
 The QR handoff screen owns its own session and tracks graphics mode directly,
-without a legacy picture model. Legacy picture models receive
-session geometry and a compatibility capability flag, and never start probes.
+as does the pager. Picture consumers share session geometry and capability
+without a global compatibility flag or duplicate probes.
 The existing block allocator is shared with animation, mesh, and QR consumers
 to avoid overlapping IDs during migration.
 
@@ -337,8 +337,9 @@ Gloss carries those snapshots through reflow without retaining old page rasters.
 Typeset presentation uses `playback.Layers` for the base picture, animated
 windows, glyph fallback, committed snapshots, and Close/Keep. Standalone and
 inline Markdown GIF/WebP playback use `playback.Controller`; inline still images
-use `ntpicture.Picture`. Legacy pager presentation plumbing and animation
-compatibility aliases remain in `internal/animate` for later cleanup.
+and the font chooser use `ntpicture.Picture`. The legacy pager presenter and
+transmission handlers have been removed; animation compatibility aliases and
+decoder regression tests remain in `internal/animate`.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.

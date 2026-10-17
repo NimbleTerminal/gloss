@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
 func stillKitty(t *testing.T) *Model {
 	t.Helper()
 	m := New(Options{Files: []string{"page.png"}, Render: "kitty", Page: 1})
-	t.Cleanup(func() { m.Close(); picture.ForceKittyCapability(picture.KittyCapabilityUnknown) })
+	t.Cleanup(func() { m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
 	m.source = image.NewRGBA(image.Rect(0, 0, 100, 100))
 	draw := m.refreshImage()
