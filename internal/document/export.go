@@ -156,7 +156,8 @@ var gpuSnapshot = func(mesh *Mesh, size int, shots []shot) ([]image.Image, bool)
 			return nil, false
 		}
 		frame.Background = color.RGBA{255, 255, 255, 255}
-		frame.Light = nt3d.Light{Direction: s.light, Ambient: .3}
+		frame.Lighting = nt3d.DefaultLighting()
+		frame.Lighting.Lights[0].Direction = s.light
 		img, mode, err := nt3d.Snapshot(frame, nt3d.WebGPU, renderer)
 		if err != nil || mode != nt3d.WebGPU {
 			return nil, false
@@ -180,7 +181,8 @@ func softwareSnapshot(mesh *Mesh, size int, camera nt3d.Camera, light math3d.Vec
 		return nt3d.SoftwareResult{}, err
 	}
 	frame.Background = color.RGBA{255, 255, 255, 255}
-	frame.Light = nt3d.Light{Direction: light, Ambient: .3}
+	frame.Lighting = nt3d.DefaultLighting()
+	frame.Lighting.Lights[0].Direction = light
 	frame.Complete = true
 	result, err := nt3d.RenderSoftware(frame)
 	if err != nil || renderSize == size {
