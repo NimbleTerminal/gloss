@@ -33,7 +33,7 @@ func skillHomes() []skillHome {
 	return []skillHome{
 		{"Claude Code", filepath.Join(home, ".claude"), filepath.Join(home, ".claude", "skills")},
 		{"Kimi Code", kimi, filepath.Join(kimi, "skills")},
-		{"shared agents folder (Codex and others)", "", shared},
+		{"shared agents folder", "", shared},
 	}
 }
 

@@ -29,6 +29,8 @@
 - `gloss skill install auto` installs under a folder named `auto`, like any
   other name; only `gloss skill install` alone looks for the agents. A `~`
   folder with no home folder set is an error rather than a literal `~`.
+- `gloss skill install` names the shared folder "shared agents folder" in its
+  messages, which were long enough to wrap.
 
 ## `v0.3.2` (2026-10-12)
 

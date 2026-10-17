@@ -61,7 +61,7 @@ func TestSkillInstallAuto(t *testing.T) {
 	}
 	claude := filepath.Join(home, ".claude", "skills", "gloss", "SKILL.md")
 	shared := filepath.Join(home, ".agents", "skills", "gloss", "SKILL.md")
-	if stdout.String() != claude+"\n"+shared+"\n" || !strings.Contains(stderr.String(), "Claude Code") || !strings.Contains(stderr.String(), "Codex") {
+	if stdout.String() != claude+"\n"+shared+"\n" || !strings.Contains(stderr.String(), "Claude Code") || !strings.Contains(stderr.String(), "shared agents folder") {
 		t.Fatalf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
 	}
 	for _, path := range []string{claude, shared} {
@@ -95,7 +95,7 @@ func TestSkillInstallSharedAlways(t *testing.T) {
 		t.Fatal(err)
 	}
 	shared := filepath.Join(home, ".agents", "skills", "gloss", "SKILL.md")
-	if strings.TrimSpace(stdout.String()) != shared || !strings.Contains(stderr.String(), "Codex") {
+	if strings.TrimSpace(stdout.String()) != shared || !strings.Contains(stderr.String(), "shared agents folder") {
 		t.Fatalf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
 	}
 	if content, err := os.ReadFile(shared); err != nil || string(content) != skills.Gloss {
