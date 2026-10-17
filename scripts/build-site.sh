@@ -17,8 +17,8 @@ go tool booba-shim-assets ../../web/dist --shim=pdfium
 # site instead, at the pinned version and checked against its published hash,
 # so the pages contact no one else. Bump both lines together:
 #   npm view @embedpdf/pdfium@VERSION dist.integrity   (base64; the hash below is hex)
-PDFIUM_VERSION=2.14.2
-PDFIUM_SHA512=040c03ac0a8a51343f858182ed1aaee54e94664c96b45d31e4c69bd21093595c6b6cd415d674a65f98d05d807d7177950e756fc2cc854615a081acc1211bdba8
+PDFIUM_VERSION=2.15.1
+PDFIUM_SHA512=a831f88049064904f488cfb4ec7a66dcbcafa01ecf1056d6dd0ca4ebe2cf90460b2587c76a09073353b36250ead840ce849460bb291393374c393dffc36ef1e5
 pdfium=../../web/dist/vendor/embedpdf-pdfium
 rm -rf "$pdfium" && mkdir -p "$pdfium"
 curl -fsSL -o "$pdfium/package.tgz" "https://registry.npmjs.org/@embedpdf/pdfium/-/pdfium-$PDFIUM_VERSION.tgz"
