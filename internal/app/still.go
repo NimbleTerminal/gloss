@@ -2,7 +2,6 @@ package app
 
 import (
 	"image"
-	"image/color"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
@@ -13,7 +12,6 @@ import (
 // Picture owns preparation, retained placements, cancellation and retirement.
 type stillPicture struct {
 	pic              *ntpicture.Picture
-	background       color.RGBA64
 	submitted, front image.Image
 	presented        uint64
 	width, height    int
@@ -33,16 +31,14 @@ func (s *stillPicture) view() string {
 }
 
 func (m *Model) showStill(img image.Image) tea.Cmd {
-	background := color.RGBA64Model.Convert(m.pictureBackground()).(color.RGBA64)
+	background := m.pictureBackground()
 	cleanup := m.clearStandalone()
-	if m.still != nil && m.still.background != background {
-		cleanup = tea.Batch(cleanup, m.clearStill())
-	}
 	if m.still == nil {
-		m.still = &stillPicture{background: background}
+		m.still = &stillPicture{}
 		m.still.pic = ntpicture.New(ntpicture.Options{
-			Session: m.terminal,
-			Render:  ntpicture.Config{KittyZ: -1, Background: background, KittyFormat: ntpicture.KittyFormatZlib},
+			Session:      m.terminal,
+			HostGeometry: true,
+			Render:       ntpicture.Config{KittyZ: -1, Background: background, KittyFormat: ntpicture.KittyFormatZlib},
 		})
 	}
 	s := m.still
@@ -52,7 +48,7 @@ func (m *Model) showStill(img image.Image) tea.Cmd {
 	}
 	cw, ch := m.cellPixelSize()
 	s.width, s.height = max(1, m.width), max(1, m.bodyHeight())
-	return tea.Batch(cleanup, s.pic.SetTerminal(m.kitty, cw, ch), s.pic.SetSize(s.width, s.height), s.pic.SetImageImmutable(img))
+	return tea.Batch(cleanup, s.pic.SetTerminal(m.kitty, cw, ch), s.pic.SetSize(s.width, s.height), s.pic.SetBackground(background), s.pic.SetImageImmutable(img))
 }
 
 func (m *Model) updateStill(msg tea.Msg) tea.Cmd {

@@ -145,3 +145,30 @@ func TestStillAndPlaybackTransferOwnership(t *testing.T) {
 		t.Fatal("late still work changed playback")
 	}
 }
+
+func TestStillBackgroundChangeRetainsPictureAndExportSource(t *testing.T) {
+	for _, render := range []string{"kitty", "glyph"} {
+		t.Run(render, func(t *testing.T) {
+			m := New(Options{Render: render})
+			defer m.Close()
+			m.Update(tea.WindowSizeMsg{Width: 40, Height: 12})
+			m.typeset = &document.Markdown{}
+			m.theme = "light"
+			first := image.NewRGBA(image.Rect(0, 0, 64, 48))
+			m.source = first
+			drainAnimation(t, m, m.showStill(first))
+			pic, front := m.still.pic, m.pictureView()
+			m.theme = "dark"
+			second := image.NewRGBA(image.Rect(0, 0, 64, 48))
+			m.source = second
+			cmd := m.showStill(second)
+			if m.still.pic != pic || m.pictureView() != front || m.still.front != first {
+				t.Fatal("background change discarded the displayed picture or export source")
+			}
+			drainAnimation(t, m, cmd)
+			if m.pictureView() == front || m.pictureBusy() || m.still.front != second {
+				t.Fatal("background replacement did not settle with the new export source")
+			}
+		})
+	}
+}

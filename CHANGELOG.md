@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep the displayed still picture visible while a background-color change renders.
+
 - Keep inline Markdown images on `Q` exit and update their layout when terminal
   cell dimensions change, while preserving animation positions.
 
