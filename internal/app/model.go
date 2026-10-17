@@ -297,7 +297,7 @@ func (m *Model) quit() tea.Cmd {
 	}
 	var markdownCleanup tea.Cmd
 	if m.markdown != nil {
-		markdownCleanup = m.markdown.keep()
+		markdownCleanup = m.markdown.keep(m.keepOnMainScreen)
 	}
 	var keepMesh tea.Cmd
 	if m.chart != nil {
@@ -481,7 +481,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 		cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg))
 		if m.markdown != nil {
-			cmd = tea.Batch(cmd, m.markdown.scheduleAnimations(!m.isPreview && !m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument))
+			cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument), m.markdown.update(msg))
 		}
 		if p := m.fontPicker; p != nil {
 			cmd = tea.Batch(cmd, p.pic.Update(legacyPictureMessage(msg)), m.layoutFontPicker())
@@ -532,11 +532,6 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			if m.colorPicker == nil {
 				m.layer = layerNone
 			}
-			return m, cmd
-		}
-	}
-	if m.markdown != nil {
-		if cmd, handled := m.markdown.animationMessage(msg); handled {
 			return m, cmd
 		}
 	}
@@ -735,7 +730,10 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 	}
 	if m.markdown != nil {
-		cmds = append(cmds, m.markdown.update(legacyPictureMessage(msg)), m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
+		if nw, nh := m.cellPixelSize(); cw != nw || ch != nh {
+			cmds = append(cmds, m.layoutMarkdown())
+		}
+		cmds = append(cmds, m.markdown.setKitty(m.pic.Mode() == picture.PictureKitty))
 	}
 	_, mouseMessage := msg.(tea.MouseMsg)
 	if m.chart != nil && !((m.help || m.listing()) && mouseMessage) {
@@ -796,7 +794,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	if v.Markdown != nil {
 		m.source = nil
-		m.markdown = newMarkdownView(v.Markdown, nextKittyID())
+		m.markdown = newMarkdownView(v.Markdown, m.terminal)
 		if m.savedMarkdown != nil {
 			m.markdown.raw, m.markdown.offset, m.markdown.left = m.savedMarkdown.raw, m.savedMarkdown.offset, m.savedMarkdown.left
 			m.savedMarkdown = nil

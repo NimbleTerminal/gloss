@@ -18,7 +18,7 @@ func searchDocument(t *testing.T, text string) *Model {
 	m := New(Options{Files: []string{"text.md"}, Render: "glyph", Page: 1})
 	t.Cleanup(func() { _ = m.Close() })
 	m.width, m.height, m.kind = 40, 8, "markdown"
-	m.markdown = newMarkdownView(&document.Markdown{Source: []byte(text)}, 100)
+	m.markdown = newMarkdownView(&document.Markdown{Source: []byte(text)}, newTerminalSession("glyph"))
 	m.markdown.raw = true
 	m.layoutMarkdown()
 	return m

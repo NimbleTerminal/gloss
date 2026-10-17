@@ -123,7 +123,7 @@ func TestSearchDoesNotJoinHardLinesParagraphsOrTableCells(t *testing.T) {
 func TestMarkdownReflowImagesAndTableCellLinks(t *testing.T) {
 	source := "before\n\n| Photo | Link |\n| --- | --- |\n| ![needle phrase](local.png) | [needle phrase](https://example.org/) |\n\nafter"
 	m := searchDocument(t, source)
-	m.markdown = newMarkdownView(&document.Markdown{Source: []byte(source), Images: []document.MarkdownImage{{Alt: "needle phrase", Image: image.NewRGBA(image.Rect(0, 0, 4, 4))}}}, 100)
+	m.markdown = newMarkdownView(&document.Markdown{Source: []byte(source), Images: []document.MarkdownImage{{Alt: "needle phrase", Image: image.NewRGBA(image.Rect(0, 0, 4, 4))}}}, newTerminalSession("glyph"))
 	m.layoutMarkdown()
 	queryDocument(t, m, "needle phrase")
 	if len(m.search.matches) != 2 {

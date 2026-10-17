@@ -13,7 +13,7 @@ import (
 
 func TestMarkdownLayoutAndScroll(t *testing.T) {
 	doc := &document.Markdown{Source: []byte("# Heading\n\nSome **bold** text.\n\n![picture](local.png)\n\n" + strings.Repeat("another paragraph\n\n", 30)), Images: []document.MarkdownImage{{Alt: "picture", Image: image.NewRGBA(image.Rect(0, 0, 40, 20))}}}
-	m := newMarkdownView(doc, 500)
+	m := newMarkdownView(doc, newTerminalSession("glyph"))
 	m.layout(60, 12, 8, 16)
 	var all strings.Builder
 	rows := 0
@@ -51,7 +51,7 @@ func TestMarkdownLayoutAndScroll(t *testing.T) {
 // and the text is wrapped to the width left of the gutter.
 func TestLineNumbersNumberSourceLines(t *testing.T) {
 	doc := &document.Markdown{Source: []byte("first\nsecond line that is long enough to wrap twice over\nthird\n")}
-	m := newMarkdownView(doc, 500)
+	m := newMarkdownView(doc, newTerminalSession("glyph"))
 	m.raw, m.numbers = true, true
 	m.layout(24, 2, 8, 16)
 	if !m.numbered() {
@@ -159,7 +159,7 @@ func TestLineNumbersNumberFencedFileLines(t *testing.T) {
 // sideways as far as the widest line, and back; the gutter does not move.
 func TestChopLongLines(t *testing.T) {
 	doc := &document.Markdown{Source: []byte("short\n0123456789abcdefghijklmnopqrstuvwxyz\nend\n")}
-	m := newMarkdownView(doc, 500)
+	m := newMarkdownView(doc, newTerminalSession("glyph"))
 	m.raw, m.chop = true, true
 	m.layout(12, 10, 8, 16)
 	rows := trimmedRows(m.view())

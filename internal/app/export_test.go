@@ -100,7 +100,7 @@ func TestExportFollowsTheCamera(t *testing.T) {
 func TestExportReportsWhatItCannotSave(t *testing.T) {
 	var out saved
 	m := viewing(t, Options{Files: []string{samples + "readme.md"}, Save: out.save(t)}, "markdown")
-	m.markdown = newMarkdownView(&document.Markdown{}, 9000)
+	m.markdown = newMarkdownView(&document.Markdown{}, newTerminalSession("glyph"))
 	if _, cmd := m.Update(press("e")); cmd != nil {
 		m.Update(cmd())
 	}

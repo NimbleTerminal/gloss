@@ -126,7 +126,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		if k == "/" && m.searchable() {
 			var cmd tea.Cmd
 			if m.typeset != nil && m.markdown == nil {
-				m.markdown = newMarkdownView(m.typeset, nextKittyID())
+				m.markdown = newMarkdownView(m.typeset, m.terminal)
 				m.markdown.raw = m.kind == "markdown"
 				cmd = tea.Sequence(m.clearPicture(), m.layoutMarkdown())
 				m.note = "searching text view"
@@ -225,7 +225,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		if m.markdown != nil {
 			return tea.Sequence(m.clearMarkdown(), m.refreshImage()), true
 		}
-		m.markdown = newMarkdownView(m.typeset, nextKittyID())
+		m.markdown = newMarkdownView(m.typeset, m.terminal)
 		m.markdown.raw = m.kind == "markdown"
 		return tea.Sequence(m.clearPicture(), m.layoutMarkdown()), true
 	}

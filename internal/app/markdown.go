@@ -10,11 +10,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/NimbleMarkets/ntcharts/v2/picture"
 	"github.com/charmbracelet/x/ansi"
-	"nimbleterminal.dev/gloss/internal/animate"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/theme"
+	ntpicture "nimbleterminal.dev/ntpicture"
+	"nimbleterminal.dev/ntpicture/playback"
 )
 
 type markdownLine struct {
@@ -31,10 +31,12 @@ type markdownView struct {
 	highlights                        map[int][][2]int
 	layoutVersion                     uint64
 	doc                               *document.Markdown
-	pictures                          []picture.Model
-	animators                         []*animate.Animator
+	pictures                          []markdownPicture
+	animators                         []*playback.Controller
 	lines                             []markdownLine
 	width, height, offset             int
+	kitty                             bool
+	cw, ch                            int
 	raw                               bool
 	theme                             string
 	numbers                           bool // Show file line numbers in a gutter, where rows are file lines.
@@ -45,69 +47,68 @@ type markdownView struct {
 	left, widest                      int  // The columns scrolled off the left edge, and the widest row, when chopping.
 }
 
-func newMarkdownView(doc *document.Markdown, id int) *markdownView {
-	m := &markdownView{doc: doc, theme: "dark"}
-	for i := range doc.Images {
-		m.pictures = append(m.pictures, picture.NewWithConfig(picture.Config{KittyID: id + i, KittyZ: -1, KittyFormat: picture.KittyFormatZlib}))
-	}
-	m.animators = make([]*animate.Animator, len(doc.Images))
+// Both still pictures and playback controllers own their presentation lifecycle.
+// Gloss keeps document rows and clips the resulting cell rows while scrolling.
+type markdownPicture interface {
+	View() string
+	Update(tea.Msg) tea.Cmd
+	SetTerminal(bool, int, int) tea.Cmd
+	SetSize(int, int) tea.Cmd
+	SetVisible(bool) tea.Cmd
+	Close() tea.Cmd
+	Keep() tea.Cmd
+	KeepOnMainScreen() tea.Cmd
+}
+
+func newMarkdownView(doc *document.Markdown, session *ntpicture.TerminalSession) *markdownView {
+	m := &markdownView{doc: doc, theme: "dark", cw: 8, ch: 16}
+	m.animators = make([]*playback.Controller, len(doc.Images))
 	for i, asset := range doc.Images {
-		if asset.Animation == nil {
-			continue
+		opts := ntpicture.Options{Session: session, HostGeometry: true,
+			Render: ntpicture.Config{KittyZ: -1, KittyFormat: ntpicture.KittyFormatZlib, Background: pictureBackground},
+			NextID: func() (int, error) { return nextKittyID(), nil },
 		}
-		a := animate.New(&m.pictures[i], animate.Config{NextID: nextKittyID, Background: pictureBackground})
-		a.SetPlayer(asset.Animation)
-		a.Transform = func(frame image.Image) image.Image {
-			img, err := document.ExportImage(document.Result{Image: frame}, 1600)
-			if err != nil {
-				return frame
-			}
-			return img
+		var pic markdownPicture
+		if asset.Animation != nil {
+			a := playback.New(nil, playback.Options{Picture: opts})
+			m.animators[i], pic = a, a
+		} else {
+			pic = ntpicture.New(opts)
 		}
-		m.animators[i] = a
+		pic.SetVisible(false) // No source or placement yet; visibility follows layout.
+		m.pictures = append(m.pictures, pic)
 	}
 	return m
 }
 
 func (m *markdownView) close() tea.Cmd {
 	var cmds []tea.Cmd
-	for i := range m.pictures {
-		if a := m.animators[i]; a != nil {
-			cmds = append(cmds, a.Clear())
-		} else {
-			cmds = append(cmds, m.pictures[i].SetImage(nil))
-		}
+	for _, p := range m.pictures {
+		cmds = append(cmds, p.Close())
 	}
 	return tea.Batch(cmds...)
 }
 
 func (m *markdownView) update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
-	for i := range m.pictures {
-		cmd := m.pictures[i].Update(msg)
-		if a := m.animators[i]; a != nil {
-			cmd = a.Transmission(msg, cmd)
-		}
-		cmds = append(cmds, cmd)
+	for _, p := range m.pictures {
+		cmds = append(cmds, p.Update(msg))
 	}
 	return tea.Batch(cmds...)
 }
 
 func (m *markdownView) setKitty(kitty bool) tea.Cmd {
+	m.kitty = kitty
 	var cmds []tea.Cmd
-	for i := range m.pictures {
-		if (m.pictures[i].Mode() == picture.PictureKitty) != kitty {
-			cmds = append(cmds, m.pictures[i].Toggle())
-			if a := m.animators[i]; a != nil {
-				cmds = append(cmds, a.Show(a.Transform(a.Source.Image())))
-			}
-		}
+	for _, p := range m.pictures {
+		cmds = append(cmds, p.SetTerminal(kitty, m.cw, m.ch))
 	}
 	return tea.Batch(cmds...)
 }
 
 func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 	m.width, m.height = max(1, width), max(1, height)
+	m.cw, m.ch = max(1, cw), max(1, ch)
 	m.lines = nil
 	m.layoutVersion++
 	m.highlights = nil
@@ -164,18 +165,16 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 			inset := asset.Layout.Offset(m.width, columns)
 			rows := int(math.Ceil(float64(b.Dy()) * float64(columns*max(1, cw)) / float64(b.Dx()*max(1, ch))))
 			rows = max(1, min(rows, max(3, min(20, m.height-2))))
+			pic := m.pictures[i]
+			cmds = append(cmds, pic.SetTerminal(m.kitty, m.cw, m.ch), pic.SetSize(columns, rows))
 			if a := m.animators[i]; a != nil {
-				oldCW, oldCH := m.pictures[i].CellPixelSize()
-				w, h := a.Size()
-				cmds = append(cmds, m.pictures[i].SetCellPixelSize(cw, ch))
-				if !a.HasImage() || w != columns || h != rows || oldCW != cw || oldCH != ch {
-					a.CancelPending()
-					a.SetSize(columns, rows)
-					cmds = append(cmds, a.Show(a.Transform(a.Source.Image())))
+				if a.Status().Source == nil && !a.Closed() {
+					cmds = append(cmds, a.SetPlayer(asset.Animation))
 				}
 			} else {
-				cmds = append(cmds, m.pictures[i].SetCellPixelSize(cw, ch), m.pictures[i].SetSize(columns, rows), m.pictures[i].SetImage(asset.Image))
+				cmds = append(cmds, pic.(*ntpicture.Picture).SetImageImmutable(asset.Image))
 			}
+
 			for row := 0; row < rows; row++ {
 				m.lines = append(m.lines, markdownLine{image: i, row: row, inset: inset})
 			}
@@ -372,10 +371,7 @@ func (m *markdownView) view() string {
 		}
 		rows, ok := cache[line.image]
 		if !ok {
-			view := m.pictures[line.image].View().Content
-			if a := m.animators[line.image]; a != nil {
-				view = a.View()
-			}
+			view := m.pictures[line.image].View()
 			rows = strings.Split(view, "\n")
 			cache[line.image] = rows
 		}
@@ -396,16 +392,6 @@ func (m *markdownView) setTheme(name string) {
 	m.renderedText = nil
 }
 
-func (m *markdownView) animationMessage(msg tea.Msg) (tea.Cmd, bool) {
-	for _, a := range m.animators {
-		if a != nil {
-			if cmd, ok := a.Update(msg); ok {
-				return cmd, true
-			}
-		}
-	}
-	return nil, false
-}
 func (m *markdownView) visibleImages() map[int]bool {
 	visible := map[int]bool{}
 	if m.raw {
@@ -418,20 +404,11 @@ func (m *markdownView) visibleImages() map[int]bool {
 	}
 	return visible
 }
-func (m *markdownView) scheduleAnimations(shown bool) tea.Cmd {
+func (m *markdownView) syncPictures(shown bool) tea.Cmd {
 	visible := m.visibleImages()
 	var cmds []tea.Cmd
-	for i, a := range m.animators {
-		if a != nil {
-			active := shown && visible[i]
-			if !active && a.HasImage() {
-				cmds = append(cmds, a.Hide())
-			}
-			if active && !a.HasImage() {
-				cmds = append(cmds, a.Show(a.Transform(a.Source.Image())))
-			}
-			cmds = append(cmds, a.Schedule(active))
-		}
+	for i, p := range m.pictures {
+		cmds = append(cmds, p.SetVisible(shown && visible[i]))
 	}
 	return tea.Batch(cmds...)
 }
@@ -443,23 +420,23 @@ func (m *markdownView) animatedFrame() image.Image {
 		index := m.lines[i].image
 		if index >= 0 && m.animators[index] != nil {
 			a := m.animators[index]
-			if a.Front != nil {
-				return a.Front.Image
+			if shown := a.Status().Presented; shown != nil {
+				return shown.Image()
 			}
-			return a.Source.Image()
+			return m.doc.Images[index].Image
 		}
 	}
 	return nil
 }
 
-// keep freezes the displayed pictures for main-screen quit. Removing the
-// animators also prevents the update defer from hiding these static placements.
-func (m *markdownView) keep() tea.Cmd {
+// keep freezes all presented pictures; closed components ignore later visibility updates.
+func (m *markdownView) keep(mainScreen bool) tea.Cmd {
 	var cmds []tea.Cmd
-	for i, a := range m.animators {
-		if a != nil {
-			cmds = append(cmds, a.Keep())
-			m.animators[i] = nil
+	for _, p := range m.pictures {
+		if mainScreen {
+			cmds = append(cmds, p.KeepOnMainScreen())
+		} else {
+			cmds = append(cmds, p.Keep())
 		}
 	}
 	return tea.Batch(cmds...)

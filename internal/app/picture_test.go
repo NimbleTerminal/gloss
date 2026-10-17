@@ -49,7 +49,12 @@ func TestKittyPicturesSendZlibFrames(t *testing.T) {
 	}
 	cmd, _ := m.documentKey("t") // Normal Markdown rendering, with the GIF as an inline picture.
 	drainStill(t, m, cmd)
-	if m.markdown == nil || len(m.markdown.pictures) == 0 || m.markdown.pictures[0].KittyFormat() != picture.KittyFormatZlib {
+	if m.markdown == nil {
+		t.Fatal("missing normal Markdown")
+	}
+	m.markdown.animators[0].Pause(true)
+	drainAnimation(t, m, m.markdown.syncPictures(true))
+	if m.markdown == nil || len(m.markdown.pictures) == 0 || m.markdown.animators[0].Status().Picture.Format != ntpicture.KittyFormatZlib {
 		t.Fatalf("inline picture format: markdown %v", m.markdown != nil)
 	}
 }

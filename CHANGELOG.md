@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Keep inline Markdown images on `Q` exit and update their layout when terminal
+  cell dimensions change, while preserving animation positions.
+
 - Preserve Kitty images when `Q` leaves the alternate screen, including
   standalone animations and typeset pages.
 

@@ -167,9 +167,24 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 			}
 
 			old.pic.SetImage(image.NewRGBA(image.Rect(0, 0, 2, 2)))
-			old.markdown = newMarkdownView(&document.Markdown{Images: []document.MarkdownImage{{}}}, old.kittyID+10)
-			old.markdown.setKitty(true)
-			old.markdown.pictures[0].SetImage(image.NewRGBA(image.Rect(0, 0, 2, 2)))
+			old.markdown = newMarkdownView(&document.Markdown{Source: []byte("![picture](pic.png)"), Images: []document.MarkdownImage{{Destination: "pic.png", Image: image.NewRGBA(image.Rect(0, 0, 2, 2))}}}, old.terminal)
+			old.loading = false
+			var inlineID string
+			drainAnimation(t, old, tea.Batch(old.markdown.setKitty(true), old.layoutMarkdown(), old.markdown.syncPictures(true)), func(msg tea.Msg) {
+				if raw, ok := msg.(tea.RawMsg); ok {
+					text := fmt.Sprint(raw.Msg)
+					if strings.Contains(text, "a=T") {
+						_, rest, found := strings.Cut(text, "i=")
+						if found {
+							inlineID = strings.SplitN(rest, ",", 2)[0]
+						}
+					}
+				}
+			})
+			if inlineID == "" {
+				t.Fatal("inline preview was not transmitted")
+			}
+
 			var cmd tea.Cmd
 			switch action {
 			case "switch":
@@ -188,9 +203,9 @@ func TestPreviewDisposalDeletesAllGraphics(t *testing.T) {
 				id := strings.SplitN(command, ",", 2)[0]
 				deleted[id] = true
 			}
-			for _, id := range []int{old.kittyID, old.kittyID + 10} {
-				if !deleted[fmt.Sprint(id)] {
-					t.Fatalf("%s: missing delete for %d in %q", action, id, output)
+			for _, id := range []string{fmt.Sprint(old.kittyID), inlineID} {
+				if !deleted[id] {
+					t.Fatalf("%s: missing delete for %s in %q", action, id, output)
 				}
 			}
 			if len(deleted) < 3 {

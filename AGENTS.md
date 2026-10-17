@@ -40,8 +40,10 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
   `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
   before PDF libraries run. Unsupported or ambiguous encodings fail closed.
-- `internal/animate`: the remaining legacy Markdown playback adapter with
-  Kitty pacing/cleanup. Bounded GIF/WebP decoding, immutable clips/players,
+- `internal/animate`: the remaining legacy presentation adapter and animation
+  compatibility aliases. Inline Markdown images use `ntpicture.Picture` and
+  `playback.Controller`; Gloss owns their document rows, scrolling, and visibility.
+  Bounded GIF/WebP decoding, immutable clips/players,
   and typeset region composition/position snapshots come from
   `nimbleterminal.dev/ntpicture/animation`. `internal/app/animation.go` adapts
   standalone controls to `ntpicture/playback.Controller`, which owns timing,
@@ -51,7 +53,7 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   retirement, and keep-screen cleanup. Typeset composites use ntpicture's
   immutable animation API and `playback.Layers`; Gloss retains layout, visibility,
   and scroll-settle policy in `internal/app/typeset_layers.go`.
-  Normal Markdown playback and the shared block ID allocator remain
+  Legacy pager presentation plumbing and the shared block ID allocator remain
   host-owned during the migration. The temporary sibling
   module replacement must become a published pin before release.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,

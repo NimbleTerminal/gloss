@@ -335,11 +335,10 @@ this integration. Typeset composites now use ntpicture's immutable Composite,
 context-aware construction and windowing, and lightweight position snapshots;
 Gloss carries those snapshots through reflow without retaining old page rasters.
 Typeset presentation uses `playback.Layers` for the base picture, animated
-windows, glyph fallback, committed snapshots, and Close/Keep. Normal Markdown
-playback remains on `internal/animate.Animator`; standalone GIF/WebP playback
-uses `playback.Controller`. Migrating the remaining Markdown regions must
-preserve document layout, scrolling, visibility, exports, shared picture IDs,
-and late cleanup.
+windows, glyph fallback, committed snapshots, and Close/Keep. Standalone and
+inline Markdown GIF/WebP playback use `playback.Controller`; inline still images
+use `ntpicture.Picture`. Legacy pager presentation plumbing and animation
+compatibility aliases remain in `internal/animate` for later cleanup.
 Window and font-size changes cancel pending composition and render into a fresh
 placement at the new geometry. Until it is ready, the old placeholder grid is
 cut to the viewport by cell count so it cannot wrap or displace the status bar.
@@ -349,8 +348,8 @@ resize completions cannot present over the latest layout; pause is preserved.
 At most a visible front picture and a pending replacement are retained; leaving
 or explicitly choosing glyphs cleans up both. Keep-screen quit retains the
 visible frame, and PNG export snapshots that frame even during encoding.
-`Q` uses `KeepOnMainScreen` for standalone playback, still pictures, and typeset
-layers so Kitty placements are recreated after leaving the alternate screen.
+`Q` uses `KeepOnMainScreen` for standalone and inline playback, still pictures,
+and typeset layers so Kitty placements are recreated after leaving the alternate screen.
 Sessions already on the main screen (`-X`) use the ordinary `Keep` fast path.
 Kitty frames are sent as zlib-compressed raw pixels (`KittyFormatZlib`, RGB
 when opaque): PNG's encoder tries every filter on every row and took three
@@ -377,18 +376,21 @@ Menu previews and headless exports intentionally show the first frame.
 GIF lifecycle tests pause playback and drain finite render commands to completion;
 they must not use the generic test pump's timer heuristic to discard slow renders.
 
-The package has no document or application dependencies. `Clip` describes
-immutable paletted/RGBA frames, frame rectangles, blend/disposal, delays and loop
-counts; `NewPlayer` validates 64 MiB of decoded storage (RGBA costs four bytes
-per pixel; frames with a `Load` hold none). `DecodeGIF` and `DecodeWebP` are the bounded producers. `Source.Clone` snapshots mutable
-playback state before asynchronous composition. `PlayerSource` drives one clip.
-Typeset regions use ntpicture's immutable `animation.Composite`; a small Gloss
-adapter feeds its positions to the remaining legacy scheduler.
+The library's `animation` package has no document or application dependencies.
+`Clip` describes immutable paletted/RGBA frames, frame rectangles, blend/disposal,
+delays and loop counts; `NewPlayer` validates bounded frame storage. `DecodeGIF`
+and `DecodeWebP` are the bounded producers. Immutable players can be shared with
+render/export commands without copying or mutating published pixels.
 
-Each inline Markdown picture owns an Animator; the host supplies capability,
-cell geometry, visibility and `nextKittyID`. Hiding cancels the epoch and retires
-placements without discarding the playback position. Typeset results carry full
-region rectangles and an ntpicture composite; reflow preserves positions by
+Each inline Markdown image owns a Picture or playback Controller and shares the
+pager's TerminalSession. Gloss supplies cell geometry, the shared ID allocator,
+layout and visibility. Scrolling clips prepared cell rows without retransmitting
+an image that remains visible. Offscreen images, source view, help and menu
+screens stop playback and clear placements without discarding the position. Reflow resizes existing components; reload constructs new ones. Every
+update forwards messages even while hidden, and exports capture the first
+visible animation's committed full frame. The eight-destination/64 MiB animation
+budget and first-frame preview/headless policy remain in the document loader.
+Typeset results carry full region rectangles and an ntpicture composite; reflow preserves positions by
 asset destination with lightweight snapshots, and only visible regions advance.
 Reload starts fresh.
 Typeset presentation uses `ntpicture/playback.Layers` through the host adapter

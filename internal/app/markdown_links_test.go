@@ -21,7 +21,7 @@ func TestMarkdownHyperlinkSurvivesViewportClipping(t *testing.T) {
 	} {
 		for _, width := range []int{8, 16, 60} {
 			t.Run(fmt.Sprintf("%d/%s", width, source[:1]), func(t *testing.T) {
-				v := newMarkdownView(&document.Markdown{Source: []byte(source)}, 100)
+				v := newMarkdownView(&document.Markdown{Source: []byte(source)}, newTerminalSession("glyph"))
 				t.Cleanup(func() { collectRaw(v.close()) })
 				v.layout(width, 2, 8, 16)
 				count := 0
@@ -148,7 +148,7 @@ func TestOSCLinkCellsAndSchemes(t *testing.T) {
 func TestLinkedMarkdownImageClick(t *testing.T) {
 	const address = "https://example.org/"
 	m := searchDocument(t, "")
-	m.markdown = newMarkdownView(&document.Markdown{Source: []byte("[![picture](local.png)](" + address + ")"), Images: []document.MarkdownImage{{Image: image.NewRGBA(image.Rect(0, 0, 4, 2))}}}, 100)
+	m.markdown = newMarkdownView(&document.Markdown{Source: []byte("[![picture](local.png)](" + address + ")"), Images: []document.MarkdownImage{{Image: image.NewRGBA(image.Rect(0, 0, 4, 2))}}}, newTerminalSession("glyph"))
 	m.layoutMarkdown()
 	found := false
 	for y, line := range m.markdown.lines {
