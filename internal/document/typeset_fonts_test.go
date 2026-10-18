@@ -118,6 +118,22 @@ func TestFontPreviewBoundedAndCancelled(t *testing.T) {
 	if err != nil || im.Bounds() != image.Rect(0, 0, 480, 320) {
 		t.Fatal("preview", err)
 	}
+	background := im.At(0, 0)
+	rowHeight := im.Bounds().Dy() / 4
+	for row := 0; row < 4; row++ {
+		inked := false
+		for y := row * rowHeight; y < (row+1)*rowHeight && !inked; y++ {
+			for x := 0; x < im.Bounds().Dx(); x++ {
+				if im.At(x, y) != background {
+					inked = true
+					break
+				}
+			}
+		}
+		if !inked {
+			t.Fatalf("preview row %d has no ink", row)
+		}
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	if _, err := FontPreview(ctx, nil, "light", "", 480, 320); err == nil {
