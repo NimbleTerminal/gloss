@@ -176,6 +176,8 @@ nimbleterminal.dev/nt3d v0.1.0 h1:uYRF4wIR+WAd8VH/Wz2Ycgyw7lkL/SYYA2i6a1FbFWQ=
 nimbleterminal.dev/nt3d v0.1.0/go.mod h1:dj7oiex0uQagyD/u+ERz6vSuUzkdf9+nZrO2fehIKSY=
 nimbleterminal.dev/ntcanvas v0.1.0 h1:a3Ic7siZlAAO8rb2AQjNx/r9FNr/wP1816ZSF/HCmBk=
 nimbleterminal.dev/ntcanvas v0.1.0/go.mod h1:WMTAXxNeQsxN/seXUyVlWXA+WDYEhgeRW6ukJEPjZsk=
+nimbleterminal.dev/ntfonts v0.0.0-20261018160807-9ce794824f68 h1:Vc7dvSdn8FWlaOTqVFcwoO14UHAIJTTkkP9F+vu7No0=
+nimbleterminal.dev/ntfonts v0.0.0-20261018160807-9ce794824f68/go.mod h1:G8a7vDkY3uYxrydtdTlJ7KbZpxtL4MTimyMhkwdPr2Q=
 nimbleterminal.dev/ntgpuimage v0.3.0 h1:x3/wbnS6xHFsMbKg+vXTbbEv2pDfnJTbGpKiUoSnAjM=
 nimbleterminal.dev/ntgpuimage v0.3.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=
 nimbleterminal.dev/ntpdf v0.4.0 h1:GX6En9/Ka2WccK4f3CshGevSpsxxM54f7zZUvSr8+XM=
@@ -184,3 +186,5 @@ nimbleterminal.dev/ntpicture v0.1.0 h1:CsE+wzMxdG81vxkm31viZ/RiT4pafVajoOoX1DG9B
 nimbleterminal.dev/ntpicture v0.1.0/go.mod h1:87798EJw9zvJoD1sdT6wzbGBpY+Vwco9U4NVf5Cv0tw=
 nimbleterminal.dev/ntsvg v0.5.0 h1:b34zv/4Um5ZnjXKxIBcN6Hal0OUMDCIbiavVOjKdA6o=
 nimbleterminal.dev/ntsvg v0.5.0/go.mod h1:t+u5owwOns5Z29CH5P+t+/N/HjB0USv7C7qeFWCaU5E=
+nimbleterminal.dev/nttypeset v0.0.0-20261018154052-e0945ca7d975 h1:hrvxEpYyo5kWyWKiGwuRYHBLp4HfGA5pRWqaiCmfTgU=
+nimbleterminal.dev/nttypeset v0.0.0-20261018154052-e0945ca7d975/go.mod h1:ZPR3WpK7QpWkMzXYVYuYMWE0MD6qU755tuEeChckV5Q=
