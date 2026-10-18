@@ -75,3 +75,49 @@ func TestTypesetLinkedMissingImagePlaceholder(t *testing.T) {
 		t.Fatal("missing image should keep its placeholder", r.Err)
 	}
 }
+
+func TestTypesetAnimatedImageIsReservedRectangle(t *testing.T) {
+	var gifData bytes.Buffer
+	palette := color.Palette{color.RGBA{R: 255, A: 255}, color.RGBA{B: 255, A: 255}}
+	first := image.NewPaletted(image.Rect(0, 0, 40, 30), palette)
+	second := image.NewPaletted(first.Bounds(), palette)
+	for i := range second.Pix {
+		second.Pix[i] = 1
+	}
+	if err := gif.EncodeAll(&gifData, &gif.GIF{Image: []*image.Paletted{first, second}, Delay: []int{10, 10}}); err != nil {
+		t.Fatal(err)
+	}
+	files := fstest.MapFS{
+		"page.md":  {Data: []byte("![a](anim.gif)\n")},
+		"anim.gif": {Data: gifData.Bytes()},
+	}
+	load := func(animate bool) Result {
+		l := &Loader{Files: files}
+		defer l.Close()
+		r := l.Load(Request{Path: "page.md", Typeset: true, Animate: animate, TypesetView: &TypesetViewport{Height: 400}})
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		return r
+	}
+	animated := load(true)
+	if len(animated.Animated) != 1 || animated.Animated[0].Destination != "anim.gif" {
+		t.Fatalf("Animated = %+v, want one region for anim.gif", animated.Animated)
+	}
+	if animated.AnimationBase == nil {
+		t.Fatal("AnimationBase is nil")
+	}
+	rect := animated.Animated[0].Rect
+	center := image.Pt((rect.Min.X+rect.Max.X)/2, (rect.Min.Y+rect.Max.Y)/2)
+	want := color.RGBAModel.Convert(paletteFor("light").background)
+	if got := color.RGBAModel.Convert(animated.AnimationBase.At(center.X, center.Y)); got != want {
+		t.Fatalf("AnimationBase at %v = %v, want background %v", center, got, want)
+	}
+	still := load(false)
+	if len(still.Animated) != 0 {
+		t.Fatalf("still page reports Animated regions: %+v", still.Animated)
+	}
+	if got := color.RGBAModel.Convert(still.Image.At(center.X, center.Y)); got != color.RGBAModel.Convert(palette[0]) {
+		t.Fatalf("still Image at %v = %v, want first frame %v", center, got, palette[0])
+	}
+}

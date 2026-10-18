@@ -229,15 +229,9 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	}
 	if q.Animate && !q.Preview {
 		viewport := image.Rect(0, 0, w, h)
-		for _, op := range lay.ops {
-			player := lay.p.animations[op.destination]
-			if op.asset == nil || player == nil {
-				continue
-			}
-			r := op.rect.Sub(image.Pt(left, top))
-			r = image.Rect(int(math.Round(float64(r.Min.X)*scale)), int(math.Round(float64(r.Min.Y)*scale)), int(math.Round(float64(r.Max.X)*scale)), int(math.Round(float64(r.Max.Y)*scale)))
-			if r.Overlaps(viewport) {
-				out.Animated = append(out.Animated, TypesetRegion{Rect: r, Player: player, Destination: op.destination})
+		for _, im := range lay.images(top, left, scale, viewport) {
+			if player := l.typesetAnimations[im.destination]; player != nil {
+				out.Animated = append(out.Animated, TypesetRegion{Rect: im.rect, Player: player, Destination: im.destination})
 			}
 		}
 	}
@@ -255,7 +249,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		// The page is drawn once, without its animated images: the composite
 		// puts their current frames in. Drawing them here too would be a second
 		// raster and a resample of each first frame, thrown away.
-		out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, pal, true)
+		out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, pal, len(out.Animated) > 0)
 	} else {
 		out.Image = lay.rasterTo(top, height, left, width, w, h, scale, pal, false)
 	}

@@ -234,6 +234,10 @@ type Loader struct {
 	pages           int
 	book            book   // Kept, like the PDF, for turning between sheets.
 	bookKind        string // xlsx or grist.
+
+	// The typeset document's animation players by image destination. The
+	// layout knows only which images are animated.
+	typesetAnimations map[string]*animation.Player
 }
 
 // book is a file of several sheets: a workbook's, or the tables of a Grist
@@ -256,6 +260,7 @@ func (l *Loader) closePDF() error {
 	l.typeset, l.typesetBase = nil, ""
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
 	l.direct, l.typesetPrepared, l.typesetEngine = nil, nil, nil
+	l.typesetAnimations = nil
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
 	if l.pdf == nil {
 		return nil
@@ -354,14 +359,19 @@ func (l *Loader) Load(q Request) (out Result) {
 				out.Err = err
 				return out
 			}
-			prep := &prepared{images: map[string]image.Image{}, animations: map[string]*animation.Player{}, ctx: q.Context}
+			prep := &prepared{images: map[string]image.Image{}, animated: map[string]bool{}, ctx: q.Context}
+			animations := map[string]*animation.Player{}
 			for name, a := range assets {
 				if a != nil {
 					prep.images[name] = a.image
-					prep.animations[name] = a.animation
+					if a.animation != nil {
+						prep.animated[name] = true
+						animations[name] = a.animation
+					}
 				}
 			}
 			prep.walk(root, data, 0)
+			l.typesetAnimations = animations
 			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, prep)
 		}
 		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview)

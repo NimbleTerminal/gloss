@@ -25,7 +25,6 @@ import (
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/fixed"
 	"nimbleterminal.dev/gloss/internal/typeset/raster"
-	"nimbleterminal.dev/ntpicture/animation"
 )
 
 const (
@@ -71,6 +70,7 @@ type block struct {
 	rows         [][][]span
 	asset        image.Image
 	destination  string
+	animated     bool // The viewer composites this image's frames over a reserved rectangle.
 	indent, size int
 }
 
@@ -79,11 +79,11 @@ type quoteRule struct {
 	last   bool
 }
 type prepared struct {
-	ctx        context.Context
-	lines      bool // The blocks are the file's lines, one each.
-	blocks     []block
-	images     map[string]image.Image
-	animations map[string]*animation.Player
+	ctx      context.Context
+	lines    bool // The blocks are the file's lines, one each.
+	blocks   []block
+	images   map[string]image.Image
+	animated map[string]bool // Destinations the viewer animates.
 }
 
 func inline(n ast.Node, data []byte, style int) []span {
@@ -159,7 +159,7 @@ func (p *prepared) walk(n ast.Node, data []byte, indent int) {
 		case *ast.Paragraph, *ast.TextBlock:
 			if c.ChildCount() == 1 {
 				if im := standaloneImage(c.FirstChild()); im != nil {
-					p.blocks = append(p.blocks, block{kind: "image", imageLayout: MarkdownImageLayout(im), href: imageLink(im), destination: string(im.Destination), asset: p.images[string(im.Destination)], spans: []span{{text: "[image unavailable: " + string(im.Destination) + "]", style: italic}}, indent: indent})
+					p.blocks = append(p.blocks, block{kind: "image", imageLayout: MarkdownImageLayout(im), href: imageLink(im), destination: string(im.Destination), asset: p.images[string(im.Destination)], animated: p.animated[string(im.Destination)], spans: []span{{text: "[image unavailable: " + string(im.Destination) + "]", style: italic}}, indent: indent})
 					continue
 				}
 			}
@@ -350,6 +350,7 @@ type operation struct {
 	role                  role
 	asset                 image.Image
 	destination           string
+	animated              bool
 	fill                  fillRole
 	// A text run's place: the paragraph's runes, and which paragraph of
 	// which block it is, the same at every width.
@@ -578,7 +579,7 @@ func (l *layout) block() {
 			w := min(width, iw)
 			h := max(1, ih*w/iw)
 			x += b.imageLayout.Offset(width, w)
-			l.ops = append(l.ops, operation{rect: image.Rect(x, l.y, x+w, l.y+h), asset: b.asset, destination: b.destination, href: b.href})
+			l.ops = append(l.ops, operation{rect: image.Rect(x, l.y, x+w, l.y+h), asset: b.asset, destination: b.destination, animated: b.animated, href: b.href})
 			l.y += h + 20
 		case "table":
 			l.table(b, x, width)
@@ -685,9 +686,32 @@ func (l *layout) table(b block, x, width int) {
 func (l *layout) raster(top, height, left, width int, scale float64, p palette) *image.RGBA {
 	return l.rasterFrame(top, height, left, width, scale, p, false)
 }
-func (l *layout) rasterFrame(top, height, left, width int, scale float64, p palette, base bool) *image.RGBA {
+func (l *layout) rasterFrame(top, height, left, width int, scale float64, p palette, omitAnimated bool) *image.RGBA {
 	w, h := rasterSize(width, height, scale)
-	return l.rasterTo(top, height, left, width, w, h, scale, p, base)
+	return l.rasterTo(top, height, left, width, w, h, scale, p, omitAnimated)
+}
+
+// placedImage is an image placed by the layout, in picture coordinates.
+type placedImage struct {
+	rect        image.Rectangle
+	destination string
+}
+
+// images lists the placed images whose rectangle, projected by top, left and
+// scale as rasterTo does, overlaps the viewport.
+func (l *layout) images(top, left int, scale float64, viewport image.Rectangle) []placedImage {
+	var out []placedImage
+	for _, op := range l.ops {
+		if op.asset == nil {
+			continue
+		}
+		r := op.rect.Sub(image.Pt(left, top))
+		r = image.Rect(int(math.Round(float64(r.Min.X)*scale)), int(math.Round(float64(r.Min.Y)*scale)), int(math.Round(float64(r.Max.X)*scale)), int(math.Round(float64(r.Max.Y)*scale)))
+		if r.Overlaps(viewport) {
+			out = append(out, placedImage{rect: r, destination: op.destination})
+		}
+	}
+	return out
 }
 
 // rasterSize is the raster of a width×height layout region at scale.
@@ -698,8 +722,10 @@ func rasterSize(width, height int, scale float64) (w, h int) {
 // rasterTo draws the layout region into a w×h picture, scaling each
 // operation by scale. The region normally maps onto the picture; a viewer
 // may ask for its picture's exact device size, which can differ from the
-// scaled region by a rounding pixel at the bottom or right edge.
-func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, p palette, base bool) *image.RGBA {
+// scaled region by a rounding pixel at the bottom or right edge. With
+// omitAnimated, animated images stay as blank reserved rectangles for the
+// viewer to composite over.
+func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, p palette, omitAnimated bool) *image.RGBA {
 	l.ensure(top + height)
 	if w > MaxPixels/h {
 		panic("typeset raster exceeds pixel limit")
@@ -717,7 +743,7 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, p p
 		case op.fill != fillNone:
 			draw.Draw(out, r, &image.Uniform{C: p.fillColor(op.fill)}, image.Point{}, draw.Src)
 		case op.asset != nil:
-			if base && l.p.animations[op.destination] != nil {
+			if omitAnimated && op.animated {
 				continue
 			}
 			xdraw.CatmullRom.Scale(out, r, op.asset, op.asset.Bounds(), draw.Over, nil)
