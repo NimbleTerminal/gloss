@@ -183,14 +183,16 @@ document. The faces come from
 [ntfonts](https://github.com/NimbleTerminal/ntfonts), imported as
 `nimbleterminal.dev/ntfonts`: `ntfonts.Embedded` is the `FaceSource` over the
 embedded Latin OFL subsets.
+
 Gloss keeps Markdown parsing and normalization, asset preflight and decoding,
 the text and JSON budgets, the viewport policy in `typeset_render.go`, the
 `Loader` cache, the ntpicture composite, the info fields, and the goldmark hook
 wiring in `typeset_blocks.go`. `typeset.go` preflights all local assets before
 decode; `typeset_render.go` connects the cached layout to `Loader`.
 `typeset_text.go` sends literal text directly to `nttypeset.Lines`, with Chroma
-spans for source/JSON; only Markdown is parsed as Markdown. Each format retains its original kind. `--markdown typeset`
-is a compatibility alias; `--typeset` and `t` select the shared view mode.
+spans for source/JSON; only Markdown is parsed as Markdown.
+Each format retains its original kind.
+`--markdown typeset` is a compatibility alias; `--typeset` and `t` select the shared view mode.
 The production graph no longer uses goldmark-pdf/gopdf; PDF inputs still use
 PDFium. The [comparison experiment](experiments/typeset/README.md) retains a
 frozen PDF adapter in its separate module and its recorded comparison images.
@@ -205,9 +207,11 @@ go-text run rasterizer and its bounded glyph-mask cache live in nttypeset's
 `raster` package; it owns no document parsing, layout, or theme policy.
 nttypeset copies glyphs
 before wrapping: go-text's whitespace trimming mutates their advances. Chroma
-runs during preparation, recording GitHub light and dark foreground colors,
-plain fallback, and exact source preservation. Both colors participate in the
-shaping cache key; font styles come from the light theme for stable metrics.
+runs during preparation, recording each token on its span and keeping the
+source exactly; unknown languages and lexers that change the source fall back to
+plain text. The raster paints tokens from the theme's syntax style, so a theme
+change repaints without reshaping or relaying out. Bold and italic come from the
+github style for stable metrics.
 Rasterization draws each glyph from a cached mask, rendered once by go-text
 at the glyph's size, raster scale and quarter-pixel position and trimmed to
 its ink, blended in the run's colour; drawing every glyph from its outline on
