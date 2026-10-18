@@ -3534,7 +3534,7 @@ Browser runtime licenses are in web/licenses; regenerate dependency notices with
 `task notices`. Generated runtime assets retain their upstream licenses.
 ```
 
-## nimbleterminal.dev/ntfonts v0.0.0-20261018160807-9ce794824f68
+## nimbleterminal.dev/ntfonts v0.1.0
 
 ```
 MIT License
@@ -3739,7 +3739,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nttypeset v0.0.0-20261018180811-4a05af4338e5
+## nimbleterminal.dev/nttypeset v0.1.0
 
 ```
 MIT License
