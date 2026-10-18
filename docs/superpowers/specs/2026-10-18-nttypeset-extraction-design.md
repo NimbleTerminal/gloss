@@ -205,7 +205,7 @@ const (
     Code       // a code block: inset, code-background fill
     Line       // one line of a Lines document: no gap after it
     Rule
-    Image
+    KindImage  // named for the collision with the Image struct type
     Table
 )
 
