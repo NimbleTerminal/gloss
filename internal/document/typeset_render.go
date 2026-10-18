@@ -4,11 +4,64 @@ import (
 	"context"
 	"fmt"
 	"image"
+	"image/color"
 	"math"
+	"time"
+
+	"github.com/alecthomas/chroma/v2"
+	"github.com/alecthomas/chroma/v2/styles"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntpicture/animation"
-	"time"
 )
+
+// A palette is the set of colors a request paints with, built once per
+// request. The layout records roles and token types, never colors, so changing
+// theme repaints without reshaping.
+type palette struct {
+	background, foreground, muted, border, code, header, accent, selection color.RGBA
+	syntax                                                                 *chroma.Style
+}
+
+func paletteFor(name string) palette {
+	p := theme.Get(name)
+	return palette{p.Background, p.Foreground, p.Muted, p.Border, p.Code, p.Header, p.Accent, p.Selection, styles.Get(theme.Syntax(name))}
+}
+
+func (p palette) fillColor(f fillRole) color.RGBA {
+	switch f {
+	case fillBorder:
+		return p.border
+	case fillCode:
+		return p.code
+	case fillHeader:
+		return p.header
+	case fillMuted:
+		return p.muted
+	}
+	return p.background
+}
+
+// runInk is the color a text run is painted in. A syntax token wins over the
+// span's own ink, an accent role over both, and a gutter number is muted.
+func (p palette) runInk(op *operation) color.RGBA {
+	ink := p.foreground
+	if op.ink.A != 0 {
+		ink = op.ink
+	}
+	if op.token != 0 {
+		ink = p.foreground
+		if c := p.syntax.Get(op.token).Colour; c.IsSet() {
+			ink = color.RGBA{c.Red(), c.Green(), c.Blue(), 255}
+		}
+	}
+	if op.role == roleAccent {
+		ink = p.accent
+	}
+	if op.gutter {
+		ink = p.muted
+	}
+	return ink
+}
 
 // TypesetViewport uses pixels at the 150-DPI reading scale. Nil on Request
 // selects a numbered 800×1125 export slice instead of a continuous viewport.
@@ -57,7 +110,6 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	l.typesetEngine.ctx = ctx
-	l.typesetEngine.theme = out.Theme
 	defer func() {
 		if p := recover(); p != nil {
 			out.Err = typesetError(p)
@@ -198,13 +250,14 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			out.TypesetSelection, out.TypesetSelected = &sel.places, lay.selected(sel)
 		}
 	}
+	pal := paletteFor(out.Theme)
 	if len(out.Animated) > 0 {
 		// The page is drawn once, without its animated images: the composite
 		// puts their current frames in. Drawing them here too would be a second
 		// raster and a resample of each first frame, thrown away.
-		out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, true)
+		out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, pal, true)
 	} else {
-		out.Image = lay.rasterTo(top, height, left, width, w, h, scale, false)
+		out.Image = lay.rasterTo(top, height, left, width, w, h, scale, pal, false)
 	}
 	if q.Animate && !q.Preview && (len(out.Animated) > 0 || q.Playback != nil) {
 		base := out.AnimationBase
@@ -247,4 +300,6 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 }
 
 // Keep the spike's testable unit-scale viewport entry point.
-func (l *layout) viewport(top, height int) *image.RGBA { return l.raster(top, height, 0, l.width, 1) }
+func (l *layout) viewport(top, height int, p palette) *image.RGBA {
+	return l.raster(top, height, 0, l.width, 1, p)
+}

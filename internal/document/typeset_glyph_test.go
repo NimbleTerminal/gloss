@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
-
-	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // Glyphs are drawn from cached masks: a second raster of the same view hits
@@ -47,6 +45,7 @@ func TestTypesetGlyphMasks(t *testing.T) {
 	v := r.TypesetView
 	scale := float64(v.Pixels.X) / float64(lay.width)
 	inkRuns := 0
+	pal := paletteFor(r.Theme)
 	for _, op := range lay.ops {
 		if op.run == nil {
 			continue
@@ -57,13 +56,7 @@ func TestTypesetGlyphMasks(t *testing.T) {
 			continue
 		}
 		inkRuns++
-		ink := theme.Get(e.theme).Foreground
-		if op.ink.A != 0 {
-			ink = op.ink
-		}
-		if e.theme == "dark" && op.darkInk.A != 0 {
-			ink = op.darkInk
-		}
+		ink := pal.runInk(&op)
 		pad := int(float64(op.size)*scale) + 1
 		tile := image.NewRGBA(image.Rect(0, 0, rr.Dx()+2*pad, rr.Dy()+2*pad))
 		e.rasterizer.DrawDirect(tile, op.run, op.size, scale, pad, pad+int(float64(op.baseline-v.Top)*scale+0.5)-rr.Min.Y, rr.Dy(), ink)

@@ -6,7 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alecthomas/chroma/v2/styles"
+	"github.com/alecthomas/chroma/v2"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 func TestHighlightCode(t *testing.T) {
@@ -18,10 +19,10 @@ func TestHighlightCode(t *testing.T) {
 		t.Run(tc.language, func(t *testing.T) {
 			spans := highlightCode(tc.source, tc.language, codeTheme)
 			var reconstructed strings.Builder
-			colors := map[color.RGBA]bool{}
+			tokens := map[chroma.TokenType]bool{}
 			for _, s := range spans {
 				reconstructed.WriteString(s.text)
-				colors[s.ink] = true
+				tokens[s.token] = true
 				if s.style&mono == 0 {
 					t.Fatal("code lost monospace face")
 				}
@@ -29,15 +30,15 @@ func TestHighlightCode(t *testing.T) {
 			if reconstructed.String() != tc.source {
 				t.Fatal("tokenization changed source")
 			}
-			if len(colors) < 2 {
-				t.Fatal("missing token colors")
+			if len(tokens) < 2 {
+				t.Fatal("missing token types")
 			}
 		})
 	}
 	for _, language := range []string{"", "not-a-real-language"} {
 		source := "  unknown\n\n\tcode café\n"
 		spans := highlightCode(source, language, codeTheme)
-		if len(spans) != 1 || spans[0].text != source || spans[0].ink.A != 0 {
+		if len(spans) != 1 || spans[0].text != source || spans[0].ink.A != 0 || spans[0].token != 0 {
 			t.Fatal("unknown/untagged code must stay plain")
 		}
 	}
@@ -50,16 +51,16 @@ func TestHighlightedRasterResizeAndThemeCache(t *testing.T) {
 		t.Fatal(err)
 	}
 	e := testEngine(t)
-	wide := e.layout(p, 800).viewport(0, 300)
-	narrow := e.layout(p, 400).viewport(0, 400)
-	fresh := testEngine(t).layout(p, 400).viewport(0, 400)
+	wide := e.layout(p, 800).viewport(0, 300, paletteFor("light"))
+	narrow := e.layout(p, 400).viewport(0, 400, paletteFor("light"))
+	fresh := testEngine(t).layout(p, 400).viewport(0, 400, paletteFor("light"))
 	if !bytes.Equal(narrow.Pix, fresh.Pix) {
 		t.Fatal("highlight colors/spacing changed after resize")
 	}
 	colors := map[color.RGBA]bool{}
 	for _, sp := range p.blocks[0].spans {
-		if sp.ink.A != 0 && sp.ink.R != sp.ink.G {
-			colors[sp.ink] = false
+		if c := theme.Ink("light", sp.token); sp.token != 0 && c.R != c.G {
+			colors[c] = false
 		}
 	}
 	for y := 0; y < wide.Bounds().Dy(); y++ {
@@ -80,8 +81,9 @@ func TestHighlightedRasterResizeAndThemeCache(t *testing.T) {
 		t.Fatal("token colors did not reach raster output")
 	}
 	a := e.shape(highlightCode(source, "go", codeTheme), 25)
-	b := e.shape(highlightCode(source, "go", styles.Get("monokai")), 25)
-	if a == b {
-		t.Fatal("theme colors collided in shape cache")
+	tinted := highlightCode(source, "go", codeTheme)
+	tinted[0].ink = color.RGBA{1, 2, 3, 255}
+	if b := e.shape(tinted, 25); a == b {
+		t.Fatal("span colors collided in shape cache")
 	}
 }

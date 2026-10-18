@@ -35,7 +35,7 @@ func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
 				}
 				for _, s := range b.spans {
 					text.WriteString(s.text)
-					colored = colored || s.ink.A != 0
+					colored = colored || s.token != 0
 					if tc.code && strings.TrimSpace(s.text) != "" && s.style&mono == 0 {
 						t.Fatal("source lost monospace")
 					}

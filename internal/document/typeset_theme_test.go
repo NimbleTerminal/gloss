@@ -8,6 +8,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/alecthomas/chroma/v2"
 	"nimbleterminal.dev/gloss/internal/theme"
 )
 
@@ -66,25 +67,63 @@ func TestTypesetThemeRepaintsWithoutRelayout(t *testing.T) {
 
 func TestTypesetDarkSyntaxAndFills(t *testing.T) {
 	spans := highlightCode("func hi() string { return \"hello\" }", "go", codeTheme)
-	different := 0
+	tokens := map[chroma.TokenType]bool{}
 	for _, s := range spans {
-		if s.ink.A != 0 && s.darkInk.A != 0 && s.ink != s.darkInk {
-			different++
+		if s.token != 0 {
+			tokens[s.token] = true
 		}
 	}
-	if different < 2 {
-		t.Fatal("dark syntax colors missing")
+	if len(tokens) < 2 {
+		t.Fatal("syntax tokens missing")
 	}
-	p := theme.Get("dark")
-	for _, tc := range []struct{ from, to color.RGBA }{
-		{color.RGBA{210, 210, 210, 255}, p.Border},
-		{color.RGBA{245, 247, 249, 255}, p.Code},
-		{color.RGBA{237, 241, 245, 255}, p.Header},
-		{color.RGBA{158, 172, 185, 255}, p.Muted},
-	} {
-		if typesetFill(tc.from, p) != tc.to {
-			t.Fatal("unmapped typeset fill")
+	p, err := prepareForTest(testInput(t, "```go\nfunc hi() string { return \"hello\" }\n```\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	l := testEngine(t).layout(p, 600)
+	l.ensure(100000)
+	dark := paletteFor("dark")
+	img := l.rasterTo(0, l.y, 0, 600, 600, l.y, 1, dark, false)
+	var fill *operation
+	var keyword *operation
+	for i := range l.ops {
+		op := &l.ops[i]
+		if op.run == nil && op.asset == nil && op.fill == fillCode && fill == nil {
+			fill = op
 		}
+		if op.run != nil && op.token.InCategory(chroma.Keyword) && keyword == nil {
+			keyword = op
+		}
+	}
+	if fill == nil || keyword == nil {
+		t.Fatal("no code fill or keyword run in the layout")
+	}
+	if got, want := img.RGBAAt(fill.rect.Min.X, fill.rect.Min.Y), theme.Get("dark").Code; got != want {
+		t.Fatalf("code background is %v, want %v", got, want)
+	}
+	// The pixel of the keyword's run farthest from the code background is its ink.
+	bg := theme.Get("dark").Code
+	dist := func(c color.RGBA) int {
+		d := 0
+		for _, v := range [3]int{int(c.R) - int(bg.R), int(c.G) - int(bg.G), int(c.B) - int(bg.B)} {
+			d += v * v
+		}
+		return d
+	}
+	var far color.RGBA
+	for y := keyword.rect.Min.Y; y < keyword.rect.Max.Y; y++ {
+		for x := keyword.rect.Min.X; x < keyword.rect.Max.X; x++ {
+			if c := img.RGBAAt(x, y); dist(c) > dist(far) {
+				far = c
+			}
+		}
+	}
+	want := theme.Ink("dark", keyword.token)
+	if far != want {
+		t.Fatalf("keyword ink is %v, want %v", far, want)
+	}
+	if want == theme.Get("dark").Foreground || want == theme.Ink("light", keyword.token) {
+		t.Fatal("dark keyword ink is not distinct")
 	}
 }
 

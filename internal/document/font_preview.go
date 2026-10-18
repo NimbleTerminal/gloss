@@ -6,13 +6,11 @@ import (
 	"image"
 	"image/draw"
 	"strings"
-
-	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // FontPreview draws the four bounded sample rows using the same shaper and
 // rasterizer as the document. It is called by an asynchronous viewer command.
-func FontPreview(ctx context.Context, source []byte, palette, override string, width, height int) (out image.Image, err error) {
+func FontPreview(ctx context.Context, source []byte, themeName, override string, width, height int) (out image.Image, err error) {
 	if width < 160 || height < 160 || width > 1200 || height > 1200 {
 		return nil, fmt.Errorf("font preview does not fit")
 	}
@@ -52,7 +50,8 @@ func FontPreview(ctx context.Context, source []byte, palette, override string, w
 	}
 	body, code = trim(body), trim(code)
 	result := image.NewRGBA(image.Rect(0, 0, width, height))
-	draw.Draw(result, result.Bounds(), image.NewUniform(theme.Get(palette).Background), image.Point{}, draw.Src)
+	draw.Draw(result, result.Bounds(), image.NewUniform(paletteFor(themeName).background), image.Point{}, draw.Src)
+	pal := paletteFor(themeName)
 	rowHeight := height / 4
 	for i, look := range fontLooks {
 		if err = ctx.Err(); err != nil {
@@ -63,7 +62,6 @@ func FontPreview(ctx context.Context, source []byte, palette, override string, w
 			return nil, err
 		}
 		e.ctx = ctx
-		e.theme = palette
 		l := e.layout(&prepared{}, width)
 		size := max(10, min(24, rowHeight/5))
 		y := 4
@@ -90,7 +88,7 @@ func FontPreview(ctx context.Context, source []byte, palette, override string, w
 			}
 			y += size*3/2 + 2
 		}
-		row := l.raster(0, rowHeight, 0, width, 1)
+		row := l.raster(0, rowHeight, 0, width, 1, pal)
 		draw.Draw(result, image.Rect(0, i*rowHeight, width, (i+1)*rowHeight), row, image.Point{}, draw.Src)
 	}
 	return result, nil

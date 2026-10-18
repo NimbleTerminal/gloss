@@ -24,7 +24,6 @@ import (
 	"github.com/yuin/goldmark/util"
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/fixed"
-	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/gloss/internal/typeset/raster"
 	"nimbleterminal.dev/ntpicture/animation"
 )
@@ -36,13 +35,32 @@ const (
 	strike = 8
 )
 
+// A role is a semantic text color, resolved against the palette at paint time.
+type role uint8
+
+const (
+	roleText   role = iota // the ordinary text color
+	roleAccent             // links and headings
+)
+
+// A fillRole is a semantic fill color, resolved against the palette at paint time.
+type fillRole uint8
+
+const (
+	fillNone fillRole = iota
+	fillBorder
+	fillCode
+	fillHeader
+	fillMuted
+)
+
 type span struct {
-	token   chroma.TokenType
-	href    string
-	text    string
-	style   int
-	ink     color.RGBA // zero means the ordinary text color
-	darkInk color.RGBA
+	token chroma.TokenType
+	href  string
+	text  string
+	style int
+	ink   color.RGBA // zero means the ordinary text color
+	role  role
 }
 type block struct {
 	imageLayout  ImageLayout
@@ -108,12 +126,11 @@ func inline(n ast.Node, data []byte, style int) []span {
 			linked := inline(v, data, style)
 			for i := range linked {
 				linked[i].href = string(v.Destination)
-				linked[i].ink = theme.Get("light").Accent
-				linked[i].darkInk = theme.Get("dark").Accent
+				linked[i].role = roleAccent
 			}
 			out = append(out, linked...)
 		case *ast.AutoLink:
-			out = append(out, span{text: string(v.Label(data)), href: string(v.URL(data)), style: style, ink: theme.Get("light").Accent, darkInk: theme.Get("dark").Accent})
+			out = append(out, span{text: string(v.Label(data)), href: string(v.URL(data)), style: style, role: roleAccent})
 		case *ast.Image:
 			out = append(out, span{text: "[image: " + string(v.Destination) + "]", style: style})
 		default:
@@ -136,7 +153,7 @@ func (p *prepared) walk(n ast.Node, data []byte, indent int) {
 		case *ast.Heading:
 			heading := inline(v, data, bold)
 			for i := range heading {
-				heading[i].ink, heading[i].darkInk = theme.Get("light").Accent, theme.Get("dark").Accent
+				heading[i].role = roleAccent
 			}
 			p.blocks = append(p.blocks, block{kind: "heading", spans: heading, size: []int{50, 46, 42, 38, 33, 29}[v.Level-1], indent: indent})
 		case *ast.Paragraph, *ast.TextBlock:
@@ -230,13 +247,13 @@ func standaloneImage(n ast.Node) *ast.Image {
 }
 
 type shaped struct {
-	tokens   []chroma.TokenType
-	text     []rune
-	runs     []shaping.Output
-	styles   []int
-	inks     []color.RGBA
-	darkInks []color.RGBA
-	size     int
+	tokens []chroma.TokenType
+	text   []rune
+	runs   []shaping.Output
+	styles []int
+	inks   []color.RGBA
+	roles  []role
+	size   int
 }
 type engine struct {
 	fontKey      string
@@ -251,7 +268,6 @@ type engine struct {
 	cacheBytes   int
 	rasterizer   *raster.Rasterizer
 	ctx          context.Context
-	theme        string
 }
 
 func newEngine(options ...string) (*engine, error) {
@@ -279,7 +295,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 	var key strings.Builder
 	fmt.Fprintf(&key, "%d/", size)
 	for _, s := range spans {
-		fmt.Fprintf(&key, "%d:%d:%v:%d:%s", s.token, s.style, [2]color.RGBA{s.ink, s.darkInk}, len(s.text), s.text)
+		fmt.Fprintf(&key, "%d:%d:%v:%d:%d:%s", s.token, s.style, s.ink, s.role, len(s.text), s.text)
 	}
 	k := key.String()
 	if s := e.cache[k]; s != nil {
@@ -293,7 +309,7 @@ func (e *engine) shape(spans []span, size int) *shaped {
 			s.styles = append(s.styles, sp.style)
 			s.tokens = append(s.tokens, sp.token)
 			s.inks = append(s.inks, sp.ink)
-			s.darkInks = append(s.darkInks, sp.darkInk)
+			s.roles = append(s.roles, sp.role)
 		}
 	}
 	offset := 0
@@ -331,10 +347,10 @@ type operation struct {
 	run                   *shaping.Output
 	style, size, baseline int
 	ink                   color.RGBA
-	darkInk               color.RGBA
+	role                  role
 	asset                 image.Image
 	destination           string
-	fill                  color.Color
+	fill                  fillRole
 	// A text run's place: the paragraph's runes, and which paragraph of
 	// which block it is, the same at every width.
 	text        []rune
@@ -375,7 +391,7 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 				paragraphs = append(paragraphs, current)
 				current = nil
 			}
-			current = append(current, span{text: part, token: sp.token, style: sp.style, ink: sp.ink, darkInk: sp.darkInk, href: sp.href})
+			current = append(current, span{text: part, token: sp.token, style: sp.style, ink: sp.ink, role: sp.role, href: sp.href})
 		}
 	}
 	if len(paragraphs) > 0 {
@@ -434,7 +450,8 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 			}
 			run.Glyphs = append([]shaping.Glyph(nil), r.Glyphs...)
 			style := 0
-			var ink, darkInk color.RGBA
+			var ink color.RGBA
+			var rl role
 			href := ""
 			var token chroma.TokenType
 			if r.Runes.Offset < len(s.styles) {
@@ -442,9 +459,9 @@ func (l *layout) text(spans []span, size, x, y, width int) ([]operation, int) {
 				token = s.tokens[r.Runes.Offset]
 				href = hrefs[r.Runes.Offset]
 				ink = s.inks[r.Runes.Offset]
-				darkInk = s.darkInks[r.Runes.Offset]
+				rl = s.roles[r.Runes.Offset]
 			}
-			ops = append(ops, operation{token: token, rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, darkInk: darkInk, baseline: baseline, text: s.text, block: l.next - 1, para: para})
+			ops = append(ops, operation{token: token, rect: image.Rect(advance.Floor(), y, (advance + r.Advance).Ceil(), y+height), run: &run, href: href, size: size, style: style, ink: ink, role: rl, baseline: baseline, text: s.text, block: l.next - 1, para: para})
 			advance += r.Advance
 		}
 		y += height
@@ -497,8 +514,8 @@ func (l *layout) lineAt(top int) int {
 	return at + 1
 }
 
-func (l *layout) rect(r image.Rectangle, c color.Color) {
-	l.ops = append(l.ops, operation{rect: r, fill: c})
+func (l *layout) rect(r image.Rectangle, f fillRole) {
+	l.ops = append(l.ops, operation{rect: r, fill: f})
 }
 func (l *layout) ensure(bottom int) {
 	start := time.Now()
@@ -547,7 +564,7 @@ func (l *layout) block() {
 		}
 		switch b.kind {
 		case "rule":
-			l.rect(image.Rect(x, l.y, x+width, l.y+2), color.Gray{210})
+			l.rect(image.Rect(x, l.y, x+width, l.y+2), fillBorder)
 			l.y += 20
 		case "image":
 			if b.asset == nil {
@@ -575,7 +592,7 @@ func (l *layout) block() {
 			}
 			ops, h := l.text(b.spans, size, x+inset, l.y+inset, max(1, width-inset*2))
 			if b.kind == "code" {
-				l.rect(image.Rect(x, l.y, x+width, l.y+h+32), color.RGBA{245, 247, 249, 255})
+				l.rect(image.Rect(x, l.y, x+width, l.y+h+32), fillCode)
 			}
 			l.ops = append(l.ops, ops...)
 			l.y += h + 2*inset
@@ -596,7 +613,7 @@ func (l *layout) block() {
 				bottom = contentBottom
 			}
 			x := 50 + quote.indent - 18
-			l.rect(image.Rect(x, y, x+4, bottom), color.RGBA{158, 172, 185, 255})
+			l.rect(image.Rect(x, y, x+4, bottom), fillMuted)
 		}
 		if l.y+50 > 1125*MaxPages || len(l.ops) > 32768 {
 			panic("typeset layout exceeds display-list limit")
@@ -655,22 +672,22 @@ func (l *layout) table(b block, x, width int) {
 			xx += w
 		}
 		if rowIndex == 0 {
-			l.rect(image.Rect(x, l.y, x+width, l.y+height), color.RGBA{237, 241, 245, 255})
+			l.rect(image.Rect(x, l.y, x+width, l.y+height), fillHeader)
 		}
 		l.ops = append(l.ops, ops...)
-		l.rect(image.Rect(x, l.y+height-1, x+width, l.y+height), color.Gray{210})
+		l.rect(image.Rect(x, l.y+height-1, x+width, l.y+height), fillBorder)
 		l.y += height
 	}
 	l.y += 20
 }
 
 // Rasterize a viewport, never an unbounded document image. Layout remains reusable.
-func (l *layout) raster(top, height, left, width int, scale float64) *image.RGBA {
-	return l.rasterFrame(top, height, left, width, scale, false)
+func (l *layout) raster(top, height, left, width int, scale float64, p palette) *image.RGBA {
+	return l.rasterFrame(top, height, left, width, scale, p, false)
 }
-func (l *layout) rasterFrame(top, height, left, width int, scale float64, base bool) *image.RGBA {
+func (l *layout) rasterFrame(top, height, left, width int, scale float64, p palette, base bool) *image.RGBA {
 	w, h := rasterSize(width, height, scale)
-	return l.rasterTo(top, height, left, width, w, h, scale, base)
+	return l.rasterTo(top, height, left, width, w, h, scale, p, base)
 }
 
 // rasterSize is the raster of a width×height layout region at scale.
@@ -682,14 +699,13 @@ func rasterSize(width, height int, scale float64) (w, h int) {
 // operation by scale. The region normally maps onto the picture; a viewer
 // may ask for its picture's exact device size, which can differ from the
 // scaled region by a rounding pixel at the bottom or right edge.
-func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, base bool) *image.RGBA {
+func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, p palette, base bool) *image.RGBA {
 	l.ensure(top + height)
 	if w > MaxPixels/h {
 		panic("typeset raster exceeds pixel limit")
 	}
 	out := image.NewRGBA(image.Rect(0, 0, w, h))
-	palette := theme.Get(l.e.theme)
-	draw.Draw(out, out.Bounds(), image.NewUniform(palette.Background), image.Point{}, draw.Src)
+	draw.Draw(out, out.Bounds(), image.NewUniform(p.background), image.Point{}, draw.Src)
 	for i, op := range l.ops {
 		l.e.check()
 		r := op.rect.Sub(image.Pt(left, top))
@@ -698,33 +714,18 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, bas
 			continue
 		}
 		switch {
-		case op.fill != nil:
-			draw.Draw(out, r, &image.Uniform{C: typesetFill(op.fill, palette)}, image.Point{}, draw.Src)
+		case op.fill != fillNone:
+			draw.Draw(out, r, &image.Uniform{C: p.fillColor(op.fill)}, image.Point{}, draw.Src)
 		case op.asset != nil:
 			if base && l.p.animations[op.destination] != nil {
 				continue
 			}
 			xdraw.CatmullRom.Scale(out, r, op.asset, op.asset.Bounds(), draw.Over, nil)
 		case op.run != nil:
-			ink := palette.Foreground
-			if op.ink.A != 0 {
-				ink = op.ink
-			}
-			if theme.Dark(l.e.theme) && op.darkInk.A != 0 {
-				ink = op.darkInk
-			}
-			if op.token != 0 {
-				ink = theme.Ink(l.e.theme, op.token)
-			}
-			if op.ink == theme.Get("light").Accent && op.darkInk == theme.Get("dark").Accent {
-				ink = palette.Accent
-			}
-			if op.gutter {
-				ink = palette.Muted
-			}
+			ink := p.runInk(&op)
 			if x0, x1, ok := l.sel.span(i, &op); ok {
 				hr := image.Rect(int(math.Round(float64(x0-left)*scale)), r.Min.Y, int(math.Round(float64(x1-left)*scale)), r.Max.Y)
-				draw.Draw(out, hr, image.NewUniform(palette.Selection), image.Point{}, draw.Src)
+				draw.Draw(out, hr, image.NewUniform(p.selection), image.Point{}, draw.Src)
 			}
 			baseline := int(math.Round(float64(op.baseline-top) * scale))
 			l.e.rasterizer.Draw(out, op.run, op.size, scale, r.Min.X, baseline, r.Dy(), ink)
@@ -751,22 +752,6 @@ func typesetError(p any) error {
 		return err
 	}
 	return fmt.Errorf("typesetting: %v", p)
-}
-
-// Display-list fills are semantic colors from the fixed light palette. Resolve
-// them at paint time so changing theme never reshapes or rewraps text.
-func typesetFill(c color.Color, p theme.Palette) color.Color {
-	switch color.RGBAModel.Convert(c).(color.RGBA) {
-	case color.RGBA{210, 210, 210, 255}:
-		return p.Border
-	case color.RGBA{245, 247, 249, 255}:
-		return p.Code
-	case color.RGBA{237, 241, 245, 255}:
-		return p.Header
-	case color.RGBA{158, 172, 185, 255}:
-		return p.Muted
-	}
-	return c
 }
 
 func imageLink(im *ast.Image) string {
