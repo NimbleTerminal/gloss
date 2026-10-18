@@ -34,7 +34,7 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   (`testdata/scripts`, `task browse:screens`). Change the
   browser by adding a script first.
 - `internal/document`: bounded loaders, renderers, and vision-image sizing.
-  PDF metadata/text and SVG rasterization run in disposable parser workers:
+  PDF metadata/text, SVG rasterization and Mermaid diagrams run in disposable parser workers:
   the current executable on native hosts, Web Workers in the browser. A
   15-second deadline stops and reaps/terminates the worker; at most two run at
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
@@ -130,6 +130,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   pauses; reflow preserves positions; reload restarts. `e` exports the first
   visible GIF’s displayed frame in normal Markdown, the viewport in typeset.
   Glamour by default; `s` toggles source and `t` switches text/typeset.
+  Fenced `mermaid` blocks normalize to standalone images (`internal/document/mermaid.go`:
+  content-key destination, source and fence as node attributes) drawn by
+  pure-Go go-mermaid in the parser worker, 64 KiB per diagram, light palette on
+  its own page. They count as image references and pixels; a diagram that fails
+  shows its error in text, and typeset preflight puts the fence back after a note.
   Unicode emoji shortcodes expand in rendered prose, tables, and link labels;
   source, code, escapes, unknown names, and image-only aliases stay literal.
   No emoji assets are fetched; typeset fonts still lack emoji coverage.

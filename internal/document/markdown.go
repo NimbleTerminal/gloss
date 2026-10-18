@@ -133,6 +133,26 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 			return ast.WalkSkipChildren, nil
 		}
 		dest := string(img.Destination)
+		if code, ok := mermaidSource(img); ok {
+			asset, cached := cache[dest]
+			if !cached {
+				asset.Destination = dest
+				asset.Image, asset.Err = renderMermaidImage(img, code)
+				if asset.Err == nil {
+					area := asset.Image.Bounds().Dx() * asset.Image.Bounds().Dy()
+					if pixels+area > maxMarkdownImagePixels {
+						asset.Image, asset.Err = nil, fmt.Errorf("document image budget reached")
+					} else {
+						pixels += area
+					}
+				}
+				asset.Layout = MarkdownImageLayout(img)
+				cache[dest] = asset
+			}
+			asset.Alt = inlineText(img, md.Source)
+			md.Images = append(md.Images, asset)
+			return ast.WalkSkipChildren, nil
+		}
 		asset, cached := cache[dest]
 		if !cached {
 			asset.Destination = dest

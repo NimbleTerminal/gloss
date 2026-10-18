@@ -34,6 +34,8 @@ type typesetAsset struct {
 	image     image.Image
 	animation *animation.Player
 	gif       bool
+	ready     bool        // Drawn during preflight, as a Mermaid diagram is.
+	layout    ImageLayout // A drawn diagram's reading size.
 }
 
 // prepareTypeset finishes validation before constructing a layout. In particular,
@@ -64,6 +66,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 	}
 	assets := map[string]*typesetAsset{}
 	var destinations []string
+	var undrawn []*ast.Image // Mermaid diagrams to put back as their source.
 	references, pixels, encodedBytes, nodes := 0, 0, 0, 0
 	err = ast.Walk(root, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if q.Context != nil {
@@ -86,6 +89,30 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 			return ast.WalkStop, fmt.Errorf("typeset Markdown exceeds %d image references", MaxMarkdownImages)
 		}
 		dest := string(im.Destination)
+		if code, ok := mermaidSource(im); ok {
+			if a, seen := assets[dest]; seen {
+				if a != nil {
+					im.SetAttributeString("gloss-image-layout", a.layout)
+				} else {
+					undrawn = append(undrawn, im)
+				}
+				return ast.WalkContinue, nil
+			}
+			destinations = append(destinations, dest)
+			assets[dest] = nil
+			img, e := renderMermaidImage(im, code)
+			if e != nil {
+				undrawn = append(undrawn, im)
+				return ast.WalkContinue, nil
+			}
+			count := img.Bounds().Dx() * img.Bounds().Dy()
+			if count > maxMarkdownImagePixels-pixels {
+				return ast.WalkStop, fmt.Errorf("typeset Markdown exceeds 16 Mi decoded image pixels")
+			}
+			pixels += count
+			assets[dest] = &typesetAsset{image: img, ready: true, layout: MarkdownImageLayout(im)}
+			return ast.WalkContinue, nil
+		}
 		if _, ok := assets[dest]; ok {
 			return ast.WalkContinue, nil
 		}
@@ -132,6 +159,9 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	for _, im := range undrawn {
+		restoreMermaidSource(im)
+	}
 	var animations markdownAnimations
 	for _, dest := range destinations {
 		a := assets[dest]
@@ -140,7 +170,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 				return nil, nil, nil, err
 			}
 		}
-		if a == nil {
+		if a == nil || a.ready {
 			continue
 		}
 		if a.svg {

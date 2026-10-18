@@ -96,6 +96,33 @@ their first frame; `i` reports the animated and over-budget counts. Each
 animation also has the usual 32 MP canvas and 1,000-frame limits. Previews and
 headless exports always use the first frame. APNG remains unsupported.
 
+## Mermaid diagrams
+
+A fenced code block tagged `mermaid` is drawn as a diagram, shown as a block
+figure in both views, like a local image. Diagrams are laid out and drawn in
+pure Go by [go-mermaid](https://github.com/zkrebbekx/go-mermaid), with no
+browser, JavaScript or network: flowcharts, sequence, class, state,
+entity-relationship, pie, Gantt, journey, timeline, mindmap, Git graph, C4 and
+other diagram types. Layout follows go-mermaid's, so diagrams can differ in
+detail from Mermaid's own renderer.
+
+````markdown
+```mermaid
+flowchart LR
+    A[Edit] --> B{Parses?}
+    B -->|yes| C[Draw]
+```
+````
+
+Diagrams use Mermaid's default light palette on their own page whatever the
+theme, as other images keep their colors. Each diagram's source is limited to
+64 KiB, and drawing runs in the parser worker under its 15-second deadline.
+A diagram counts as an image reference and against the decoded-pixel budget;
+the same source repeated is drawn once. A diagram that does not parse shows its
+error in terminal text; typeset shows a note and the diagram's source as code.
+Source view (`s`) shows the fence, and search finds its source there, not text
+inside a drawn diagram.
+
 ## Typeset text and Markdown
 
 Press `t` to switch between Glamour text and typeset Markdown, including from
@@ -207,7 +234,8 @@ fetched. An image alone in a paragraph, including one wrapped in a link, becomes
 block and is composited into the page. Embedded GIF blocks animate; inline images
 currently appear as labels. Tables have simple proportional columns, without
 alignment-aware or full browser table layout. GFM strikethrough and task markers
-are supported. Other raw HTML, Mermaid and math have no layout. Unknown or untagged
+are supported. Mermaid fences are drawn as diagrams (see above); other raw
+HTML and math have no layout. Unknown or untagged
 code blocks stay plain monospace. Complex-script layout, CJK/emoji font coverage,
 and bidirectional text are not guaranteed.
 
