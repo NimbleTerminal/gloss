@@ -34,6 +34,9 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   (`testdata/scripts`, `task browse:screens`). Change the
   browser by adding a script first.
 - `internal/document`: bounded loaders, renderers, and vision-image sizing.
+  Typeset layout, raster, selection and highlighting come from
+  `nimbleterminal.dev/nttypeset` and its faces from `nimbleterminal.dev/ntfonts`;
+  gloss owns Markdown parsing, assets, viewport policy and compositing.
   PDF metadata/text and SVG rasterization run in disposable parser workers:
   the current executable on native hosts, Web Workers in the browser. A
   15-second deadline stops and reaps/terminates the worker; at most two run at
@@ -54,7 +57,8 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   and scroll-settle policy in `internal/app/typeset_layers.go`.
   The font chooser also uses `ntpicture.Picture`. All graphics consumers share
   ntpicture's single-image ID allocator; async message owners use separate IDs.
-  ntpicture, ntsvg, ntpdf, ntqrcode, and nt3d use published version pins.
+  ntpicture, ntsvg, ntpdf, ntqrcode, nt3d, nttypeset, and ntfonts use published
+  version pins.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
   camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
   and its `widget` package. Gloss owns the projection/title rows around the
@@ -138,7 +142,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   and typesetting, including searchable note bodies. Click a footnote reference
   to jump to its note and a back link to return to that occurrence; these are
   document-local jumps, independent of the host's browser opener.
-  `--typeset` uses go-text, embedded OFL font subsets and Chroma directly,
+  `--typeset` uses nttypeset (go-text, Chroma) and ntfonts' embedded OFL font subsets,
   without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
   width after a 30 ms debounce, cancels stale jobs and keeps the old image
   visible. Fonts/images/shaped text are cached; layout advances by block as
@@ -159,7 +163,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   operations, 16,384 runes per paragraph/code line, 8,192 lines per code block,
   262,144 glyphs, 15 seconds, 10,000 export slices, 32 Mi raster pixels.
   The shaping cache has a 32 MiB estimated-entry budget, and rendered glyph
-  masks in `internal/typeset/raster` another 32 MiB. See the Markdown guide
+  masks in nttypeset's `raster` another 32 MiB. See the Markdown guide
   for the supported subset and limits.
 - **Plain text and source**: readable text is accepted even without a known
   extension; source is syntax-highlighted. `--typeset` or `t` switches text, source

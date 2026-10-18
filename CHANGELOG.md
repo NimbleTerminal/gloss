@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Typesetting moved to the nttypeset and ntfonts libraries; no visible change.
+
 - Keep the displayed still picture visible while a background-color change renders.
 
 - Keep inline Markdown images on `Q` exit and update their layout when terminal

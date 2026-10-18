@@ -23,7 +23,7 @@ Requires Go **1.26.9+** and [Task](https://taskfile.dev/) for the development
 commands. Without Task, build with `go build -o gloss ./cmd/gloss`. Go's
 automatic toolchain selection can download that version. Dependencies are
 pinned in `go.mod`, including published releases of ntpicture, ntsvg, ntpdf,
-ntqrcode, and nt3d. No NT-library sibling checkout is required. The separate
+ntqrcode, nt3d, nttypeset, and ntfonts. No NT-library sibling checkout is required. The separate
 demo and typesetting experiment use the same release pins and reference this
 Gloss checkout. Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
 taken from the `perf/consolidated` branch of `github.com/neomantra/ultraviolet`
@@ -174,12 +174,22 @@ documents these scopes and the temporary `n`/`N` bindings.
 ## Typeset Markdown
 
 `--typeset` and `t` use the direct renderer in
-`internal/document/typeset_layout.go`, with go-text/typesetting v0.3.5 and
-go-text/render v0.2.1 (BSD-3-Clause), Chroma, and the embedded Latin font subsets.
-`typeset.go` preflights all local assets before decode; `typeset_render.go`
-connects the cached layout to `Loader`. `typeset_text.go` sends literal text
-directly to line blocks, with Chroma spans for source/JSON; only Markdown is
-parsed as Markdown. Each format retains its original kind. `--markdown typeset`
+[nttypeset](https://github.com/NimbleTerminal/nttypeset), imported as
+`nimbleterminal.dev/nttypeset`. It owns the shaping engine (go-text/typesetting
+and go-text/render, BSD-3-Clause), incremental layout, the glyph-mask raster in
+its `raster` package, logical selection, Chroma highlighting, `Lines` documents
+for text and JSON, and the `goldmark` adapter that turns a parsed tree into a
+document. The faces come from
+[ntfonts](https://github.com/NimbleTerminal/ntfonts), imported as
+`nimbleterminal.dev/ntfonts`: `ntfonts.Embedded` is the `FaceSource` over the
+embedded Latin OFL subsets.
+Gloss keeps Markdown parsing and normalization, asset preflight and decoding,
+the text and JSON budgets, the viewport policy in `typeset_render.go`, the
+`Loader` cache, the ntpicture composite, the info fields, and the goldmark hook
+wiring in `typeset_blocks.go`. `typeset.go` preflights all local assets before
+decode; `typeset_render.go` connects the cached layout to `Loader`.
+`typeset_text.go` sends literal text directly to `nttypeset.Lines`, with Chroma
+spans for source/JSON; only Markdown is parsed as Markdown. Each format retains its original kind. `--markdown typeset`
 is a compatibility alias; `--typeset` and `t` select the shared view mode.
 The production graph no longer uses goldmark-pdf/gopdf; PDF inputs still use
 PDFium. The [comparison experiment](experiments/typeset/README.md) retains a
@@ -191,9 +201,9 @@ still appear as labels.
 
 The loader serializes each font/shaping engine. It caches prepared blocks,
 decoded images, shaped runs and the current width's display list. The reusable
-go-text run rasterizer and its bounded glyph-mask cache live in
-`internal/typeset/raster`; it owns no document parsing, layout, or theme policy.
-Copy glyphs
+go-text run rasterizer and its bounded glyph-mask cache live in nttypeset's
+`raster` package; it owns no document parsing, layout, or theme policy.
+nttypeset copies glyphs
 before wrapping: go-text's whitespace trimming mutates their advances. Chroma
 runs during preparation, recording GitHub light and dark foreground colors,
 plain fallback, and exact source preservation. Both colors participate in the
@@ -443,11 +453,12 @@ and localhost URLs do not become reachable from another device.
 For joint local development with sibling checkouts, run:
 
 ```sh
-go work init . ../ntqrcode
-(cd examples/demo && go work init . ../.. ../../../ntqrcode)
+go work init . ../ntqrcode ../nttypeset ../ntfonts
+(cd examples/demo && go work init . ../.. ../../../ntqrcode ../../../nttypeset ../../../ntfonts)
 ```
 
 If a workspace already exists, use `go work use` to add the same paths.
+A workspace overrides the pinned ntqrcode, nttypeset, and ntfonts with the sibling checkouts.
 Both `go.work` files and their sums are ignored. The separate demo workspace
 keeps its Bubble Tea WASM replacement out of the native build. Ordinary
 `task build` and `task demo-check` then use the local library.
@@ -839,10 +850,10 @@ bounded to 32 code points. Fonts are parsed per engine, never globally mutated.
 same typesetter, with a fresh picture ID, owner/revision checks, cancellation,
 and cleanup on close/resize/quit. No terminal probes are added. Native font
 preferences are host callbacks; previews and headless exports do not read them.
-The source pins, licenses, subset recipe and checksums are documented in
-the README of `nimbleterminal.dev/ntfonts`, which embeds the subsets.
-Regeneration happens there and needs FontTools 4.60.2; building and using gloss
-need only the module.
+`nimbleterminal.dev/ntfonts` embeds the subsets and carries the OFL notices.
+Its README documents the source pins, licenses, subset recipe and checksums.
+`scripts/subset-fonts.py` lives there, needs FontTools 4.60.2 and regenerates
+the subsets; building and using gloss need only the module.
 
 ## Line numbers, go to line, and chopped lines
 
