@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/alecthomas/chroma/v2/styles"
+	"nimbleterminal.dev/nttypeset"
 )
 
 // Plain input goes directly to styled spans, never through Markdown parsing.
@@ -42,49 +45,22 @@ func (l *Loader) loadTypesetText(q Request, data []byte, file []Field, kind stri
 	if strings.Count(strings.TrimSuffix(text, "\n"), "\n")+1 > 8192 {
 		return fail(fmt.Errorf("typeset text exceeds 8,192 lines"))
 	}
-	prep := &prepared{ctx: q.Context, lines: true}
-	// One block per line bounds shaping and preserves blank lines and indentation.
-	// Highlight the complete source first so multiline tokens retain their color.
-	spans := []span{{text: strings.TrimSuffix(text, "\n")}}
-	if language != "" {
-		spans = highlightCodeContext(q.Context, strings.TrimSuffix(text, "\n"), language, codeTheme)
-	}
-	b := block{kind: "line", size: 25}
-	for _, run := range spans {
-		for i, line := range strings.Split(run.text, "\n") {
-			if i > 0 {
-				if len(b.spans) == 0 {
-					b.spans = []span{{text: " "}}
-				}
-				prep.blocks = append(prep.blocks, b)
-				b = block{kind: "line", size: 25}
-			}
-			part := run
-			part.text = strings.ReplaceAll(line, "\t", "    ")
-			if part.text != "" {
-				b.spans = append(b.spans, part)
-			}
-		}
-	}
-	if len(b.spans) == 0 {
-		b.spans = []span{{text: " "}}
-	}
-	prep.blocks = append(prep.blocks, b)
-	if len(prep.blocks) > 8192 {
-		return fail(fmt.Errorf("typeset text exceeds 8,192 lines"))
-	}
-	eng, err := newEngine(q.Font, q.Mono)
+	doc, err := nttypeset.Lines(q.Context, text, language, styles.Get("github"))
 	if err != nil {
 		return fail(err)
 	}
-	return l.startTypeset(q, data, file, kind, source, text, info, eng, prep)
+	eng, err := newTypesetEngine(q.Font, q.Mono)
+	if err != nil {
+		return fail(err)
+	}
+	return l.startTypeset(q, data, file, kind, source, text, info, eng, doc)
 }
 
-func (l *Loader) startTypeset(q Request, data []byte, file []Field, kind string, source *Markdown, text string, info []Field, eng *engine, prep *prepared) Result {
+func (l *Loader) startTypeset(q Request, data []byte, file []Field, kind string, source *Markdown, text string, info []Field, eng *nttypeset.Engine, doc *nttypeset.Document) Result {
 	l.path, l.file = q.Path, file
 	l.typesetAnimate = q.Animate && !q.Preview
 	l.typeset, l.typesetBase, l.typesetHash = source, q.BaseDir, sha256.Sum256(data)
 	l.typesetType, l.typesetKind, l.typesetText, l.typesetInfo = q.Type, kind, text, info
-	l.typesetEngine, l.typesetPrepared = eng, prep
+	l.typesetEngine, l.typesetDocument = eng, doc
 	return l.renderTypeset(q)
 }

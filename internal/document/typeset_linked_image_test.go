@@ -8,6 +8,8 @@ import (
 	"image/png"
 	"testing"
 	"testing/fstest"
+
+	"nimbleterminal.dev/nttypeset"
 )
 
 func TestTypesetLinkedImageCompositesLikeStandalone(t *testing.T) {
@@ -42,7 +44,7 @@ func TestTypesetLinkedImageCompositesLikeStandalone(t *testing.T) {
 					if r.Err != nil {
 						t.Fatal(r.Err)
 					}
-					if len(l.typesetPrepared.blocks) != 1 || l.typesetPrepared.blocks[0].kind != "image" || l.typesetPrepared.blocks[0].asset == nil {
+					if b := l.typesetDocument.Blocks; len(b) != 1 || b[0].Kind != nttypeset.KindImage || b[0].Image.Still == nil {
 						t.Fatal("image replaced with text")
 					}
 					return r.Image.(*image.RGBA)
@@ -71,7 +73,7 @@ func TestTypesetLinkedMissingImagePlaceholder(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"page.md": {Data: []byte("[![missing](no.png)](https://example.invalid)")}}}
 	defer l.Close()
 	r := l.Load(Request{Path: "page.md", Typeset: true})
-	if r.Err != nil || len(l.typesetPrepared.blocks) != 1 || l.typesetPrepared.blocks[0].kind != "image" || l.typesetPrepared.blocks[0].asset != nil {
+	if b := l.typesetDocument.Blocks; r.Err != nil || len(b) != 1 || b[0].Kind != nttypeset.KindImage || b[0].Image.Still != nil {
 		t.Fatal("missing image should keep its placeholder", r.Err)
 	}
 }
@@ -109,7 +111,7 @@ func TestTypesetAnimatedImageIsReservedRectangle(t *testing.T) {
 	}
 	rect := animated.Animated[0].Rect
 	center := image.Pt((rect.Min.X+rect.Max.X)/2, (rect.Min.Y+rect.Max.Y)/2)
-	want := color.RGBAModel.Convert(paletteFor("light").background)
+	want := color.RGBAModel.Convert(typesetPalette("light").Background)
 	if got := color.RGBAModel.Convert(animated.AnimationBase.At(center.X, center.Y)); got != want {
 		t.Fatalf("AnimationBase at %v = %v, want background %v", center, got, want)
 	}

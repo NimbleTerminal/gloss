@@ -2,7 +2,6 @@ package document
 
 import (
 	"fmt"
-	"image"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -16,9 +15,8 @@ func linesSource(n int) string {
 	return b.String()
 }
 
-// With numbers asked for, a text document's lines get a gutter: a muted
-// monospace number left of each line, the text moved right to make room.
-// The numbers are not text: a selection over the lines does not take them.
+// With numbers asked for, a text document's view says so; how the gutter is
+// laid out is nttypeset's.
 func TestTypesetLineNumbersGutter(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"main.go": {Data: []byte("package main\n\nfunc main() {}\n")}}}
 	defer l.Close()
@@ -26,13 +24,6 @@ func TestTypesetLineNumbersGutter(t *testing.T) {
 	plain := l.Load(q)
 	if plain.Err != nil {
 		t.Fatal(plain.Err)
-	}
-	textX := -1
-	for _, op := range l.direct.ops {
-		if op.run != nil {
-			textX = op.rect.Min.X
-			break
-		}
 	}
 	if plain.TypesetView.Lines != 3 || plain.TypesetView.Line != 1 || plain.TypesetView.Numbers {
 		t.Fatalf("view without numbers %+v", plain.TypesetView)
@@ -42,48 +33,8 @@ func TestTypesetLineNumbersGutter(t *testing.T) {
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
-	if !r.TypesetView.Numbers || r.TypesetView.Lines != 3 {
+	if !r.TypesetView.Numbers || r.TypesetView.Lines != 3 || r.TypesetView.Line != 1 {
 		t.Fatalf("view with numbers %+v", r.TypesetView)
-	}
-	var numbers []string
-	shifted := -1
-	for _, op := range l.direct.ops {
-		if op.run == nil {
-			continue
-		}
-		if op.gutter {
-			numbers = append(numbers, strings.TrimSpace(string(op.text)))
-			if op.style&mono == 0 || op.rect.Min.X < 50 {
-				t.Fatalf("gutter op %+v", op.rect)
-			}
-			continue
-		}
-		if shifted < 0 {
-			shifted = op.rect.Min.X
-		}
-	}
-	if strings.Join(numbers, ",") != "1,2,3" {
-		t.Fatalf("gutter numbers %v", numbers)
-	}
-	if shifted <= textX {
-		t.Fatalf("text did not move right of the gutter: %d then %d", textX, shifted)
-	}
-	for _, op := range l.direct.ops {
-		if op.gutter && op.rect.Max.X > shifted {
-			t.Fatalf("gutter op reaches into the text at %v", op.rect)
-		}
-	}
-	// A selection from the margin left of line 1 to past the end of line 3
-	// has the lines, and no numbers.
-	q.TypesetSelect = &TypesetSelection{Anchor: TypesetPlace{Point: image.Pt(0, 50)}, Focus: TypesetPlace{Point: image.Pt(1<<20, 1<<20)}}
-	sel := l.Load(q)
-	if sel.Err != nil || sel.TypesetSelected != "package main\n\n \n\nfunc main() {}" && !strings.HasPrefix(sel.TypesetSelected, "package main") || strings.ContainsAny(sel.TypesetSelected, "123") {
-		t.Fatalf("selection with numbers %q %v", sel.TypesetSelected, sel.Err)
-	}
-	// The same selection without numbers is the same text.
-	q.TypesetLineNumbers = false
-	if again := l.Load(q); again.Err != nil || again.TypesetSelected != sel.TypesetSelected {
-		t.Fatalf("selection differs without numbers: %q vs %q", again.TypesetSelected, sel.TypesetSelected)
 	}
 }
 
@@ -98,7 +49,7 @@ func TestTypesetGoToLine(t *testing.T) {
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
-	if want := l.direct.starts[119] - 50; r.TypesetView.Top != want || r.TypesetView.Line != 120 || r.TypesetView.Lines != 300 {
+	if want := l.direct.Starts()[119] - 50; r.TypesetView.Top != want || r.TypesetView.Line != 120 || r.TypesetView.Lines != 300 {
 		t.Fatalf("go to 120: %+v, want top %d", r.TypesetView, want)
 	}
 	// Scrolling on from there reports the line at the top.
@@ -127,16 +78,12 @@ func TestTypesetChopLongLines(t *testing.T) {
 	if r := l.Load(q); r.Err != nil || r.TypesetView.Chop {
 		t.Fatalf("plain %+v %v", r.TypesetView, r.Err)
 	}
-	rowsOf := func(block int) map[int]bool {
-		rows := map[int]bool{}
-		for _, op := range l.direct.ops {
-			if op.run != nil && !op.gutter && op.block == block {
-				rows[op.rect.Min.Y] = true
-			}
-		}
-		return rows
+	// A line taller than the one-row first line has wrapped.
+	wrapped := func(block int) bool {
+		starts := l.direct.Starts()
+		return starts[block+1]-starts[block] > starts[1]-starts[0]
 	}
-	if len(rowsOf(1)) < 2 {
+	if !wrapped(1) {
 		t.Fatal("long line did not wrap without chop")
 	}
 	q.TypesetChop = true
@@ -144,14 +91,11 @@ func TestTypesetChopLongLines(t *testing.T) {
 	if r.Err != nil || !r.TypesetView.Chop {
 		t.Fatalf("chopped %+v %v", r.TypesetView, r.Err)
 	}
-	if len(rowsOf(1)) != 1 {
-		t.Fatalf("chopped line on %d rows", len(rowsOf(1)))
+	if wrapped(1) {
+		t.Fatal("chopped line wrapped")
 	}
-	widest := 0
-	for _, op := range l.direct.ops {
-		widest = max(widest, op.rect.Max.X)
-	}
-	if widest <= l.direct.width {
+	widest := l.direct.ExtentX()
+	if widest <= l.direct.Width() {
 		t.Fatal("chopped line does not reach past the page width")
 	}
 	q.TypesetView = &TypesetViewport{Height: 400, Left: 1 << 20}
@@ -162,7 +106,7 @@ func TestTypesetChopLongLines(t *testing.T) {
 	// Panning back to the left and wrapping again.
 	q.TypesetChop = false
 	q.TypesetView = &TypesetViewport{Height: 400, Left: 1 << 20}
-	if r = l.Load(q); r.Err != nil || r.TypesetView.Chop || r.TypesetView.Left != 0 || len(rowsOf(1)) < 2 {
+	if r = l.Load(q); r.Err != nil || r.TypesetView.Chop || r.TypesetView.Left != 0 || !wrapped(1) {
 		t.Fatalf("wrapped again %+v", r.TypesetView)
 	}
 	q = Request{Path: "page.md", Typeset: true, Page: 1, TypesetChop: true, TypesetView: &TypesetViewport{Height: 400}}

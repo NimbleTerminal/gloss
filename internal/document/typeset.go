@@ -34,19 +34,21 @@ type typesetAsset struct {
 
 // prepareTypeset finishes validation before constructing a layout. In particular,
 // budgets count references (including duplicates) and decoded, not resized pixels.
-func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, map[string]*typesetAsset, error) {
+// It returns the decoded images and the animation players by destination; an
+// unavailable or non-local image is in neither, and gets a placeholder.
+func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, map[string]image.Image, map[string]*animation.Player, error) {
 	if len(data) > MaxMarkdownBytes {
-		return nil, nil, nil, fmt.Errorf("Markdown exceeds 2 MiB")
+		return nil, nil, nil, nil, fmt.Errorf("Markdown exceeds 2 MiB")
 	}
 	if !utf8.Valid(data) {
-		return nil, nil, nil, fmt.Errorf("Markdown must be UTF-8")
+		return nil, nil, nil, nil, fmt.Errorf("Markdown must be UTF-8")
 	}
 	if err := checkMarkdownNesting(string(data)); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	root, err := readMarkdownTree(data)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	base := q.BaseDir
 	if base == "" {
@@ -54,7 +56,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 		if q.Stdin {
 			base, err = os.Getwd()
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, nil, nil, nil, err
 			}
 		}
 	}
@@ -126,14 +128,14 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 		return ast.WalkContinue, nil
 	})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	var animations markdownAnimations
 	for _, dest := range destinations {
 		a := assets[dest]
 		if q.Context != nil {
 			if err := q.Context.Err(); err != nil {
-				return nil, nil, nil, err
+				return nil, nil, nil, nil, err
 			}
 		}
 		if a == nil {
@@ -153,5 +155,14 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 	}
 	md := &Markdown{Source: []byte(cleanMarkdownSource(data))}
 	animations.apply(md)
-	return md, root, assets, nil
+	images, players := map[string]image.Image{}, map[string]*animation.Player{}
+	for name, a := range assets {
+		if a != nil {
+			images[name] = a.image
+			if a.animation != nil {
+				players[name] = a.animation
+			}
+		}
+	}
+	return md, root, images, players, nil
 }

@@ -18,7 +18,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gen2brain/h265 v0.2.3
 	github.com/gen2brain/jxl v0.2.0
-	github.com/go-text/render v0.2.1
 	github.com/go-text/typesetting v0.3.5
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0
@@ -54,6 +53,7 @@ require (
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dunglas/httpsfv v1.1.2 // indirect
+	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-webgpu/goffi v0.6.4 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect

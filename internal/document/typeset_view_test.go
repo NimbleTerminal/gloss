@@ -18,7 +18,7 @@ func TestTypesetViewportProgressAndCancellation(t *testing.T) {
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
-	if r.TypesetDone || l.direct.next >= len(l.typesetPrepared.blocks) {
+	if r.TypesetDone || l.direct.Done() || l.direct.Laid() >= len(l.typesetDocument.Blocks) {
 		t.Fatal("first viewport completed whole document")
 	}
 	first, engine := l.direct, l.typesetEngine

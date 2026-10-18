@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"nimbleterminal.dev/nttypeset"
 )
 
 func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
@@ -26,17 +28,17 @@ func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
 			}
 			var text strings.Builder
 			colored := false
-			for i, b := range l.typesetPrepared.blocks {
-				if b.kind != "line" {
-					t.Fatalf("text parsed as Markdown: %s", b.kind)
+			for i, b := range l.typesetDocument.Blocks {
+				if b.Kind != nttypeset.Line {
+					t.Fatalf("text parsed as Markdown: %d", b.Kind)
 				}
 				if i > 0 {
 					text.WriteByte('\n')
 				}
-				for _, s := range b.spans {
-					text.WriteString(s.text)
-					colored = colored || s.token != 0
-					if tc.code && strings.TrimSpace(s.text) != "" && s.style&mono == 0 {
+				for _, s := range b.Spans {
+					text.WriteString(s.Text)
+					colored = colored || s.Token != 0
+					if tc.code && strings.TrimSpace(s.Text) != "" && s.Style&nttypeset.Mono == 0 {
 						t.Fatal("source lost monospace")
 					}
 				}
@@ -47,9 +49,9 @@ func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
 			if !tc.code && !strings.Contains(text.String(), "# Café *literal* [link](https://example.com)") {
 				t.Fatal(text.String())
 			}
-			eng, prep := l.typesetEngine, l.typesetPrepared
+			eng, doc := l.typesetEngine, l.typesetDocument
 			q.TypesetWidth, q.Generation = 300, 1
-			if r = l.Load(q); r.Err != nil || l.typesetEngine != eng || l.typesetPrepared != prep {
+			if r = l.Load(q); r.Err != nil || l.typesetEngine != eng || l.typesetDocument != doc {
 				t.Fatal("resize discarded preparation", r.Err)
 			}
 			q.Typeset, q.Generation = false, 2
@@ -79,10 +81,10 @@ func TestTypesetTextContentChange(t *testing.T) {
 	if r := l.Load(q); r.Err != nil {
 		t.Fatal(r.Err)
 	}
-	old := l.typesetPrepared
+	old := l.typesetDocument
 	files["input.txt"].Data = []byte("after")
 	q.Generation++
-	if r := l.Load(q); r.Err != nil || r.Text != "after\n" || l.typesetPrepared == old {
+	if r := l.Load(q); r.Err != nil || r.Text != "after\n" || l.typesetDocument == old {
 		t.Fatal("stale content", r.Err)
 	}
 }

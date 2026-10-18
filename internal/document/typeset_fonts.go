@@ -1,156 +1,71 @@
 package document
 
 import (
-	"bytes"
 	"fmt"
-	"sort"
 	"strings"
-	"unicode"
 
-	"github.com/go-text/typesetting/font"
-	"github.com/go-text/typesetting/font/opentype"
-	"github.com/go-text/typesetting/shaping"
-
+	"github.com/alecthomas/chroma/v2/styles"
 	"nimbleterminal.dev/gloss/internal/document/fonts"
+	"nimbleterminal.dev/gloss/internal/theme"
+	"nimbleterminal.dev/nttypeset"
 )
 
-type FontLook struct {
-	Name, Body, Code string
-}
+// FontLook pairs a body family with a code family, by name.
+type FontLook = nttypeset.FontLook
 
-var fontLooks = []FontLook{
-	{"readable", "Literata", "Iosevka"},
-	{"editorial", "Newsreader", "Iosevka"},
-	{"technical", "IBM Plex Sans", "IBM Plex Mono"},
-	{"compact", "Source Serif 4", "JetBrains Mono"},
-}
+// FontLooks returns the built-in looks: readable, editorial, technical, compact.
+func FontLooks() []FontLook { return nttypeset.FontLooks() }
 
-func FontLooks() []FontLook { return append([]FontLook(nil), fontLooks...) }
+// ResolveFont returns the look called name, with gloss's flag wording for a
+// look or mono override it does not know.
 func ResolveFont(name, override string) (FontLook, error) {
-	if name == "" {
-		name = "readable"
-	}
 	if override != "" && override != "jetbrains" {
 		return FontLook{}, fmt.Errorf("--mono must be jetbrains")
 	}
-	for _, look := range fontLooks {
-		if look.Name == name {
-			if override == "jetbrains" {
-				look.Code = "JetBrains Mono"
-			}
-			return look, nil
-		}
-	}
-	return FontLook{}, fmt.Errorf("--font must be readable, editorial, technical or compact")
-}
-func FontKey(name, override string) string {
-	if name == "" {
-		name = "readable"
-	}
-	return name + "/" + override
-}
-
-var noLigatures = []shaping.FontFeature{
-	{Tag: opentype.MustNewTag("liga"), Value: 0},
-	{Tag: opentype.MustNewTag("clig"), Value: 0},
-	{Tag: opentype.MustNewTag("dlig"), Value: 0},
-	{Tag: opentype.MustNewTag("calt"), Value: 0},
-}
-
-func loadFace(family string, style int) (*font.Face, error) {
-	variant := []string{"Regular", "Bold", "Italic", "BoldItalic"}[style&3]
-	data, err := fonts.Embedded.Face(family, variant)
+	look, err := nttypeset.ResolveFont(name, override)
 	if err != nil {
+		return FontLook{}, fmt.Errorf("--font must be readable, editorial, technical or compact")
+	}
+	return look, nil
+}
+
+// FontKey is the cache key for a look and override.
+func FontKey(name, override string) string { return nttypeset.FontKey(name, override) }
+
+// newTypesetEngine builds an engine over gloss's embedded faces.
+func newTypesetEngine(font, mono string) (*nttypeset.Engine, error) {
+	if _, err := ResolveFont(font, mono); err != nil {
 		return nil, err
 	}
-	return font.ParseTTF(bytes.NewReader(data))
+	return nttypeset.NewEngine(nttypeset.WithFonts(fonts.Embedded), nttypeset.WithLook(font, mono))
 }
-func (e *engine) setFonts(name, override string) (bool, error) {
-	key := FontKey(name, override)
-	if e.fontKey == key {
-		return false, nil
-	}
-	look, err := ResolveFont(name, override)
-	if err != nil {
+
+// setTypesetFonts switches the engine's look, with gloss's flag wording for a
+// look it does not know.
+func setTypesetFonts(e *nttypeset.Engine, font, mono string) (bool, error) {
+	if _, err := ResolveFont(font, mono); err != nil {
 		return false, err
 	}
-	var faces [8]*font.Face
-	for i := range faces {
-		family := look.Body
-		if i&mono != 0 {
-			family = look.Code
-		}
-		faces[i], err = loadFace(family, i)
-		if err != nil {
-			return false, err
-		}
-	}
-	e.faces = faces
-	e.fontKey = key
-	e.look = look
-	e.fallback = [8]*font.Face{}
-	e.missing = map[rune]bool{}
-	e.fallbackUsed = map[string]bool{}
-	e.cache = map[string]*shaped{}
-	e.cacheBytes = 0
-	e.rasterizer.Clear()
-	return true, nil
+	return e.SetFonts(font, mono)
 }
 
-type fallbackMap struct {
-	e     *engine
-	style int
+// typesetPalette is the theme's colors and syntax style.
+func typesetPalette(name string) nttypeset.Palette {
+	p := theme.Get(name)
+	return nttypeset.Palette{Background: p.Background, Foreground: p.Foreground, Muted: p.Muted, Border: p.Border, Code: p.Code, Header: p.Header, Accent: p.Accent, Selection: p.Selection, Syntax: styles.Get(theme.Syntax(name))}
 }
 
-func (m fallbackMap) ResolveFace(r rune) *font.Face {
-	i := m.style & 7
-	primary := m.e.faces[i]
-	if _, ok := primary.NominalGlyph(r); ok {
-		return primary
+// fontFields are the info fields for the engine's look: its families, the
+// fallback families used and the runes no face has.
+func fontFields(e *nttypeset.Engine) []Field {
+	look := e.Look()
+	fields := []Field{{Label: "Body font", Value: look.Body}, {Label: "Code font", Value: look.Code}}
+	if used := e.Fallbacks(); len(used) > 0 {
+		fields = append(fields, Field{Label: "Font fallback", Value: strings.Join(used, ", ")})
 	}
-	if unicode.IsControl(r) || unicode.IsSpace(r) {
-		return primary
-	}
-	fallback := m.e.fallback[i]
-	family := "Literata"
-	if i&mono != 0 {
-		family = "Iosevka"
-	}
-	if fallback == nil {
-		var err error
-		fallback, err = loadFace(family, i)
-		if err != nil {
-			panic(err)
-		}
-		m.e.fallback[i] = fallback
-	}
-	if _, ok := fallback.NominalGlyph(r); ok {
-		m.e.fallbackUsed[family] = true
-		return fallback
-	}
-	if len(m.e.missing) < 32 {
-		m.e.missing[r] = true
-	}
-	return primary
-}
-func (e *engine) fontFields() []Field {
-	fields := []Field{{Label: "Body font", Value: e.look.Body}, {Label: "Code font", Value: e.look.Code}}
-	if len(e.fallbackUsed) > 0 {
-		var names []string
-		for name := range e.fallbackUsed {
-			names = append(names, name)
-		}
-		sort.Strings(names)
-		fields = append(fields, Field{Label: "Font fallback", Value: strings.Join(names, ", ")})
-	}
-	if len(e.missing) > 0 {
-		var runes []int
-		for r := range e.missing {
-			runes = append(runes, int(r))
-		}
-		sort.Ints(runes)
-		var names []string
-		for _, r := range runes {
+	if missing := e.Missing(); len(missing) > 0 {
+		names := make([]string, 0, len(missing))
+		for _, r := range missing {
 			names = append(names, fmt.Sprintf("U+%04X", r))
 		}
 		fields = append(fields, Field{Label: "Missing glyphs", Value: strings.Join(names, ", ") + " (up to 32; laid-out text)"})

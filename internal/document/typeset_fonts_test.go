@@ -1,38 +1,35 @@
 package document
 
 import (
+	"bytes"
 	"context"
 	"image"
 	"strings"
 	"testing"
 	"testing/fstest"
+	"unicode"
+
+	"github.com/go-text/typesetting/font"
+	"nimbleterminal.dev/gloss/internal/document/fonts"
 )
 
+// The looks resolve, with and without the JetBrains override; anything else
+// is refused in gloss's flag wording. Subset coverage is tested in fonts.
 func TestFontLooksAndSubsets(t *testing.T) {
 	for _, look := range FontLooks() {
-		e, err := newEngine(look.Name, "")
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, face := range e.faces {
-			for _, r := range "Café naïve résumé é — “quotes”…" {
-				if _, ok := face.NominalGlyph(r); !ok {
-					t.Fatalf("%s lacks %U", look.Name, r)
-				}
-			}
-			for _, r := range "漢🙂" {
-				if _, ok := face.NominalGlyph(r); ok {
-					t.Fatalf("%s ships out-of-scope glyph %U", look.Name, r)
-				}
-			}
-		}
 		if _, err := ResolveFont(look.Name, "jetbrains"); err != nil {
 			t.Fatal(err)
 		}
+		if _, err := newTypesetEngine(look.Name, ""); err != nil {
+			t.Fatal(err)
+		}
 	}
-	for _, v := range [][2]string{{"missing", ""}, {"readable", "other"}} {
-		if _, err := ResolveFont(v[0], v[1]); err == nil {
-			t.Fatal("invalid font accepted")
+	for _, v := range [][3]string{{"missing", "", "--font must be readable, editorial, technical or compact"}, {"readable", "other", "--mono must be jetbrains"}} {
+		if _, err := ResolveFont(v[0], v[1]); err == nil || err.Error() != v[2] {
+			t.Fatalf("ResolveFont(%q, %q) = %v, want %q", v[0], v[1], err, v[2])
+		}
+		if _, err := newTypesetEngine(v[0], v[1]); err == nil || err.Error() != v[2] {
+			t.Fatalf("newTypesetEngine(%q, %q) = %v, want %q", v[0], v[1], err, v[2])
 		}
 	}
 }
@@ -44,13 +41,13 @@ func TestFontChangesReflowAndPreserveAssets(t *testing.T) {
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
-	prep, eng, layout := l.typesetPrepared, l.typesetEngine, l.direct
+	doc, eng, layout := l.typesetDocument, l.typesetEngine, l.direct
 	q.Font = "editorial"
 	r = l.Load(q)
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
-	if l.typesetPrepared != prep || l.typesetEngine != eng || l.direct == layout || r.TypesetView.Top == 0 {
+	if l.typesetDocument != doc || l.typesetEngine != eng || l.direct == layout || r.TypesetView.Top == 0 {
 		t.Fatal("font switch lost prepared content or did not reflow")
 	}
 	layout = l.direct
@@ -61,29 +58,37 @@ func TestFontChangesReflowAndPreserveAssets(t *testing.T) {
 	}
 	q.Mono = "jetbrains"
 	r = l.Load(q)
-	if r.Err != nil || l.typesetEngine.look.Code != "JetBrains Mono" {
+	if r.Err != nil || l.typesetEngine.Look().Code != "JetBrains Mono" {
 		t.Fatal("mono override", r.Err)
 	}
 	q.Font = "invalid"
-	if r = l.Load(q); r.Err == nil {
-		t.Fatal("invalid request accepted")
+	if r = l.Load(q); r.Err == nil || r.Err.Error() != "--font must be readable, editorial, technical or compact" {
+		t.Fatal("invalid request accepted", r.Err)
 	}
 }
+
+// A rune IBM Plex Sans lacks but Literata has falls back to Literata, and the
+// info says so; a rune no face has is reported missing. Only the real
+// subsets have such a rune, so this is tested here, not in nttypeset.
 func TestFontFallbackMissingAndLigatures(t *testing.T) {
-	e, err := newEngine("technical")
-	if err != nil {
-		t.Fatal(err)
+	parse := func(family string) *font.Face {
+		t.Helper()
+		data, err := fonts.Embedded.Face(family, "Regular")
+		if err != nil {
+			t.Fatal(err)
+		}
+		face, err := font.ParseTTF(bytes.NewReader(data))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return face
 	}
-	primary := e.faces[0]
+	primary, fallback := parse("IBM Plex Sans"), parse("Literata")
 	var candidate rune
-	fallback, err := loadFace("Literata", 0)
-	if err != nil {
-		t.Fatal(err)
-	}
 	for r := rune(0x20); r < 0x2070; r++ {
 		_, a := primary.NominalGlyph(r)
 		_, b := fallback.NominalGlyph(r)
-		if !a && b {
+		if !a && b && !unicode.IsControl(r) && !unicode.IsSpace(r) {
 			candidate = r
 			break
 		}
@@ -91,23 +96,22 @@ func TestFontFallbackMissingAndLigatures(t *testing.T) {
 	if candidate == 0 {
 		t.Fatal("fixture needs a glyph present only in fallback")
 	}
-	{
-		m := fallbackMap{e, 0}
-		if m.ResolveFace(candidate) == primary || !e.fallbackUsed["Literata"] {
-			t.Fatal("fallback not used")
-		}
+	source := "Fallback " + string(candidate) + " and missing 🙂漢.\n"
+	l := &Loader{Files: fstest.MapFS{"page.md": {Data: []byte(source)}}}
+	defer l.Close()
+	r := l.Load(Request{Path: "page.md", Typeset: true, Font: "technical", TypesetView: &TypesetViewport{Height: 300}})
+	if r.Err != nil {
+		t.Fatal(r.Err)
 	}
-	e.shape([]span{{text: "🙂漢"}}, 25)
-	if len(e.missing) != 2 || !strings.Contains(e.fontFields()[len(e.fontFields())-1].Value, "U+1F642") {
-		t.Fatal("missing glyphs not reported")
+	fields := map[string]string{}
+	for _, f := range r.Info {
+		fields[f.Label] = f.Value
 	}
-	s := e.shape([]span{{text: "ffi", style: 0}}, 25)
-	n := 0
-	for _, run := range s.runs {
-		n += len(run.Glyphs)
+	if !strings.Contains(fields["Font fallback"], "Literata") {
+		t.Fatalf("fallback for %U not reported: %v", candidate, r.Info)
 	}
-	if n != 3 {
-		t.Fatal("ligature enabled", n)
+	if got := fields["Missing glyphs"]; !strings.Contains(got, "U+1F642") || !strings.Contains(got, "U+6F22") || !strings.HasSuffix(got, " (up to 32; laid-out text)") {
+		t.Fatalf("missing glyphs %q", got)
 	}
 }
 func TestFontPreviewBoundedAndCancelled(t *testing.T) {

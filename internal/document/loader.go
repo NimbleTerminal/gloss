@@ -26,6 +26,7 @@ import (
 	"nimbleterminal.dev/ntpicture/animation"
 	_ "nimbleterminal.dev/ntpicture/decoders"
 	svg "nimbleterminal.dev/ntsvg"
+	"nimbleterminal.dev/nttypeset"
 )
 
 const MaxFileBytes = 128 << 20
@@ -218,9 +219,10 @@ type Loader struct {
 	pdf             ntpdf.Renderer // Made when the first page is drawn: text alone never needs it.
 	pdfData         []byte
 	typeset         *Markdown
-	typesetEngine   *engine
-	typesetPrepared *prepared
-	direct          *layout
+	typesetEngine   *nttypeset.Engine
+	typesetDocument *nttypeset.Document
+	direct          *nttypeset.Layout
+	directOptions   nttypeset.LayoutOptions // The options direct was laid out with.
 	typesetBase     string
 	typesetAnimate  bool
 	typesetKind     string
@@ -235,8 +237,9 @@ type Loader struct {
 	book            book   // Kept, like the PDF, for turning between sheets.
 	bookKind        string // xlsx or grist.
 
-	// The typeset document's animation players by image destination. The
-	// layout knows only which images are animated.
+	// The typeset document's decoded images, and its animation players, by
+	// image destination. The layout knows only which images are animated.
+	typesetImages     map[string]image.Image
 	typesetAnimations map[string]*animation.Player
 }
 
@@ -259,8 +262,8 @@ func (l *Loader) closePDF() error {
 	l.path, l.pages = "", 0
 	l.typeset, l.typesetBase = nil, ""
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
-	l.direct, l.typesetPrepared, l.typesetEngine = nil, nil, nil
-	l.typesetAnimations = nil
+	l.direct, l.directOptions, l.typesetDocument, l.typesetEngine = nil, nttypeset.LayoutOptions{}, nil, nil
+	l.typesetImages, l.typesetAnimations = nil, nil
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
 	if l.pdf == nil {
 		return nil
@@ -349,30 +352,27 @@ func (l *Loader) Load(q Request) (out Result) {
 	case "markdown":
 		if q.MarkdownMode == "typeset" {
 
-			source, root, assets, err := prepareTypeset(q, data, l.Files)
+			source, root, images, players, err := prepareTypeset(q, data, l.Files)
 			if err != nil {
 				out.Err = err
 				return out
 			}
-			eng, err := newEngine(q.Font, q.Mono)
+			eng, err := newTypesetEngine(q.Font, q.Mono)
 			if err != nil {
 				out.Err = err
 				return out
 			}
-			prep := &prepared{images: map[string]image.Image{}, animated: map[string]bool{}, ctx: q.Context}
-			animations := map[string]*animation.Player{}
-			for name, a := range assets {
-				if a != nil {
-					prep.images[name] = a.image
-					if a.animation != nil {
-						prep.animated[name] = true
-						animations[name] = a.animation
-					}
-				}
+			animated := map[string]bool{}
+			for name := range players {
+				animated[name] = true
 			}
-			prep.walk(root, data, 0)
-			l.typesetAnimations = animations
-			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, prep)
+			doc, err := buildBlocks(q.Context, root, data, images, animated)
+			if err != nil {
+				out.Err = err
+				return out
+			}
+			l.typesetImages, l.typesetAnimations = images, players
+			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, doc)
 		}
 		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview)
 		details = func() []Field { return markdownFields(out.Markdown) }

@@ -60,17 +60,3 @@ func TestTypesetLinksWrapReflowAndViewport(t *testing.T) {
 		t.Fatal("reflow kept old link rectangles", n, counts[url])
 	}
 }
-
-func TestTypesetShapeCachePreservesLinkDestinations(t *testing.T) {
-	e := testEngine(t)
-	a, b := []span{{text: "same", href: "https://a.example/"}}, []span{{text: "same", href: "https://b.example/"}}
-	if e.shape(a, 25) != e.shape(b, 25) {
-		t.Fatal("link URL unnecessarily changed cached shaping")
-	}
-	l := &layout{e: e}
-	first, _ := l.text(a, 25, 0, 0, 400)
-	second, _ := l.text(b, 25, 0, 0, 400)
-	if first[0].href != a[0].href || second[0].href != b[0].href {
-		t.Fatal("cache reused wrong link")
-	}
-}

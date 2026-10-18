@@ -2,69 +2,19 @@ package document
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"math"
 	"time"
 
-	"github.com/alecthomas/chroma/v2"
-	"github.com/alecthomas/chroma/v2/styles"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntpicture/animation"
+	"nimbleterminal.dev/nttypeset"
 )
 
-// A palette is the set of colors a request paints with, built once per
-// request. The layout records roles and token types, never colors, so changing
-// theme repaints without reshaping.
-type palette struct {
-	background, foreground, muted, border, code, header, accent, selection color.RGBA
-	syntax                                                                 *chroma.Style
-}
-
-func paletteFor(name string) palette {
-	p := theme.Get(name)
-	return palette{p.Background, p.Foreground, p.Muted, p.Border, p.Code, p.Header, p.Accent, p.Selection, styles.Get(theme.Syntax(name))}
-}
-
-func (p palette) fillColor(f fillRole) color.RGBA {
-	switch f {
-	case fillBorder:
-		return p.border
-	case fillCode:
-		return p.code
-	case fillHeader:
-		return p.header
-	case fillMuted:
-		return p.muted
-	}
-	return p.background
-}
-
-// runInk is the color a text run is painted in. A syntax token wins over the
-// span's own ink, an accent role over both, and a gutter number is muted.
-func (p palette) runInk(op *operation) color.RGBA {
-	ink := p.foreground
-	if op.ink.A != 0 {
-		ink = op.ink
-	}
-	if op.token != 0 {
-		ink = p.foreground
-		if c := p.syntax.Get(op.token).Colour; c.IsSet() {
-			ink = color.RGBA{c.Red(), c.Green(), c.Blue(), 255}
-		}
-	}
-	if op.role == roleAccent {
-		ink = p.accent
-	}
-	if op.gutter {
-		ink = p.muted
-	}
-	return ink
-}
-
-// TypesetViewport uses pixels at the 150-DPI reading scale. Nil on Request
-// selects a numbered 800×1125 export slice instead of a continuous viewport.
+// TypesetRegion is an animated image placed in a typeset picture, in
+// rendered-image pixels, with the player that animates it.
 type TypesetRegion struct {
 	Rect        image.Rectangle
 	Player      *animation.Player
@@ -72,11 +22,17 @@ type TypesetRegion struct {
 }
 
 // TypesetLink is a web or document-local link hit area in rendered-image pixels.
-type TypesetLink struct {
-	Rect image.Rectangle
-	URL  string
-}
+type TypesetLink = nttypeset.Link
 
+// TypesetPlace is one end of a selection: a page point in layout pixels, or a
+// rune of a paragraph of a block once placed.
+type TypesetPlace = nttypeset.Place
+
+// TypesetSelection is the text between two places, in either order.
+type TypesetSelection = nttypeset.Selection
+
+// TypesetViewport uses pixels at the 150-DPI reading scale. Nil on Request
+// selects a numbered 800×1125 export slice instead of a continuous viewport.
 type TypesetViewport struct {
 	// Link asks to reveal the first occurrence of this document-local link.
 	// Layout progresses only as far as its target, under the usual budget.
@@ -109,29 +65,33 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	}
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	defer func() {
-		if p := recover(); p != nil {
-			out.Err = typesetError(p)
-			// A cancelled request leaves a consistent layout behind, which
-			// the next request takes up where it was; a layout that failed
-			// of itself is not kept.
-			if ctx.Err() == nil {
-				l.direct = nil
-			}
+	// fail reports a library error. A cancelled request leaves a consistent
+	// layout behind, which the next request takes up where it was; a layout
+	// that failed of itself is not kept.
+	fail := func(err error) Result {
+		out.Err = err
+		if !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+			l.direct = nil
 		}
-	}()
-	changed, err := l.typesetEngine.setFonts(q.Font, q.Mono)
+		return out
+	}
+	changed, err := setTypesetFonts(l.typesetEngine, q.Font, q.Mono)
 	if err != nil {
 		out.Err = err
 		return
 	}
+	doc := l.typesetDocument
 	width := int(math.Round(float64(out.TypesetWidth) * 150 / 72))
-	numbers := q.TypesetLineNumbers && l.typesetPrepared.lines
-	chop := q.TypesetChop && l.typesetPrepared.lines
+	numbers := q.TypesetLineNumbers && doc.Lines
+	chop := q.TypesetChop && doc.Lines
+	options := nttypeset.LayoutOptions{Numbers: numbers, Chop: chop}
 	old := l.direct
-	if old == nil || old.width != width || changed || old.numbers != numbers || old.chop != chop {
-		l.direct = l.typesetEngine.layout(l.typesetPrepared, width)
-		l.direct.numbers, l.direct.chop = numbers, chop
+	if old == nil || old.Width() != width || changed || l.directOptions != options {
+		l.direct, err = l.typesetEngine.Layout(doc, width, options)
+		if err != nil {
+			return fail(err)
+		}
+		l.directOptions = options
 	}
 	lay := l.direct
 	top, height, left, zoom := 0, 1125, 0, 0
@@ -140,49 +100,49 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		top, height, left, zoom = max(0, min(v.Top, 1125*MaxPages)), max(1, min(v.Height, 4096)), max(0, v.Left), max(0, min(v.Zoom, 4))
 		if old != nil && old != lay && top > 0 {
 			// Anchor the visible block when line wrapping changes above it.
+			was := old.Starts()
 			index := 0
-			for i, y := range old.starts {
+			for i, y := range was {
 				if y <= top {
 					index = i
 				}
 			}
-			for lay.next <= index && lay.next < len(lay.p.blocks) {
-				lay.ensure(ctx, lay.y+1)
+			if err := lay.EnsureBlock(ctx, index); err != nil {
+				return fail(err)
 			}
-			if index < len(lay.starts) {
-				top = lay.starts[index] + max(0, top-old.starts[index])
+			if starts := lay.Starts(); index < len(starts) && index < len(was) {
+				top = starts[index] + max(0, top-was[index])
 			}
 		}
-		if v.Line > 0 && lay.p.lines {
-			index := min(v.Line, len(lay.p.blocks)) - 1
-			for lay.next <= index && lay.next < len(lay.p.blocks) {
-				lay.ensure(ctx, lay.y+1)
+		if v.Line > 0 && doc.Lines {
+			index := min(v.Line, len(doc.Blocks)) - 1
+			if err := lay.EnsureBlock(ctx, index); err != nil {
+				return fail(err)
 			}
-			top = max(0, lay.starts[index]-50)
+			if starts := lay.Starts(); index >= 0 && index < len(starts) {
+				top = max(0, starts[index]-50)
+			}
 		}
 		if v.End {
-			lay.ensure(ctx, 1125*MaxPages)
-			top = max(0, lay.y+50-max(1, height>>zoom))
+			if err := lay.Complete(ctx); err != nil {
+				return fail(err)
+			}
+			top = max(0, lay.Extent()-max(1, height>>zoom))
 		}
 		if _, ok := FootnotePeer(v.Link); ok {
-			at := 0
-			for {
-				found := false
-				for ; at < len(lay.ops); at++ {
-					if op := lay.ops[at]; op.href == v.Link {
-						top, left, found = max(0, op.rect.Min.Y-20), max(0, op.rect.Min.X-50), true
-						break
-					}
-				}
-				if found || lay.next == len(lay.p.blocks) {
-					break
-				}
-				lay.ensure(ctx, lay.y+1)
+			r, found, err := lay.Find(ctx, v.Link)
+			if err != nil {
+				return fail(err)
+			}
+			if found {
+				top, left = max(0, r.Min.Y-20), max(0, r.Min.X-50)
 			}
 		}
 	} else {
-		lay.ensure(ctx, 1125*MaxPages)
-		out.Pages = max(1, (lay.y+50+1124)/1125)
+		if err := lay.Complete(ctx); err != nil {
+			return fail(err)
+		}
+		out.Pages = max(1, (lay.Extent()+1124)/1125)
 		if err := pastEnd(q, out.Pages, "slice", "typeset text"); err != nil {
 			out.Err = err
 			return
@@ -192,12 +152,14 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	}
 	width = max(1, width>>zoom)
 	height = max(1, height>>zoom)
-	lay.ensure(ctx, top+height)
-	done := lay.next == len(lay.p.blocks)
-	if q.TypesetView != nil && done {
-		top = min(top, max(0, lay.y+50-height))
+	if err := lay.Ensure(ctx, top+height); err != nil {
+		return fail(err)
 	}
-	left = min(left, max(0, max(lay.width, lay.extentX+50)-width))
+	done := lay.Done()
+	if q.TypesetView != nil && done {
+		top = min(top, max(0, lay.Extent()-height))
+	}
+	left = min(left, max(0, max(lay.Width(), lay.ExtentX()+50)-width))
 	scale := float64(max(36, min(q.DPI, 600))) / 150
 	if q.DPI == 0 {
 		scale = 1
@@ -212,45 +174,50 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			scale = float64(p.X) / float64(width)
 		}
 		out.TypesetView = &TypesetViewport{Top: top, Height: height, Left: left, Zoom: zoom, Pixels: pixels, Width: width, Numbers: numbers, Chop: chop}
-		if lay.p.lines {
-			out.TypesetView.Lines, out.TypesetView.Line = len(lay.p.blocks), lay.lineAt(top)
+		if doc.Lines {
+			out.TypesetView.Lines, out.TypesetView.Line = len(doc.Blocks), lay.LineAt(top)
 		}
 		out.TypesetDone = done
-		out.TypesetExtent = lay.y + 50
+		out.TypesetExtent = lay.Extent()
 	}
-	w, h := rasterSize(width, height, scale)
-	if pixels != (image.Point{}) {
-		w, h = pixels.X, pixels.Y
-	}
-	if w > MaxPixels/h {
+	view := nttypeset.View{Top: top, Left: left, Width: width, Height: height, Scale: scale, Pixels: pixels}
+	size := view.Size()
+	if w, h := size.X, size.Y; w > MaxPixels/h {
 		out.Err = fmt.Errorf("typeset raster exceeds %d pixels", MaxPixels)
 		return
 	}
 	if q.Animate && !q.Preview {
-		viewport := image.Rect(0, 0, w, h)
-		for _, im := range lay.images(top, left, scale, viewport) {
-			if player := l.typesetAnimations[im.destination]; player != nil {
-				out.Animated = append(out.Animated, TypesetRegion{Rect: im.rect, Player: player, Destination: im.destination})
+		for _, im := range lay.Images(view) {
+			if player := l.typesetAnimations[im.Key]; player != nil {
+				out.Animated = append(out.Animated, TypesetRegion{Rect: im.Rect, Player: player, Destination: im.Key})
 			}
 		}
 	}
+	opts := nttypeset.RasterOptions{Palette: typesetPalette(out.Theme), OmitAnimated: len(out.Animated) > 0}
 	if q.TypesetSelect != nil {
 		asked := *q.TypesetSelect
 		out.TypesetAsked = &asked
-		if sel, ok := lay.resolve(ctx, asked); ok {
-			lay.sel = &sel
-			defer func() { lay.sel = nil }()
-			out.TypesetSelection, out.TypesetSelected = &sel.places, lay.selected(sel)
+		sel, err := lay.Select(ctx, asked)
+		if err != nil {
+			return fail(err)
+		}
+		if sel != nil {
+			places := sel.Places()
+			opts.Selection = sel
+			out.TypesetSelection, out.TypesetSelected = &places, sel.Text()
 		}
 	}
-	pal := paletteFor(out.Theme)
+	picture, err := lay.Raster(ctx, view, opts)
+	if err != nil {
+		return fail(err)
+	}
 	if len(out.Animated) > 0 {
 		// The page is drawn once, without its animated images: the composite
 		// puts their current frames in. Drawing them here too would be a second
 		// raster and a resample of each first frame, thrown away.
-		out.AnimationBase = lay.rasterTo(ctx, top, height, left, width, w, h, scale, pal, len(out.Animated) > 0)
+		out.AnimationBase = picture
 	} else {
-		out.Image = lay.rasterTo(ctx, top, height, left, width, w, h, scale, pal, false)
+		out.Image = picture
 	}
 	if q.Animate && !q.Preview && (len(out.Animated) > 0 || q.Playback != nil) {
 		base := out.AnimationBase
@@ -277,22 +244,8 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		out.Playback = playback
 		out.Image = out.Playback.Image()
 	}
-	for _, op := range lay.ops {
-		if op.href == "" {
-			continue
-		}
-		r := op.rect.Sub(image.Pt(left, top))
-		r = image.Rect(int(math.Round(float64(r.Min.X)*scale)), int(math.Round(float64(r.Min.Y)*scale)), int(math.Round(float64(r.Max.X)*scale)), int(math.Round(float64(r.Max.Y)*scale))).Intersect(out.Image.Bounds())
-		if !r.Empty() {
-			out.Links = append(out.Links, TypesetLink{Rect: r, URL: op.href})
-		}
-	}
+	out.Links = lay.Links(view)
 	out.Info = append(append([]Field(nil), l.file...), l.typesetInfo...)
-	out.Info = append(out.Info, l.typesetEngine.fontFields()...)
+	out.Info = append(out.Info, fontFields(l.typesetEngine)...)
 	return
-}
-
-// Keep the spike's testable unit-scale viewport entry point.
-func (l *layout) viewport(ctx context.Context, top, height int, p palette) *image.RGBA {
-	return l.raster(ctx, top, height, 0, l.width, 1, p)
 }

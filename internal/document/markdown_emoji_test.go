@@ -20,7 +20,7 @@ func TestMarkdownEmojiShortcodes(t *testing.T) {
 			}
 			var got strings.Builder
 			for _, s := range inline(root.FirstChild(), source, 0) {
-				got.WriteString(s.text)
+				got.WriteString(s.Text)
 			}
 			if got.String() != tc.want {
 				t.Fatalf("got %q, want %q", got.String(), tc.want)

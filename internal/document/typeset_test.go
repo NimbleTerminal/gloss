@@ -44,7 +44,7 @@ func TestTypesetDirect(t *testing.T) {
 func TestTypesetBudgets(t *testing.T) {
 	for name, source := range map[string][]byte{"bytes": bytes.Repeat([]byte("x"), MaxMarkdownBytes+1), "utf8": {0xff}, "references": []byte(strings.Repeat("![x](missing.png)\n", 33))} {
 		t.Run(name, func(t *testing.T) {
-			_, _, _, err := prepareTypeset(Request{Path: "x.md"}, source, nil)
+			_, _, _, _, err := prepareTypeset(Request{Path: "x.md"}, source, nil)
 			if err == nil {
 				t.Fatal("budget accepted")
 			}
@@ -61,7 +61,7 @@ func TestTypesetBudgets(t *testing.T) {
 	binary.BigEndian.PutUint32(data[20:24], 5000)
 	binary.BigEndian.PutUint32(data[29:33], crc32.ChecksumIEEE(data[12:29]))
 	files := fstest.MapFS{"big.png": &fstest.MapFile{Data: data}}
-	_, _, _, err := prepareTypeset(Request{Path: "x.md"}, []byte("![big](big.png)"), files)
+	_, _, _, _, err := prepareTypeset(Request{Path: "x.md"}, []byte("![big](big.png)"), files)
 	if err == nil {
 		t.Fatal("oversized decoded image accepted")
 	}
@@ -119,11 +119,11 @@ func TestTypesetLocalImages(t *testing.T) {
 		t.Fatal(err)
 	}
 	files := fstest.MapFS{"docs/pic.png": &fstest.MapFile{Data: b.Bytes()}}
-	_, _, assets, err := prepareTypeset(Request{Path: "docs/doc.md"}, []byte("![ok](pic.png) ![no](https://example.invalid/x.png) ![missing](none.png)"), files)
+	_, _, images, _, err := prepareTypeset(Request{Path: "docs/doc.md"}, []byte("![ok](pic.png) ![no](https://example.invalid/x.png) ![missing](none.png)"), files)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if assets["pic.png"] == nil || assets["pic.png"].image == nil || assets["https://example.invalid/x.png"] != nil || assets["none.png"] != nil {
+	if images["pic.png"] == nil || images["https://example.invalid/x.png"] != nil || images["none.png"] != nil {
 		t.Fatal("local resolution/placeholder policy")
 	}
 }
@@ -154,14 +154,14 @@ func TestTypesetSourceSafetyAndStdin(t *testing.T) {
 		t.Fatal(err)
 	}
 	data := []byte("![local](local.png)\n\nsource\x1b]2;title\a\n")
-	source, _, assets, err := prepareTypeset(Request{Path: "/elsewhere/stdin", Stdin: true}, data, nil)
-	if err != nil || assets["local.png"] == nil {
+	source, _, images, _, err := prepareTypeset(Request{Path: "/elsewhere/stdin", Stdin: true}, data, nil)
+	if err != nil || images["local.png"] == nil {
 		t.Fatalf("stdin cwd resolution: %v", err)
 	}
 	if bytes.ContainsAny(source.Source, "\x1b\a") {
 		t.Fatal("terminal controls reached source viewer")
 	}
-	if _, _, _, err := prepareTypeset(Request{Path: "x.md"}, []byte(strings.Repeat("![x](missing.png)\n", 32)), nil); err != nil {
+	if _, _, _, _, err := prepareTypeset(Request{Path: "x.md"}, []byte(strings.Repeat("![x](missing.png)\n", 32)), nil); err != nil {
 		t.Fatalf("32 references: %v", err)
 	}
 }
