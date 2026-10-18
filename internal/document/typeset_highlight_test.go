@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"image/color"
 	"strings"
 	"testing"
@@ -51,9 +52,9 @@ func TestHighlightedRasterResizeAndThemeCache(t *testing.T) {
 		t.Fatal(err)
 	}
 	e := testEngine(t)
-	wide := e.layout(p, 800).viewport(0, 300, paletteFor("light"))
-	narrow := e.layout(p, 400).viewport(0, 400, paletteFor("light"))
-	fresh := testEngine(t).layout(p, 400).viewport(0, 400, paletteFor("light"))
+	wide := e.layout(p, 800).viewport(context.Background(), 0, 300, paletteFor("light"))
+	narrow := e.layout(p, 400).viewport(context.Background(), 0, 400, paletteFor("light"))
+	fresh := testEngine(t).layout(p, 400).viewport(context.Background(), 0, 400, paletteFor("light"))
 	if !bytes.Equal(narrow.Pix, fresh.Pix) {
 		t.Fatal("highlight colors/spacing changed after resize")
 	}

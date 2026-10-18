@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"image/color"
 	"image/png"
@@ -81,9 +82,9 @@ func TestTypesetDarkSyntaxAndFills(t *testing.T) {
 		t.Fatal(err)
 	}
 	l := testEngine(t).layout(p, 600)
-	l.ensure(100000)
+	l.ensure(context.Background(), 100000)
 	dark := paletteFor("dark")
-	img := l.rasterTo(0, l.y, 0, 600, 600, l.y, 1, dark, false)
+	img := l.rasterTo(context.Background(), 0, l.y, 0, 600, 600, l.y, 1, dark, false)
 	var fill *operation
 	var keyword *operation
 	for i := range l.ops {

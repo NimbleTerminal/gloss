@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -17,8 +18,8 @@ func TestTypesetQuoteBordersAreContinuous(t *testing.T) {
 	for _, width := range []int{320, 800} {
 		e := testEngine(t)
 		l := e.layout(p, width)
-		l.ensure(100) // Finish later, as scrolling does.
-		l.ensure(100000)
+		l.ensure(context.Background(), 100) // Finish later, as scrolling does.
+		l.ensure(context.Background(), 100000)
 		for _, x := range []int{56, 80} {
 			first, end, count := -1, -1, 0
 			for _, op := range l.ops {
@@ -36,7 +37,7 @@ func TestTypesetQuoteBordersAreContinuous(t *testing.T) {
 			if count < 2 {
 				t.Fatalf("missing quote segments at x=%d", x)
 			}
-			img := l.viewport(0, l.y+50, paletteFor("light"))
+			img := l.viewport(context.Background(), 0, l.y+50, paletteFor("light"))
 			for y := first; y < end; y++ {
 				if img.RGBAAt(x+1, y) != theme.Get("light").Muted {
 					t.Fatalf("missing border pixel at %d,%d", x+1, y)
@@ -67,8 +68,8 @@ func TestMarkdownExtensionTypesetParity(t *testing.T) {
 	for _, width := range []int{320, 800} {
 		e := testEngine(t)
 		l := e.layout(p, width)
-		l.ensure(100000)
-		img := l.viewport(0, l.y+50, paletteFor("light"))
+		l.ensure(context.Background(), 100000)
+		img := l.viewport(context.Background(), 0, l.y+50, paletteFor("light"))
 		if img.Bounds().Dx() != width || l.next != len(p.blocks) {
 			t.Fatal("incomplete extension raster")
 		}

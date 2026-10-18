@@ -61,7 +61,6 @@ func FontPreview(ctx context.Context, source []byte, themeName, override string,
 		if err != nil {
 			return nil, err
 		}
-		e.ctx = ctx
 		l := e.layout(&prepared{}, width)
 		size := max(10, min(24, rowHeight/5))
 		y := 4
@@ -88,7 +87,7 @@ func FontPreview(ctx context.Context, source []byte, themeName, override string,
 			}
 			y += size*3/2 + 2
 		}
-		row := l.raster(0, rowHeight, 0, width, 1, pal)
+		row := l.raster(ctx, 0, rowHeight, 0, width, 1, pal)
 		draw.Draw(result, image.Rect(0, i*rowHeight, width, (i+1)*rowHeight), row, image.Point{}, draw.Src)
 	}
 	return result, nil

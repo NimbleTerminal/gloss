@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"hash/crc32"
 	"image"
@@ -48,22 +49,22 @@ func TestFixtureAndProgressiveLayout(t *testing.T) {
 	}
 	e := testEngine(t)
 	l := e.layout(p, 800)
-	img := l.viewport(0, 200, paletteFor("light"))
+	img := l.viewport(context.Background(), 0, 200, paletteFor("light"))
 	if img.Bounds() != image.Rect(0, 0, 800, 200) || l.next == len(p.blocks) {
 		t.Fatal("first viewport laid out the whole fixture")
 	}
 	firstOps := len(l.ops)
-	l.ensure(100000)
+	l.ensure(context.Background(), 100000)
 	if l.next != len(p.blocks) || len(l.ops) <= firstOps {
 		t.Fatal("remaining layout did not finish")
 	}
-	full := l.viewport(0, l.y+50, paletteFor("light"))
+	full := l.viewport(context.Background(), 0, l.y+50, paletteFor("light"))
 	if full.RGBAAt(50, 50) == (color.RGBA{}) {
 		t.Fatal("transparent canvas")
 	}
 	// A scrolled viewport must agree pixel-for-pixel with the same full layout.
 	top, height := 317, 240
-	scrolled := l.viewport(top, height, paletteFor("light"))
+	scrolled := l.viewport(context.Background(), top, height, paletteFor("light"))
 	for y := 0; y < height; y++ {
 		for x := 0; x < 800; x++ {
 			if full.RGBAAt(x, y+top) != scrolled.RGBAAt(x, y) {
@@ -72,17 +73,17 @@ func TestFixtureAndProgressiveLayout(t *testing.T) {
 		}
 	}
 	// Cached shaping must produce the same narrow image as a fresh engine.
-	cachedNarrow := e.layout(p, 600).viewport(0, 900, paletteFor("light"))
-	freshNarrow := testEngine(t).layout(p, 600).viewport(0, 900, paletteFor("light"))
+	cachedNarrow := e.layout(p, 600).viewport(context.Background(), 0, 900, paletteFor("light"))
+	freshNarrow := testEngine(t).layout(p, 600).viewport(context.Background(), 0, 900, paletteFor("light"))
 	if !bytes.Equal(cachedNarrow.Pix, freshNarrow.Pix) {
 		t.Fatal("wrapping mutated cached shaping across widths")
 	}
 	small := e.layout(p, 400)
-	small.ensure(100000)
+	small.ensure(context.Background(), 100000)
 	if small.y <= l.y {
 		t.Fatal("narrow layout should wrap to more lines")
 	}
-	again := l.viewport(0, 200, paletteFor("light"))
+	again := l.viewport(context.Background(), 0, 200, paletteFor("light"))
 	if !bytes.Equal(img.Pix, again.Pix) {
 		t.Fatal("resize/remaining layout mutated existing glyph runs")
 	}

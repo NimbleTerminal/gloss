@@ -42,10 +42,9 @@ func TestTypesetCancelledRequestKeepsLayout(t *testing.T) {
 	// One given up inside a block leaves the layout as it was before the
 	// block, and the next request takes it up from there.
 	left := 40
-	lay.e.ctx = countdown{context.Background(), &left}
 	panicked := func() (p any) {
 		defer func() { p = recover() }()
-		lay.ensure(1125 * MaxPages)
+		lay.ensure(countdown{context.Background(), &left}, 1125*MaxPages)
 		return nil
 	}()
 	if panicked == nil {

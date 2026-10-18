@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"image"
 	"strings"
 
@@ -35,12 +36,13 @@ type selection struct {
 
 // resolve finds both ends in the laid-out text, laying out as far as a placed
 // end asks. It fails when a place is not in the document.
-func (l *layout) resolve(s TypesetSelection) (selection, bool) {
-	a, ok := l.place(s.Anchor)
+func (l *layout) resolve(ctx context.Context, s TypesetSelection) (selection, bool) {
+	defer l.e.enter(ctx)()
+	a, ok := l.place(ctx, s.Anchor)
 	if !ok {
 		return selection{}, false
 	}
-	b, ok := l.place(s.Focus)
+	b, ok := l.place(ctx, s.Focus)
 	if !ok {
 		return selection{}, false
 	}
@@ -56,12 +58,12 @@ func (l *layout) placed(p TypesetPlace, c caret) TypesetPlace {
 	return TypesetPlace{Point: p.Point, Block: op.block, Para: op.para, Rune: op.run.Runes.Offset + c.rune, Placed: true}
 }
 
-func (l *layout) place(p TypesetPlace) (caret, bool) {
+func (l *layout) place(ctx context.Context, p TypesetPlace) (caret, bool) {
 	if !p.Placed {
 		return l.caretAt(p.Point)
 	}
 	for l.next <= p.Block && l.next < len(l.p.blocks) {
-		l.ensure(l.y + 1)
+		l.ensure(ctx, l.y+1)
 	}
 	last := -1
 	for i := range l.ops {

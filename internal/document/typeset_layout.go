@@ -518,7 +518,8 @@ func (l *layout) lineAt(top int) int {
 func (l *layout) rect(r image.Rectangle, f fillRole) {
 	l.ops = append(l.ops, operation{rect: r, fill: f})
 }
-func (l *layout) ensure(bottom int) {
+func (l *layout) ensure(ctx context.Context, bottom int) {
+	defer l.e.enter(ctx)()
 	start := time.Now()
 	defer func() { l.spent += time.Since(start) }()
 
@@ -683,12 +684,12 @@ func (l *layout) table(b block, x, width int) {
 }
 
 // Rasterize a viewport, never an unbounded document image. Layout remains reusable.
-func (l *layout) raster(top, height, left, width int, scale float64, p palette) *image.RGBA {
-	return l.rasterFrame(top, height, left, width, scale, p, false)
+func (l *layout) raster(ctx context.Context, top, height, left, width int, scale float64, p palette) *image.RGBA {
+	return l.rasterFrame(ctx, top, height, left, width, scale, p, false)
 }
-func (l *layout) rasterFrame(top, height, left, width int, scale float64, p palette, omitAnimated bool) *image.RGBA {
+func (l *layout) rasterFrame(ctx context.Context, top, height, left, width int, scale float64, p palette, omitAnimated bool) *image.RGBA {
 	w, h := rasterSize(width, height, scale)
-	return l.rasterTo(top, height, left, width, w, h, scale, p, omitAnimated)
+	return l.rasterTo(ctx, top, height, left, width, w, h, scale, p, omitAnimated)
 }
 
 // placedImage is an image placed by the layout, in picture coordinates.
@@ -725,8 +726,9 @@ func rasterSize(width, height int, scale float64) (w, h int) {
 // scaled region by a rounding pixel at the bottom or right edge. With
 // omitAnimated, animated images stay as blank reserved rectangles for the
 // viewer to composite over.
-func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, p palette, omitAnimated bool) *image.RGBA {
-	l.ensure(top + height)
+func (l *layout) rasterTo(ctx context.Context, top, height, left, width, w, h int, scale float64, p palette, omitAnimated bool) *image.RGBA {
+	defer l.e.enter(ctx)()
+	l.ensure(ctx, top+height)
 	if w > MaxPixels/h {
 		panic("typeset raster exceeds pixel limit")
 	}
@@ -764,7 +766,16 @@ func (l *layout) rasterTo(top, height, left, width, w, h int, scale float64, p p
 	return out
 }
 
+// enter makes ctx the cancellation of the layout entry point that calls it,
+// and returns the function that gives back what was there before, so an entry
+// point reached from another one leaves the outer request's context in place.
 // The loader serializes this engine; each job supplies its own cancellation.
+func (e *engine) enter(ctx context.Context) func() {
+	previous := e.ctx
+	e.ctx = ctx
+	return func() { e.ctx = previous }
+}
+
 func (e *engine) check() {
 	if e.ctx != nil {
 		if err := e.ctx.Err(); err != nil {

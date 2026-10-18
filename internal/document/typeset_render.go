@@ -109,7 +109,6 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	}
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	l.typesetEngine.ctx = ctx
 	defer func() {
 		if p := recover(); p != nil {
 			out.Err = typesetError(p)
@@ -148,7 +147,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 				}
 			}
 			for lay.next <= index && lay.next < len(lay.p.blocks) {
-				lay.ensure(lay.y + 1)
+				lay.ensure(ctx, lay.y+1)
 			}
 			if index < len(lay.starts) {
 				top = lay.starts[index] + max(0, top-old.starts[index])
@@ -157,12 +156,12 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		if v.Line > 0 && lay.p.lines {
 			index := min(v.Line, len(lay.p.blocks)) - 1
 			for lay.next <= index && lay.next < len(lay.p.blocks) {
-				lay.ensure(lay.y + 1)
+				lay.ensure(ctx, lay.y+1)
 			}
 			top = max(0, lay.starts[index]-50)
 		}
 		if v.End {
-			lay.ensure(1125 * MaxPages)
+			lay.ensure(ctx, 1125*MaxPages)
 			top = max(0, lay.y+50-max(1, height>>zoom))
 		}
 		if _, ok := FootnotePeer(v.Link); ok {
@@ -178,11 +177,11 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 				if found || lay.next == len(lay.p.blocks) {
 					break
 				}
-				lay.ensure(lay.y + 1)
+				lay.ensure(ctx, lay.y+1)
 			}
 		}
 	} else {
-		lay.ensure(1125 * MaxPages)
+		lay.ensure(ctx, 1125*MaxPages)
 		out.Pages = max(1, (lay.y+50+1124)/1125)
 		if err := pastEnd(q, out.Pages, "slice", "typeset text"); err != nil {
 			out.Err = err
@@ -193,7 +192,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	}
 	width = max(1, width>>zoom)
 	height = max(1, height>>zoom)
-	lay.ensure(top + height)
+	lay.ensure(ctx, top+height)
 	done := lay.next == len(lay.p.blocks)
 	if q.TypesetView != nil && done {
 		top = min(top, max(0, lay.y+50-height))
@@ -238,7 +237,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	if q.TypesetSelect != nil {
 		asked := *q.TypesetSelect
 		out.TypesetAsked = &asked
-		if sel, ok := lay.resolve(asked); ok {
+		if sel, ok := lay.resolve(ctx, asked); ok {
 			lay.sel = &sel
 			defer func() { lay.sel = nil }()
 			out.TypesetSelection, out.TypesetSelected = &sel.places, lay.selected(sel)
@@ -249,9 +248,9 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		// The page is drawn once, without its animated images: the composite
 		// puts their current frames in. Drawing them here too would be a second
 		// raster and a resample of each first frame, thrown away.
-		out.AnimationBase = lay.rasterTo(top, height, left, width, w, h, scale, pal, len(out.Animated) > 0)
+		out.AnimationBase = lay.rasterTo(ctx, top, height, left, width, w, h, scale, pal, len(out.Animated) > 0)
 	} else {
-		out.Image = lay.rasterTo(top, height, left, width, w, h, scale, pal, false)
+		out.Image = lay.rasterTo(ctx, top, height, left, width, w, h, scale, pal, false)
 	}
 	if q.Animate && !q.Preview && (len(out.Animated) > 0 || q.Playback != nil) {
 		base := out.AnimationBase
@@ -294,6 +293,6 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 }
 
 // Keep the spike's testable unit-scale viewport entry point.
-func (l *layout) viewport(top, height int, p palette) *image.RGBA {
-	return l.raster(top, height, 0, l.width, 1, p)
+func (l *layout) viewport(ctx context.Context, top, height int, p palette) *image.RGBA {
+	return l.raster(ctx, top, height, 0, l.width, 1, p)
 }
