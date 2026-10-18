@@ -221,6 +221,8 @@ tasks:
       - go test -mod=readonly ./...
       - go vet -mod=readonly ./...
   build-wasm-site:
+    env:
+      GLOSS_VERSION: '{{.VERSION}}'
     desc: Build the self-contained sample gallery site into web/dist
     cmds: [sh scripts/build-site.sh]
   web-check:

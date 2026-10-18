@@ -70,6 +70,7 @@ type options struct {
 
 func parse(args []string, out io.Writer) (options, bool, error) {
 	var opts options
+	opts.Version = version
 	name, args := splitVerb(args)
 	f := pflag.NewFlagSet("gloss", pflag.ContinueOnError)
 	f.SetOutput(out)

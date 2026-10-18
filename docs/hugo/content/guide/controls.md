@@ -10,7 +10,7 @@ bookToC: false
 | --- | --- |
 | `q`, `Ctrl-C` | Quit |
 | `q`, `Q` | Quit / quit leaving the last view in the scrollback, whatever `-X` said |
-| `?`, `Esc` | Show help / dismiss help |
+| `?`, `Esc` | Show help (including the build version) / dismiss help |
 | `f` in typeset text | Preview font pairs: arrows select, Enter keeps, Esc restores; `+`/`-` still zoom |
 | `T` over a document | Preview themes: arrows select, Enter keeps, Esc restores |
 | `Esc` | Back to the file list, with previews, from a document |

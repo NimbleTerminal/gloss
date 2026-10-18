@@ -42,6 +42,10 @@ task install                     # installs gloss into your Go bin directory
 go build -ldflags '-X main.version=0.1.0' -o gloss ./cmd/gloss
 ```
 
+The pager's `?` help heading shows the host build version (`dev` when unstamped).
+`task build-wasm-site VERSION=...` stamps the browser gallery through the same
+`main.version` linker variable as the native CLI.
+
 `task --list` lists the development commands.
 
 ## Test

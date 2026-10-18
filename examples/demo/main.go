@@ -15,6 +15,8 @@ import (
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
+var version = "dev"
+
 // options opens the gallery on its menu, or on one sample with the others
 // after it. It reports false for a sample the gallery does not hold.
 func options(sample string) (app.Options, bool) {
@@ -29,7 +31,7 @@ func options(sample string) (app.Options, bool) {
 	// Meshes are drawn with WebGPU where the browser has it; nt3d
 	// falls back to software, and then wireframe, where it does not. Each
 	// starts fitted to its frame.
-	return app.Options{Save: saveExport, Files: files, Render: "auto", Render3D: "auto", Page: 1, DPI: 96, Menu: sample == "", Preview: sample == ""}, true
+	return app.Options{Version: version, Save: saveExport, Files: files, Render: "auto", Render3D: "auto", Page: 1, DPI: 96, Menu: sample == "", Preview: sample == ""}, true
 }
 
 // appOptions opens the app: nothing embedded, a drop target for the

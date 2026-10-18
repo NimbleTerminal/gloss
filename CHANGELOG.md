@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Show the build version in the `?` help heading.
+
 - Keep the displayed still picture visible while a background-color change renders.
 
 - Keep inline Markdown images on `Q` exit and update their layout when terminal
