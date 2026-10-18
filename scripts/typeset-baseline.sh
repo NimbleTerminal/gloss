@@ -51,12 +51,13 @@ export_set() {
   done
 }
 
-for input in examples/typeset.md examples/notes.txt; do
+# The gutter and chop variants apply to the text and JSON inputs, not to Markdown.
+export_set examples/typeset.md ""
+for input in examples/notes.txt examples/batch.jsonl; do
   export_set "$input" ""
   export_set "$input" -N --line-numbers
   export_set "$input" -S --chop-long-lines
 done
-export_set examples/batch.jsonl ""
 
 # Hash every PNG, as paths relative to $out, sorted by path.
 manifest() {
