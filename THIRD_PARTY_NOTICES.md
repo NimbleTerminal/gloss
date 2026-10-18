@@ -2551,7 +2551,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    limitations under the License.
 ```
 
-## github.com/klippa-app/go-pdfium v1.21.0
+## github.com/klippa-app/go-pdfium v1.21.3
 
 ```
 MIT License
@@ -3473,7 +3473,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## nimbleterminal.dev/nt3d v0.0.0
+## nimbleterminal.dev/nt3d v0.1.0
 
 ```
 MIT License
@@ -3560,7 +3560,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpdf v0.0.0
+## nimbleterminal.dev/ntpdf v0.4.0
 
 ```
 MIT License
@@ -3586,7 +3586,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpicture v0.0.0
+## nimbleterminal.dev/ntpicture v0.1.0
 
 ```
 MIT License
@@ -3639,7 +3639,7 @@ these two fixtures. Animation decoder/player source and baseline tests are
 also adapted from Gloss under the same MIT license.
 ```
 
-## nimbleterminal.dev/ntqrcode v0.2.0
+## nimbleterminal.dev/ntqrcode v0.3.0
 
 ```
 MIT License
@@ -3665,7 +3665,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntsvg v0.0.0
+## nimbleterminal.dev/ntsvg v0.5.0
 
 ```
 MIT License

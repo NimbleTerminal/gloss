@@ -2,9 +2,9 @@
 
 gloss is written in Go on [Bubble Tea](https://github.com/charmbracelet/bubbletea)
 with [ntpicture](https://github.com/NimbleTerminal/ntpicture),
-[ntsvg](https://github.com/NimbleMarkets/ntcharts-svg),
-[ntpdf](https://github.com/NimbleMarkets/ntcharts-pdf), and
-[nt3d](https://github.com/NimbleMarkets/nt3d). The user
+[ntsvg](https://github.com/NimbleTerminal/ntsvg),
+[ntpdf](https://github.com/NimbleTerminal/ntpdf), and
+[nt3d](https://github.com/NimbleTerminal/nt3d). The user
 documentation is on the [documentation site](https://nimbleterminal.github.io/gloss/docs/);
 this file is for working on gloss itself. [AGENTS.md](AGENTS.md) is the same
 ground for coding agents.
@@ -22,11 +22,10 @@ a version published after the migration. Existing tags are unchanged.
 Requires Go **1.26.9+** and [Task](https://taskfile.dev/) for the development
 commands. Without Task, build with `go build -o gloss ./cmd/gloss`. Go's
 automatic toolchain selection can download that version. Dependencies are
-pinned in `go.mod`. During the NT library migration, local replacements require
-sibling checkouts of `ntpicture`, `nt3d`, `ntcharts-svg` (module
-`nimbleterminal.dev/ntsvg`), and `ntcharts-pdf` (module `nimbleterminal.dev/ntpdf`).
-The separate demo and typesetting experiment carry the same replacements. Replace these with published versions before
-release. Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
+pinned in `go.mod`, including published releases of ntpicture, ntsvg, ntpdf,
+ntqrcode, and nt3d. No NT-library sibling checkout is required. The separate
+demo and typesetting experiment use the same release pins and reference this
+Gloss checkout. Bubble Tea's renderer, `github.com/charmbracelet/ultraviolet`, is
 taken from the `perf/consolidated` branch of `github.com/neomantra/ultraviolet`
 by a `replace` directive pinned to a commit, until that branch's renderer
 changes are upstream (a Kitty placeholder grid frame costs about 40% less;
@@ -331,9 +330,7 @@ positive 24-bit ID per placement, with no reuse or block reservations.
 Allocator errors propagate directly through each component.
 Async message owners have separate process-local IDs.
 
-The migration currently uses the sibling `../ntpicture` checkout. Its temporary
-module replacement must be replaced with a published pin before releasing
-this integration. Typeset composites now use ntpicture's immutable Composite,
+Typeset composites use ntpicture's immutable Composite,
 context-aware construction and windowing, and lightweight position snapshots;
 Gloss carries those snapshots through reflow without retaining old page rasters.
 Typeset presentation uses `playback.Layers` for the base picture, animated
@@ -416,19 +413,19 @@ snapshots the displayed viewport. There are no inline playback controls.
 
 The reusable encoder and terminal component live in
 [ntqrcode](https://github.com/NimbleTerminal/ntqrcode), imported as
-`nimbleterminal.dev/ntqrcode/qrcode`. Gloss currently uses the sibling `../ntqrcode` checkout through local
-replacements in the root and companion modules, pending coordinated releases.
+`nimbleterminal.dev/ntqrcode/qrcode`. The root and companion modules pin the
+published release.
 The library owns module/image generation, quiet zones, Kitty and half-block
 rendering, bounds, fit errors, and image cleanup. Its decoder and lifecycle
 unit tests live with the component. See its README and DEVELOP for the API,
 encoder assessment, and ntpicture exact-size rendering contract.
 
-The local library uses `piglig/go-qr/v2 v2.6.0`. Gloss uses the
+The library uses `piglig/go-qr/v2 v2.6.0`. Gloss uses the
 default options: medium error correction or higher, boosted when a stronger
 level fits without increasing the symbol version. Numeric, alphanumeric, byte,
 and Kanji segments are optimized to fit the content. Non-ASCII payloads include
 UTF-8 ECI; ambiguous Kanji mappings stay in UTF-8 byte segments to preserve the
-exact text. Both the native module and browser demo use this checkout.
+exact text. Both the native module and browser demo use the same release.
 
 `internal/app/qr.go` owns the overlay, selected table URL, and export through
 gloss's existing non-overwriting save hook. The app supplies `ntpicture.NextImageID` directly,

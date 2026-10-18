@@ -54,7 +54,7 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   and scroll-settle policy in `internal/app/typeset_layers.go`.
   The font chooser also uses `ntpicture.Picture`. All graphics consumers share
   ntpicture's single-image ID allocator; async message owners use separate IDs.
-  The temporary sibling module replacement must become a published pin before release.
+  ntpicture, ntsvg, ntpdf, ntqrcode, and nt3d use published version pins.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
   camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
   and its `widget` package. Gloss owns the projection/title rows around the

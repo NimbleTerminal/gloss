@@ -12,7 +12,7 @@ require (
 	github.com/yuin/goldmark v1.8.2
 	golang.org/x/image v0.47.0
 	nimbleterminal.dev/gloss v0.0.0
-	nimbleterminal.dev/ntpdf v0.0.0
+	nimbleterminal.dev/ntpdf v0.4.0
 )
 
 require (
@@ -44,7 +44,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jellydator/ttlcache/v3 v3.4.0 // indirect
 	github.com/jolestar/go-commons-pool/v2 v2.1.2 // indirect
-	github.com/klippa-app/go-pdfium v1.21.0 // indirect
+	github.com/klippa-app/go-pdfium v1.21.3 // indirect
 	github.com/lrstanley/bubblezone/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
@@ -64,21 +64,11 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	nimbleterminal.dev/nt3d v0.0.0 // indirect
+	nimbleterminal.dev/nt3d v0.1.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
-	nimbleterminal.dev/ntpicture v0.0.0 // indirect
-	nimbleterminal.dev/ntsvg v0.0.0 // indirect
+	nimbleterminal.dev/ntpicture v0.1.0 // indirect
+	nimbleterminal.dev/ntsvg v0.5.0 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..
-
-replace nimbleterminal.dev/ntsvg => ../../../ntcharts-svg
-
-replace nimbleterminal.dev/ntpicture => ../../../ntpicture
-
-replace nimbleterminal.dev/nt3d => ../../../nt3d
-
-replace nimbleterminal.dev/ntpdf => ../../../ntcharts-pdf
-
-replace nimbleterminal.dev/ntqrcode => ../../../ntqrcode

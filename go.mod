@@ -30,16 +30,11 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.5
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
-	nimbleterminal.dev/nt3d v0.0.0
-	nimbleterminal.dev/ntpdf v0.0.0
-	nimbleterminal.dev/ntpicture v0.0.0
-	nimbleterminal.dev/ntqrcode v0.2.0
-	nimbleterminal.dev/ntsvg v0.0.0
-)
-
-require (
-	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
-	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/nt3d v0.1.0
+	nimbleterminal.dev/ntpdf v0.4.0
+	nimbleterminal.dev/ntpicture v0.1.0
+	nimbleterminal.dev/ntqrcode v0.3.0
+	nimbleterminal.dev/ntsvg v0.5.0
 )
 
 require (
@@ -67,7 +62,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/jolestar/go-commons-pool/v2 v2.1.2 // indirect
-	github.com/klippa-app/go-pdfium v1.21.0 // indirect
+	github.com/klippa-app/go-pdfium v1.21.3 // indirect
 	github.com/lrstanley/bubblezone/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
@@ -87,16 +82,8 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
+	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 )
 
 replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2
-
-replace nimbleterminal.dev/ntpicture => ../ntpicture
-
-replace nimbleterminal.dev/nt3d => ../nt3d
-
-replace nimbleterminal.dev/ntsvg => ../ntcharts-svg
-
-replace nimbleterminal.dev/ntpdf => ../ntcharts-pdf
-
-replace nimbleterminal.dev/ntqrcode => ../ntqrcode
