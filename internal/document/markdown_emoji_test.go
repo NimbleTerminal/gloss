@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
@@ -18,8 +19,12 @@ func TestMarkdownEmojiShortcodes(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			doc, err := buildBlocks(context.Background(), root, source, nil, nil)
+			if err != nil || len(doc.Blocks) != 1 {
+				t.Fatalf("buildBlocks: %v, %+v", err, doc)
+			}
 			var got strings.Builder
-			for _, s := range inline(root.FirstChild(), source, 0) {
+			for _, s := range doc.Blocks[0].Spans {
 				got.WriteString(s.Text)
 			}
 			if got.String() != tc.want {
