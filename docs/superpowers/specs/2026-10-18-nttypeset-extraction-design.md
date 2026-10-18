@@ -201,7 +201,7 @@ type Kind uint8
 const (
     Paragraph Kind = iota
     Heading
-    Quote      // a paragraph inside a blockquote
+    KindQuote  // a paragraph inside a blockquote (named for the collision with the Quote type)
     Code       // a code block: inset, code-background fill
     Line       // one line of a Lines document: no gap after it
     Rule
