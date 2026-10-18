@@ -318,8 +318,8 @@ style: the engine then has no fallback for that style, runes the primary face
 lacks count as `Missing`, and the primary face draws its notdef glyph. Today's
 panic on a failed fallback load goes away; the gofont test source and any
 third-party source behave this way. Errors from
-`ResolveFont` are flag-neutral (`unknown font look "x"`, `mono override must
-be "jetbrains"`); gloss's `document.ResolveFont` wraps them with its flag
+`ResolveFont` are flag-neutral (`nttypeset: unknown font look "x"`,
+`nttypeset: mono override must be "jetbrains"`); gloss's `document.ResolveFont` wraps them with its flag
 wording so user-visible messages do not change.
 
 ```go
@@ -381,7 +381,7 @@ var ErrLimit = errors.New("nttypeset: limit exceeded")
 
 // A LimitError says which limit and keeps today's message text
 // ("typeset layout exceeds 15 seconds", …). errors.Is(err, ErrLimit) is true.
-type LimitError struct{ What string; Limit int }
+type LimitError struct{ What string; Limit int64 }
 ```
 
 Context errors pass through unwrapped so `errors.Is(err, context.Canceled)`

@@ -75,7 +75,7 @@ require (
 	nimbleterminal.dev/ntpicture v0.1.0 // indirect
 	nimbleterminal.dev/ntqrcode v0.3.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.0 // indirect
-	nimbleterminal.dev/nttypeset v0.0.0-20261018164801-9e82c302b636 // indirect
+	nimbleterminal.dev/nttypeset v0.0.0-20261018180811-4a05af4338e5 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..

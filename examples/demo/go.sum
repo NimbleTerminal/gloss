@@ -190,5 +190,5 @@ nimbleterminal.dev/ntqrcode v0.3.0 h1:l8ugeJP0d/ROatrWIYaIuZ1ERMAsuwxcXCvwTs0hvc
 nimbleterminal.dev/ntqrcode v0.3.0/go.mod h1:S3g4wTzCtPktEaPVm0pyu7W1o6mKKWqjc/jhVioOmfw=
 nimbleterminal.dev/ntsvg v0.5.0 h1:b34zv/4Um5ZnjXKxIBcN6Hal0OUMDCIbiavVOjKdA6o=
 nimbleterminal.dev/ntsvg v0.5.0/go.mod h1:t+u5owwOns5Z29CH5P+t+/N/HjB0USv7C7qeFWCaU5E=
-nimbleterminal.dev/nttypeset v0.0.0-20261018164801-9e82c302b636 h1:MbYp5OEYEO+zdWwpJh8qtOk4bHxiIHpAXGi0hW77lK0=
-nimbleterminal.dev/nttypeset v0.0.0-20261018164801-9e82c302b636/go.mod h1:XKCddA7kT78PE3jWrzJdvPxkw9E0WD/L092sTjQdPMI=
+nimbleterminal.dev/nttypeset v0.0.0-20261018180811-4a05af4338e5 h1:cXA7fNHVYPIGSSD01NzGQeXq/Z8dJ+6S+UMD1c3EZG0=
+nimbleterminal.dev/nttypeset v0.0.0-20261018180811-4a05af4338e5/go.mod h1:XKCddA7kT78PE3jWrzJdvPxkw9E0WD/L092sTjQdPMI=
