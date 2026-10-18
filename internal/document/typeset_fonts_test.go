@@ -10,11 +10,12 @@ import (
 	"unicode"
 
 	"github.com/go-text/typesetting/font"
-	"nimbleterminal.dev/gloss/internal/document/fonts"
+	"nimbleterminal.dev/ntfonts"
+	"nimbleterminal.dev/nttypeset"
 )
 
 // The looks resolve, with and without the JetBrains override; anything else
-// is refused in gloss's flag wording. Subset coverage is tested in fonts.
+// is refused in gloss's flag wording. Subset coverage is tested in ntfonts.
 func TestFontLooksAndSubsets(t *testing.T) {
 	for _, look := range FontLooks() {
 		if _, err := ResolveFont(look.Name, "jetbrains"); err != nil {
@@ -73,7 +74,7 @@ func TestFontChangesReflowAndPreserveAssets(t *testing.T) {
 func TestFontFallbackMissingAndLigatures(t *testing.T) {
 	parse := func(family string) *font.Face {
 		t.Helper()
-		data, err := fonts.Embedded.Face(family, "Regular")
+		data, err := ntfonts.Embedded.Face(family, "Regular")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -143,4 +144,10 @@ func TestFontPreviewBoundedAndCancelled(t *testing.T) {
 	if _, err := FontPreview(context.Background(), nil, "light", "", 5000, 5000); err == nil {
 		t.Fatal("unbounded preview")
 	}
+}
+
+// ntfonts.Embedded is the FaceSource the typesetter takes; ntfonts cannot
+// assert it without importing nttypeset.
+func TestEmbeddedIsFaceSource(t *testing.T) {
+	var _ nttypeset.FaceSource = ntfonts.Embedded
 }

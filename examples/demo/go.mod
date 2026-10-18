@@ -69,6 +69,7 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 	nimbleterminal.dev/nt3d v0.1.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
+	nimbleterminal.dev/ntfonts v0.0.0-20261018160807-9ce794824f68 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 	nimbleterminal.dev/ntpdf v0.4.0 // indirect
 	nimbleterminal.dev/ntpicture v0.1.0 // indirect

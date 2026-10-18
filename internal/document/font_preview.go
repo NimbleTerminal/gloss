@@ -6,7 +6,7 @@ import (
 	"image"
 	"strings"
 
-	"nimbleterminal.dev/gloss/internal/document/fonts"
+	"nimbleterminal.dev/ntfonts"
 	"nimbleterminal.dev/nttypeset"
 )
 
@@ -46,7 +46,7 @@ func FontPreview(ctx context.Context, source []byte, themeName, override string,
 		return s
 	}
 	body, code = trim(body), trim(code)
-	img, err := nttypeset.Preview(ctx, FontLooks(), override, body, code, width, height, typesetPalette(themeName), nttypeset.WithFonts(fonts.Embedded))
+	img, err := nttypeset.Preview(ctx, FontLooks(), override, body, code, width, height, typesetPalette(themeName), nttypeset.WithFonts(ntfonts.Embedded))
 	if err != nil {
 		return nil, err
 	}

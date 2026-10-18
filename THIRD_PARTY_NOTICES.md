@@ -77,9 +77,9 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## literata font subsets
+## Literata font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)
@@ -177,9 +177,9 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## newsreader font subsets
+## Newsreader font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)
@@ -277,9 +277,9 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## ibmplexsans font subsets
+## IBM Plex Sans font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
@@ -377,9 +377,9 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## sourceserif4 font subsets
+## Source Serif 4 font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright 2014 The Source Serif 4 Project Authors (https://github.com/adobe-fonts/source-serif)
@@ -477,9 +477,9 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## iosevka font subsets
+## Iosevka font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright (c) 2015-2026, Renzhi Li (aka. Belleve Invis, belleve@typeof.net)
@@ -594,9 +594,9 @@ not met.
     OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## ibmplexmono font subsets
+## IBM Plex Mono font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
@@ -694,9 +694,9 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
-## jetbrainsmono font subsets
+## JetBrains Mono font subsets
 
-OFL-1.1; pinned sources and subset recipe in internal/document/fonts/sources.json and scripts/subset-fonts.py; embedded under distinct Gloss Text internal names
+OFL-1.1; embedded from nimbleterminal.dev/ntfonts under distinct Gloss Text internal names
 
 ```
 Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
@@ -3532,6 +3532,54 @@ Copyright (c) 2024–2026 Neomantra Corp., under the MIT license (LICENSE).
 Original source headers are retained. Site and QA tooling are adapted from ntpicture.
 Browser runtime licenses are in web/licenses; regenerate dependency notices with
 `task notices`. Generated runtime assets retain their upstream licenses.
+```
+
+## nimbleterminal.dev/ntfonts v0.0.0-20261018160807-9ce794824f68
+
+```
+MIT License
+
+Copyright (c) 2024-2026 Neomantra Corp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+# Notices
+
+Source code is MIT licensed; see LICENSE.
+
+The embedded font subsets are licensed under the SIL Open Font License 1.1, not
+MIT. They are derived from the upstream fonts below and renamed internally to
+Gloss Text A through G (the Reserved Font Names are not used). Each family's full
+license is in `<family>.OFL.txt` and in THIRD_PARTY_NOTICES.md, generated with
+`task notices`. Pinned sources, URLs and hashes are in `sources.json`.
+
+- Literata: https://github.com/google/fonts/tree/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/literata
+- Newsreader: https://github.com/google/fonts/tree/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/newsreader
+- IBM Plex Sans: https://github.com/google/fonts/tree/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexsans
+- Source Serif 4: https://github.com/google/fonts/tree/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sourceserif4
+- Iosevka: https://github.com/be5invis/Iosevka/releases/tag/v34.9.0
+- IBM Plex Mono: https://github.com/google/fonts/tree/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/ibmplexmono
+- JetBrains Mono: https://github.com/google/fonts/tree/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/jetbrainsmono
+
+The Go reference fonts (`Go-*.ttf`, `GoMono-*.ttf`) are unused and carry their
+own license in `LICENSE.gofont`.
 ```
 
 ## nimbleterminal.dev/ntgpuimage v0.3.0

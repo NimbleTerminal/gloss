@@ -30,6 +30,7 @@ require (
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
 	nimbleterminal.dev/nt3d v0.1.0
+	nimbleterminal.dev/ntfonts v0.0.0-20261018160807-9ce794824f68
 	nimbleterminal.dev/ntpdf v0.4.0
 	nimbleterminal.dev/ntpicture v0.1.0
 	nimbleterminal.dev/ntqrcode v0.3.0

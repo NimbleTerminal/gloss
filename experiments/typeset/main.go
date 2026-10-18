@@ -62,7 +62,7 @@ func crop(img image.Image, width, height int) *image.RGBA {
 func main() {
 	worker := flag.String("worker", "", "internal: direct or pdf")
 	fixture := flag.String("fixture", "../../examples/typeset.md", "local Markdown fixture")
-	fonts := flag.String("fonts", "../../internal/document/fonts", "pinned Go TTF directory")
+	fonts := flag.String("fonts", "../../../ntfonts", "pinned Go TTF directory")
 	output := flag.String("out", "", "new results directory (default: temporary directory)")
 	runs := flag.Int("runs", 5, "fresh-process samples per backend and fixture (1..20)")
 	flag.Parse()

@@ -15,7 +15,7 @@ import (
 
 func testEngine(t *testing.T) *engine {
 	t.Helper()
-	e, err := newEngine("../../internal/document/fonts")
+	e, err := newEngine("../../../ntfonts")
 	if err != nil {
 		t.Fatal(err)
 	}

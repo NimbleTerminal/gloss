@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/alecthomas/chroma/v2/styles"
-	"nimbleterminal.dev/gloss/internal/document/fonts"
 	"nimbleterminal.dev/gloss/internal/theme"
+	"nimbleterminal.dev/ntfonts"
 	"nimbleterminal.dev/nttypeset"
 )
 
@@ -37,7 +37,7 @@ func newTypesetEngine(font, mono string) (*nttypeset.Engine, error) {
 	if _, err := ResolveFont(font, mono); err != nil {
 		return nil, err
 	}
-	return nttypeset.NewEngine(nttypeset.WithFonts(fonts.Embedded), nttypeset.WithLook(font, mono))
+	return nttypeset.NewEngine(nttypeset.WithFonts(ntfonts.Embedded), nttypeset.WithLook(font, mono))
 }
 
 // setTypesetFonts switches the engine's look, with gloss's flag wording for a

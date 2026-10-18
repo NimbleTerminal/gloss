@@ -119,7 +119,7 @@ They do not establish terminal transmission latency or subjective readability.
   These are portable Go implementations; no new CGO requirement.
 - [Experiment notices](THIRD_PARTY_NOTICES.md) retain these licenses. Existing
   dependencies are covered by [gloss's notices](../../THIRD_PARTY_NOTICES.md);
-  the unchanged font bytes retain their [font license](../../internal/document/fonts/LICENSE).
+  the unchanged font bytes retain their [font license](../../../ntfonts/LICENSE.gofont).
 
 Before integrating, benchmark larger representative documents, preserve the
 source/search model, add cancellation and strict total allocation/time budgets,

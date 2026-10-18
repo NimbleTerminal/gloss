@@ -840,8 +840,9 @@ same typesetter, with a fresh picture ID, owner/revision checks, cancellation,
 and cleanup on close/resize/quit. No terminal probes are added. Native font
 preferences are host callbacks; previews and headless exports do not read them.
 The source pins, licenses, subset recipe and checksums are documented in
-`internal/document/fonts/README.md`. Regeneration needs FontTools 4.60.2;
-building and using gloss need only the embedded subsets.
+the README of `nimbleterminal.dev/ntfonts`, which embeds the subsets.
+Regeneration happens there and needs FontTools 4.60.2; building and using gloss
+need only the module.
 
 ## Line numbers, go to line, and chopped lines
 
