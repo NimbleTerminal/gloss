@@ -192,22 +192,24 @@ type Span struct {
     Text  string
     Style Style
     Role  Role
-    Ink   color.RGBA        // explicit ink; zero defers to Role and Token
+    Ink   color.RGBA        // explicit ink, used when Role is RoleText and Token is zero
     Token chroma.TokenType  // nonzero paints from Palette.Syntax
     Href  string            // link destination; not part of shaping
 }
 
 type Kind uint8
 const (
-    Paragraph Kind = iota
-    Heading
-    KindQuote  // a paragraph inside a blockquote (named for the collision with the Quote type)
-    Code       // a code block: inset, code-background fill
-    Line       // one line of a Lines document: no gap after it
-    Rule
-    KindImage  // named for the collision with the Image struct type
-    Table
+    KindParagraph Kind = iota
+    KindHeading
+    KindQuote   // a paragraph inside a blockquote
+    KindCode    // a code block: inset, code-background fill
+    KindLine    // one line of a Lines document: no gap after it
+    KindRule
+    KindImage
+    KindTable
 )
+// (Uniform Kind* names, decided at the final review: two of the bare names
+// collided with the Quote and Image types.)
 
 // Quote is one blockquote bar beside a block: its indent, and whether this is
 // the last block of that quote (the bar stops at the content, not the gap).
