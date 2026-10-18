@@ -2,7 +2,6 @@ package document
 
 import (
 	"bytes"
-	"embed"
 	"fmt"
 	"image"
 	"io/fs"
@@ -24,9 +23,6 @@ func typesetMeasure(width int) int {
 	}
 	return max(192, min(width, 960))
 }
-
-//go:embed fonts/Gloss*.ttf
-var typesetFonts embed.FS
 
 type typesetAsset struct {
 	data      []byte

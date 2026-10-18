@@ -10,18 +10,19 @@ import (
 	"github.com/go-text/typesetting/font"
 	"github.com/go-text/typesetting/font/opentype"
 	"github.com/go-text/typesetting/shaping"
+
+	"nimbleterminal.dev/gloss/internal/document/fonts"
 )
 
 type FontLook struct {
 	Name, Body, Code string
-	body, code       string
 }
 
 var fontLooks = []FontLook{
-	{"readable", "Literata", "Iosevka", "A", "E"},
-	{"editorial", "Newsreader", "Iosevka", "B", "E"},
-	{"technical", "IBM Plex Sans", "IBM Plex Mono", "C", "F"},
-	{"compact", "Source Serif 4", "JetBrains Mono", "D", "G"},
+	{"readable", "Literata", "Iosevka"},
+	{"editorial", "Newsreader", "Iosevka"},
+	{"technical", "IBM Plex Sans", "IBM Plex Mono"},
+	{"compact", "Source Serif 4", "JetBrains Mono"},
 }
 
 func FontLooks() []FontLook { return append([]FontLook(nil), fontLooks...) }
@@ -35,7 +36,7 @@ func ResolveFont(name, override string) (FontLook, error) {
 	for _, look := range fontLooks {
 		if look.Name == name {
 			if override == "jetbrains" {
-				look.Code, look.code = "JetBrains Mono", "G"
+				look.Code = "JetBrains Mono"
 			}
 			return look, nil
 		}
@@ -58,7 +59,7 @@ var noLigatures = []shaping.FontFeature{
 
 func loadFace(family string, style int) (*font.Face, error) {
 	variant := []string{"Regular", "Bold", "Italic", "BoldItalic"}[style&3]
-	data, err := typesetFonts.ReadFile("fonts/Gloss" + family + "-" + variant + ".ttf")
+	data, err := fonts.Embedded.Face(family, variant)
 	if err != nil {
 		return nil, err
 	}
@@ -75,9 +76,9 @@ func (e *engine) setFonts(name, override string) (bool, error) {
 	}
 	var faces [8]*font.Face
 	for i := range faces {
-		family := look.body
+		family := look.Body
 		if i&mono != 0 {
-			family = look.code
+			family = look.Code
 		}
 		faces[i], err = loadFace(family, i)
 		if err != nil {
@@ -111,9 +112,9 @@ func (m fallbackMap) ResolveFace(r rune) *font.Face {
 		return primary
 	}
 	fallback := m.e.fallback[i]
-	family, label := "A", "Literata"
+	family := "Literata"
 	if i&mono != 0 {
-		family, label = "E", "Iosevka"
+		family = "Iosevka"
 	}
 	if fallback == nil {
 		var err error
@@ -124,7 +125,7 @@ func (m fallbackMap) ResolveFace(r rune) *font.Face {
 		m.e.fallback[i] = fallback
 	}
 	if _, ok := fallback.NominalGlyph(r); ok {
-		m.e.fallbackUsed[label] = true
+		m.e.fallbackUsed[family] = true
 		return fallback
 	}
 	if len(m.e.missing) < 32 {

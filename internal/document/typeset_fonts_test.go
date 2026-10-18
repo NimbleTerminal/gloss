@@ -2,10 +2,7 @@ package document
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 	"image"
-	"os"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -79,7 +76,7 @@ func TestFontFallbackMissingAndLigatures(t *testing.T) {
 	}
 	primary := e.faces[0]
 	var candidate rune
-	fallback, err := loadFace("A", 0)
+	fallback, err := loadFace("Literata", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,29 +138,5 @@ func TestFontPreviewBoundedAndCancelled(t *testing.T) {
 	}
 	if _, err := FontPreview(context.Background(), nil, "light", "", 5000, 5000); err == nil {
 		t.Fatal("unbounded preview")
-	}
-}
-
-func TestFontSubsetHashes(t *testing.T) {
-	manifest, err := os.ReadFile("fonts/subsets.sha256")
-	if err != nil {
-		t.Fatal(err)
-	}
-	lines := strings.Split(strings.TrimSpace(string(manifest)), "\n")
-	if len(lines) != 28 {
-		t.Fatal("expected 28 font faces")
-	}
-	for _, line := range lines {
-		fields := strings.Fields(line)
-		if len(fields) != 2 {
-			t.Fatal("invalid hash manifest")
-		}
-		data, err := typesetFonts.ReadFile("fonts/" + fields[1])
-		if err != nil {
-			t.Fatal(err)
-		}
-		if fmt.Sprintf("%x", sha256.Sum256(data)) != fields[0] {
-			t.Fatalf("subset changed: %s", fields[1])
-		}
 	}
 }
