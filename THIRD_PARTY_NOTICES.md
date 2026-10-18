@@ -3739,7 +3739,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nttypeset v0.0.0-20261018162017-af1617884dfa
+## nimbleterminal.dev/nttypeset v0.0.0-20261018164801-9e82c302b636
 
 ```
 MIT License

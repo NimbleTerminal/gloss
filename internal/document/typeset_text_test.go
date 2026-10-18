@@ -29,7 +29,7 @@ func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
 			var text strings.Builder
 			colored := false
 			for i, b := range l.typesetDocument.Blocks {
-				if b.Kind != nttypeset.Line {
+				if b.Kind != nttypeset.KindLine {
 					t.Fatalf("text parsed as Markdown: %d", b.Kind)
 				}
 				if i > 0 {

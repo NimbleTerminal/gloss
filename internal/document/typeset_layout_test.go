@@ -36,7 +36,7 @@ func TestFixtureBlocks(t *testing.T) {
 	for _, b := range doc.Blocks {
 		kinds[b.Kind] = true
 	}
-	for _, kind := range []nttypeset.Kind{nttypeset.Heading, nttypeset.Paragraph, nttypeset.KindQuote, nttypeset.Code, nttypeset.Table, nttypeset.KindImage} {
+	for _, kind := range []nttypeset.Kind{nttypeset.KindHeading, nttypeset.KindParagraph, nttypeset.KindQuote, nttypeset.KindCode, nttypeset.KindTable, nttypeset.KindImage} {
 		if !kinds[kind] {
 			t.Errorf("missing kind %d", kind)
 		}
