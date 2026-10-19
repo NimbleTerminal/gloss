@@ -4,6 +4,7 @@ import (
 	stdimage "image"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/yuin/goldmark/ast"
 )
@@ -73,7 +74,7 @@ func TestTypesetMermaidFallsBackToSource(t *testing.T) {
 // go-mermaid paints its own page, so a diagram stays legible on a dark
 // terminal without Gloss putting it on a card.
 func TestMermaidDiagramIsOpaque(t *testing.T) {
-	img, _, _, err := renderMermaid("flowchart LR\n  A --> B\n", 0)
+	img, _, _, err := renderMermaid("flowchart LR\n  A --> B\n", 0, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,5 +85,46 @@ func TestMermaidDiagramIsOpaque(t *testing.T) {
 		if _, _, _, a := img.At(p.X, p.Y).RGBA(); a != 0xffff {
 			t.Fatalf("corner %v alpha %#x, want opaque", p, a)
 		}
+	}
+}
+
+// A dark theme draws diagrams on go-mermaid's dark page, a light one on its
+// light page.
+func TestMermaidPaletteFollowsTheme(t *testing.T) {
+	luma := func(dark bool) uint32 {
+		img, _, _, err := renderMermaid("flowchart LR\n  A --> B\n", 0, dark)
+		if err != nil {
+			t.Fatal(err)
+		}
+		r, g, b, _ := img.At(img.Bounds().Min.X+1, img.Bounds().Min.Y+1).RGBA()
+		return (r + g + b) / 3 >> 8
+	}
+	if light, dark := luma(false), luma(true); light < 200 || dark > 80 {
+		t.Fatalf("page brightness light %d, dark %d", light, dark)
+	}
+}
+
+// Typeset reuses its preparation for the same file, except when a diagram's
+// palette must change with the theme.
+func TestTypesetRedrawsMermaidForTheme(t *testing.T) {
+	files := fstest.MapFS{"diagram.md": {Data: []byte(mermaidMarkdown)}}
+	l := &Loader{Files: files}
+	defer l.Close()
+	load := func(themeName string) *Markdown {
+		r := l.Load(Request{Path: "diagram.md", MarkdownMode: "typeset", Theme: themeName, Page: 1, DPI: 72, Generation: 1})
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		return r.Typeset
+	}
+	first := load("light")
+	if first.Diagrams != 3 {
+		t.Fatalf("diagrams = %d, want 3", first.Diagrams)
+	}
+	if again := load("light"); again != first {
+		t.Fatal("the same palette should reuse the preparation")
+	}
+	if dark := load("dark"); dark == first || !l.typesetDark {
+		t.Fatal("a dark theme should draw the diagrams again")
 	}
 }

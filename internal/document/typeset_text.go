@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf8"
+
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 // Plain input goes directly to styled spans, never through Markdown parsing.
@@ -84,6 +86,7 @@ func (l *Loader) startTypeset(q Request, data []byte, file []Field, kind string,
 	l.path, l.file = q.Path, file
 	l.typesetAnimate = q.Animate && !q.Preview
 	l.typeset, l.typesetBase, l.typesetHash = source, q.BaseDir, sha256.Sum256(data)
+	l.typesetDark = theme.Dark(q.Theme)
 	l.typesetType, l.typesetKind, l.typesetText, l.typesetInfo = q.Type, kind, text, info
 	l.typesetEngine, l.typesetPrepared = eng, prep
 	return l.renderTypeset(q)

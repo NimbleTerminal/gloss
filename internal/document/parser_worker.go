@@ -21,6 +21,7 @@ type parserRequest struct {
 	Data       []byte
 	Page, Edge int
 	Text       bool
+	Dark       bool // A Mermaid diagram's palette.
 }
 type parserReply struct {
 	Error         string

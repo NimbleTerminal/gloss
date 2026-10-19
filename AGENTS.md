@@ -132,8 +132,10 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Glamour by default; `s` toggles source and `t` switches text/typeset.
   Fenced `mermaid` blocks normalize to standalone images (`internal/document/mermaid.go`:
   content-key destination, source and fence as node attributes) drawn by
-  pure-Go go-mermaid in the parser worker, 64 KiB per diagram, light palette on
-  its own page. They count as image references and pixels; a diagram that fails
+  pure-Go go-mermaid in the parser worker, 64 KiB per diagram, in its light or
+  dark palette by `theme.Dark(Request.Theme)`. `Markdown.Diagrams` counts them;
+  a light/dark theme change reloads such a document in place (`applyTheme`), and
+  the loader re-prepares typeset when the palette differs (`typesetDark`). They count as image references and pixels; a diagram that fails
   shows its error in text, and typeset preflight puts the fence back after a note.
   Unicode emoji shortcodes expand in rendered prose, tables, and link labels;
   source, code, escapes, unknown names, and image-only aliases stay literal.

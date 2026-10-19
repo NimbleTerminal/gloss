@@ -4,7 +4,8 @@
 
 - Draw fenced `mermaid` blocks in Markdown as diagrams, in terminal text and
   typeset views and in exports, with pure-Go go-mermaid: no browser or
-  network. A diagram that does not parse shows its error, and typeset shows
+  network. Diagrams follow a light or dark theme, redrawing in place when it
+  changes. A diagram that does not parse shows its error, and typeset shows
   its source.
 
 - SVG markers (such as arrowheads) and percentage lengths in shape geometry now

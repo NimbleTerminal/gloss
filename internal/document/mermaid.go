@@ -117,9 +117,9 @@ func restoreMermaidSource(im *ast.Image) {
 
 // renderMermaidImage draws a diagram from Markdown and records its page size
 // on the node, so both renderers show it at reading size rather than at the
-// raster's size.
-func renderMermaidImage(im *ast.Image, code string) (image.Image, error) {
-	img, w, h, err := renderMermaid(code, 0)
+// raster's size. Dark draws it in go-mermaid's dark palette.
+func renderMermaidImage(im *ast.Image, code string, dark bool) (image.Image, error) {
+	img, w, h, err := renderMermaid(code, 0, dark)
 	if err != nil {
 		return nil, err
 	}
@@ -134,11 +134,11 @@ func renderMermaidImage(im *ast.Image, code string) (image.Image, error) {
 
 // renderMermaid returns the raster and the diagram's own size in its pixels.
 // A positive edge fits the raster to it; zero uses the reading scale.
-func renderMermaid(code string, edge int) (image.Image, float64, float64, error) {
+func renderMermaid(code string, edge int, dark bool) (image.Image, float64, float64, error) {
 	if len(code) > MaxMermaidBytes {
 		return nil, 0, 0, fmt.Errorf("mermaid: diagram exceeds %d KiB", MaxMermaidBytes>>10)
 	}
-	out, err := runParser(parserRequest{Kind: "mermaid", Name: "diagram.mmd", Data: []byte(code), Edge: edge})
+	out, err := runParser(parserRequest{Kind: "mermaid", Name: "diagram.mmd", Data: []byte(code), Edge: edge, Dark: dark})
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -152,7 +152,11 @@ func mermaidWork(q parserRequest) (parserReply, error) {
 	if len(q.Data) > MaxMermaidBytes {
 		return out, fmt.Errorf("mermaid: diagram exceeds %d KiB", MaxMermaidBytes>>10)
 	}
-	svg, err := mermaid.Render(string(q.Data))
+	palette := mermaid.Default
+	if q.Dark {
+		palette = mermaid.Dark
+	}
+	svg, err := mermaid.Render(string(q.Data), mermaid.WithTheme(palette))
 	if err != nil {
 		return out, err
 	}
@@ -170,8 +174,8 @@ func mermaidWork(q parserRequest) (parserReply, error) {
 		edge = int(math.Ceil(max(out.Width, out.Height) * mermaidPageScale * mermaidRasterScale))
 	}
 	edge = max(1, min(edge, 4096))
-	// go-mermaid paints its own background, a 100%-sized rectangle, so the
-	// diagram keeps its palette's page on a dark terminal too.
+	// go-mermaid paints its own background, a 100%-sized rectangle, in the
+	// palette's page color.
 	img, err := renderSVGUnbounded(q.Name, svg, edge)
 	if err != nil {
 		return out, err

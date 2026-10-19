@@ -34,16 +34,36 @@ func (m *Model) applyTheme(name string) tea.Cmd {
 	if m.theme == name {
 		return nil
 	}
+	redraw := theme.Dark(m.theme) != theme.Dark(name) && m.diagrams() > 0
 	m.theme = name
 	var cmds []tea.Cmd
+	if m.preview != nil {
+		cmds = append(cmds, m.preview.applyTheme(name))
+	}
+	if redraw && !m.suspended && m.screen == screenDocument {
+		// Mermaid diagrams are drawn in a light or a dark palette when the
+		// document loads, so crossing between them loads it again, in place.
+		if m.markdown != nil {
+			m.savedMarkdown = m.markdown
+		}
+		return tea.Batch(append(cmds, m.load(false))...)
+	}
 	if m.markdown != nil {
 		cmds = append(cmds, m.layoutMarkdown())
 	}
 	if m.typeset != nil {
 		cmds = append(cmds, m.queueTypesetReflow())
 	}
-	if m.preview != nil {
-		cmds = append(cmds, m.preview.applyTheme(name))
-	}
 	return tea.Batch(cmds...)
+}
+
+// diagrams counts the Mermaid diagrams of the document shown.
+func (m *Model) diagrams() int {
+	switch {
+	case m.markdown != nil:
+		return m.markdown.doc.Diagrams
+	case m.typeset != nil:
+		return m.typeset.Diagrams
+	}
+	return 0
 }

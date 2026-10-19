@@ -21,6 +21,7 @@ import (
 
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
+	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/nt3d"
 	"nimbleterminal.dev/ntpdf"
 	"nimbleterminal.dev/ntpicture/animation"
@@ -223,6 +224,7 @@ type Loader struct {
 	direct          *layout
 	typesetBase     string
 	typesetAnimate  bool
+	typesetDark     bool // The palette its Mermaid diagrams were drawn in.
 	typesetKind     string
 	typesetText     string
 	typesetInfo     []Field
@@ -304,7 +306,8 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Err = err
 			return out
 		}
-		if q.MarkdownMode != "typeset" || q.BaseDir != l.typesetBase || q.Type != l.typesetType || (q.Animate && !q.Preview) != l.typesetAnimate || sha256.Sum256(data) != l.typesetHash {
+		redraw := l.typeset.Diagrams > 0 && theme.Dark(q.Theme) != l.typesetDark
+		if redraw || q.MarkdownMode != "typeset" || q.BaseDir != l.typesetBase || q.Type != l.typesetType || (q.Animate && !q.Preview) != l.typesetAnimate || sha256.Sum256(data) != l.typesetHash {
 			_ = l.closePDF()
 		}
 	}
@@ -364,7 +367,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			prep.walk(root, data, 0)
 			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, prep)
 		}
-		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview)
+		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview, theme.Dark(q.Theme))
 		details = func() []Field { return markdownFields(out.Markdown) }
 	case "pdf":
 		details = func() []Field {
@@ -401,7 +404,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Err = err
 			return out
 		}
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, doc.Markdown, q.BaseDir, l.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, doc.Markdown, q.BaseDir, l.Files, false, theme.Dark(q.Theme))
 		out.Text = doc.Plain
 		details = doc.fields
 	case "ipynb":
@@ -412,7 +415,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			return out
 		}
 		// The outputs' pictures are kept beside the Markdown, in memory.
-		out.Markdown, out.Err = loadMarkdownFrom("notebook.md", nb.Markdown, ".", nb.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), "notebook.md", nb.Markdown, ".", nb.Files, false, theme.Dark(q.Theme))
 		if out.Markdown != nil {
 			out.Markdown.Packaged = true
 		}
@@ -424,7 +427,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Err = err
 			return out
 		}
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, doc.Markdown, q.BaseDir, l.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, doc.Markdown, q.BaseDir, l.Files, false, theme.Dark(q.Theme))
 		out.Text = doc.Plain
 		details = doc.fields
 	case "html":
@@ -435,7 +438,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			return out
 		}
 		// Pictures are looked for beside the page, as a browser would.
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, page.Markdown, q.BaseDir, l.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, page.Markdown, q.BaseDir, l.Files, false, theme.Dark(q.Theme))
 		details = func() []Field { return page.fields(out.Markdown) }
 	case "docx":
 		details = func() []Field { return Section("Document", Field{"Format", "Word document"}) }
@@ -445,7 +448,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			return out
 		}
 		// Pictures are in the package, beside the document.
-		out.Markdown, out.Err = loadMarkdownFrom("word/document.md", doc.Markdown, "word", doc.pkg.archive)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), "word/document.md", doc.Markdown, "word", doc.pkg.archive, false, theme.Dark(q.Theme))
 		if out.Markdown != nil {
 			out.Markdown.Packaged = true
 		}

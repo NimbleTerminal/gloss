@@ -114,8 +114,10 @@ flowchart LR
 ```
 ````
 
-Diagrams use Mermaid's default light palette on their own page whatever the
-theme, as other images keep their colors. Each diagram's source is limited to
+Diagrams use go-mermaid's light palette with a light theme and its dark palette
+with a dark one, each on its own page. Changing the theme between light and dark
+draws them again, keeping your place; headless exports follow `--theme` (auto is
+light). Each diagram's source is limited to
 64 KiB, and drawing runs in the parser worker under its 15-second deadline.
 A diagram counts as an image reference and against the decoded-pixel budget;
 the same source repeated is drawn once. A diagram that does not parse shows its

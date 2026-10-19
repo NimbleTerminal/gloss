@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/yuin/goldmark/ast"
+	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntpicture/animation"
 )
 
@@ -67,6 +68,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 	assets := map[string]*typesetAsset{}
 	var destinations []string
 	var undrawn []*ast.Image // Mermaid diagrams to put back as their source.
+	diagrams := 0
 	references, pixels, encodedBytes, nodes := 0, 0, 0, 0
 	err = ast.Walk(root, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if q.Context != nil {
@@ -90,6 +92,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 		}
 		dest := string(im.Destination)
 		if code, ok := mermaidSource(im); ok {
+			diagrams++
 			if a, seen := assets[dest]; seen {
 				if a != nil {
 					im.SetAttributeString("gloss-image-layout", a.layout)
@@ -100,7 +103,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 			}
 			destinations = append(destinations, dest)
 			assets[dest] = nil
-			img, e := renderMermaidImage(im, code)
+			img, e := renderMermaidImage(im, code, theme.Dark(q.Theme))
 			if e != nil {
 				undrawn = append(undrawn, im)
 				return ast.WalkContinue, nil
@@ -185,7 +188,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 			assets[dest] = nil
 		}
 	}
-	md := &Markdown{Source: []byte(cleanMarkdownSource(data))}
+	md := &Markdown{Source: []byte(cleanMarkdownSource(data)), Diagrams: diagrams}
 	animations.apply(md)
 	return md, root, assets, nil
 }
