@@ -214,6 +214,10 @@ gloss --output posed.png --camera 20,-120 --projection perspective model.stl
 - `--parts name,name` / `--partn 2,4-6` isolate parts of a 3MF assembly —
   also the way to see a model too large to render whole.
 - `--color orange` or `#rrggbb` paints plain meshes before export.
+- `--up y|z` says which axis an STL, OBJ or PLY treats as up (STL defaults to
+  z, OBJ and PLY to y). If a model's `top` view looks like its side, or
+  `--info` shows a flat Z extent for an upright object, export again with the
+  other axis. 3MF is always Z-up.
 
 ## 3. Learn about a file: `--info`
 

@@ -127,7 +127,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   normalization; painting leaves them). `sideFiles` reads only `.mtl` and
   PNG/JPEG beside or below the model, none for stdin: 32 files, 1 MiB libraries,
   textures 16 MiB / 16 MP each and 64 MP together, checked by DecodeConfig
-  before nt3d decodes; refusals keep `Kd` and show in `i`. PLY point clouds
+  before nt3d decodes; refusals keep `Kd` and show in `i`. `--up y|z`
+  (`Options.Up`/`Request.Up`, `upAxis`) overrides the up axis of STL (z), OBJ
+  and PLY (y); 3MF stays Z-up. PLY point clouds
   (500,000 points) draw as world-unit discs sized to their spacing
   (`cloudRadius`, scaled in `SetScene`); export outlines skip them.
 - **3MF**: core-spec meshes, components, build transforms, base-material and

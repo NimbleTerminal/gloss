@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"nimbleterminal.dev/nt3d/mesh"
 )
 
 func TestDetectOBJAndPLY(t *testing.T) {
@@ -131,7 +133,7 @@ func fieldText(fields []Field) string {
 
 // OBJ and PLY say Y is up; gloss turns them Z-up like STL and 3MF.
 func TestOBJIsTurnedZUp(t *testing.T) {
-	m, err := ParseOBJ("tall.obj", []byte("v 0 0 0\nv 1 0 0\nv 0 5 0\nf 1 2 3\n"), nil, true)
+	m, err := ParseOBJ("tall.obj", []byte("v 0 0 0\nv 1 0 0\nv 0 5 0\nf 1 2 3\n"), nil, true, nt3dmesh.YUp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +151,7 @@ func TestPLYPointCloud(t *testing.T) {
 			b.WriteString(strconv.Itoa(i) + " 0 " + strconv.Itoa(j) + "\n")
 		}
 	}
-	m, err := ParsePLY([]byte(b.String()))
+	m, err := ParsePLY([]byte(b.String()), nt3dmesh.YUp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +172,7 @@ func TestPLYPointCloud(t *testing.T) {
 	if !strings.Contains(fieldText(meshFields(nil, m)), "Points=100") {
 		t.Fatal("info does not count points")
 	}
-	if _, err := ParsePLY([]byte("ply\nformat ascii 1.0\nelement vertex 0\nproperty float x\nend_header\n")); err == nil {
+	if _, err := ParsePLY([]byte("ply\nformat ascii 1.0\nelement vertex 0\nproperty float x\nend_header\n"), nt3dmesh.YUp); err == nil {
 		t.Fatal("an empty PLY loaded")
 	}
 }
@@ -190,5 +192,35 @@ func TestExampleMeshes(t *testing.T) {
 	cottage := l.Load(Request{Path: "../../examples/cottage.obj", Page: 1})
 	if !cottage.Mesh.HasColors() {
 		t.Fatal("the cottage lost its materials")
+	}
+}
+
+// --up z keeps a Z-up OBJ standing; --up y stands up a Y-up STL.
+func TestUpAxisOption(t *testing.T) {
+	tall := []byte("v 0 0 0\nv 1 0 0\nv 0 0 5\nf 1 2 3\n")
+	stl := []byte("solid t\nfacet normal 0 0 0\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 5 0\nendloop\nendfacet\nendsolid t\n")
+	l := &Loader{Files: fstest.MapFS{"tall.obj": {Data: tall}, "tall.stl": {Data: stl}}}
+	defer l.Close()
+	height := func(path, up string) float32 {
+		r := l.Load(Request{Path: path, Page: 1, Up: up})
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		return r.Mesh.geometry.Bounds.Max.Z - r.Mesh.geometry.Bounds.Min.Z
+	}
+	if h := height("tall.obj", ""); h != 0 {
+		t.Fatalf("a Z-up OBJ read as Y-up should lie flat, height %v", h)
+	}
+	if h := height("tall.obj", "z"); h != 5 {
+		t.Fatalf("--up z: height %v, want 5", h)
+	}
+	if h := height("tall.stl", ""); h != 0 {
+		t.Fatalf("an STL is Z-up by default, height %v", h)
+	}
+	if h := height("tall.stl", "y"); h != 5 {
+		t.Fatalf("--up y: STL height %v, want 5", h)
+	}
+	if r := l.Load(Request{Path: "tall.obj", Page: 1, Up: "z"}); !strings.Contains(fieldText(r.Info), "Up axis=Z") {
+		t.Fatalf("info does not say the up axis: %s", fieldText(r.Info))
 	}
 }

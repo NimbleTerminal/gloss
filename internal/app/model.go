@@ -63,6 +63,9 @@ type Options struct {
 	Columns document.ColumnFilter
 	// Parts picks the parts of every 3MF to show; the rest are left out.
 	Parts document.PartFilter
+	// Up is the axis STL, OBJ and PLY files treat as up, "y" or "z"; empty
+	// takes each format's usual one.
+	Up string
 	// Color paints the faces of a mesh that its file left plain.
 	Color *color.RGBA
 	// Background is the color behind a mesh; nil keeps the default.
@@ -310,7 +313,7 @@ func (o Options) IsStdin(path string) bool { return o.Stdin != "" && path == o.S
 // request is what the loader is asked for the current file and page.
 func (m *Model) request(reload bool) document.Request {
 	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: m.theme, Font: m.opts.Font, Mono: m.opts.Mono, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
-		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
+		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Up: m.opts.Up, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
 	m.diagramsDark = theme.Dark(m.theme)
 	q.TypesetWidth = m.typesetMeasure()
 	q.TypesetLineNumbers, q.TypesetChop = m.lineNumbers, m.chopLines

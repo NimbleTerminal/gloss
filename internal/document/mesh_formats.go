@@ -38,8 +38,8 @@ const (
 
 // ParseOBJ reads a Wavefront OBJ. Its material libraries are read from
 // beside it when it is a file; nothing else is.
-func ParseOBJ(name string, data []byte, files fs.FS, stdin bool) (*Mesh, error) {
-	o := &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor, Up: nt3dmesh.YUp}
+func ParseOBJ(name string, data []byte, files fs.FS, stdin bool, up nt3dmesh.Up) (*Mesh, error) {
+	o := &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor, Up: up}
 	if !stdin {
 		o.Open = sideFiles(filepath.Dir(name), files)
 	}
@@ -48,8 +48,19 @@ func ParseOBJ(name string, data []byte, files fs.FS, stdin bool) (*Mesh, error) 
 
 // ParsePLY reads a Stanford PLY: faces, a range scan's surface, or a cloud of
 // points. A texture it names is not read.
-func ParsePLY(data []byte) (*Mesh, error) {
-	return parseMeshFormat("PLY", nt3dmesh.DecodePLY, data, &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor, Up: nt3dmesh.YUp})
+func ParsePLY(data []byte, up nt3dmesh.Up) (*Mesh, error) {
+	return parseMeshFormat("PLY", nt3dmesh.DecodePLY, data, &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor, Up: up})
+}
+
+// upAxis is the up axis asked for, else the format's usual one.
+func upAxis(asked, usual string) nt3dmesh.Up {
+	if asked == "" {
+		asked = usual
+	}
+	if asked == "y" {
+		return nt3dmesh.YUp
+	}
+	return nt3dmesh.ZUp
 }
 
 func parseMeshFormat(format string, decode func([]byte, *nt3dmesh.Options) (*nt3dmesh.Model, error), data []byte, o *nt3dmesh.Options) (*Mesh, error) {
@@ -61,7 +72,7 @@ func parseMeshFormat(format string, decode func([]byte, *nt3dmesh.Options) (*nt3
 		return nil, errors.New(strings.TrimPrefix(err.Error(), "nt3dmesh: "))
 	}
 	m := meshFromObjects(decoded.Objects)
-	m.format, m.objects = format, len(decoded.Objects)
+	m.format, m.objects, m.up = format, len(decoded.Objects), map[nt3dmesh.Up]string{nt3dmesh.YUp: "Y", nt3dmesh.ZUp: "Z"}[o.Up]
 	m.warnings = decoded.Warnings
 	if m.Triangles() == 0 && len(m.geometry.Points) == 0 && len(m.geometry.Lines) == 0 {
 		return nil, fmt.Errorf("%s contains nothing to draw", format)
@@ -145,7 +156,7 @@ func meshFormatFields(m *Mesh, number func(float64) string) []Field {
 		}
 		return grouped(n)
 	}
-	fields := []Field{{"Format", m.format}, {"Objects", count(m.objects)}, {"Triangles", count(m.Triangles())}, {"Textured parts", count(len(m.textured))},
+	fields := []Field{{"Format", m.format}, {"Objects", count(m.objects)}, {"Triangles", count(m.Triangles())}, {"Textured parts", count(len(m.textured))}, {"Up axis", m.up},
 		{"Points", count(len(g.Points))}, {"Lines", count(len(g.Lines) / 2)},
 		{"Extent", number(float64(extent.X)) + " × " + number(float64(extent.Y)) + " × " + number(float64(extent.Z))}}
 	if m.Triangles() > 0 {

@@ -47,7 +47,7 @@ func describe(opts options, stdout, stderr io.Writer) error {
 		} else if kind, err := document.Probe(path, opts.Type); err != nil {
 			d.Error = document.SkipReason(err)
 		} else {
-			r := loader.Load(document.Request{Path: path, Type: opts.Type, Page: opts.Page, DPI: opts.DPI, Generation: uint64(i + 1), Parts: opts.Parts, Stdin: opts.IsStdin(path)})
+			r := loader.Load(document.Request{Path: path, Type: opts.Type, Page: opts.Page, DPI: opts.DPI, Generation: uint64(i + 1), Parts: opts.Parts, Up: opts.Up, Stdin: opts.IsStdin(path)})
 			if d.Kind, d.fields = r.Kind, r.Info; d.Kind == "" {
 				d.Kind = kind
 			}

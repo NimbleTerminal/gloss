@@ -161,6 +161,7 @@ type Request struct {
 	TextOnly    bool        // The text layer of a PDF page is wanted, not a picture of it.
 	Preview     bool        // A small, quick rendering is wanted: a thumbnail will do.
 	Parts       PartFilter  // The parts of a 3MF to show; empty shows them all.
+	Up          string      // "y" or "z": the up axis of an STL, OBJ or PLY; empty is the format's usual.
 	Shown       []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
 	Color       *color.RGBA // Paint for the faces of a mesh that its file left plain.
 	PaintAll    bool        // Paint every face, not only the plain ones.
@@ -411,13 +412,13 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Image, _, _, out.Err = renderMermaid(string(data), q.MaxEdge, theme.Dark(q.Theme))
 		}
 	case "stl":
-		out.Mesh, out.Err = ParseSTL(data)
+		out.Mesh, out.Err = ParseSTLUp(data, upAxis(q.Up, "z"))
 		details = func() []Field { return meshFields(data, out.Mesh) }
 	case "obj":
-		out.Mesh, out.Err = ParseOBJ(q.Path, data, l.Files, q.Stdin)
+		out.Mesh, out.Err = ParseOBJ(q.Path, data, l.Files, q.Stdin, upAxis(q.Up, "y"))
 		details = func() []Field { return meshFields(data, out.Mesh) }
 	case "ply":
-		out.Mesh, out.Err = ParsePLY(data)
+		out.Mesh, out.Err = ParsePLY(data, upAxis(q.Up, "y"))
 		details = func() []Field { return meshFields(data, out.Mesh) }
 	case "csv":
 		out.Sheet, out.Err = ReadCSV(q.Path, data)

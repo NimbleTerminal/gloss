@@ -31,6 +31,7 @@ type Mesh struct {
 	warnings    []string
 	pointRadius float32         // A point cloud's disc radius, in the file's units.
 	textured    []nt3d.Geometry // OBJ parts drawn with their own texture.
+	up          string          // The up axis the file was read with: Y or Z.
 }
 
 func (m *Mesh) Geometry() nt3d.Geometry { return m.geometry }
@@ -61,8 +62,11 @@ func (m *Mesh) area() float64 {
 	return total
 }
 
-func ParseSTL(data []byte) (*Mesh, error) {
-	decoded, err := nt3dmesh.DecodeSTL(data, &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor})
+func ParseSTL(data []byte) (*Mesh, error) { return ParseSTLUp(data, nt3dmesh.ZUp) }
+
+// ParseSTLUp reads an STL whose up axis is up.
+func ParseSTLUp(data []byte, up nt3dmesh.Up) (*Mesh, error) {
+	decoded, err := nt3dmesh.DecodeSTL(data, &nt3dmesh.Options{MaxTriangles: maxTriangles, Color: meshColor, Up: up})
 	if err != nil {
 		if errors.Is(err, nt3dmesh.ErrTooManyTriangles) {
 			return nil, fmt.Errorf("mesh exceeds %s triangles", grouped(maxTriangles))

@@ -376,3 +376,12 @@ func TestTypeJSONLinesAliases(t *testing.T) {
 		}
 	}
 }
+
+func TestUpOption(t *testing.T) {
+	if opts, _, err := parse([]string{"--up", "Z", "m.obj"}, &bytes.Buffer{}); err != nil || opts.Up != "z" {
+		t.Fatalf("--up Z = %q, %v", opts.Up, err)
+	}
+	if _, _, err := parse([]string{"--up", "x", "m.obj"}, &bytes.Buffer{}); err == nil {
+		t.Fatal("--up x accepted")
+	}
+}

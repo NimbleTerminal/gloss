@@ -44,6 +44,7 @@ func completers() map[string]completer {
 		"type":           {Words: []string{"image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid"}},
 		"view":           {Words: []string{"front", "back", "left", "right", "top", "bottom", "iso", "all"}, List: true},
 		"projection":     {Words: []string{"ortho", "perspective"}},
+		"up":             {Words: []string{"y", "z"}},
 		"prompt-loc":     {Words: []string{"bottom", "top"}},
 		"vision-profile": {Words: document.VisionProfileNames()},
 		"output":         {File: true},

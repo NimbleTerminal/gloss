@@ -100,6 +100,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringVar(&opts.Prompt, "prompt", "", "show this request to the user in a box, to say what to pick or look at")
 	promptLoc := f.String("prompt-loc", "bottom", "where the terminal prompt box goes: bottom or top (browser requests always appear above the viewer)")
 	paint := f.String("color", "", "paint the faces of a mesh its file left plain: #rrggbb or a name such as orange")
+	up := f.String("up", "", "the axis a mesh file treats as up: y or z; STL defaults to z, OBJ and PLY to y")
 	parts := f.String("parts", "", "show only these parts of a 3MF, by name: name,name")
 	partn := f.String("partn", "", "show only these parts of a 3MF, counted from 1: 2,4-6")
 	cols := f.String("cols", "", "show only these columns of a table, by header or letter: name,name")
@@ -275,6 +276,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	}
 	if opts.Parts, err = document.ParseParts(*parts, *partn); err != nil {
 		return opts, false, err
+	}
+	if opts.Up = strings.ToLower(*up); opts.Up != "" && opts.Up != "y" && opts.Up != "z" {
+		return opts, false, fmt.Errorf("--up must be y or z")
 	}
 	if *paint != "" {
 		c, err := document.ParseColor(*paint)

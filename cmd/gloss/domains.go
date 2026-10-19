@@ -57,9 +57,10 @@ var domains = []domain{
 	{
 		ID: "mesh", Title: "Meshes: STL and 3MF",
 		Summary: "How a model is drawn and posed: the renderer, the camera or a named view, the projection, its paint, and which parts of a 3MF are shown. These apply to exports as well as to the viewer.",
-		Flags:   []string{"3d", "view", "camera", "projection", "color", "parts", "partn"},
+		Flags:   []string{"3d", "view", "camera", "projection", "up", "color", "parts", "partn"},
 		Examples: []example{
 			{"Start from the front, in perspective", "gloss --view front --projection perspective model.stl"},
+			{"An OBJ exported Z-up, stood upright", "gloss --up z model.obj"},
 			{"Paint the faces the file left plain", "gloss --color orange model.stl"},
 			{"Two parts of a 3MF, by name or by number", "gloss --parts lid,base lantern.3mf\ngloss --partn 1,3 lantern.3mf"},
 		},

@@ -109,7 +109,10 @@ bookToC: false
   A texture the file names is not read.
 - OBJ and PLY files do not say which way is up; gloss takes Y as up, as most
   tools write them, and turns them to the Z-up that STL, 3MF and the named
-  views (`--view top`) use.
+  views (`--view top`) use. A model that comes out lying on its side was
+  written the other way: `--up z` reads an OBJ or PLY as Z-up, and `--up y`
+  stands up a Y-up STL. `i` says which axis was taken. 3MF is Z-up by its
+  specification.
 - Plain text (`.txt`, `.text`, `.log`, and any file that is not binary):
   shown as it is, in the document view, so that no line of it is read as a
   heading, a list, or emphasis. Returns and a byte order mark are dropped,
