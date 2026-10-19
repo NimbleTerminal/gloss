@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- SVG markers (such as arrowheads) and percentage lengths in shape geometry now
+  render, through ntsvg v0.5.1 and oksvg v0.1.2; meshes use nt3d v0.2.0.
+
 - `--print` draws one content viewport to stdout and exits, without a terminal.
   Pictures use colored half-blocks; `--print-width` and `--print-height` size
   captured output. Text, tables and the selected document page work too.

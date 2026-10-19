@@ -1119,7 +1119,7 @@ The following files are under their respective licenses:
   * ./etc/booba.png remains **All Rights Reserved** by Neomantra Corp.  You may use it only in unmodified form and only as part of this project (e.g., in forks or distributions of the project).  You may **not** extract it for unrelated use, modify it, or redistribute it separately without explicit permission.
 ```
 
-## github.com/NimbleMarkets/oksvg v0.1.1
+## github.com/NimbleMarkets/oksvg v0.1.2
 
 ```
 BSD 3-Clause License
@@ -3473,7 +3473,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## nimbleterminal.dev/nt3d v0.1.0
+## nimbleterminal.dev/nt3d v0.2.0
 
 ```
 MIT License
@@ -3665,7 +3665,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntsvg v0.5.0
+## nimbleterminal.dev/ntsvg v0.5.1
 
 ```
 MIT License

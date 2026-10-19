@@ -16,7 +16,7 @@ require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
 	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
-	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
+	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
@@ -67,13 +67,13 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	nimbleterminal.dev/nt3d v0.1.0 // indirect
+	nimbleterminal.dev/nt3d v0.2.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 	nimbleterminal.dev/ntpdf v0.4.0 // indirect
 	nimbleterminal.dev/ntpicture v0.1.0 // indirect
 	nimbleterminal.dev/ntqrcode v0.3.0 // indirect
-	nimbleterminal.dev/ntsvg v0.5.0 // indirect
+	nimbleterminal.dev/ntsvg v0.5.1 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..
