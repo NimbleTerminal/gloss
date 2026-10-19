@@ -81,7 +81,7 @@ require (
 
 replace nimbleterminal.dev/gloss => ../..
 
-replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20260928192001-1b36865b418a
+replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261014185126-aa0ac3f1b5fe
 
 tool (
 	github.com/NimbleMarkets/booba-shim/cmd/booba-shim-assets
