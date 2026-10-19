@@ -52,6 +52,7 @@ func main() {
 	if err := os.WriteFile("examples/gloss.stl", blockWord(), 0644); err != nil {
 		panic(err)
 	}
+	write("examples/cottage-roof.png", func(b *bytes.Buffer) error { return png.Encode(b, shingles()) })
 	obj, mtl := cottage()
 	for name, data := range map[string][]byte{"examples/cottage.obj": obj, "examples/cottage.mtl": mtl, "examples/dunes.ply": dunes()} {
 		if err := os.WriteFile(name, data, 0644); err != nil {
@@ -79,12 +80,18 @@ func cottage() (obj, mtl []byte) {
 	box("walls", "plaster", -2, 0, -1.5, 2, 2, 1.5)
 	box("door", "wood", -.4, 0, 1.5, .4, 1.3, 1.6)
 	box("chimney", "brick", 1, 2, -.8, 1.5, 3.4, -.3)
-	// The roof is a prism: two slopes and two gables.
-	b.WriteString("o roof\nusemtl tile\n")
+	// The roof is a prism: two slopes, shingled by a texture that repeats
+	// along them, and two plaster gables.
+	b.WriteString("o roof\n")
 	for _, c := range [][3]float64{{-2.3, 2, -1.8}, {2.3, 2, -1.8}, {2.3, 2, 1.8}, {-2.3, 2, 1.8}, {-2.3, 3.2, 0}, {2.3, 3.2, 0}} {
 		fmt.Fprintf(&b, "v %g %g %g\n", c[0], c[1], c[2])
 	}
-	for _, f := range [][]int{{4, 3, 6, 5}, {2, 1, 5, 6}, {1, 4, 5}, {3, 2, 6}, {1, 2, 3, 4}} {
+	b.WriteString("vt 0 0\nvt 4 0\nvt 4 2\nvt 0 2\nusemtl tile\n")
+	for _, f := range [][4]int{{4, 3, 6, 5}, {2, 1, 5, 6}} {
+		fmt.Fprintf(&b, "f %d/1 %d/2 %d/3 %d/4\n", n+f[0], n+f[1], n+f[2], n+f[3])
+	}
+	b.WriteString("usemtl plaster\n")
+	for _, f := range [][]int{{1, 4, 5}, {3, 2, 6}, {1, 2, 3, 4}} {
 		b.WriteString("f")
 		for _, i := range f {
 			fmt.Fprintf(&b, " %d", n+i)
@@ -95,8 +102,27 @@ func cottage() (obj, mtl []byte) {
 		"newmtl plaster\nKd 0.93 0.89 0.80\n" +
 		"newmtl wood\nKd 0.45 0.28 0.16\n" +
 		"newmtl brick\nKd 0.62 0.25 0.20\n" +
-		"newmtl tile\nKd 0.30 0.36 0.48\n")
+		"newmtl tile\nKd 0.30 0.36 0.48\nmap_Kd cottage-roof.png\n")
 	return b.Bytes(), mtl
+}
+
+// shingles is the cottage roof's texture: staggered rows of slate tiles,
+// each a little different in shade.
+func shingles() image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 64, 64))
+	for y := 0; y < 64; y++ {
+		row := y / 16
+		for x := 0; x < 64; x++ {
+			col := (x + row%2*8) / 16
+			shade := 40 + 18*((row*3+col*5)%4)
+			c := color.NRGBA{uint8(shade), uint8(shade + 12), uint8(shade + 40), 255}
+			if y%16 >= 14 || (x+row%2*8)%16 == 0 {
+				c = color.NRGBA{22, 26, 36, 255} // The gaps between tiles.
+			}
+			img.SetNRGBA(x, y, c)
+		}
+	}
+	return img
 }
 
 // dunes is a cloud of points sampled over sand dunes, in binary PLY with a

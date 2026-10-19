@@ -94,12 +94,15 @@ bookToC: false
   hold 4,096 entries and unpack to 128 MiB; one that unpacks to more is shown
   by its thumbnail too, and described by what its root model says.
 - OBJ: Wavefront OBJ triangles and polygons (concave ones split), polylines,
-  vertex colors, and the diffuse colors (`Kd`) of the materials its `.mtl`
-  libraries give, read from beside the model or a folder below it (at most 16
-  libraries of 1 MiB each, and none for standard input). Textures are not
-  shown: textured faces keep their material's color, and `i` says what was
-  left out. Faces with their own normals are smooth-shaded. The same
-  932,067-face limit applies.
+  vertex colors, the diffuse colors (`Kd`) of the materials its `.mtl`
+  libraries give, and their PNG or JPEG textures (`map_Kd`), repeating as OBJ
+  textures do. Side files are read only from beside the model or a folder
+  below it, never for standard input: at most 32, libraries of up to 1 MiB,
+  textures of up to 16 MiB and 16 megapixels each, 64 megapixels together.
+  A texture that is refused or cannot be read leaves its faces in the
+  material's color, and `i` says why. Textured faces keep their texture when
+  the mesh is painted with `C`. Faces with their own normals are
+  smooth-shaded. The same 932,067-face limit applies.
 - PLY: Stanford PLY, ASCII or binary: faces with vertex or face colors, a
   scanner's range grid joined into a surface, or, with no faces, a cloud of up
   to 500,000 points drawn as discs sized to the spacing of their neighbors.

@@ -1,7 +1,12 @@
 package document
 
 import (
+	"bytes"
+	"encoding/binary"
+	"hash/crc32"
+	"image"
 	"image/color"
+	"image/png"
 	"strconv"
 	"strings"
 	"testing"
@@ -24,18 +29,51 @@ func TestDetectOBJAndPLY(t *testing.T) {
 	}
 }
 
-const triangleOBJ = "mtllib %s\nv 0 0 0\nv 1 0 0\nv 0 1 0\nusemtl red\nf 1 2 3\n"
+const triangleOBJ = "mtllib %s\nv 0 0 0\nv 1 0 0\nv 0 1 0\nvt 0 0\nvt 1 0\nvt 0 1\nusemtl red\nf 1/1 2/2 3/3\n"
 
-// An OBJ's materials color its faces; a texture or a file outside the
-// model's folder is not read, and says so.
+func pngOf(t *testing.T, w, h int, c color.RGBA) []byte {
+	t.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	for i := 0; i < len(img.Pix); i += 4 {
+		img.Pix[i], img.Pix[i+1], img.Pix[i+2], img.Pix[i+3] = c.R, c.G, c.B, c.A
+	}
+	var b bytes.Buffer
+	if err := png.Encode(&b, img); err != nil {
+		t.Fatal(err)
+	}
+	return b.Bytes()
+}
+
+// hugePNG is only a PNG header declaring w × h, enough for DecodeConfig.
+func hugePNG(w, h uint32) []byte {
+	ihdr := make([]byte, 17)
+	copy(ihdr, "IHDR")
+	binary.BigEndian.PutUint32(ihdr[4:], w)
+	binary.BigEndian.PutUint32(ihdr[8:], h)
+	ihdr[12], ihdr[13] = 8, 6 // 8-bit RGBA.
+	out := append([]byte("\x89PNG\r\n\x1a\n\x00\x00\x00\x0d"), ihdr...)
+	return binary.BigEndian.AppendUint32(out, crc32.ChecksumIEEE(ihdr))
+}
+
+// An OBJ's materials color its faces and its PNG or JPEG textures are drawn;
+// a texture too large, of another kind, or outside the model's folder is not
+// read, and says so.
 func TestOBJMaterials(t *testing.T) {
-	red := color.RGBA{255, 0, 0, 255}
+	red, green := color.RGBA{255, 0, 0, 255}, color.RGBA{0, 200, 0, 255}
+	mtl := func(texture string) []byte { return []byte("newmtl red\nKd 1 0 0\nmap_Kd " + texture + "\n") }
+	obj := func(library string) []byte { return []byte(strings.Replace(triangleOBJ, "%s", library, 1)) }
 	files := fstest.MapFS{
-		"models/tri.obj":   {Data: []byte(strings.Replace(triangleOBJ, "%s", "tri.mtl", 1))},
-		"models/tri.mtl":   {Data: []byte("newmtl red\nKd 1 0 0\nmap_Kd skin.png\n")},
-		"models/up.obj":    {Data: []byte(strings.Replace(triangleOBJ, "%s", "../secret.mtl", 1))},
+		"models/tri.obj":   {Data: obj("tri.mtl")},
+		"models/tri.mtl":   {Data: mtl("skin.png")},
+		"models/skin.png":  {Data: pngOf(t, 4, 4, green)},
+		"models/big.obj":   {Data: obj("big.mtl")},
+		"models/big.mtl":   {Data: mtl("big.png")},
+		"models/big.png":   {Data: hugePNG(8192, 8192)},
+		"models/tga.obj":   {Data: obj("tga.mtl")},
+		"models/tga.mtl":   {Data: mtl("skin.tga")},
+		"models/skin.tga":  {Data: []byte("not read")},
+		"models/up.obj":    {Data: obj("../secret.mtl")},
 		"secret.mtl":       {Data: []byte("newmtl red\nKd 1 0 0\n")},
-		"models/skin.png":  {Data: []byte("not read")},
 		"models/plain.obj": {Data: []byte("v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n")},
 	}
 	l := &Loader{Files: files}
@@ -44,18 +82,36 @@ func TestOBJMaterials(t *testing.T) {
 	if r.Err != nil || r.Kind != "obj" || r.Mesh == nil {
 		t.Fatalf("load: %q %v", r.Kind, r.Err)
 	}
-	if c := r.Mesh.Geometry().Vertices[0].Color; c != red || !r.Mesh.HasColors() {
-		t.Fatalf("material color %v, want red", c)
+	if len(r.Mesh.textured) != 1 || r.Mesh.Triangles() != 1 || !r.Mesh.HasColors() {
+		t.Fatalf("textured parts %d, triangles %d", len(r.Mesh.textured), r.Mesh.Triangles())
 	}
-	info := fieldText(r.Info)
-	for _, want := range []string{"Format=OBJ", "Triangles=1", "textures are not shown"} {
-		if !strings.Contains(info, want) {
-			t.Errorf("info %s lacks %q", info, want)
+	if !strings.Contains(fieldText(r.Info), "Textured parts=1") {
+		t.Errorf("info %s does not count the textured part", fieldText(r.Info))
+	}
+	img, err := ExportImage(r, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := color.RGBAModel.Convert(img.At(20, 40)).(color.RGBA); c.G < c.R || c.G < 60 {
+		t.Fatalf("the texture is not drawn: %v", c)
+	}
+	// Painting every face leaves the texture as it is.
+	r.Mesh.Recolor(color.RGBA{0, 0, 255, 255}, true)
+	img, err = ExportImage(r, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := color.RGBAModel.Convert(img.At(20, 40)).(color.RGBA); c.G < c.B {
+		t.Fatalf("painting covered the texture: %v", c)
+	}
+	for path, note := range map[string]string{"models/big.obj": "megapixels", "models/tga.obj": "only PNG and JPEG", "models/up.obj": "only files beside the model"} {
+		r := l.Load(Request{Path: path, Page: 1})
+		if r.Err != nil || len(r.Mesh.textured) != 0 || !strings.Contains(fieldText(r.Info), note) {
+			t.Errorf("%s: %v %s", path, r.Err, fieldText(r.Info))
 		}
 	}
-	up := l.Load(Request{Path: "models/up.obj", Page: 1})
-	if up.Err != nil || up.Mesh.HasColors() || !strings.Contains(fieldText(up.Info), "only files beside the model") {
-		t.Fatalf("a library outside the folder was read: %v %s", up.Err, fieldText(up.Info))
+	if big := l.Load(Request{Path: "models/big.obj", Page: 1}); big.Mesh.Geometry().Vertices[0].Color != red {
+		t.Error("a face whose texture was refused lost its material color")
 	}
 	if stdin := l.Load(Request{Path: "models/tri.obj", Page: 1, Stdin: true}); stdin.Err != nil || stdin.Mesh.HasColors() {
 		t.Fatal("standard input read a side file")
@@ -122,7 +178,7 @@ func TestPLYPointCloud(t *testing.T) {
 func TestExampleMeshes(t *testing.T) {
 	l := &Loader{}
 	defer l.Close()
-	for path, want := range map[string]string{"../../examples/cottage.obj": "Objects=4", "../../examples/dunes.ply": "Points=2,304"} {
+	for path, want := range map[string]string{"../../examples/cottage.obj": "Textured parts=1", "../../examples/dunes.ply": "Points=2,304"} {
 		r := l.Load(Request{Path: path, Page: 1})
 		if r.Err != nil || r.Mesh == nil || !strings.Contains(fieldText(r.Info), want) {
 			t.Fatalf("%s: %v %s", path, r.Err, fieldText(r.Info))

@@ -119,6 +119,14 @@ func (m *Model3MF) Assemble(shown []bool) (*Mesh, error) {
 func meshFromObjects(objects []nt3dmesh.Object) *Mesh {
 	out := &Mesh{}
 	for _, object := range objects {
+		if object.Geometry.Material != nil && object.Geometry.Material.Texture != nil {
+			// A texture belongs to its own geometry: it is drawn as it is,
+			// and painting leaves it alone.
+			out.textured = append(out.textured, object.Geometry)
+			out.geometry.Bounds.Include(object.Geometry.Bounds.Min)
+			out.geometry.Bounds.Include(object.Geometry.Bounds.Max)
+			continue
+		}
 		base := uint32(len(out.geometry.Vertices))
 		out.geometry.Vertices = append(out.geometry.Vertices, object.Geometry.Vertices...)
 		for _, index := range object.Geometry.Indices {

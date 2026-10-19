@@ -1,6 +1,10 @@
 package document
 
-import "nimbleterminal.dev/nt3d"
+import (
+	"fmt"
+
+	"nimbleterminal.dev/nt3d"
+)
 
 // SetScene replaces the viewer's mesh and explicitly normalizes it to the
 // two-unit world used by Gloss's named views and camera-distance options.
@@ -22,7 +26,31 @@ func (m *Mesh) SetScene(scene *nt3d.Scene) error {
 	if err != nil {
 		return err
 	}
-	return scene.SetTransform(node, transform)
+	if err := scene.SetTransform(node, transform); err != nil {
+		return err
+	}
+	// Textured parts are nodes of their own, under the same normalization;
+	// those of a mesh shown before are taken away.
+	for i := 0; ; i++ {
+		name := fmt.Sprintf("mesh-texture-%d", i)
+		if i >= len(m.textured) {
+			id, ok := scene.Find(name)
+			if !ok {
+				return nil
+			}
+			if err := scene.Remove(id); err != nil {
+				return err
+			}
+			continue
+		}
+		part, err := scene.SetGeometry(name, m.textured[i])
+		if err == nil {
+			err = scene.SetTransform(part, transform)
+		}
+		if err != nil {
+			return err
+		}
+	}
 }
 
 func (m *Mesh) Scene() (*nt3d.Scene, error) {

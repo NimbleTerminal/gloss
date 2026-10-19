@@ -274,7 +274,7 @@ and modification time, followed by:
 | SVG | Declared size, view box, title, description, element count |
 | PDF | Version, page count, size of the current page, title, author, subject, keywords, creator, producer, dates |
 | STL | Encoding, name, triangle count, extent, surface area (STL records no unit) |
-| OBJ, PLY | Object, triangle, point and line counts, extent, surface area, and what was left out, such as textures |
+| OBJ, PLY | Object, triangle, textured part, point and line counts, extent, surface area, and what was left out, such as a texture too large |
 | 3MF | Title, designer, description, application, dates, license, object and triangle counts, the parts by name, extent and surface area in the file's unit, thumbnail size |
 | Markdown | Title, lines, words, headings, links, images |
 | Word | Title, author, dates, application, pages and words as Word counts them, headings, tables, images, links |

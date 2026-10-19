@@ -29,12 +29,19 @@ type Mesh struct {
 	format      string
 	objects     int
 	warnings    []string
-	pointRadius float32 // A point cloud's disc radius, in the file's units.
+	pointRadius float32         // A point cloud's disc radius, in the file's units.
+	textured    []nt3d.Geometry // OBJ parts drawn with their own texture.
 }
 
 func (m *Mesh) Geometry() nt3d.Geometry { return m.geometry }
-func (m *Mesh) Triangles() int          { return len(m.geometry.Indices) / 3 }
-func (m *Mesh) Points() int             { return len(m.geometry.Points) }
+func (m *Mesh) Triangles() int {
+	n := len(m.geometry.Indices) / 3
+	for _, g := range m.textured {
+		n += len(g.Indices) / 3
+	}
+	return n
+}
+func (m *Mesh) Points() int { return len(m.geometry.Points) }
 
 // meshColor is given to faces whose file names none.
 var meshColor = color.RGBA{R: 100, G: 180, B: 230, A: 255}
@@ -45,9 +52,11 @@ func triangleArea(v [3]math3d.Vec3) float64 {
 }
 
 func (m *Mesh) area() float64 {
-	total, g := 0.0, m.geometry
-	for i := 0; i+2 < len(g.Indices); i += 3 {
-		total += triangleArea([3]math3d.Vec3{g.Vertices[g.Indices[i]].Position, g.Vertices[g.Indices[i+1]].Position, g.Vertices[g.Indices[i+2]].Position})
+	total := 0.0
+	for _, g := range append([]nt3d.Geometry{m.geometry}, m.textured...) {
+		for i := 0; i+2 < len(g.Indices); i += 3 {
+			total += triangleArea([3]math3d.Vec3{g.Vertices[g.Indices[i]].Position, g.Vertices[g.Indices[i+1]].Position, g.Vertices[g.Indices[i+2]].Position})
+		}
 	}
 	return total
 }

@@ -7,3 +7,4 @@ newmtl brick
 Kd 0.62 0.25 0.20
 newmtl tile
 Kd 0.30 0.36 0.48
+map_Kd cottage-roof.png

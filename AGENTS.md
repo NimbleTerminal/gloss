@@ -122,9 +122,12 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   falls back to software and then wireframe (`--3d software|wireframe`).
 - **OBJ / PLY** (`internal/document/mesh_formats.go`): nt3dmesh's decoders,
   flattened into the one viewer geometry like 3MF parts (`meshFromObjects`, now
-  also carrying points and lines), turned Y-up → Z-up. OBJ reads only `.mtl`
-  libraries beside or below the model (16 × 1 MiB, none for stdin); textures are
-  refused, faces keep `Kd`, and decoder warnings show in `i`. PLY point clouds
+  also carrying points and lines), turned Y-up → Z-up. Textured OBJ parts stay
+  separate (`Mesh.textured`, scene nodes `mesh-texture-N` under the same
+  normalization; painting leaves them). `sideFiles` reads only `.mtl` and
+  PNG/JPEG beside or below the model, none for stdin: 32 files, 1 MiB libraries,
+  textures 16 MiB / 16 MP each and 64 MP together, checked by DecodeConfig
+  before nt3d decodes; refusals keep `Kd` and show in `i`. PLY point clouds
   (500,000 points) draw as world-unit discs sized to their spacing
   (`cloudRadius`, scaled in `SetScene`); export outlines skip them.
 - **3MF**: core-spec meshes, components, build transforms, base-material and

@@ -39,6 +39,9 @@ func DefaultMeshColor() color.RGBA { return meshColor }
 
 // HasColors says whether the file gave any face a color of its own.
 func (m *Mesh) HasColors() bool {
+	if len(m.textured) > 0 {
+		return true
+	}
 	for _, plain := range m.plain {
 		if !plain {
 			return true
