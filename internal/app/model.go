@@ -198,6 +198,7 @@ type Model struct {
 	note                     string // Outcome of the last drop, shown until the next key.
 	fields                   []document.Field
 	quitting                 bool     // The view being drawn is the one left behind.
+	exiting                  bool     // Quit has begun: the status reported is the last.
 	added                    []string // What the user has handed over, by full path.
 	fetching                 bool
 	fetched                  []fetchedDoc // Files fetched from the web this session.
@@ -280,6 +281,7 @@ func (m *Model) quit() tea.Cmd {
 	if m.opts.OnQuit != nil {
 		m.opts.OnQuit()
 	}
+	m.exiting = true
 	m.clearSearch()
 	stopped := m.stopAnimation()
 	qrCleanup := tea.Batch(stopped, m.clearQR(), m.clearFontPicker())

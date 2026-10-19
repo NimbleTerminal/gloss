@@ -186,6 +186,18 @@ opens and remains in terminal history. Loopback requests do not show a phone
 QR. Detached starts still print only their startup JSON; redirected stderr
 stays plain text. No terminal UI or escape sequences are added to agent output.
 
+## Status in your terminal
+
+A terminal that supports the Program Status Protocol (OSC 7501) can show what
+gloss is doing in a tab you are not looking at. While `--pick` or a phone
+request waits for you, gloss reports *blocked*, "Waiting for files"; once files
+are sent it reports *done*. Cancelling reports *idle*, and a request that times
+out or fails reports *error*. While viewing, gloss reports *working* as a file
+loads or a search runs, *error* when a file cannot be opened, and *idle*
+otherwise. Reports use generic words, never a path, address or message, and
+other terminals ignore them. Only the interactive viewer reports: piped
+output, exports and detached servers never do.
+
 ## Required formats
 
 Use `--accept 'image/*'` for images (including SVG), or a comma-separated list

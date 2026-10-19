@@ -952,3 +952,17 @@ After completion it reloads the document or refreshes the current menu/browser.
 Tests run a child process through Bubble Tea to verify writes and nonzero exits,
 and cover source/scroll restoration and typeset reload after atomic replacement.
 Actual editor interaction and Kitty/tmux restoration still require terminal tests.
+
+## Program status (OSC 7501)
+
+The pager and the phone-handoff screen set `tea.View.ProgramStatus`
+(`internal/app/status.go`, `Handoff.programStatus`); Bubble Tea encodes it and
+sends only changes, so frames and GIF playback add no traffic. Gloss owns the
+root record (`app=gloss`) as the foreground program and never sets the status
+back to nil: clearing the root removes every record in the terminal. The last
+view leaves idle, done (a pick or received files) or error behind. The handoff
+learns how its request settled from the CLI (`HandoffEnd`, `handoffEnd` in
+`cmd/gloss/pick_qr.go`). Messages are fixed words, never paths, URLs, prompts or
+replies. There is no support probe: terminals ignore what they do not know.
+Detached servers keep their JSON protocol and report nothing. ntrecord can
+check it: `Wait+Status blocked app=gloss id=`.

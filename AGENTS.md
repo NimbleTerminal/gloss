@@ -282,6 +282,14 @@ choices; its result is included in `gloss skill schema`. Temporary files retain
 their original lifetime. No headless launch option. Terminal editors cannot be stored as GUI defaults
 or hidden in Manage apps; binary/converted documents are excluded.
 
+Program status (OSC 7501): the pager and handoff screen set
+`View.ProgramStatus` on gloss's root record, `app=gloss`
+(`internal/app/status.go`): working while loading/searching, blocked
+"Waiting for files" while picking or handing off, done on a pick or received
+files, error on a failed load/timeout/failure, idle otherwise and on quit or
+cancel. Never nil once set (a root clear wipes every record); generic messages
+only; no probe; headless and detached modes report nothing.
+
 Terminal discovery: `internal/app/terminal.go` owns one explicit
 `ntpicture.TerminalSession` per pager or handoff connection. Previews, still
 pictures, meshes, and QR overlays share the pager session; only the owner closes it. The

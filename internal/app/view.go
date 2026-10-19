@@ -45,6 +45,7 @@ func (m *Model) View() tea.View {
 		content = ansi.Truncate("gloss: enlarge terminal", w, "")
 	}
 	v := tea.NewView(content)
+	v.ProgramStatus = m.programStatus()
 	v.ReportFocus = m.opts.Theme == "" || m.opts.Theme == "auto"
 	v.AltScreen, v.MouseMode = !m.opts.KeepScreen, mouse
 	return v

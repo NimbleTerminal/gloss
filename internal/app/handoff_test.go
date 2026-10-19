@@ -69,7 +69,7 @@ func TestHandoffSessionGraphicsChoice(t *testing.T) {
 
 func handoff(t *testing.T, render string) *Handoff {
 	t.Helper()
-	m, err := NewHandoff(handoffURL, "Send a photo", render, make(chan struct{}), func() {})
+	m, err := NewHandoff(handoffURL, "Send a photo", render, make(chan HandoffEnd), func() {})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestHandoffKittyCleanupAndCancellation(t *testing.T) {
 }
 
 func TestHandoffPumpWaitsForSlowKittyFrame(t *testing.T) {
-	m, err := NewHandoff(handoffURL, "Send a photo", "kitty", make(chan struct{}), func() {})
+	m, err := NewHandoff(handoffURL, "Send a photo", "kitty", make(chan HandoffEnd), func() {})
 	if err != nil {
 		t.Fatal(err)
 	}

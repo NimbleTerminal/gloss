@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/netip"
@@ -29,6 +30,19 @@ func networkPick(opts options) bool {
 	return err != nil || !ip.IsLoopback()
 }
 
+// handoffEnd says how a request ended, for the screen's last status.
+func handoffEnd(err error) app.HandoffEnd {
+	switch {
+	case err == nil:
+		return app.HandoffReceived
+	case errors.Is(err, errCancelled):
+		return app.HandoffDeclined
+	case errors.Is(err, errTimeout):
+		return app.HandoffTimedOut
+	}
+	return app.HandoffFailed
+}
+
 type webPickResult struct {
 	paths   []string
 	message string
@@ -47,7 +61,7 @@ func waitWebPickQR(ctx context.Context, s *server, opts options, stderr io.Write
 func runWebPickQR(ctx context.Context, s *server, opts options, stderr io.Writer, run func(tea.Model) error) ([]string, string, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	done := make(chan struct{})
+	done := make(chan app.HandoffEnd, 1)
 	m, err := app.NewHandoff(s.URL, opts.Prompt, opts.Render, done, cancel)
 	if err != nil {
 		// A long advertised name might exceed QR capacity. The URL and server
@@ -60,7 +74,7 @@ func runWebPickQR(ctx context.Context, s *server, opts options, stderr io.Writer
 	go func() {
 		paths, message, err := s.waitWebPick(ctx, opts.Timeout)
 		result <- webPickResult{paths, message, err}
-		close(done)
+		done <- handoffEnd(err)
 	}()
 	// served owns OS signals. Its cancellation settles the server, which lets
 	// the screen execute its image cleanup before Bubble Tea restores the TTY.

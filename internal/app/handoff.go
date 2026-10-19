@@ -20,13 +20,26 @@ type Handoff struct {
 	autoKitty       bool
 	closing         bool
 	finished        bool
-	done            <-chan struct{}
+	end             HandoffEnd
+	done            <-chan HandoffEnd
 	cancel          func()
 }
 
-type handoffFinished struct{}
+// HandoffEnd is how the request the screen shows was settled.
+type HandoffEnd int
 
-func NewHandoff(address, prompt, render string, done <-chan struct{}, cancel func()) (*Handoff, error) {
+const (
+	HandoffReceived HandoffEnd = iota + 1 // Files were sent.
+	HandoffDeclined                       // The request was cancelled, here or on the device.
+	HandoffTimedOut
+	HandoffFailed
+)
+
+type handoffFinished struct{ end HandoffEnd }
+
+// NewHandoff shows address until the request is settled; the caller sends
+// how on done.
+func NewHandoff(address, prompt, render string, done <-chan HandoffEnd, cancel func()) (*Handoff, error) {
 	code, err := qrcode.Encode(address, qrcode.Options{})
 	if err != nil {
 		return nil, err
@@ -42,8 +55,7 @@ func NewHandoff(address, prompt, render string, done <-chan struct{}, cancel fun
 
 func (m *Handoff) Init() tea.Cmd {
 	return tea.Batch(m.terminal.Init(), func() tea.Msg {
-		<-m.done
-		return handoffFinished{}
+		return handoffFinished{<-m.done}
 	})
 }
 
@@ -55,7 +67,7 @@ func (m *Handoff) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	state := m.terminal.Snapshot()
 	switch v := msg.(type) {
 	case handoffFinished:
-		m.finished = true
+		m.finished, m.end = true, v.end
 		return m, tea.Sequence(m.qr.Close(), tea.Quit)
 	case tea.WindowSizeMsg:
 		m.width, m.height = max(0, v.Width), max(0, v.Height)
@@ -110,7 +122,24 @@ func (m *Handoff) View() tea.View {
 	}
 	v := tea.NewView(strings.Join(lines, "\n"))
 	v.AltScreen = true
+	v.ProgramStatus = m.programStatus()
 	return v
+}
+
+// programStatus is the handoff's status: blocked on the person until the
+// request settles, then what became of it.
+func (m *Handoff) programStatus() *tea.ProgramStatus {
+	switch {
+	case m.end == HandoffReceived:
+		return report(tea.ProgramStateDone, "Files received")
+	case m.end == HandoffTimedOut:
+		return report(tea.ProgramStateError, "Timed out waiting for files")
+	case m.end == HandoffFailed:
+		return report(tea.ProgramStateError, "Could not receive files")
+	case m.end == HandoffDeclined, m.closing:
+		return report(tea.ProgramStateIdle, "")
+	}
+	return report(tea.ProgramStateBlocked, "Waiting for files")
 }
 
 // Close releases discovery resources after the terminal event loop exits.

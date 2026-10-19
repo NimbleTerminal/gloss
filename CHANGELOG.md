@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Report gloss's state to terminals that support the Program Status Protocol
+  (OSC 7501): waiting for files during a pick or phone request, done when they
+  arrive, working while a file loads, and idle or error otherwise.
+
 - Typesetting moved to the nttypeset and ntfonts libraries; no visible change.
 
 - JSON Lines piped in or saved without a `.jsonl` name now opens as JSON

@@ -5,6 +5,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"nimbleterminal.dev/gloss/internal/app"
 	"os"
@@ -87,5 +88,18 @@ func TestWebPickQRExitCodes(t *testing.T) {
 				t.Fatalf("unsuccessful answer: %v %q", paths, message)
 			}
 		})
+	}
+}
+
+func TestHandoffEndFromResult(t *testing.T) {
+	for err, want := range map[error]app.HandoffEnd{
+		nil:                                app.HandoffReceived,
+		errCancelled:                       app.HandoffDeclined,
+		fmt.Errorf("pick: %w", errTimeout): app.HandoffTimedOut,
+		errors.New("listener closed"):      app.HandoffFailed,
+	} {
+		if got := handoffEnd(err); got != want {
+			t.Errorf("handoffEnd(%v) = %d, want %d", err, got, want)
+		}
 	}
 }
