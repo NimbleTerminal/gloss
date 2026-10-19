@@ -31,7 +31,7 @@ func onCPU(opts app.Options) bool { return opts.Render3D != "auto" && opts.Rende
 // page of each input, with what went wrong where something did.
 type made struct {
 	Path   string `json:"path" doc:"The input, as named; stdin for -."`
-	Kind   string `json:"kind,omitempty" doc:"The format gloss read it as: image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid."`
+	Kind   string `json:"kind,omitempty" doc:"The format gloss read it as: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid."`
 	Page   int    `json:"page,omitempty" doc:"The page, sheet, or table, from 1."`
 	Pages  int    `json:"pages,omitempty" doc:"How many the document has."`
 	Output string `json:"output,omitempty" doc:"The file written; read this, not stderr, as a taken name is numbered."`

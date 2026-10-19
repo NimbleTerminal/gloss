@@ -247,6 +247,9 @@ func meshFields(data []byte, mesh *Mesh) []Field {
 		return nil
 	}
 	number := func(v float64) string { return strconv.FormatFloat(v, 'g', 6, 64) }
+	if mesh.format != "" {
+		return meshFormatFields(mesh, number)
+	}
 	format, name := "STL (ASCII)", ""
 	if len(data) >= 84 && 84+50*uint64(binary.LittleEndian.Uint32(data[80:84])) == uint64(len(data)) {
 		format = "STL (binary)"

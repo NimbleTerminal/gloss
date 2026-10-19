@@ -7,11 +7,21 @@ import "nimbleterminal.dev/nt3d"
 // Scene takes its own geometry snapshot, so recoloring the document cannot
 // mutate a frame already being rendered.
 func (m *Mesh) SetScene(scene *nt3d.Scene) error {
-	node, err := scene.SetGeometry("mesh", m.geometry)
+	transform, _, scale := m.geometry.Bounds.Normalization()
+	g := m.geometry
+	if m.pointRadius > 0 {
+		// Point radii in world units are not scaled by the node's transform:
+		// they are given in the normalized world.
+		g.Points = append([]nt3d.Point(nil), g.Points...)
+		for i := range g.Points {
+			g.Points[i].Radius = m.pointRadius * scale
+		}
+		g.PointStyle.Units = nt3d.WorldUnits
+	}
+	node, err := scene.SetGeometry("mesh", g)
 	if err != nil {
 		return err
 	}
-	transform, _, _ := m.geometry.Bounds.Normalization()
 	return scene.SetTransform(node, transform)
 }
 

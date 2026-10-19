@@ -68,7 +68,7 @@ bookToC: false
   size for Kitty output, smaller only while its frames are slow, and samples
   meshes above 20,000 triangles; wireframe samples above 2,000 triangles, so
   large models can lose detail in fallback modes.
-- Mesh color: an STL, and the faces of a 3MF its file leaves plain, are drawn
+- Mesh color: an STL, and the faces of a 3MF, OBJ or PLY its file leaves plain, are drawn
   in one default blue. `C` opens a color picker over the mesh: a palette of
   swatches, one slider per channel, or a hex number typed in, each change
   painted as it is made; `Enter` chooses the swatch you have moved to (or keeps
@@ -93,6 +93,20 @@ bookToC: false
   model is shown by its embedded thumbnail, and described by `i`. A package may
   hold 4,096 entries and unpack to 128 MiB; one that unpacks to more is shown
   by its thumbnail too, and described by what its root model says.
+- OBJ: Wavefront OBJ triangles and polygons (concave ones split), polylines,
+  vertex colors, and the diffuse colors (`Kd`) of the materials its `.mtl`
+  libraries give, read from beside the model or a folder below it (at most 16
+  libraries of 1 MiB each, and none for standard input). Textures are not
+  shown: textured faces keep their material's color, and `i` says what was
+  left out. Faces with their own normals are smooth-shaded. The same
+  932,067-face limit applies.
+- PLY: Stanford PLY, ASCII or binary: faces with vertex or face colors, a
+  scanner's range grid joined into a surface, or, with no faces, a cloud of up
+  to 500,000 points drawn as discs sized to the spacing of their neighbors.
+  A texture the file names is not read.
+- OBJ and PLY files do not say which way is up; gloss takes Y as up, as most
+  tools write them, and turns them to the Z-up that STL, 3MF and the named
+  views (`--view top`) use.
 - Plain text (`.txt`, `.text`, `.log`, and any file that is not binary):
   shown as it is, in the document view, so that no line of it is read as a
   heading, a list, or emphasis. Returns and a byte order mark are dropped,

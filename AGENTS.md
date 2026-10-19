@@ -2,7 +2,7 @@
 
 ## What gloss is
 
-A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3MF
+A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL, 3MF, OBJ and PLY
 meshes, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
 Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
@@ -120,6 +120,13 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   without rasterizing (16 MiB per page); a page with none is an error.
 - **STL**: ASCII and binary, up to 932,067 faces, flat-shaded; GPU rendering
   falls back to software and then wireframe (`--3d software|wireframe`).
+- **OBJ / PLY** (`internal/document/mesh_formats.go`): nt3dmesh's decoders,
+  flattened into the one viewer geometry like 3MF parts (`meshFromObjects`, now
+  also carrying points and lines), turned Y-up → Z-up. OBJ reads only `.mtl`
+  libraries beside or below the model (16 × 1 MiB, none for stdin); textures are
+  refused, faces keep `Kd`, and decoder warnings show in `i`. PLY point clouds
+  (500,000 points) draw as world-unit discs sized to their spacing
+  (`cloudRadius`, scaled in `SetScene`); export outlines skip them.
 - **3MF**: core-spec meshes, components, build transforms, base-material and
   color-group colors, Bambu-Studio-style filament colors from slicer settings;
   part listing/selection (`c` key, `--parts`, `--partn`); too-large projects

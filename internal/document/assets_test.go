@@ -49,6 +49,15 @@ func TestEmbeddedGallery(t *testing.T) {
 				if r.Mesh == nil {
 					t.Fatal("no mesh")
 				}
+			case "obj":
+				// Its materials are read from the embedded files beside it.
+				if r.Mesh == nil || !r.Mesh.HasColors() {
+					t.Fatalf("mesh=%v, without its materials", r.Mesh != nil)
+				}
+			case "ply":
+				if r.Mesh == nil || r.Mesh.Points() == 0 {
+					t.Fatal("no point cloud")
+				}
 			case "3mf":
 				if r.Mesh == nil || len(r.Parts) != 3 || !r.Mesh.HasColors() {
 					t.Fatalf("mesh=%v parts=%d", r.Mesh != nil, len(r.Parts))

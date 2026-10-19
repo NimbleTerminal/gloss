@@ -129,6 +129,12 @@ func meshFromObjects(objects []nt3dmesh.Object) *Mesh {
 			out.geometry.Bounds.Include(object.Geometry.Bounds.Max)
 		}
 		out.plain = append(out.plain, object.Plain...)
+		// OBJ polylines and PLY point clouds are drawn as they are.
+		out.geometry.Lines = append(out.geometry.Lines, object.Geometry.Lines...)
+		out.geometry.Points = append(out.geometry.Points, object.Geometry.Points...)
+		if len(object.Geometry.Points) > 0 {
+			out.geometry.PointStyle = object.Geometry.PointStyle
+		}
 	}
 	return out
 }

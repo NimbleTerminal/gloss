@@ -23,10 +23,18 @@ type Mesh struct {
 	geometry nt3d.Geometry
 	plain    []bool       // Per vertex: the file gave the face no color.
 	saved    []color.RGBA // The file's colors, while all faces are painted over.
+
+	// For OBJ and PLY: what the file was, its object count, and what its
+	// decoder passed over.
+	format      string
+	objects     int
+	warnings    []string
+	pointRadius float32 // A point cloud's disc radius, in the file's units.
 }
 
 func (m *Mesh) Geometry() nt3d.Geometry { return m.geometry }
 func (m *Mesh) Triangles() int          { return len(m.geometry.Indices) / 3 }
+func (m *Mesh) Points() int             { return len(m.geometry.Points) }
 
 // meshColor is given to faces whose file names none.
 var meshColor = color.RGBA{R: 100, G: 180, B: 230, A: 255}

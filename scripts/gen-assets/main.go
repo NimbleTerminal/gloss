@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"image"
 	"image/color"
@@ -51,6 +52,71 @@ func main() {
 	if err := os.WriteFile("examples/gloss.stl", blockWord(), 0644); err != nil {
 		panic(err)
 	}
+	obj, mtl := cottage()
+	for name, data := range map[string][]byte{"examples/cottage.obj": obj, "examples/cottage.mtl": mtl, "examples/dunes.ply": dunes()} {
+		if err := os.WriteFile(name, data, 0644); err != nil {
+			panic(err)
+		}
+	}
+}
+
+// cottage is a small house in OBJ, Y-up as most tools write it: an object
+// per part, each with a material from cottage.mtl.
+func cottage() (obj, mtl []byte) {
+	var b bytes.Buffer
+	b.WriteString("# An original cottage for gloss's examples.\nmtllib cottage.mtl\n")
+	n := 0
+	box := func(name, material string, x0, y0, z0, x1, y1, z1 float64) {
+		fmt.Fprintf(&b, "o %s\nusemtl %s\n", name, material)
+		for _, c := range [][3]float64{{x0, y0, z0}, {x1, y0, z0}, {x1, y0, z1}, {x0, y0, z1}, {x0, y1, z0}, {x1, y1, z0}, {x1, y1, z1}, {x0, y1, z1}} {
+			fmt.Fprintf(&b, "v %g %g %g\n", c[0], c[1], c[2])
+		}
+		for _, f := range [][4]int{{1, 2, 3, 4}, {5, 8, 7, 6}, {1, 5, 6, 2}, {2, 6, 7, 3}, {3, 7, 8, 4}, {4, 8, 5, 1}} {
+			fmt.Fprintf(&b, "f %d %d %d %d\n", n+f[0], n+f[1], n+f[2], n+f[3])
+		}
+		n += 8
+	}
+	box("walls", "plaster", -2, 0, -1.5, 2, 2, 1.5)
+	box("door", "wood", -.4, 0, 1.5, .4, 1.3, 1.6)
+	box("chimney", "brick", 1, 2, -.8, 1.5, 3.4, -.3)
+	// The roof is a prism: two slopes and two gables.
+	b.WriteString("o roof\nusemtl tile\n")
+	for _, c := range [][3]float64{{-2.3, 2, -1.8}, {2.3, 2, -1.8}, {2.3, 2, 1.8}, {-2.3, 2, 1.8}, {-2.3, 3.2, 0}, {2.3, 3.2, 0}} {
+		fmt.Fprintf(&b, "v %g %g %g\n", c[0], c[1], c[2])
+	}
+	for _, f := range [][]int{{4, 3, 6, 5}, {2, 1, 5, 6}, {1, 4, 5}, {3, 2, 6}, {1, 2, 3, 4}} {
+		b.WriteString("f")
+		for _, i := range f {
+			fmt.Fprintf(&b, " %d", n+i)
+		}
+		b.WriteString("\n")
+	}
+	mtl = []byte("# Materials for cottage.obj.\n" +
+		"newmtl plaster\nKd 0.93 0.89 0.80\n" +
+		"newmtl wood\nKd 0.45 0.28 0.16\n" +
+		"newmtl brick\nKd 0.62 0.25 0.20\n" +
+		"newmtl tile\nKd 0.30 0.36 0.48\n")
+	return b.Bytes(), mtl
+}
+
+// dunes is a cloud of points sampled over sand dunes, in binary PLY with a
+// color for each point, Y-up.
+func dunes() []byte {
+	const side = 48
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "ply\nformat binary_little_endian 1.0\ncomment An original point cloud for gloss's examples.\nelement vertex %d\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n", side*side)
+	for i := 0; i < side; i++ {
+		for j := 0; j < side; j++ {
+			x, z := float64(i)/side*8-4, float64(j)/side*8-4
+			y := .6*math.Sin(x*.9+math.Sin(z*.5)) + .25*math.Cos(z*1.3)
+			t := (y + .85) / 1.7
+			for _, v := range []float32{float32(x), float32(y), float32(z)} {
+				_ = binary.Write(&b, binary.LittleEndian, v)
+			}
+			b.Write([]byte{uint8(150 + 90*t), uint8(95 + 90*t), uint8(55 + 60*t)})
+		}
+	}
+	return b.Bytes()
 }
 
 // A warm desert scene contrasts with the PNG's blue hills at dusk.

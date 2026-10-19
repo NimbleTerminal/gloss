@@ -50,7 +50,7 @@ bookToC: false
 | `C` | Pick a color for a mesh: `Tab` between palette, sliders, and hex; `Space` applies the swatch, `Enter` chooses the swatch you have moved to and closes, `r` (the Reset button) restores the file's colors, `s` paints all faces or only plain ones, `Esc` undoes |
 | `B` | Pick the background color behind a mesh, with the same picker as `C`: `r` restores the default, `Enter` chooses the swatch you have moved to and closes, `Esc` undoes |
 | Click, in the `C` / `B` picker | Click a tab, swatch, or slider bar; a swatch applies at once and a second click on it chooses it and closes; drag along a slider |
-| Drag / Shift-drag / wheel | Mesh (STL, 3MF) orbit / pan / zoom |
+| Drag / Shift-drag / wheel | Mesh (STL, 3MF, OBJ, PLY) orbit / pan / zoom |
 | Drag, then `y` | Typeset text: select, then copy to the clipboard; `Esc` clears |
 | Drop files, or paste their paths | Add files to the list; one opens at once, several open the menu |
 
@@ -274,6 +274,7 @@ and modification time, followed by:
 | SVG | Declared size, view box, title, description, element count |
 | PDF | Version, page count, size of the current page, title, author, subject, keywords, creator, producer, dates |
 | STL | Encoding, name, triangle count, extent, surface area (STL records no unit) |
+| OBJ, PLY | Object, triangle, point and line counts, extent, surface area, and what was left out, such as textures |
 | 3MF | Title, designer, description, application, dates, license, object and triangle counts, the parts by name, extent and surface area in the file's unit, thumbnail size |
 | Markdown | Title, lines, words, headings, links, images |
 | Word | Title, author, dates, application, pages and words as Word counts them, headings, tables, images, links |

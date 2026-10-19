@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Open OBJ and PLY meshes, through nt3d: OBJ with its material colors, PLY
+  with vertex colors, and PLY point clouds drawn as a surface of discs. Both
+  are taken as Y-up. Textures are not shown yet.
+
 - Report gloss's state to terminals that support the Program Status Protocol
   (OSC 7501): waiting for files during a pick or phone request, done when they
   arrive, working while a file loads, and idle or error otherwise.

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
-  <meta name="description" content="gloss is a visual terminal pager: like less, for images, SVG, PDF, STL and 3MF meshes, Markdown, HTML, text, JSON, notebooks, Word, Excel, and CSV. Try it in your browser.">
+  <meta name="description" content="gloss is a visual terminal pager: like less, for images, SVG, PDF, STL, 3MF, OBJ and PLY meshes, Markdown, HTML, text, JSON, notebooks, Word, Excel, and CSV. Try it in your browser.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%23A7D7B1%27/%3E%3Ctext x=%2732%27 y=%2747%27 text-anchor=%27middle%27 font-size=%2752%27 fill=%27%233F3080%27%3E%E2%96%A7%3C/text%3E%3C/svg%3E">
   <title>gloss — less, with pictures.</title>
   <meta property="og:type" content="website">
@@ -36,6 +36,8 @@
         <button data-sample="field-guide.pdf" aria-pressed="false">PDF</button>
         <button data-sample="gloss.stl" aria-pressed="false">STL</button>
         <button data-sample="lantern.3mf" aria-pressed="false">3MF</button>
+        <button data-sample="cottage.obj" aria-pressed="false">OBJ</button>
+        <button data-sample="dunes.ply" aria-pressed="false">PLY</button>
         <button data-sample="readme.md" aria-pressed="false">Markdown</button>
         <button data-sample="field-notes.html" aria-pressed="false">HTML</button>
         <button data-sample="notes.txt" aria-pressed="false">Text</button>
@@ -54,7 +56,7 @@
       <div><dt>Images</dt><dd>PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC</dd></div>
       <div><dt>Documents</dt><dd>SVG, Mermaid diagrams, PDF, Word, Excel, Jupyter notebooks, Grist</dd></div>
       <div><dt>Text</dt><dd>Markdown, HTML, plain text and source, JSON and JSONL, CSV</dd></div>
-      <div><dt>3D</dt><dd>STL and 3MF meshes, with their parts and colors</dd></div>
+      <div><dt>3D</dt><dd>STL, 3MF, OBJ and PLY meshes, with their parts and colors, and point clouds</dd></div>
     </dl></section>
     <section class="install"><h2>In your terminal</h2><p>gloss is a single binary for macOS, Linux, and Windows. Pictures are drawn with Kitty graphics where the terminal has them, and with glyphs everywhere else. Drop files on it, browse folders, and export what you see.</p><div class="channels">
       <div><span>Homebrew</span><code class="command"><span class="prompt" aria-hidden="true">$ </span>brew install --cask nimbleterminal/tap/gloss</code></div>

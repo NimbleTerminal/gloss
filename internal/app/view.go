@@ -332,6 +332,9 @@ func (m *Model) detail(w, h int) string {
 	switch {
 	case m.chart != nil:
 		detail = fmt.Sprintf("%s · %s", strings.ToUpper(m.kind), plural(m.triangles, "triangle"))
+		if m.triangles == 0 && m.points > 0 {
+			detail = fmt.Sprintf("%s · %s", strings.ToUpper(m.kind), plural(m.points, "point"))
+		}
 		if m.hasParts() && m.partsShown != nil {
 			detail += fmt.Sprintf(" · parts %d/%d", m.partsOnScreen(), len(m.parts))
 		}

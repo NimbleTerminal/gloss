@@ -90,7 +90,8 @@ func exportMesh(r Result, maxEdge int) (image.Image, error) {
 	// Faces that look the same way are shaded alike, so that from straight
 	// ahead a hole, or the floor of a box seen from the top, vanishes into
 	// what is behind it. Views asked for by name have their edges drawn.
-	if named {
+	// A cloud of points has no surface to find edges in.
+	if named && r.Mesh.Triangles() > 0 {
 		if depths == nil {
 			for _, s := range shots {
 				frame, err := softwareSnapshot(r.Mesh, tile, s.camera, s.light)

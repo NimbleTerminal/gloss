@@ -36,7 +36,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -413,6 +413,12 @@ func (l *Loader) Load(q Request) (out Result) {
 	case "stl":
 		out.Mesh, out.Err = ParseSTL(data)
 		details = func() []Field { return meshFields(data, out.Mesh) }
+	case "obj":
+		out.Mesh, out.Err = ParseOBJ(q.Path, data, l.Files, q.Stdin)
+		details = func() []Field { return meshFields(data, out.Mesh) }
+	case "ply":
+		out.Mesh, out.Err = ParsePLY(data)
+		details = func() []Field { return meshFields(data, out.Mesh) }
 	case "csv":
 		out.Sheet, out.Err = ReadCSV(q.Path, data)
 		if out.Sheet != nil {
@@ -738,6 +744,9 @@ func Detect(path string, data []byte, forced string) (string, error) {
 	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("%PDF-")) {
 		return "pdf", nil
 	}
+	if bytes.HasPrefix(data, []byte("ply\n")) || bytes.HasPrefix(data, []byte("ply\r\n")) {
+		return "ply", nil
+	}
 	if bytes.HasPrefix(data, []byte("PK\x03\x04")) {
 		if archive, err := openZip(bytes.NewReader(data), int64(len(data))); err == nil && opcKind(archive) != "" {
 			return opcKind(archive), nil
@@ -788,6 +797,10 @@ func Detect(path string, data []byte, forced string) (string, error) {
 		return "stl", nil
 	case ".3mf":
 		return "3mf", nil
+	case ".obj":
+		return "obj", nil
+	case ".ply":
+		return "ply", nil
 	case ".xlsx", ".xlsm":
 		return "xlsx", nil
 	case ".grist":

@@ -82,6 +82,7 @@ type Options struct {
 type meshState struct {
 	chart       *widget.Model
 	triangles   int
+	points      int             // A point cloud's, which has no triangles.
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
 	assemble    func([]bool) (*document.Mesh, error)
 	partsShown  []bool // Which parts are on the chart; nil for all.
@@ -842,7 +843,7 @@ func (m *Model) showMesh(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	// Apply a capability already established before this chart existed.
 	_, applied := m.chart.Update(struct{}{})
 	setup = append(setup, applied)
-	m.triangles, m.err = v.Mesh.Triangles(), m.chart.Err()
+	m.triangles, m.points, m.err = v.Mesh.Triangles(), v.Mesh.Points(), m.chart.Err()
 	return tea.Sequence(cleanup, tea.Batch(setup...), m.chart.Init())
 }
 

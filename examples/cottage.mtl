@@ -1,0 +1,9 @@
+# Materials for cottage.obj.
+newmtl plaster
+Kd 0.93 0.89 0.80
+newmtl wood
+Kd 0.45 0.28 0.16
+newmtl brick
+Kd 0.62 0.25 0.20
+newmtl tile
+Kd 0.30 0.36 0.48
