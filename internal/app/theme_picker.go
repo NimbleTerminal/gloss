@@ -62,9 +62,9 @@ func (m *Model) themePickerKey(k string) tea.Cmd {
 		m.opts.Theme = ref
 		m.themePicker = nil
 		m.layer = layerNone
-		var cmd tea.Cmd
+		cmd := m.settleDiagrams()
 		if ref == "auto" {
-			cmd = m.themeRequest()
+			cmd = tea.Batch(cmd, m.themeRequest())
 		}
 		if save := m.opts.SaveTheme; save != nil {
 			return tea.Batch(cmd, func() tea.Msg { return themeSaved{save(ref)} })

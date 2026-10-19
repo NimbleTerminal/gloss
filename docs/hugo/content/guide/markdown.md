@@ -116,7 +116,8 @@ flowchart LR
 
 Diagrams use go-mermaid's light palette with a light theme and its dark palette
 with a dark one, each on its own page. Changing the theme between light and dark
-draws them again, keeping your place; headless exports follow `--theme` (auto is
+draws them again, keeping your place; in the theme picker (`T`) that happens
+once you press Enter, not while you look through themes; headless exports follow `--theme` (auto is
 light). Each diagram's source is limited to
 64 KiB, and drawing runs in the parser worker under its 15-second deadline.
 A diagram counts as an image reference and against the decoded-pixel budget;

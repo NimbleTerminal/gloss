@@ -178,6 +178,7 @@ type Model struct {
 	theme                    string
 	detectedTheme            string
 	themePicker              *themePicker
+	diagramsDark             bool // The palette the last request drew Mermaid diagrams in.
 	fontPicker               *fontPicker
 	err                      error
 	source                   image.Image
@@ -307,6 +308,7 @@ func (o Options) IsStdin(path string) bool { return o.Stdin != "" && path == o.S
 func (m *Model) request(reload bool) document.Request {
 	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: m.theme, Font: m.opts.Font, Mono: m.opts.Mono, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
 		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
+	m.diagramsDark = theme.Dark(m.theme)
 	q.TypesetWidth = m.typesetMeasure()
 	q.TypesetLineNumbers, q.TypesetChop = m.lineNumbers, m.chopLines
 	if !reload {

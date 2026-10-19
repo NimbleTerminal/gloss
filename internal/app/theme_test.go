@@ -7,6 +7,7 @@ import (
 	"testing/fstest"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 func themedModel(t *testing.T, mode string, typeset bool, render ...string) *Model {
@@ -152,5 +153,59 @@ func TestThemeRedrawsMermaidFile(t *testing.T) {
 	drainAnimation(t, m, m.applyTheme("dark"))
 	if m.generation == before || m.kind != "mermaid" {
 		t.Fatalf("light to dark did not reload the %q diagram", m.kind)
+	}
+}
+
+func TestThemeRedrawsMermaidInPreview(t *testing.T) {
+	files := fstest.MapFS{"flow.mmd": {Data: []byte("flowchart LR\n  A --> B\n")}, "flow.md": {Data: []byte("# Flow\n\n```mermaid\nflowchart LR\n  A --> B\n```\n")}, "notes.txt": {Data: []byte("notes\n")}}
+	m := New(Options{Files: []string{"flow.mmd", "flow.md", "notes.txt"}, FilesFS: files, Menu: true, Preview: true, Render: "glyph", Page: 1, Theme: ""})
+	t.Cleanup(func() { _ = m.Close() })
+	_, cmd := m.Update(tea.WindowSizeMsg{Width: 100, Height: 24})
+	drainAnimation(t, m, cmd)
+	drainAnimation(t, m, m.applyTheme("light"))
+	p := m.preview
+	if p == nil || p.kind != "mermaid" {
+		t.Fatalf("preview not showing the diagram: %v", p != nil)
+	}
+	before := p.generation
+	drainAnimation(t, m, m.applyTheme("dark"))
+	if p.generation == before {
+		t.Fatal("light to dark did not reload the previewed diagram")
+	}
+
+	// A Markdown document with a diagram, previewed.
+	drainAnimation(t, m, m.menuKey("down"))
+	if p = m.preview; p == nil || p.kind != "markdown" || p.diagrams() != 1 {
+		t.Fatalf("preview not showing the Markdown diagram: %q, %d", p.kind, p.diagrams())
+	}
+	before = p.generation
+	drainAnimation(t, m, m.applyTheme("light"))
+	if p.generation == before {
+		t.Fatal("dark to light did not reload the previewed Markdown")
+	}
+}
+
+// Arrowing through the theme picker recolors without drawing diagrams again;
+// Enter draws them once in the chosen palette, and Esc leaves them as they were.
+func TestThemePickerDefersMermaidRedraw(t *testing.T) {
+	text := "# Diagram\n\n```mermaid\nflowchart LR\n  A --> B\n```\n"
+	for _, key := range []string{"enter", "esc"} {
+		m := lineModel(t, "diagram.md", text)
+		m.opts.ThemeChoices = []theme.Choice{{Name: "Light", Ref: "light"}, {Name: "Dark", Ref: "dark"}}
+		drainAnimation(t, m, m.applyTheme("light"))
+		drainAnimation(t, m, m.openThemePicker())
+		before := m.generation
+		drainAnimation(t, m, m.themePickerKey("down")) // auto, then light
+		drainAnimation(t, m, m.themePickerKey("down")) // dark
+		if m.theme != "dark" || m.generation != before {
+			t.Fatalf("previewing %q reloaded the document", m.theme)
+		}
+		drainAnimation(t, m, m.themePickerKey(key))
+		switch reloaded := m.generation != before; {
+		case key == "enter" && !reloaded:
+			t.Fatal("choosing a dark theme did not redraw the diagram")
+		case key == "esc" && reloaded:
+			t.Fatal("cancelling the picker redrew the diagram")
+		}
 	}
 }
