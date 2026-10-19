@@ -108,8 +108,27 @@ func textKind(path string, data []byte) string {
 			return "ipynb"
 		}
 	}
-	if json.Valid(data) {
+	if json.Valid(data) || jsonLines(data) {
 		return "json"
 	}
 	return ""
+}
+
+// jsonLines says whether the first two lines that are not blank each hold
+// one JSON object or array: JSON Lines, whatever the file is called. Bare
+// numbers and strings do not count, so ordinary text is not mistaken for it.
+func jsonLines(data []byte) bool {
+	n := 0
+	for len(data) > 0 && n < 2 {
+		line, rest, _ := bytes.Cut(data, []byte("\n"))
+		data = rest
+		if line = bytes.TrimSpace(line); len(line) == 0 {
+			continue
+		}
+		if (line[0] != '{' && line[0] != '[') || !json.Valid(line) {
+			return false
+		}
+		n++
+	}
+	return n == 2
 }

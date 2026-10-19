@@ -93,3 +93,28 @@ func TestNestedJSONIsBounded(t *testing.T) {
 		t.Fatalf("records: %v, %d bytes", err, len(rec.Markdown))
 	}
 }
+
+// JSON Lines is recognized by its content, so a pipe or an unnamed file of
+// records reads as JSON; lines of bare numbers or words stay text.
+func TestDetectJSONLinesByContent(t *testing.T) {
+	for _, tc := range []struct {
+		data, want string
+	}{
+		{"{\"a\":1}\n{\"a\":2}\n", "json"},
+		{"\n[1,2]\n\n{\"b\":true}\nnot json\n", "json"},
+		{"{\"a\":1}\n", "json"},
+		{"1\n2\nhello\n", "text"},
+		{"{\"a\":1}\nhello\n", "text"},
+		{"{\"a\":\n1}\n{\"a\":2}\nend\n", "text"},
+	} {
+		if got, err := Detect("", []byte(tc.data), ""); err != nil || got != tc.want {
+			t.Errorf("Detect(%q) = %q, %v; want %q", tc.data, got, err, tc.want)
+		}
+	}
+	if err := AcceptFilter("jsonl").Check("-", []byte("{\"a\":1}\n{\"a\":2}\n")); err != nil {
+		t.Fatalf("--accept jsonl: %v", err)
+	}
+	if _, err := ParseAccept("ndjson"); err != nil {
+		t.Fatal(err)
+	}
+}

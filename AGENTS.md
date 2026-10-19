@@ -191,7 +191,10 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   bounded source view; Markdown shaping/raster limits also apply. Export kinds
   remain text/json. `--markdown typeset` remains a compatibility alias.
 - **JSON / JSONL / NDJSON**: pretty-printed and highlighted, numbered records
-  for line-delimited files, syntax errors reported with line number.
+  for line-delimited files, syntax errors reported with line number. Content
+  detection takes JSON Lines when the first two non-blank lines each hold an
+  object or array (`jsonLines` in `html.go`); `--type`/`--accept` `jsonl` and
+  `ndjson` are aliases of `json`.
 - **Jupyter notebooks** (nbformat 4): Markdown and code cells with outputs,
   including PNG/JPEG/GIF/SVG picture outputs.
 - **HTML**: converted to Markdown via html-to-markdown; nothing is fetched.

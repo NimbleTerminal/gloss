@@ -175,7 +175,7 @@ cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
   asked for (stderr says so too); try `--parts`/`--partn` for one part.
   Prefer the manifest over parsing stderr.
 - SVG and PDF are rasterized at the requested size.
-- `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid`
+- `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid` (`jsonl`/`ndjson` mean `json`)
   forces the format for extensionless files or stdin.
 - Normal terminal text and tables (Excel, Grist, CSV) cannot be exported as PNG.
   Use `--typeset` for a visual Markdown/text/source/JSON export; otherwise

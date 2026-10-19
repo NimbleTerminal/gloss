@@ -106,7 +106,9 @@ bookToC: false
   fenced block; `s` shows it as it is in the file. A file with one value to a
   line, such as a training set, a batch request, or a log export, is shown as
   numbered records, whatever its name. Malformed JSON is refused with the line
-  it fails on. Extensionless JSON and stdin are recognised by parsing. The
+  it fails on. Extensionless JSON and stdin are recognised by parsing; JSON
+  Lines is recognised when its first two lines each hold an object or array.
+  `--type jsonl` (or `ndjson`) is the same as `--type json`. The
   view is cut at 2 MiB of pretty-printed text; `i` says how many records
   there are.
 - Jupyter notebooks (`.ipynb`, nbformat 4): Markdown cells as they are, code

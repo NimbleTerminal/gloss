@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- JSON Lines piped in or saved without a `.jsonl` name now opens as JSON
+  records rather than plain text, and `--type`/`--accept` take `jsonl` and
+  `ndjson` as names for `json`.
+
 - Draw fenced `mermaid` blocks in Markdown as diagrams, in terminal text and
   typeset views and in exports, with pure-Go go-mermaid: no browser or
   network. Diagrams follow a light or dark theme, redrawing in place when it
