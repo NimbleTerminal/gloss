@@ -7,6 +7,7 @@ import (
 	"image/gif"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"nimbleterminal.dev/gloss/examples"
@@ -23,8 +24,11 @@ func TestEmbeddedGallery(t *testing.T) {
 			}
 			switch r.Kind {
 			case "markdown":
-				if len(r.Markdown.Images) != 6 {
+				if len(r.Markdown.Images) != 7 {
 					t.Fatalf("images: %d", len(r.Markdown.Images))
+				}
+				if diagram := r.Markdown.Images[6]; !strings.HasPrefix(diagram.Destination, mermaidPrefix) {
+					t.Fatalf("gallery Mermaid diagram missing: %+v", diagram)
 				}
 				if r.Markdown.Images[3].Destination != "motion.webp" || r.Markdown.Animations != 2 {
 					t.Fatalf("animated WebP not counted: %+v", r.Markdown.Images[3])
