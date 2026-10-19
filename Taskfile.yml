@@ -193,13 +193,25 @@ tasks:
     env:
       GOWORK: 'off'
     desc: Regenerate THIRD_PARTY_NOTICES.md from the modules linked
-    cmds: ['go run ./internal/tools/notices > THIRD_PARTY_NOTICES.md']
+    # Through a temporary file, so a failed run leaves the notices as they were.
+    cmds:
+      - |
+        tmp=$(mktemp)
+        trap 'rm -f "$tmp"' EXIT
+        go run ./internal/tools/notices > "$tmp"
+        cat "$tmp" > THIRD_PARTY_NOTICES.md
   notices-check:
     env:
       GOWORK: 'off'
     desc: Fail when THIRD_PARTY_NOTICES.md is not what the modules linked say
     cmds:
-      - 'go run ./internal/tools/notices | cmp -s - THIRD_PARTY_NOTICES.md || (echo "THIRD_PARTY_NOTICES.md is stale: run task notices" >&2; exit 1)'
+      # A generator that fails writes nothing, which must not pass for an
+      # empty notices file.
+      - |
+        tmp=$(mktemp)
+        trap 'rm -f "$tmp"' EXIT
+        go run ./internal/tools/notices > "$tmp" || { echo "notices generator failed" >&2; exit 1; }
+        cmp -s "$tmp" THIRD_PARTY_NOTICES.md || { echo "THIRD_PARTY_NOTICES.md is stale: run task notices" >&2; exit 1; }
   release:
     env:
       GOWORK: 'off'
