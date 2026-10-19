@@ -7,6 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nttypeset"
 )
 
 // Selecting text on a typeset page. The page is a picture, so the terminal
@@ -64,7 +65,8 @@ func (m *Model) typesetPagePoint(x, y int, clamp bool) (image.Point, bool) {
 		return image.Point{}, false
 	}
 	b := m.source.Bounds()
-	return image.Pt(shown.Left+(px.X-b.Min.X)*shown.Width/b.Dx(), shown.Top+(px.Y-b.Min.Y)*shown.Height/b.Dy()), true
+	view := nttypeset.View{Top: shown.Top, Left: shown.Left, Scale: float64(b.Dx()) / float64(shown.Width)}
+	return view.Unproject(px.Sub(b.Min)), true
 }
 
 // typesetSelectMouse follows a left drag over the typeset page. It says

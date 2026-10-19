@@ -131,7 +131,7 @@ func (m *Model) helpView(w, h int) string {
 		leftSections, rightSections = browserHelpLeft, browserHelpRight
 	}
 	p := m.palette()
-	name := lipgloss.NewStyle().Foreground(p.Accent).Bold(true).Render("gloss")
+	name := lipgloss.NewStyle().Foreground(p.Accent).Bold(true).Render("gloss " + safe(m.opts.Version))
 	closing := lipgloss.NewStyle().Foreground(p.Muted).Render("? or Esc closes")
 	heading := " " + name + lipgloss.NewStyle().Foreground(p.Foreground).Render(" — a visual pager")
 	gap := max(1, w-ansi.StringWidth(heading)-ansi.StringWidth(closing)-1)

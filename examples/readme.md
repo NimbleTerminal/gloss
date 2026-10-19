@@ -48,12 +48,25 @@ Two original landscapes, decoded locally: blue hills at dusk in PNG and a sunny 
 
 ![Sunlit dunes and a cactus in HEIC](landscape.heic)
 
+## A diagram
+
+A fenced `mermaid` block is drawn as a diagram in both views, in pure Go:
+
+```mermaid
+flowchart LR
+    F[A file] --> D{Which kind?}
+    D -->|picture| P[Kitty graphics or glyphs]
+    D -->|document| T[Text or typeset]
+    D -->|mesh| M[nt3d]
+```
+
 ## A small table
 
 | Input | Rendering |
 | --- | --- |
 | Markdown | Glamour |
-| SVG | NTCharts SVG |
+| SVG | ntsvg |
+| Mermaid | go-mermaid |
 | STL | nt3d |
 
 ```sh

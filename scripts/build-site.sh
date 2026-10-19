@@ -6,7 +6,7 @@ mkdir -p web/dist/fonts && cp web/fonts/* web/dist/fonts/
 cp examples/landscape.png web/dist/social-preview.png
 cp THIRD_PARTY_NOTICES.md web/dist/
 cd examples/demo
-GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -mod=readonly -trimpath -ldflags='-s -w' -o ../../web/dist/app.wasm .
+GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -mod=readonly -trimpath -ldflags="-s -w -X main.version=${GLOSS_VERSION:-dev}" -o ../../web/dist/app.wasm .
 # A compressed download hides its decoded size; the page uses this for a progress bar.
 wc -c < ../../web/dist/app.wasm | tr -d ' ' > ../../web/dist/app.wasm.size
 go tool booba-assets ../../web/dist

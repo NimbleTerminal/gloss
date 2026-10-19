@@ -22,6 +22,7 @@ import (
 )
 
 type Options struct {
+	Version     string // Build version shown in help; empty uses dev.
 	OpenWith    openwith.Host
 	IsTemporary func(string) bool
 	// OpenLink asks the embedding host to open an explicitly clicked web URL.
@@ -209,6 +210,9 @@ var nextMessageOwner atomic.Int64
 func nextOwnerID() int { return int(nextMessageOwner.Add(1)) }
 
 func New(opts Options) *Model {
+	if opts.Version == "" {
+		opts.Version = "dev"
+	}
 	ownTerminal := opts.terminal == nil
 	if ownTerminal {
 		opts.terminal = newTerminalSession(opts.Render)

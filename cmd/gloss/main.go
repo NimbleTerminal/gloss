@@ -66,10 +66,14 @@ type options struct {
 	EdgeReason    string         // Why the alias chose its edge, for the manifest.
 	SkillInstall  string         // Where gloss skill install writes.
 	SkillDetect   bool           // gloss skill install with no folder: write for the agents found here.
+
+	Print                   bool // Draw one viewport to stdout without a terminal.
+	PrintWidth, PrintHeight int
 }
 
 func parse(args []string, out io.Writer) (options, bool, error) {
 	var opts options
+	opts.Version = version
 	name, args := splitVerb(args)
 	f := pflag.NewFlagSet("gloss", pflag.ContinueOnError)
 	f.SetOutput(out)
@@ -82,8 +86,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVarP(&opts.LineNumbers, "line-numbers", "N", false, "number the lines of plain text, source code, JSON and Markdown source (# toggles, : goes to a line)")
 	f.BoolVarP(&opts.ChopLines, "chop-long-lines", "S", false, "cut long lines at the right edge instead of wrapping them, as less -S does (S toggles, arrows scroll sideways)")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
-	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown (or md)")
-	accept := f.String("accept", "", "require these content formats for this session, comma-separated: image/*, pdf, svg, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, markdown")
+	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown (or md), mermaid")
+	accept := f.String("accept", "", "require these content formats for this session, comma-separated: image/*, pdf, svg, stl, 3mf, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown, mermaid")
 	page := f.StringP("page", "p", "1", "PDF page or workbook sheet, from 1; for an export or text into a folder, a range such as 2-5, or all")
 	f.BoolVar(&opts.Text, "text", false, "take the text out: Markdown of a Word document, page, or notebook, text of a PDF page, CSV of a sheet, text and JSON as they are")
 	grep := f.String("grep", "", "search the text layer of a PDF, every page unless --page says, for this regular expression (RE2), and print each match's page and a line around it; --json for objects")
@@ -104,6 +108,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
 	f.StringVar(&opts.UserAgent, "user-agent", "", "what downloads send as their User-Agent; else $GLOSS_USER_AGENT, else gloss and its version")
 	f.BoolVar(&opts.Apps, "apps", false, "list installed apps for each file kind without opening a file; --json for scripts")
+	f.BoolVar(&opts.Print, "print", false, "print one content viewport to stdout and exit; pictures use ANSI-colored half-blocks, no terminal required")
+	f.IntVar(&opts.PrintWidth, "print-width", 0, "with --print, viewport columns (1–512; default terminal width or 80)")
+	f.IntVar(&opts.PrintHeight, "print-height", 0, "with --print, viewport rows (1–256; default terminal height or 24)")
 	f.BoolVar(&opts.Info, "info", false, "print what each file says about itself, and do not open the viewer")
 	f.BoolVar(&opts.JSON, "json", false, "with --apps, --info, --text, --grep, an export, --pick-web, or --resume, print JSON")
 	f.BoolVar(&opts.Pick, "pick", false, "wait for the user to hand over files: Enter prints their paths and quits")
@@ -224,10 +231,13 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if !slices.Contains([]string{"auto", "software", "wireframe"}, opts.Render3D) {
 		return opts, false, fmt.Errorf("--3d must be auto, software, or wireframe")
 	}
-	if opts.Type == "md" {
+	switch opts.Type {
+	case "md":
 		opts.Type = "markdown"
+	case "jsonl", "ndjson":
+		opts.Type = "json"
 	}
-	if !slices.Contains([]string{"", "image", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown"}, opts.Type) {
+	if !slices.Contains([]string{"", "image", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid"}, opts.Type) {
 		return opts, false, fmt.Errorf("--type must be image, svg, pdf, stl, 3mf, docx, xlsx, grist, csv, json, ipynb, html, text, or markdown")
 	}
 	if f.Changed("grep") {
@@ -307,6 +317,20 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	for i := range opts.Views {
 		if *projection == "perspective" {
 			opts.Views[i].Projection = nt3d.Perspective
+		}
+	}
+	if opts.PrintWidth < 0 || opts.PrintWidth > 512 || opts.PrintHeight < 0 || opts.PrintHeight > 256 || (f.Changed("print-width") && opts.PrintWidth == 0) || (f.Changed("print-height") && opts.PrintHeight == 0) {
+		return opts, false, fmt.Errorf("--print-width must be 1..512 and --print-height 1..256")
+	}
+	if !opts.Print && (f.Changed("print-width") || f.Changed("print-height")) {
+		return opts, false, fmt.Errorf("--print-width and --print-height require --print")
+	}
+	if opts.Print {
+		if opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Info || opts.Grep != nil || opts.JSON || opts.Apps || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.FetchAllowed || opts.Prompt != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.NoOpen || opts.Timeout != 0 {
+			return opts, false, fmt.Errorf("--print cannot be combined with another output mode or interactive viewer options")
+		}
+		if opts.Render == "kitty" {
+			return opts, false, fmt.Errorf("--print uses glyphs; --render kitty requires the interactive viewer")
 		}
 	}
 	switch {
@@ -422,7 +446,7 @@ func run(args []string) (err error) {
 		return err
 	}
 	opts.Files = arguments(opts, stdinTTY)
-	exporting := opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Grep != nil
+	exporting := opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Grep != nil || opts.Print
 	if opts.Output == "-" && term.IsTerminal(os.Stdout.Fd()) {
 		return fmt.Errorf("redirect PNG stdout to a file or pipe")
 	}
@@ -442,7 +466,7 @@ func run(args []string) (err error) {
 		}
 		defer screen.Close()
 	default:
-		return fmt.Errorf("output must be a terminal; run gloss directly in your terminal, or see gloss --help")
+		return fmt.Errorf("output must be a terminal; run gloss directly in your terminal, or use --print for a static view or --serve for a browser viewer")
 	}
 	stdinPath := ""
 	defer func() {
@@ -522,6 +546,10 @@ func run(args []string) (err error) {
 	}
 	if opts.Text {
 		return textFiles(opts, os.Stdout, os.Stderr)
+	}
+	if opts.Print {
+		w, h := printSize(opts, os.Stdout)
+		return printFiles(opts, os.Stdout, w, h)
 	}
 	if exporting {
 		return exportFiles(opts, os.Stdout, os.Stderr)

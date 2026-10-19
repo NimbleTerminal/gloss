@@ -1119,7 +1119,7 @@ The following files are under their respective licenses:
   * ./etc/booba.png remains **All Rights Reserved** by Neomantra Corp.  You may use it only in unmodified form and only as part of this project (e.g., in forks or distributions of the project).  You may **not** extract it for unrelated use, modify it, or redistribute it separately without explicit permission.
 ```
 
-## github.com/NimbleMarkets/oksvg v0.1.1
+## github.com/NimbleMarkets/oksvg v0.1.2
 
 ```
 BSD 3-Clause License
@@ -3249,6 +3249,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## github.com/zkrebbekx/go-mermaid v0.1.6
+
+```
+MIT License
+
+Copyright (c) 2026 Zac Krebbekx
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## golang.org/x/crypto v0.58.0
 
 ```
@@ -3473,7 +3499,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## nimbleterminal.dev/nt3d v0.1.0
+## nimbleterminal.dev/nt3d v0.2.0
 
 ```
 MIT License
@@ -3713,7 +3739,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntsvg v0.5.0
+## nimbleterminal.dev/ntsvg v0.5.1
 
 ```
 MIT License
@@ -3739,7 +3765,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nttypeset v0.1.0
+## nimbleterminal.dev/nttypeset v0.1.1
 
 ```
 MIT License
@@ -3775,5 +3801,13 @@ License notices for the fonts it embeds.
 
 Go dependency license texts are collected in THIRD_PARTY_NOTICES.md, generated
 with `task notices`.
+
+The generated demo site includes the go-booba and ghostty-web runtime assets.
+Their license texts are in THIRD_PARTY_NOTICES.md, copied into the site.
+`web/licenses/` was copied from go-booba's vendored ghostty-web, Ghostty and
+pako sources; review it when updating the pinned booba runtime.
+
+`examples/typeset/landscape.png` is an original flat-shaded illustration drawn
+for gloss, Copyright (c) 2026 Neomantra Corp. It carries no third-party notice.
 ```
 

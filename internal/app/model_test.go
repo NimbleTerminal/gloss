@@ -119,12 +119,12 @@ func TestViewFitsAndSanitizes(t *testing.T) {
 }
 
 func TestHelpFitsAStandardTerminal(t *testing.T) {
-	m := New(Options{Files: []string{"a.png"}, Render: "glyph", Page: 1})
+	m := New(Options{Version: "v1.2.3", Files: []string{"a.png"}, Render: "glyph", Page: 1})
 	defer m.Close()
 	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
 	m.Update(press("?"))
 	view := m.View().Content
-	for _, want := range []string{"quit", "file menu", "browse", "Drop files", "PDF page", "zoom", "orbit", "fit", "Kitty", "reload", "export", "details", "Shift-drag", "auto-rotate", "orthographic", "source", "gloss --help"} {
+	for _, want := range []string{"gloss v1.2.3", "quit", "file menu", "browse", "Drop files", "PDF page", "zoom", "orbit", "fit", "Kitty", "reload", "export", "details", "Shift-drag", "auto-rotate", "orthographic", "source", "gloss --help"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("help cut off before %q", want)
 		}

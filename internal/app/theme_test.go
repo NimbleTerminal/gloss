@@ -115,3 +115,42 @@ func TestThemeRestylesSearch(t *testing.T) {
 		t.Fatal("theme cleared search")
 	}
 }
+
+// Mermaid diagrams are drawn in a light or dark palette at load, so a theme
+// change across that line reloads a document that has them, keeping its
+// place; other theme changes, and documents without diagrams, only restyle.
+func TestThemeRedrawsMermaidAcrossLightAndDark(t *testing.T) {
+	text := "# Diagram\n\n" + strings.Repeat("Some prose.\n\n", 6) + "```mermaid\nflowchart LR\n  A --> B\n```\n"
+	m := lineModel(t, "diagram.md", text)
+	drainAnimation(t, m, m.applyTheme("light"))
+	if m.markdown == nil || m.markdown.doc.Diagrams != 1 {
+		t.Fatal("diagram not counted")
+	}
+	m.markdown.offset = 3
+	before := m.generation
+	drainAnimation(t, m, m.applyTheme("dark"))
+	if m.generation == before {
+		t.Fatal("light to dark did not reload the diagram")
+	}
+	if m.markdown == nil || m.markdown.offset != 3 {
+		t.Fatal("reload lost the reading position")
+	}
+
+	plain := lineModel(t, "plain.md", "# No diagrams\n")
+	drainAnimation(t, plain, plain.applyTheme("light"))
+	before = plain.generation
+	drainAnimation(t, plain, plain.applyTheme("dark"))
+	if plain.generation != before {
+		t.Fatal("a document without diagrams reloaded")
+	}
+}
+
+func TestThemeRedrawsMermaidFile(t *testing.T) {
+	m := lineModel(t, "flow.mmd", "flowchart LR\n  A --> B\n")
+	drainAnimation(t, m, m.applyTheme("light"))
+	before := m.generation
+	drainAnimation(t, m, m.applyTheme("dark"))
+	if m.generation == before || m.kind != "mermaid" {
+		t.Fatalf("light to dark did not reload the %q diagram", m.kind)
+	}
+}

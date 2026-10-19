@@ -42,6 +42,7 @@ func readMarkdownTree(source []byte) (ast.Node, error) {
 		root := p.Parse(text.NewReader(source))
 		normalizeMarkdownHTML(root, source, budget.check)
 		normalizeMarkdownExtensions(root, source, budget.check)
+		normalizeMermaid(root, source, budget.check)
 		budget.check()
 		return root, nil
 	})

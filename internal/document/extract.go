@@ -119,8 +119,11 @@ func Text(r Result) (text []byte, ext string, err error) {
 	case r.Err != nil:
 		return nil, "", r.Err
 	case r.Text != "":
-		if r.Kind == "json" {
+		switch r.Kind {
+		case "json":
 			return []byte(r.Text), ".json", nil
+		case "mermaid":
+			return []byte(r.Text), ".mmd", nil
 		}
 		return []byte(r.Text), ".txt", nil
 	case r.Sheet != nil:

@@ -367,3 +367,12 @@ func TestTextWritesPackagedPicturesBesideIt(t *testing.T) {
 		t.Fatalf("manifest: %v %s", err, stdout.String())
 	}
 }
+
+func TestTypeJSONLinesAliases(t *testing.T) {
+	for _, alias := range []string{"jsonl", "ndjson"} {
+		opts, _, err := parse([]string{"--type", alias, "a.txt"}, &bytes.Buffer{})
+		if err != nil || opts.Type != "json" {
+			t.Fatalf("--type %s = %q, %v; want json", alias, opts.Type, err)
+		}
+	}
+}

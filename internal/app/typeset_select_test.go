@@ -8,6 +8,7 @@ import (
 	"testing/fstest"
 
 	tea "charm.land/bubbletea/v2"
+	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -32,6 +33,25 @@ func drag(t *testing.T, m *Model, from, to image.Point) {
 	drainAnimation(t, m, cmd)
 	_, cmd = m.Update(tea.MouseReleaseMsg{X: to.X, Y: to.Y, Button: tea.MouseLeft})
 	drainAnimation(t, m, cmd)
+}
+
+// Device pixels can leave a fractional layout pixel at the raster's edge.
+// Selection must invert the uniform drawing scale, including its rounding.
+func TestTypesetSelectionAtFractionalRasterScale(t *testing.T) {
+	files := fstest.MapFS{"page.md": {Data: []byte(strings.Repeat("A paragraph of words.\n\n", 40))}}
+	m := New(Options{Files: []string{"page.md"}, FilesFS: files, MarkdownMode: "typeset", Render: "kitty", DPI: 150, Page: 1})
+	t.Cleanup(func() { _ = m.Close() })
+	m.Update(tea.WindowSizeMsg{Width: 21, Height: 13})
+	m.terminal.Update(uv.CellSizeEvent{Width: 7, Height: 13})
+	drainAnimation(t, m, m.load(false))
+	if m.typesetShown == nil || m.typesetShown.Width != 400 || m.source.Bounds().Dx() != 147 {
+		t.Fatalf("unexpected viewport: %+v", m.typesetShown)
+	}
+	// Cell (0,1) is centered at raster pixel (3,19). At 147/400 scale,
+	// that is nearest to page point (8,52).
+	if got, ok := m.typesetPagePoint(0, 1, false); !ok || got != image.Pt(8, 52) {
+		t.Fatalf("page point = %v, %v; want (8,52)", got, ok)
+	}
 }
 
 func TestTypesetSelectionDragCopyAndClear(t *testing.T) {

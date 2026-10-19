@@ -15,7 +15,7 @@ import (
 // Editable reports formats whose original file is text, not a converted view.
 func Editable(kind string) bool {
 	switch kind {
-	case "text", "markdown", "json", "html", "svg", "csv", "ipynb":
+	case "text", "markdown", "json", "html", "svg", "mermaid", "csv", "ipynb":
 		return true
 	}
 	return false

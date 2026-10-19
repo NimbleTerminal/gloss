@@ -42,6 +42,10 @@ task install                     # installs gloss into your Go bin directory
 go build -ldflags '-X main.version=0.1.0' -o gloss ./cmd/gloss
 ```
 
+The pager's `?` help heading shows the host build version (`dev` when unstamped).
+`task build-wasm-site VERSION=...` stamps the browser gallery through the same
+`main.version` linker variable as the native CLI.
+
 `task --list` lists the development commands.
 
 ## Test
@@ -241,7 +245,7 @@ the layout-scale raster.
 The viewer derives width from physical cell geometry, debounces width changes
 for 30 ms, cancels obsolete work and applies only matching generation/revision
 results. It keeps one job in flight and the old bitmap visible. A cancelled
-request leaves the layout as it was before the block it was in (`layout.block`
+request leaves the layout as it was before the block it was in (nttypeset
 restores it), and the next request takes it up from there; only a layout that
 failed of itself is dropped. New widths
 anchor the current block; scroll and height changes reuse layout. Preparation
@@ -816,7 +820,8 @@ to the terminal's Shift override. `internal/app/typeset_select.go` follows a
 plain left drag over the page: the press is a page point, each motion asks
 for a reflow with `Request.TypesetSelect` holding the two ends, and the
 result's picture has the text between them highlighted behind the glyphs
-(`layout.rasterTo`, `Palette.Selection`). `internal/document/typeset_select.go`
+(`nttypeset.Layout.Raster`, `Palette.Selection`). `View.Unproject` maps raster
+pixels back to page points at the drawing scale. `nttypeset.Layout.Select`
 resolves an end to a caret, a text operation and a rune offset, from a point
 (nearest line, then the glyph cluster's nearer edge, from the run's glyph
 advances) or from a place. Every text operation carries its paragraph's
@@ -875,17 +880,17 @@ gutter is prepended after search highlighting, with the wrap width reduced by
 its columns, and a wrapped line is numbered on its first row only.
 
 A typeset text, source or JSON document already has one block per line
-(`prepared.lines`), so with `Request.TypesetLineNumbers` the layout lays a
-monospace number left of each block (`layout.number`) and moves the text right
-by the width of the widest number (`layout.gutterWidth`). Numbers are
-operations flagged `gutter`: drawn in the muted color, skipped by caret
+(`nttypeset.Document.Lines`), so `Request.TypesetLineNumbers` sets
+`nttypeset.LayoutOptions.Numbers` to place a monospace number left of each
+block and move the text right by the width of the widest number. Numbers are
+gutter operations: drawn in the muted color, skipped by caret
 placement, selection spans and the selected text, and given paragraph −1 so
 places in the text are the same with or without them. Numbers on or off is
 part of the layout's identity, like its width, so toggling relays out and the
 visible block is anchored as on a reflow. `TypesetViewport.Line` on a request
 asks for a line at the top, which the loader lays out to and answers as it
 answers `End`; on a result `Line` is the line at the reading top (the block
-under the page margin, `layout.lineAt`) and `Lines` the count, zero for a
+under the page margin, `nttypeset.Layout.LineAt`) and `Lines` the count, zero for a
 Markdown page. The viewer clears its pending line when a result arrives and
 counts a pending line or a different gutter as a view that does not match.
 
@@ -897,7 +902,8 @@ and highlights survive and the gutter stays put. `scrollX` moves by a quarter
 of the width and stops at the widest row; `reveal` brings a search match that
 is off the edge a third of the way in. Tables are laid out within the width
 as before. A typeset text page lays each line out at an unbounded width
-(`layout.chop`), tracks the right edge of its widest operation (`extentX`),
+(`nttypeset.LayoutOptions.Chop`), tracks the right edge of its widest operation
+(`nttypeset.Layout.ExtentX`),
 and the pan clamp in `renderTypeset` takes the greater of the page width and
 that edge. Chop is part of the layout's identity with width and numbers, and
 of the viewer's match test through `TypesetViewport.Chop`; a Markdown page

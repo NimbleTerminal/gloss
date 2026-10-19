@@ -27,21 +27,22 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/yuin/goldmark v1.8.2
 	github.com/yuin/goldmark-emoji v1.0.5
+	github.com/zkrebbekx/go-mermaid v0.1.6
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
-	nimbleterminal.dev/nt3d v0.1.0
+	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfonts v0.1.0
 	nimbleterminal.dev/ntpdf v0.4.0
 	nimbleterminal.dev/ntpicture v0.1.0
 	nimbleterminal.dev/ntqrcode v0.3.0
-	nimbleterminal.dev/ntsvg v0.5.0
-	nimbleterminal.dev/nttypeset v0.1.0
+	nimbleterminal.dev/ntsvg v0.5.1
+	nimbleterminal.dev/nttypeset v0.1.1
 )
 
 require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
-	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
+	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/charmbracelet/x/conpty v0.2.0 // indirect

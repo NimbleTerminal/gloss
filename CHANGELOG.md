@@ -4,6 +4,26 @@
 
 - Typesetting moved to the nttypeset and ntfonts libraries; no visible change.
 
+- JSON Lines piped in or saved without a `.jsonl` name now opens as JSON
+  records rather than plain text, and `--type`/`--accept` take `jsonl` and
+  `ndjson` as names for `json`.
+
+- Draw fenced `mermaid` blocks in Markdown as diagrams, in terminal text and
+  typeset views and in exports, with pure-Go go-mermaid: no browser or
+  network. Diagrams follow a light or dark theme, redrawing in place when it
+  changes. A diagram that does not parse shows its error, and typeset shows
+  its source. Standalone `.mmd` and `.mermaid` files open as one diagram, and
+  `--text` gives their source.
+
+- SVG markers (such as arrowheads) and percentage lengths in shape geometry now
+  render, through ntsvg v0.5.1 and oksvg v0.1.2; meshes use nt3d v0.2.0.
+
+- `--print` draws one content viewport to stdout and exits, without a terminal.
+  Pictures use colored half-blocks; `--print-width` and `--print-height` size
+  captured output. Text, tables and the selected document page work too.
+
+- Show the build version in the `?` help heading.
+
 - Keep the displayed still picture visible while a background-color change renders.
 
 - Keep inline Markdown images on `Q` exit and update their layout when terminal

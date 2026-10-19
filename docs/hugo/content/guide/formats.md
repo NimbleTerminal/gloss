@@ -43,6 +43,12 @@ bookToC: false
 - SVG: ntsvg's pure-Go SVG renderer, rasterized to a 2400-pixel maximum edge.
   SVG support follows the underlying oksvg renderer, not a full browser engine.
   Rendering runs in an isolated worker that is stopped after 15 seconds.
+- Mermaid: a `.mmd` or `.mermaid` file is one diagram, drawn as Markdown's
+  `mermaid` fences are (see [Markdown](../markdown/#mermaid-diagrams)), in the
+  theme's light or dark palette, and shown like a picture. Recognized by
+  name only: the same text in a `.txt` file stays text. The source is limited
+  to 64 KiB. `--text` gives the source; a diagram that does not parse is an
+  error that names the line.
 - PDF: PDFium via embedded WebAssembly; no Poppler, MuPDF, CGO, or external
   runtime installation. Pages render at 150 DPI by default (`--dpi 36..600`),
   with a 32-megapixel raster budget and a 10,000-page limit. Password-protected
@@ -100,7 +106,9 @@ bookToC: false
   fenced block; `s` shows it as it is in the file. A file with one value to a
   line, such as a training set, a batch request, or a log export, is shown as
   numbered records, whatever its name. Malformed JSON is refused with the line
-  it fails on. Extensionless JSON and stdin are recognised by parsing. The
+  it fails on. Extensionless JSON and stdin are recognised by parsing; JSON
+  Lines is recognised when its first two lines each hold an object or array.
+  `--type jsonl` (or `ndjson`) is the same as `--type json`. The
   view is cut at 2 MiB of pretty-printed text; `i` says how many records
   there are.
 - Jupyter notebooks (`.ipynb`, nbformat 4): Markdown cells as they are, code

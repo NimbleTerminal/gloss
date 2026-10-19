@@ -10,7 +10,7 @@ bookToC: false
 | --- | --- |
 | `q`, `Ctrl-C` | Quit |
 | `q`, `Q` | Quit / quit leaving the last view in the scrollback, whatever `-X` said |
-| `?`, `Esc` | Show help / dismiss help |
+| `?`, `Esc` | Show help (including the build version) / dismiss help |
 | `f` in typeset text | Preview font pairs: arrows select, Enter keeps, Esc restores; `+`/`-` still zoom |
 | `T` over a document | Preview themes: arrows select, Enter keeps, Esc restores |
 | `Esc` | Back to the file list, with previews, from a document |
@@ -183,7 +183,7 @@ and `Esc` comes back to the listing.
 `/`, likewise, searches the folder shown and those under it. Ask for globs
 (`*.png`, `report*`, `deep/*.pdf`), extensions (`png`), or kinds (`images`,
 `svg`, `pdf`, `docs`, `word`, `meshes`, `tables`, `excel`, `grist`, `csv`,
-`markdown`, `html`, `text`, `json`, `notebooks`), several at once; names are matched
+`markdown`, `mermaid`, `html`, `text`, `json`, `notebooks`), several at once; names are matched
 without regard to case. `Enter` searches, then opens the file under the
 cursor; `Ctrl-A` adds every match; `Esc` returns to the listing. A search is
 kept safe by its limits: hidden folders and links are not entered, folders

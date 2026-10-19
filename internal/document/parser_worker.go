@@ -21,6 +21,7 @@ type parserRequest struct {
 	Data       []byte
 	Page, Edge int
 	Text       bool
+	Dark       bool // A Mermaid diagram's palette.
 }
 type parserReply struct {
 	Error         string
@@ -42,6 +43,8 @@ func parserWork(q parserRequest) parserReply {
 			return out, ErrTooLarge
 		}
 		switch q.Kind {
+		case "mermaid":
+			return mermaidWork(q)
 		case "svg":
 			if q.Edge < 1 || q.Edge > 4096 {
 				return out, errors.New("invalid SVG edge")

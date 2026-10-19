@@ -18,9 +18,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
+	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/nt3d"
 	"nimbleterminal.dev/ntpdf"
 	"nimbleterminal.dev/ntpicture/animation"
@@ -34,7 +36,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -225,6 +227,7 @@ type Loader struct {
 	directOptions   nttypeset.LayoutOptions // The options direct was laid out with.
 	typesetBase     string
 	typesetAnimate  bool
+	typesetDark     bool // The palette its Mermaid diagrams were drawn in.
 	typesetKind     string
 	typesetText     string
 	typesetInfo     []Field
@@ -312,7 +315,8 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Err = err
 			return out
 		}
-		if q.MarkdownMode != "typeset" || q.BaseDir != l.typesetBase || q.Type != l.typesetType || (q.Animate && !q.Preview) != l.typesetAnimate || sha256.Sum256(data) != l.typesetHash {
+		redraw := l.typeset.Diagrams > 0 && theme.Dark(q.Theme) != l.typesetDark
+		if redraw || q.MarkdownMode != "typeset" || q.BaseDir != l.typesetBase || q.Type != l.typesetType || (q.Animate && !q.Preview) != l.typesetAnimate || sha256.Sum256(data) != l.typesetHash {
 			_ = l.closePDF()
 		}
 	}
@@ -374,7 +378,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			l.typesetImages, l.typesetAnimations = images, players
 			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, doc)
 		}
-		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview)
+		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview, theme.Dark(q.Theme))
 		details = func() []Field { return markdownFields(out.Markdown) }
 	case "pdf":
 		details = func() []Field {
@@ -396,6 +400,16 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		out.Image, out.Err = renderSVG(q.Path, data, edge)
 		details = func() []Field { return svgFields(data) }
+	case "mermaid":
+		details = func() []Field { return mermaidFields(data, out.Image) }
+		if !utf8.Valid(data) {
+			out.Err = errors.New("mermaid: the diagram is not UTF-8 text")
+			return out
+		}
+		out.Text = string(data)
+		if !q.TextOnly {
+			out.Image, _, _, out.Err = renderMermaid(string(data), q.MaxEdge, theme.Dark(q.Theme))
+		}
 	case "stl":
 		out.Mesh, out.Err = ParseSTL(data)
 		details = func() []Field { return meshFields(data, out.Mesh) }
@@ -411,7 +425,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Err = err
 			return out
 		}
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, doc.Markdown, q.BaseDir, l.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, doc.Markdown, q.BaseDir, l.Files, false, theme.Dark(q.Theme))
 		out.Text = doc.Plain
 		details = doc.fields
 	case "ipynb":
@@ -422,7 +436,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			return out
 		}
 		// The outputs' pictures are kept beside the Markdown, in memory.
-		out.Markdown, out.Err = loadMarkdownFrom("notebook.md", nb.Markdown, ".", nb.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), "notebook.md", nb.Markdown, ".", nb.Files, false, theme.Dark(q.Theme))
 		if out.Markdown != nil {
 			out.Markdown.Packaged = true
 		}
@@ -434,7 +448,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			out.Err = err
 			return out
 		}
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, doc.Markdown, q.BaseDir, l.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, doc.Markdown, q.BaseDir, l.Files, false, theme.Dark(q.Theme))
 		out.Text = doc.Plain
 		details = doc.fields
 	case "html":
@@ -445,7 +459,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			return out
 		}
 		// Pictures are looked for beside the page, as a browser would.
-		out.Markdown, out.Err = loadMarkdownFrom(q.Path, page.Markdown, q.BaseDir, l.Files)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, page.Markdown, q.BaseDir, l.Files, false, theme.Dark(q.Theme))
 		details = func() []Field { return page.fields(out.Markdown) }
 	case "docx":
 		details = func() []Field { return Section("Document", Field{"Format", "Word document"}) }
@@ -455,7 +469,7 @@ func (l *Loader) Load(q Request) (out Result) {
 			return out
 		}
 		// Pictures are in the package, beside the document.
-		out.Markdown, out.Err = loadMarkdownFrom("word/document.md", doc.Markdown, "word", doc.pkg.archive)
+		out.Markdown, out.Err = loadMarkdownContext(context.Background(), "word/document.md", doc.Markdown, "word", doc.pkg.archive, false, theme.Dark(q.Theme))
 		if out.Markdown != nil {
 			out.Markdown.Packaged = true
 		}
@@ -718,6 +732,8 @@ func Detect(path string, data []byte, forced string) (string, error) {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".md", ".markdown", ".mdown":
 		return "markdown", nil
+	case ".mmd", ".mermaid":
+		return "mermaid", nil
 	}
 	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("%PDF-")) {
 		return "pdf", nil

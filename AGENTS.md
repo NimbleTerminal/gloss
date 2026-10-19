@@ -3,7 +3,7 @@
 ## What gloss is
 
 A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3MF
-meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
+meshes, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
 Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
 Tea, ntsvg, ntpdf, ntpicture, and nt3d. The README is the
@@ -37,7 +37,7 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   Typeset layout, raster, selection and highlighting come from
   `nimbleterminal.dev/nttypeset` and its faces from `nimbleterminal.dev/ntfonts`;
   gloss owns Markdown parsing, assets, viewport policy and compositing.
-  PDF metadata/text and SVG rasterization run in disposable parser workers:
+  PDF metadata/text, SVG rasterization and Mermaid diagrams run in disposable parser workers:
   the current executable on native hosts, Web Workers in the browser. A
   15-second deadline stops and reaps/terminates the worker; at most two run at
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
@@ -108,6 +108,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   pages; file navigation is unchanged except Space while an animation is open.
 - **SVG**: rasterized by ntsvg’s pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.
+- **Mermaid** (`.mmd`, `.mermaid`, by name only): one diagram, drawn as the
+  Markdown fences are (`renderMermaid`, theme palette, reload on a light/dark
+  flip via `diagrams()`), shown and exported as a still picture; `--max-edge`
+  sizes it, else twice reading size. `--text` gives the source (`.mmd`); a
+  diagram that does not parse is an error.
 - **PDF**: PDFium over embedded WebAssembly; pages at 150 DPI default
   (`--dpi 36..600`), 32 MP budget, 10,000-page limit, no password-protected
   files. `/` searches extractable text, jumping to matching pages with excerpts
@@ -134,6 +139,13 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   pauses; reflow preserves positions; reload restarts. `e` exports the first
   visible GIF’s displayed frame in normal Markdown, the viewport in typeset.
   Glamour by default; `s` toggles source and `t` switches text/typeset.
+  Fenced `mermaid` blocks normalize to standalone images (`internal/document/mermaid.go`:
+  content-key destination, source and fence as node attributes) drawn by
+  pure-Go go-mermaid in the parser worker, 64 KiB per diagram, in its light or
+  dark palette by `theme.Dark(Request.Theme)`. `Markdown.Diagrams` counts them;
+  a light/dark theme change reloads such a document in place (`applyTheme`), and
+  the loader re-prepares typeset when the palette differs (`typesetDark`). They count as image references and pixels; a diagram that fails
+  shows its error in text, and typeset preflight puts the fence back after a note.
   Unicode emoji shortcodes expand in rendered prose, tables, and link labels;
   source, code, escapes, unknown names, and image-only aliases stay literal.
   No emoji assets are fetched; typeset fonts still lack emoji coverage.
@@ -153,7 +165,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   overlay picture the size of its cells (through `ntpicture/playback.Layers`),
   so a frame is the GIF's area, not the viewport; glyph rendering animates
   the composite page. A left drag over the page selects text
-  (`internal/app/typeset_select.go`, `internal/document/typeset_select.go`):
+  (`internal/app/typeset_select.go`, nttypeset's selection API):
   the loader highlights it in the raster and returns its text, with each end
   placed as block/paragraph/rune so it survives reflow; copying preserves logical
   text across visual wraps. `y` copies it with
@@ -183,7 +195,10 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   bounded source view; Markdown shaping/raster limits also apply. Export kinds
   remain text/json. `--markdown typeset` remains a compatibility alias.
 - **JSON / JSONL / NDJSON**: pretty-printed and highlighted, numbered records
-  for line-delimited files, syntax errors reported with line number.
+  for line-delimited files, syntax errors reported with line number. Content
+  detection takes JSON Lines when the first two non-blank lines each hold an
+  object or array (`jsonLines` in `html.go`); `--type`/`--accept` `jsonl` and
+  `ndjson` are aliases of `json`.
 - **Jupyter notebooks** (nbformat 4): Markdown and code cells with outputs,
   including PNG/JPEG/GIF/SVG picture outputs.
 - **HTML**: converted to Markdown via html-to-markdown; nothing is fetched.
@@ -294,6 +309,15 @@ Source toggles and column changes reindex; leaving the document,
 changing files, or reloading cancels. Images and meshes have no text search.
 
 Agent-facing / scriptable surface:
+
+- `--print`: one initial content viewport per file to stdout, no TTY or Tea
+  program. `--print-width 1..512` and `--print-height 1..256` override stdout
+  terminal geometry (capped), with 80×24 for a pipe. Text and tables retain
+  their terminal layout; pictures use ANSI-colored half-blocks, first frame
+  only; meshes use software. Only text, newlines and numeric SGR cross stdout
+  (`internal/app/print.go`); no cursor, query, OSC or graphics escapes. Auto
+  theme is light. `cmd/gloss/print.go` shares export loading.
+  Single pages only; an error stops the batch with exit 1.
 
 - `--output file.png` / `--output-dir` / `--output -`: headless PNG export for
   vision models, no TTY needed; `--max-edge 1..4096`, aspect preserved, white

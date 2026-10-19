@@ -45,12 +45,47 @@ gloss ~/Pictures                 # browse a folder for a file to open
 gloss https://example.org/a.pdf  # download a web address and show it
 ```
 
+## Printing one view
+
+`--print` draws the initial content viewport to stdout and exits. It works in
+captured shell output, including `!` commands in coding agents, without a TTY:
+
+```sh
+gloss --print photo.png
+gloss --print --print-width 100 --print-height 30 report.pdf
+gloss --print --page 2 --cols name,total sales.xlsx
+cat notes.md | gloss --print -
+```
+
+Pictures use ANSI-colored Unicode half-blocks. Text, Markdown and tables use
+normal terminal rendering. There is no viewer
+chrome, input loop, cursor movement, terminal probing or Kitty protocol. GIFs
+and animated WebP stay on frame one. Meshes use a software snapshot. A host
+that strips ANSI styles will lose picture colors; for an agent to inspect
+pixels, use PNG export and its image-reading tool instead.
+
+The viewport defaults to the stdout terminal size, or **80 columns × 24 rows**
+when output is captured. `--print-width 1..512` and `--print-height 1..256`
+override it; terminal dimensions are capped at those limits. Each named file
+prints one viewport, separated
+by a blank line. `--page` selects one page/sheet (or a typeset export slice),
+and `--cols`/`--coln` filter tables.
+`--typeset`, line numbers and chopped lines are supported. Auto theme is light
+without probing or reading saved preferences; use `--theme dark` explicitly
+for dark command output.
+
+`--print` cannot be combined with another output mode, interactive viewer
+options, or `--render kitty`. It writes only content to stdout and errors to
+stderr, with exit 0 on success and 1 on error; an error stops the batch after
+any earlier views already printed. `-X` remains the interactive main-screen
+viewer, which requires a terminal.
+
 ## Opening a web address
 
 Any argument that is an `http` or `https` URL is downloaded before gloss starts
 and takes the file's place, so it works wherever a file does: the viewer, the
 menu, `--serve`, and the headless modes `--info`, `--text`, `--grep`, and
-`--output`. Naming the address is the request, so no option is needed. The
+`--output`, and `--print`. Naming the address is the request, so no option is needed. The
 download has one minute and the 128 MiB file limit, follows at most ten
 redirects and never from https to http, sends no cookies or stored credentials,
 and must be a format gloss shows; `--type` and `--accept` apply to it as to a file.
@@ -76,7 +111,7 @@ cannot be named on the command line; there are none.
 
 Options use `pflag` GNU syntax and may appear before or after filenames. Both
 `--page=3` and `-p3` work; boolean short flags can be grouped (`-mP`). Use `--` to
-end option parsing. `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown` overrides detection for all
+end option parsing. `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid` (`jsonl` and `ndjson` mean `json`, `md` means `markdown`) overrides detection for all
 inputs. Content detection supports extensionless files. A `-` reads stdin once
 into a temporary file, removed on exit; keyboard input comes from the controlling
 terminal. Interactive output must be a terminal; image export works in scripts.

@@ -22,7 +22,7 @@ require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
 	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
-	github.com/NimbleMarkets/oksvg v0.1.1 // indirect
+	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
 	github.com/charmbracelet/x/ansi v0.11.9 // indirect
@@ -59,18 +59,19 @@ require (
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
+	github.com/zkrebbekx/go-mermaid v0.1.6 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	nimbleterminal.dev/nt3d v0.1.0 // indirect
+	nimbleterminal.dev/nt3d v0.2.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 	nimbleterminal.dev/ntpicture v0.1.0 // indirect
-	nimbleterminal.dev/ntsvg v0.5.0 // indirect
-	nimbleterminal.dev/nttypeset v0.1.0 // indirect
+	nimbleterminal.dev/ntsvg v0.5.1 // indirect
+	nimbleterminal.dev/nttypeset v0.1.1 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..

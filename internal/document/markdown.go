@@ -28,6 +28,9 @@ type Markdown struct {
 	// The pictures are inside the file, as a notebook's outputs and a Word
 	// document's media are: their links name no file a reader can open.
 	Packaged bool
+	// Diagrams counts Mermaid diagrams, drawn in the palette of the theme the
+	// document was loaded with; a change between light and dark reloads it.
+	Diagrams int
 }
 
 // Picture is one picture of packaged Markdown, as a file beside its text
@@ -94,9 +97,12 @@ func loadMarkdown(path string, data []byte, baseDir string) (*Markdown, error) {
 }
 
 func loadMarkdownFrom(path string, data []byte, baseDir string, files fs.FS, playback ...bool) (*Markdown, error) {
-	return loadMarkdownContext(context.Background(), path, data, baseDir, files, len(playback) > 0 && playback[0])
+	return loadMarkdownContext(context.Background(), path, data, baseDir, files, len(playback) > 0 && playback[0], false)
 }
-func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir string, files fs.FS, play bool) (*Markdown, error) {
+
+// loadMarkdownContext loads Markdown and its images; dark draws Mermaid
+// diagrams for a dark theme.
+func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir string, files fs.FS, play, dark bool) (*Markdown, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -133,6 +139,27 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 			return ast.WalkSkipChildren, nil
 		}
 		dest := string(img.Destination)
+		if code, ok := mermaidSource(img); ok {
+			md.Diagrams++
+			asset, cached := cache[dest]
+			if !cached {
+				asset.Destination = dest
+				asset.Image, asset.Err = renderMermaidImage(img, code, dark)
+				if asset.Err == nil {
+					area := asset.Image.Bounds().Dx() * asset.Image.Bounds().Dy()
+					if pixels+area > maxMarkdownImagePixels {
+						asset.Image, asset.Err = nil, fmt.Errorf("document image budget reached")
+					} else {
+						pixels += area
+					}
+				}
+				asset.Layout = MarkdownImageLayout(img)
+				cache[dest] = asset
+			}
+			asset.Alt = inlineText(img, md.Source)
+			md.Images = append(md.Images, asset)
+			return ast.WalkSkipChildren, nil
+		}
 		asset, cached := cache[dest]
 		if !cached {
 			asset.Destination = dest
