@@ -31,7 +31,7 @@ var orderNames = []string{"name", "date", "kind"}
 // what gloss cannot open has none.
 var kindMarks = map[string]string{
 	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".bmp": "📷", ".tif": "📷", ".tiff": "📷", ".heic": "📷", ".heif": "📷", ".hif": "📷", ".jxl": "📷",
-	".svg": "🎨", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊",
+	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊",
 	".md": "📝", ".markdown": "📝", ".mdown": "📝", ".html": "📝", ".htm": "📝", ".txt": "📝", ".text": "📝", ".log": "📝",
 	".json": "🧾", ".jsonl": "🧾", ".ndjson": "🧾", ".ipynb": "📓",
 	".docx": "📄", ".docm": "📄", ".xlsx": "📊", ".xlsm": "📊", ".csv": "📊", ".tsv": "📊", ".grist": "📊",

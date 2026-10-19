@@ -144,3 +144,13 @@ func TestThemeRedrawsMermaidAcrossLightAndDark(t *testing.T) {
 		t.Fatal("a document without diagrams reloaded")
 	}
 }
+
+func TestThemeRedrawsMermaidFile(t *testing.T) {
+	m := lineModel(t, "flow.mmd", "flowchart LR\n  A --> B\n")
+	drainAnimation(t, m, m.applyTheme("light"))
+	before := m.generation
+	drainAnimation(t, m, m.applyTheme("dark"))
+	if m.generation == before || m.kind != "mermaid" {
+		t.Fatalf("light to dark did not reload the %q diagram", m.kind)
+	}
+}

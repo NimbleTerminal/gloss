@@ -49,8 +49,8 @@ it itself does; `gloss skill install` writes it where the agents on the
 machine look for skills. A file named `skill`, `view` or `help` is opened as
 `gloss view skill`.
 
-It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL, SVG, PDF, STL, 3MF,
-Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
+It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL, SVG, Mermaid diagrams
+(`.mmd`), PDF, STL, 3MF, Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
 documents, and CSV. One binary, no external converters, no CGO. Inputs are limited to 128 MiB.
 
 ## Static command output: `--print`
@@ -102,6 +102,7 @@ gloss --grep '(?i)invoice total' report.pdf  # matching pages only: "3: …the i
 | JSON, JSONL | pretty-printed, records one after another |
 | Excel, Grist, CSV | CSV of the sheet or table (`--page` picks which) |
 | PDF | the page's text layer (`--page 3`, `2-5`, or `all` with `--output-dir`/`--json`); page 1 by default |
+| Mermaid (`.mmd`) | the diagram source |
 | image, SVG, mesh | *no text*: an error saying to use `--output` |
 
 A PDF page with **no text layer** (a scan, a figure) is an error on that page,
@@ -174,7 +175,7 @@ cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
   asked for (stderr says so too); try `--parts`/`--partn` for one part.
   Prefer the manifest over parsing stderr.
 - SVG and PDF are rasterized at the requested size.
-- `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown`
+- `--type image|svg|pdf|stl|3mf|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid`
   forces the format for extensionless files or stdin.
 - Normal terminal text and tables (Excel, Grist, CSV) cannot be exported as PNG.
   Use `--typeset` for a visual Markdown/text/source/JSON export; otherwise
@@ -195,7 +196,7 @@ gloss --glob 'report*' --glob pdf --info ~/Documents
 ```
 
 Kinds: `images`, `svg`, `pdf`, `docs`, `word`, `meshes`, `tables`, `excel`,
-`grist`, `csv`, `markdown`, `html`, `text`, `json`, `notebooks`.
+`grist`, `csv`, `markdown`, `mermaid`, `html`, `text`, `json`, `notebooks`.
 
 ### Meshes (STL, 3MF): several views beat one big view
 

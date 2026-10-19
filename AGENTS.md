@@ -3,7 +3,7 @@
 ## What gloss is
 
 A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3MF
-meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
+meshes, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
 Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
 Tea, ntsvg, ntpdf, ntpicture, and nt3d. The README is the
@@ -104,6 +104,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   pages; file navigation is unchanged except Space while an animation is open.
 - **SVG**: rasterized by ntsvg’s pure-Go renderer (oksvg feature set), up to
   a 2400-pixel edge.
+- **Mermaid** (`.mmd`, `.mermaid`, by name only): one diagram, drawn as the
+  Markdown fences are (`renderMermaid`, theme palette, reload on a light/dark
+  flip via `diagrams()`), shown and exported as a still picture; `--max-edge`
+  sizes it, else twice reading size. `--text` gives the source (`.mmd`); a
+  diagram that does not parse is an error.
 - **PDF**: PDFium over embedded WebAssembly; pages at 150 DPI default
   (`--dpi 36..600`), 32 MP budget, 10,000-page limit, no password-protected
   files. `/` searches extractable text, jumping to matching pages with excerpts

@@ -241,7 +241,7 @@ file begins is not completed. `Enter` goes there; `Esc` comes back to the listin
 With nothing typed, **`/`** searches the folder shown and those under it, by
 glob (`*.png`, `report*`, `deep/*.pdf`), extension (`png`), or kind (`images`,
 `svg`, `pdf`, `docs`, `word`, `meshes`, `tables`, `excel`, `grist`, `csv`,
-`markdown`, `html`, `text`, `json`, `notebooks`), several at once, without regard
+`markdown`, `mermaid`, `html`, `text`, `json`, `notebooks`), several at once, without regard
 to case. `Enter` searches, then opens the file under the cursor; `Ctrl-A` adds
 every match to the list; `Esc` returns to the listing. A search is kept safe by
 its limits: hidden folders and links are not entered, folders deeper than 6 are

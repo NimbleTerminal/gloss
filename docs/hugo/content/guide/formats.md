@@ -43,6 +43,12 @@ bookToC: false
 - SVG: ntsvg's pure-Go SVG renderer, rasterized to a 2400-pixel maximum edge.
   SVG support follows the underlying oksvg renderer, not a full browser engine.
   Rendering runs in an isolated worker that is stopped after 15 seconds.
+- Mermaid: a `.mmd` or `.mermaid` file is one diagram, drawn as Markdown's
+  `mermaid` fences are (see [Markdown](../markdown/#mermaid-diagrams)), in the
+  theme's light or dark palette, and shown like a picture. Recognized by
+  name only: the same text in a `.txt` file stays text. The source is limited
+  to 64 KiB. `--text` gives the source; a diagram that does not parse is an
+  error that names the line.
 - PDF: PDFium via embedded WebAssembly; no Poppler, MuPDF, CGO, or external
   runtime installation. Pages render at 150 DPI by default (`--dpi 36..600`),
   with a 32-megapixel raster budget and a 10,000-page limit. Password-protected

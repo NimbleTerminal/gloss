@@ -1,0 +1,12 @@
+%% How an agent asks a person for a file with gloss.
+sequenceDiagram
+    participant A as Agent
+    participant G as gloss --pick
+    participant P as Person
+    A->>G: start a detached pick
+    G-->>A: URL and resume token
+    A->>P: share the URL
+    P->>G: choose or drop files
+    P->>G: Send
+    A->>G: --resume TOKEN
+    G-->>A: chosen paths, exit 0

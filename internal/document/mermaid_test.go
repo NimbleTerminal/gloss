@@ -128,3 +128,42 @@ func TestTypesetRedrawsMermaidForTheme(t *testing.T) {
 		t.Fatal("a dark theme should draw the diagrams again")
 	}
 }
+
+// A .mmd file is one diagram: detected by its name, drawn in the theme's
+// palette, described, and its source is its text.
+func TestMermaidFile(t *testing.T) {
+	src := "flowchart LR\n  A --> B\n"
+	for _, name := range []string{"flow.mmd", "flow.MERMAID"} {
+		if kind, err := Detect(name, []byte(src), ""); err != nil || kind != "mermaid" {
+			t.Fatalf("Detect(%q) = %q, %v", name, kind, err)
+		}
+	}
+	files := fstest.MapFS{"flow.mmd": {Data: []byte(src)}, "bad.mmd": {Data: []byte("flowchart LR\n  A -->\n")}}
+	l := &Loader{Files: files}
+	defer l.Close()
+	r := l.Load(Request{Path: "flow.mmd", Theme: "light", Page: 1})
+	if r.Err != nil || r.Kind != "mermaid" || r.Image == nil {
+		t.Fatalf("load = %q, %v, image %v", r.Kind, r.Err, r.Image != nil)
+	}
+	var fields []string
+	for _, f := range r.Info {
+		fields = append(fields, f.Label+"="+f.Value)
+	}
+	for _, want := range []string{"Format=Mermaid", "Type=flowchart", "Lines=2"} {
+		if !strings.Contains(strings.Join(fields, ";"), want) {
+			t.Errorf("info %v lacks %s", fields, want)
+		}
+	}
+	if text, ext, err := Text(r); err != nil || string(text) != src || ext != ".mmd" {
+		t.Fatalf("Text = %q, %q, %v", text, ext, err)
+	}
+	if r := l.Load(Request{Path: "flow.mmd", Page: 1, TextOnly: true}); r.Err != nil || r.Image != nil || r.Text != src {
+		t.Fatalf("text-only load drew the diagram or lost its source: %v", r.Err)
+	}
+	if r := l.Load(Request{Path: "bad.mmd", Page: 1}); r.Err == nil {
+		t.Fatal("a diagram that does not parse should be an error")
+	}
+	if r := l.Load(Request{Path: "flow.mmd", Page: 1, MaxEdge: 300}); r.Err != nil || max(r.Image.Bounds().Dx(), r.Image.Bounds().Dy()) != 300 {
+		t.Fatalf("max edge not applied: %v", r.Err)
+	}
+}

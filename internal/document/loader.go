@@ -18,6 +18,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
@@ -34,7 +35,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -389,6 +390,16 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		out.Image, out.Err = renderSVG(q.Path, data, edge)
 		details = func() []Field { return svgFields(data) }
+	case "mermaid":
+		details = func() []Field { return mermaidFields(data, out.Image) }
+		if !utf8.Valid(data) {
+			out.Err = errors.New("mermaid: the diagram is not UTF-8 text")
+			return out
+		}
+		out.Text = string(data)
+		if !q.TextOnly {
+			out.Image, _, _, out.Err = renderMermaid(string(data), q.MaxEdge, theme.Dark(q.Theme))
+		}
 	case "stl":
 		out.Mesh, out.Err = ParseSTL(data)
 		details = func() []Field { return meshFields(data, out.Mesh) }
@@ -711,6 +722,8 @@ func Detect(path string, data []byte, forced string) (string, error) {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".md", ".markdown", ".mdown":
 		return "markdown", nil
+	case ".mmd", ".mermaid":
+		return "mermaid", nil
 	}
 	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("%PDF-")) {
 		return "pdf", nil

@@ -64,6 +64,8 @@ func (m *Model) diagrams() int {
 		return m.markdown.doc.Diagrams
 	case m.typeset != nil:
 		return m.typeset.Diagrams
+	case m.kind == "mermaid":
+		return 1
 	}
 	return 0
 }

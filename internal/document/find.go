@@ -44,6 +44,7 @@ var kindGlobs = map[string][]string{
 	"grist":     {"*.grist"},
 	"csv":       {"*.csv", "*.tsv"},
 	"markdown":  {"*.md", "*.markdown", "*.mdown"},
+	"mermaid":   {"*.mmd", "*.mermaid"},
 	"html":      {"*.html", "*.htm"},
 	"text":      {"*.txt", "*.text", "*.log"},
 	"json":      {"*.json", "*.jsonl", "*.ndjson"},

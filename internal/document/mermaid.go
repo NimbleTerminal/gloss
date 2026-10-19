@@ -187,3 +187,15 @@ func mermaidWork(q parserRequest) (parserReply, error) {
 	out.PNG = b.Bytes()
 	return out, nil
 }
+
+// mermaidFields describes a standalone diagram file.
+func mermaidFields(data []byte, img image.Image) []Field {
+	drawn := ""
+	if img != nil {
+		drawn = fmt.Sprintf("%d × %d", img.Bounds().Dx(), img.Bounds().Dy())
+	}
+	return Section("Diagram", Field{"Format", "Mermaid"},
+		Field{"Type", strings.TrimPrefix(mermaidKind(string(data)), "diagram: ")},
+		Field{"Lines", strconv.Itoa(bytes.Count(bytes.TrimSuffix(data, []byte("\n")), []byte("\n")) + 1)},
+		Field{"Drawn", drawn})
+}

@@ -21,7 +21,7 @@ type Host interface {
 }
 
 // Kinds are the canonical preference keys, in listing order.
-var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown"}
+var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid"}
 
 // Kind maps loader image kinds to their shared preference key.
 func Kind(kind string) string {

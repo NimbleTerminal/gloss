@@ -127,7 +127,7 @@ func Config() browsetest.Config[browse.Model] {
 // internal/app draws them: the browse package has none of its own.
 var emojiMarks = map[string]string{
 	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".heic": "📷",
-	".svg": "🎨", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊",
+	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊",
 	".md": "📝", ".html": "📝", ".txt": "📝",
 	".json": "🧾", ".ipynb": "📓", ".docx": "📄", ".xlsx": "📊", ".csv": "📊", ".grist": "📊",
 }
