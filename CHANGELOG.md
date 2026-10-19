@@ -15,6 +15,8 @@
   its source. Standalone `.mmd` and `.mermaid` files open as one diagram, and
   `--text` gives their source.
 
+- The browser demo uses go-booba v0.10.2, which fixes its mouse input.
+
 - SVG markers (such as arrowheads) and percentage lengths in shape geometry now
   render, through ntsvg v0.5.1 and oksvg v0.1.2; meshes use nt3d v0.2.0.
 
