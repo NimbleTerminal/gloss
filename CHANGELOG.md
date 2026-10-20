@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- PDFs are parsed once per open file rather than once per page: turning
+  pages, `/` search and `--grep` are much faster on long documents, and
+  `--info` no longer draws the page to describe it.
+
 - Open OBJ and PLY meshes, through nt3d: OBJ with its material colors and
   PNG or JPEG textures, PLY with vertex colors, and PLY point clouds drawn as
   a surface of discs. Both are taken as Y-up; `--up z` (or `--up y` for an

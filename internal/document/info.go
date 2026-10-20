@@ -185,11 +185,6 @@ func svgFields(data []byte) []Field {
 	return Section("Drawing", Field{"Format", "SVG"}, Field{"Declared size", declared}, Field{"View box", box}, Field{"Title", title}, Field{"Description", desc}, Field{"Elements", count})
 }
 
-func pdfInfo(data []byte, page int) ([]Field, error) {
-	reply, err := runParser(parserRequest{Kind: "pdf", Data: data, Page: page})
-	return reply.Fields, err
-}
-
 func pdfFields(doc *pdfdoc.Document, page int) []Field {
 	size := ""
 	if w, h, ok, err := doc.PageSize(page); err == nil && ok {

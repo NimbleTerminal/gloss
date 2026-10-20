@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"hash/crc32"
@@ -260,6 +261,13 @@ func pdfFile(version string, trailer string, objects ...string) []byte {
 	}
 	fmt.Fprintf(&b, "trailer\n<< /Size %d /Root 1 0 R %s >>\nstartxref\n%d\n%%%%EOF\n", len(objects)+1, trailer, xref)
 	return b.Bytes()
+}
+
+// pdfInfo is a page's fields, as an open PDF's worker gives them.
+func pdfInfo(data []byte, page int) ([]Field, error) {
+	p, err := newSafePDF(context.Background(), data, page, false)
+	defer p.close()
+	return p.reply.Fields, err
 }
 
 func TestInfoForPDFProperties(t *testing.T) {

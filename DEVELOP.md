@@ -123,9 +123,13 @@ separate browser-demo module:
   `nimbleterminal.dev/ntfilepicker` (see below).
 - `internal/document`: bounded loaders, renderers, and vision image sizing.
   `parser_worker*.go` isolates SVG rasterization and PDF metadata/text parsing
-  in the same executable's private worker entry point, or a disposable browser
-  Web Worker. No external converter is installed. Parent-side deadlines stop
-  and reap/terminate workers; two slots bound concurrency. Under the race
+  in the same executable's private worker entry point, or a browser Web
+  Worker (`web/parser-worker.mjs` sessions). No external converter is
+  installed. Messages are one JSON value per line. A PDF's worker stays open
+  with its document and answers page requests, so paging, search and
+  `--grep` do not parse the file again; SVG and Mermaid workers answer once
+  and end. Parent-side deadlines and cancellation stop and reap/terminate
+  workers; two slots bound the requests in progress. Under the race
   detector the worker, which is the test binary run again, is several times
   slower, so `race_test.go` lengthens the deadline for the package's tests;
   tests of the deadline itself set their own. The worker protocol

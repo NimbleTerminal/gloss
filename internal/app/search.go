@@ -229,7 +229,7 @@ func (m *Model) startSearch() tea.Cmd {
 		s.unit = "pages"
 	}
 	request, files, pages := m.request(false), m.opts.FilesFS, m.pages
-	request.TextOnly, request.Animate = true, false
+	request.TextOnly, request.Animate, request.Context = true, false, ctx
 	if m.typeset != nil {
 		request.TypesetWidth = m.typesetWidth
 	}

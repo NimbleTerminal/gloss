@@ -168,6 +168,7 @@ type Request struct {
 	MaxEdge     int         // Export raster target; zero keeps interactive defaults.
 	Animate     bool        // Decode bounded GIF/WebP playback; still exports and previews leave this false.
 	TextOnly    bool        // The text layer of a PDF page is wanted, not a picture of it.
+	Describe    bool        // Only the info fields are wanted: a PDF page is not drawn.
 	Preview     bool        // A small, quick rendering is wanted: a thumbnail will do.
 	Parts       PartFilter  // The parts of a 3MF to show; empty shows them all.
 	Up          string      // "y" or "z": the up axis of an STL, OBJ or PLY; empty is the format's usual.
@@ -277,6 +278,7 @@ func (l *Loader) closePDF() error {
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
 	l.direct, l.directOptions, l.typesetDocument, l.typesetEngine = nil, nttypeset.LayoutOptions{}, nil, nil
 	l.typesetImages, l.typesetAnimations = nil, nil
+	l.pdfReader.close()
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
 	if l.pdf == nil {
 		return nil
@@ -394,8 +396,9 @@ func (l *Loader) Load(q Request) (out Result) {
 		details = func() []Field {
 			return Section("Document", Field{"Format", strings.TrimSpace("PDF " + pdfdoc.HeaderVersion(data))})
 		}
-		reader, err := newSafePDF(data, q.Page, q.TextOnly)
+		reader, err := newSafePDF(q.Context, data, q.Page, q.TextOnly)
 		if err != nil {
+			reader.close()
 			out.Err = err
 			return out
 		}
@@ -627,18 +630,23 @@ func (l *Loader) renderPDF(q Request) Result {
 		return Result{Generation: q.Generation, Kind: "pdf", Page: q.Page, Pages: l.pages, Err: err}
 	}
 	page := max(1, min(q.Page, l.pages))
-	dpi, dpiErr := l.pdfReader.dpi(page, q.MaxEdge, q.DPI)
-	if dpiErr != nil {
-		return Result{Generation: q.Generation, Kind: "pdf", Err: dpiErr}
-	}
+	// The worker that has the document open answers for the page, its text
+	// too when that is wanted; PDFium is asked only for a picture.
+	reply, err := l.pdfReader.page(q.Context, page, q.TextOnly)
 	out := Result{Generation: q.Generation, Kind: "pdf", Page: page, Pages: l.pages}
-	var err error
+	if err != nil {
+		out.Err = err
+		return out
+	}
+	out.Info = append(append([]Field(nil), l.file...), reply.Fields...)
 	if q.TextOnly {
-		reply, err := l.pdfReader.page(page, true)
-		out.Text, out.Layer, out.Err = reply.Text, reply.Layer, err
-		if err == nil && reply.NoText {
+		out.Text, out.Layer = reply.Text, reply.Layer
+		if reply.NoText {
 			out.Err = fmt.Errorf("page %d has %w (a scan or a figure?): export it as a picture with --output", page, ErrNoTextLayer)
 		}
+		return out
+	}
+	if q.Describe {
 		return out
 	}
 	if l.pdf == nil {
@@ -648,14 +656,7 @@ func (l *Loader) renderPDF(q Request) Result {
 			return out
 		}
 	}
-	out.Image, err = l.pdf.RenderPage(page, max(36, min(dpi, 600)))
-	out.Err = err
-	if err == nil {
-		if reply, e := l.pdfReader.page(page, false); e == nil {
-			out.Info = append(append([]Field(nil), l.file...), reply.Fields...)
-		}
-	}
-
+	out.Image, out.Err = l.pdf.RenderPage(page, max(36, min(reply.dpi(q.MaxEdge, q.DPI), 600)))
 	return out
 }
 

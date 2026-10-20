@@ -43,10 +43,16 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   Typeset layout, raster, selection and highlighting come from
   `nimbleterminal.dev/nttypeset` and its faces from `nimbleterminal.dev/ntfonts`;
   gloss owns Markdown parsing, assets, viewport policy and compositing.
-  PDF metadata/text, SVG rasterization and Mermaid diagrams run in disposable parser workers:
-  the current executable on native hosts, Web Workers in the browser. A
-  15-second deadline stops and reaps/terminates the worker; at most two run at
-  once. Markdown checks its work budget synchronously in Goldmark callbacks.
+  PDF metadata/text, SVG rasterization and Mermaid diagrams run in parser workers:
+  the current executable on native hosts, Web Workers in the browser. SVG and
+  Mermaid get one worker per request. A PDF's worker (`safePDF`) is sent the
+  bytes and `pdfLimits()` once, keeps the `pdfdoc.Document` open, and answers
+  page requests (fields, size, text) until `closePDF` stops it; PDFium is
+  asked only for pictures, and `Request.Describe` (`--info`) skips it. Each
+  request has a 15-second deadline and follows the request's context; either
+  stops and reaps/terminates the worker, and the next request opens a new
+  one. At most two requests run at once; an idle open worker holds no slot.
+  Markdown checks its work budget synchronously in Goldmark callbacks.
   The PDF worker opens files through `nimbleterminal.dev/ntpdf/pdfdoc`, which
   validates declared lengths, filter chains, predictor sizes and cross-references
   before the PDF library runs; unsupported or ambiguous encodings fail closed.

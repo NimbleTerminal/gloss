@@ -271,6 +271,9 @@ func (m *Model) Close() error {
 	if m.chart != nil {
 		_ = m.chart.Close()
 	}
+	if m.grid != nil {
+		_ = m.grid.loader.Close() // A PDF thumbnail's worker.
+	}
 	if m.ownTerminal {
 		m.terminal.Close()
 	}
