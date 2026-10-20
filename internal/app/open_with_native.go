@@ -37,5 +37,5 @@ func (m *Model) openWithBrowse(msg tea.Msg) (tea.Cmd, bool) {
 	if !m.browsing() || m.opener.find != nil || m.opener.going {
 		return nil, true
 	}
-	return m.requestOpenWith(filepath.FromSlash(v.Path), "", v.Directory, true), true
+	return m.requestOpenWith(filepath.FromSlash(v.Path), "", v.Directory, true, openwith.Open), true
 }

@@ -19,6 +19,7 @@ import (
 type fakeSource struct {
 	mu       sync.Mutex
 	apps     map[ntopenwith.Verb][]ntopenwith.App
+	fileOnly map[ntopenwith.Verb][]ntopenwith.App // offered only when asked about a real file
 	asked    []ntopenwith.Target
 	launched []string
 }
@@ -27,7 +28,11 @@ func (s *fakeSource) Apps(_ context.Context, t ntopenwith.Target, v ntopenwith.V
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.asked = append(s.asked, t)
-	return slices.Clone(s.apps[v]), nil
+	apps := slices.Clone(s.apps[v])
+	if t.Path != "" {
+		apps = append(apps, s.fileOnly[v]...)
+	}
+	return apps, nil
 }
 
 func (s *fakeSource) Launch(_ context.Context, t ntopenwith.Target, v ntopenwith.Verb, app ntopenwith.App) (*exec.Cmd, error) {
@@ -165,19 +170,20 @@ func TestLaunchEditChoose(t *testing.T) {
 func TestSetDefaultSavesAndSystemClears(t *testing.T) {
 	rec := &recorder{}
 	h := NewHost(newFake(), ntopenwith.Preferences{}, rec.save)
-	if err := h.SetDefault("pdf", Edit, "x"); err != nil {
+	pdf := Target{Path: testFile(t, "a.pdf"), Kind: "pdf"}
+	if err := h.SetDefault(pdf, Edit, "x"); err != nil {
 		t.Fatal(err)
 	}
 	if len(rec.saved) != 1 || rec.saved[0].Default(Edit, "pdf") != "x" {
 		t.Fatalf("%+v", rec.saved)
 	}
-	if err := h.SetDefault("pdf", Open, "viewer"); err != nil {
+	if err := h.SetDefault(Target{Kind: "pdf"}, Open, "viewer"); err != nil {
 		t.Fatal(err)
 	}
 	if rec.saved[1].Default(Open, "pdf") != "viewer" {
 		t.Fatalf("%+v", rec.saved[1])
 	}
-	if err := h.SetDefault("pdf", Open, "system"); err != nil {
+	if err := h.SetDefault(pdf, Open, "system"); err != nil {
 		t.Fatal(err)
 	}
 	if last := rec.saved[len(rec.saved)-1]; last.Default(Open, "pdf") != "" || last.Default(Edit, "pdf") != "x" {
@@ -188,12 +194,54 @@ func TestSetDefaultSavesAndSystemClears(t *testing.T) {
 func TestSetDefaultSaveFailureKeepsPreferences(t *testing.T) {
 	src := newFake()
 	h := NewHost(src, ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return errors.New("read-only") })
-	if err := h.SetDefault("pdf", Open, "viewer"); err == nil {
+	if err := h.SetDefault(Target{Kind: "pdf"}, Open, "viewer"); err == nil {
 		t.Fatal("save failure lost")
 	}
 	launched, err := h.Launch(Target{Path: testFile(t, "a.pdf"), Kind: "pdf"}, Open, "")
 	if err != nil || launched.Name != "System default" {
 		t.Fatalf("unsaved default applied: %+v %v", launched, err)
+	}
+}
+
+// An app the chooser listed for the real file can be its kind's default,
+// though the kind's stand-in extension would not be offered it.
+func TestSetDefaultChecksTheListedFile(t *testing.T) {
+	src := newFake()
+	src.fileOnly = map[ntopenwith.Verb][]ntopenwith.App{ntopenwith.Open: {{ID: "heicview", Name: "HEIC Viewer"}}}
+	rec := &recorder{}
+	h := NewHost(src, ntopenwith.Preferences{}, rec.save)
+	heic := Target{Path: testFile(t, "a.heic"), Kind: "image/*"}
+	if err := h.SetDefault(heic, Open, "heicview"); err != nil {
+		t.Fatal(err)
+	}
+	if len(rec.saved) != 1 || rec.saved[0].Default(Open, "image/*") != "heicview" {
+		t.Fatalf("%+v", rec.saved)
+	}
+	if err := h.SetDefault(Target{Kind: "image/*"}, Open, "heicview"); !errors.Is(err, ntopenwith.ErrNotOffered) {
+		t.Fatalf("kind alone: %v", err)
+	}
+}
+
+func TestSetDefaultRefusesActionsAndUnknownKinds(t *testing.T) {
+	rec := &recorder{}
+	h := NewHost(newFake(), ntopenwith.Preferences{}, rec.save)
+	path := testFile(t, "a.pdf")
+	for _, c := range []struct {
+		t  Target
+		id string
+	}{
+		{Target{Path: path, Kind: "pdf"}, "reveal"},
+		{Target{Path: path, Kind: "pdf"}, "copy"},
+		{Target{Path: path}, "viewer"},
+		{Target{Path: path, Kind: "png"}, "viewer"},
+		{Target{Path: t.TempDir(), Directory: true, Kind: "pdf"}, "viewer"},
+	} {
+		if err := h.SetDefault(c.t, Open, c.id); err == nil {
+			t.Errorf("saved %s for %+v", c.id, c.t)
+		}
+	}
+	if len(rec.saved) != 0 {
+		t.Fatalf("%+v", rec.saved)
 	}
 }
 
@@ -237,7 +285,8 @@ func TestAppsAndSetEnabled(t *testing.T) {
 			t.Fatalf("%s hidden", a.ID)
 		}
 	}
-	if !slices.Equal(names, []string{"Viewer", "Vim", "X Editor", "Y Editor"}) {
+	// Terminal editors cannot be hidden, so they are not listed.
+	if !slices.Equal(names, []string{"Viewer", "X Editor", "Y Editor"}) {
 		t.Fatalf("apps %v", names)
 	}
 	if err := m.SetEnabled("viewer", false); err != nil {

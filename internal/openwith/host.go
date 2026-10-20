@@ -13,8 +13,12 @@ import (
 	"nimbleterminal.dev/ntopenwith"
 )
 
-// revealID is the chooser's last Open row, the file shown in its folder.
-const revealID = "reveal"
+const (
+	// revealID is the chooser's last Open row, the file shown in its folder.
+	revealID = "reveal"
+	// copyID is the pager's Copy path row, never an app.
+	copyID = "copy"
+)
 
 type nativeHost struct {
 	src  ntopenwith.Source
@@ -133,12 +137,15 @@ func (h *nativeHost) change(edit func(*ntopenwith.Resolver) error) error {
 	return nil
 }
 
-func (h *nativeHost) SetDefault(kind string, v Verb, id string) error {
-	if !slices.Contains(Kinds, kind) || id == revealID {
-		return fmt.Errorf("app cannot be the default for %s", kind)
+// SetDefault saves id under t.Kind, after checking that it is offered for t
+// itself: the file the chooser listed, which can be offered apps its kind's
+// stand-in extension is not.
+func (h *nativeHost) SetDefault(t Target, v Verb, id string) error {
+	if !slices.Contains(Kinds, t.Kind) || t.Directory || id == revealID || id == copyID {
+		return fmt.Errorf("app cannot be the default for %s", t.Kind)
 	}
 	return h.change(func(r *ntopenwith.Resolver) error {
-		return r.SetDefault(context.Background(), target(Target{Kind: kind}), v, id)
+		return r.SetDefault(context.Background(), target(t), v, id)
 	})
 }
 
@@ -154,6 +161,9 @@ func (h *nativeHost) Apps() []AppPreference {
 	}
 	out := make([]AppPreference, 0, len(apps))
 	for _, a := range apps {
+		if a.Terminal {
+			continue // Terminal editors cannot be hidden.
+		}
 		out = append(out, AppPreference{ID: a.ID, Name: a.Name, Enabled: !r.IsHidden(a.ID)})
 	}
 	return out

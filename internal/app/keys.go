@@ -2,6 +2,7 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
 // key handles a key press for the screen on show, and reports whether it
@@ -55,8 +56,12 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if (k == "o" || k == "O") && m.layer != layerColumns && m.layer != layerParts && m.layer != layerColor && m.layer != layerQR {
 		return m.openBrowser(), true
 	}
-	if (k == "w" || k == "W") && m.layer == layerNone {
-		return m.openWithCurrent(k == "W"), true
+	if (k == "w" || k == "W" || k == "E") && m.layer == layerNone {
+		verb := openwith.Open
+		if k == "E" {
+			verb = openwith.Edit
+		}
+		return m.openWithCurrent(k == "W", verb), true
 	}
 	if m.listing() {
 		return m.menuKey(k), true

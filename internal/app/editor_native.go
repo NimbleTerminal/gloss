@@ -25,6 +25,7 @@ func (m *Model) terminalEditorMessage(msg tea.Msg) (tea.Cmd, bool) {
 		}
 		m.generation++ // Reject document loads already in flight before the handoff.
 		v.picker.generation = m.generation
+		v.picker.target = v.target // A launch without the chooser has not set it.
 		top, left := m.typesetTop, m.typesetLeft
 		if m.markdown != nil {
 			m.savedMarkdown = m.markdown

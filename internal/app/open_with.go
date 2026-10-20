@@ -2,9 +2,11 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
+	"errors"
 	"fmt"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/openwith"
+	"nimbleterminal.dev/ntopenwith"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -12,6 +14,7 @@ import (
 
 type openWithPicker struct {
 	managing   bool
+	verb       openwith.Verb
 	apps       []openwith.AppPreference
 	target     openwith.Target
 	choices    []openwith.Choice
@@ -20,28 +23,55 @@ type openWithPicker struct {
 	operation  int
 	generation uint64
 }
+
+// openWithLoaded lists the chooser's rows for verb. choose opens the chooser
+// on them (a launch had no app to resolve); switching is Tab's reload, which
+// keeps the chooser on its verb when it fails or lists nothing.
 type openWithLoaded struct {
-	operation  int
-	generation uint64
-	target     openwith.Target
-	choices    []openwith.Choice
-	err        error
+	operation         int
+	generation        uint64
+	verb              openwith.Verb
+	target            openwith.Target
+	choices           []openwith.Choice
+	choose, switching bool
+	err               error
 }
 
-// editorReady carries a terminal app's unstarted command to the editor handoff.
+// editorReady carries a terminal app's unstarted command, and the file it
+// edits, to the editor handoff.
 type editorReady struct {
 	picker  *openWithPicker
 	command *exec.Cmd
+	target  openwith.Target
 }
 type openWithFinished struct {
 	operation        int
 	generation       uint64
+	target           openwith.Target
 	name             string
 	temporary, saved bool
 	err              error
 }
 
-func (m *Model) requestOpenWith(path, kind string, directory, chooser bool) tea.Cmd {
+// verbTitle is the chooser's name for verb: "Open with" or "Edit with".
+func verbTitle(v openwith.Verb) string {
+	if v == openwith.Edit {
+		return "Edit with"
+	}
+	return "Open with"
+}
+
+// openWithChoices are the chooser's rows: the host's, and Copy path for a
+// file being opened.
+func openWithChoices(host openwith.Host, target openwith.Target, v openwith.Verb) ([]openwith.Choice, error) {
+	choices, err := host.Choices(target, v)
+	if err == nil && v == openwith.Open && !target.Directory {
+		choices = append(choices, openwith.Choice{ID: "copy", Name: "Copy path", Available: true})
+	}
+	return choices, err
+}
+
+func (m *Model) requestOpenWith(path, kind string, directory, chooser bool, verb openwith.Verb) tea.Cmd {
 	if m.isPreview {
 		return nil
 	}
@@ -57,7 +87,7 @@ func (m *Model) requestOpenWith(path, kind string, directory, chooser bool) tea.
 		return nil
 	}
 	m.openWithOperation++
-	p := &openWithPicker{operation: m.openWithOperation, generation: m.generation, busy: true}
+	p := &openWithPicker{operation: m.openWithOperation, generation: m.generation, busy: true, verb: verb}
 	m.openWithPicker = p
 	if chooser {
 		m.layer = layerOpenWith
@@ -67,27 +97,23 @@ func (m *Model) requestOpenWith(path, kind string, directory, chooser bool) tea.
 	return func() tea.Msg {
 		target, err := openWithTarget(path, kind, directory)
 		target.Temporary = temporary
+		if err != nil {
+			return openWithLoaded{operation: op, generation: generation, verb: verb, err: err}
+		}
 		if !chooser {
-			var launched openwith.Launched
-			if err == nil {
-				launched, err = host.Launch(target, openwith.Open, "")
-			}
+			launched, err := host.Launch(target, verb, "")
 			if err == nil && launched.Cmd != nil {
-				return editorReady{p, launched.Cmd}
+				return editorReady{p, launched.Cmd, target}
 			}
-			return openWithFinished{operation: op, generation: generation, name: launched.Name, temporary: temporary, err: err}
+			if !errors.Is(err, ntopenwith.ErrChoose) {
+				return openWithFinished{operation: op, generation: generation, target: target, name: launched.Name, temporary: temporary, err: err}
+			}
 		}
-		var choices []openwith.Choice
-		if err == nil {
-			choices, err = host.Choices(target, openwith.Open)
-		}
-		if err == nil && !directory {
-			choices = append(choices, openwith.Choice{ID: "copy", Name: "Copy path", Available: true})
-		}
-		return openWithLoaded{op, generation, target, choices, err}
+		choices, err := openWithChoices(host, target, verb)
+		return openWithLoaded{operation: op, generation: generation, verb: verb, target: target, choices: choices, choose: !chooser, err: err}
 	}
 }
-func (m *Model) openWithCurrent(chooser bool) tea.Cmd {
+func (m *Model) openWithCurrent(chooser bool, verb openwith.Verb) tea.Cmd {
 	index := m.index
 	kind := m.kind
 	if m.listing() {
@@ -98,7 +124,7 @@ func (m *Model) openWithCurrent(chooser bool) tea.Cmd {
 	if index >= 0 && index < len(m.opts.Files) {
 		path = m.opts.Files[index]
 	}
-	return m.requestOpenWith(path, kind, false, chooser)
+	return m.requestOpenWith(path, kind, false, chooser, verb)
 }
 func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 	p := m.openWithPicker
@@ -109,10 +135,22 @@ func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 		return m.closeOpenWith()
 	}
 	if v.err != nil {
-		m.note = "Open with: " + safe(v.err.Error())
+		m.note = verbTitle(v.verb) + ": " + safe(v.err.Error())
+		if v.switching {
+			p.busy = false
+			return nil
+		}
 		return m.closeOpenWith()
 	}
-	p.target, p.choices, p.busy = v.target, v.choices, false
+	if v.switching && len(v.choices) == 0 {
+		p.busy = false
+		m.note = "No app can edit " + safe(filepath.Base(p.target.Path))
+		return nil
+	}
+	if v.choose {
+		m.layer = layerOpenWith
+	}
+	p.verb, p.target, p.choices, p.busy, p.cursor = v.verb, v.target, v.choices, false, 0
 	for i, c := range p.choices {
 		if c.Default {
 			p.cursor = i
@@ -130,21 +168,31 @@ func (m *Model) openWithFinished(v openWithFinished) tea.Cmd {
 		return m.closeOpenWith()
 	}
 	p.busy = false
+	if errors.Is(v.err, ntopenwith.ErrNoEditor) {
+		m.note = "No app can edit " + safe(filepath.Base(v.target.Path))
+		if m.layer != layerOpenWith {
+			return m.closeOpenWith()
+		}
+		return nil
+	}
 	if v.err != nil {
-		m.note = "Open with: " + safe(v.err.Error())
+		m.note = verbTitle(p.verb) + ": " + safe(v.err.Error())
 		if m.layer != layerOpenWith {
 			return m.closeOpenWith()
 		}
 		return nil
 	}
 	if v.saved {
-		m.note = "Default saved for " + p.target.Kind
+		m.note = "Default saved for " + p.target.Kind + " (" + string(p.verb) + ")"
 		for i := range p.choices {
 			p.choices[i].Default = i == p.cursor
 		}
 		return nil
 	}
 	m.note = "Opened in " + safe(v.name)
+	if p.verb == openwith.Edit {
+		m.note = "Editing in " + safe(v.name)
+	}
 	if v.temporary {
 		m.note += " — temporary file; save a copy in the app to keep it"
 	}
@@ -195,6 +243,8 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 		if _, ok := m.opts.OpenWith.(openwith.Manager); ok {
 			return m.loadOpenWithApps(true, "", false)
 		}
+	case "tab":
+		return m.switchOpenWithVerb()
 	case "up", "k":
 		p.cursor = max(0, p.cursor-1)
 	case "down", "j":
@@ -224,34 +274,56 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 	return nil
 }
 
+// switchOpenWithVerb lists the chooser's other verb for the same file.
+func (m *Model) switchOpenWithVerb() tea.Cmd {
+	p := m.openWithPicker
+	if p.target.Directory {
+		m.note = "Folders cannot be edited"
+		return nil
+	}
+	verb := openwith.Edit
+	if p.verb == openwith.Edit {
+		verb = openwith.Open
+	}
+	p.busy = true
+	m.openWithOperation++
+	p.operation = m.openWithOperation
+	op, generation, target, host := p.operation, p.generation, p.target, m.opts.OpenWith
+	return func() tea.Msg {
+		choices, err := openWithChoices(host, target, verb)
+		return openWithLoaded{operation: op, generation: generation, verb: verb, target: target, choices: choices, switching: true, err: err}
+	}
+}
+
 // openWithLaunch launches the chooser's app id, or saves it as the default.
 // A terminal app's command goes to the editor handoff instead of finishing.
 func (m *Model) openWithLaunch(id string, save bool) tea.Cmd {
 	p := m.openWithPicker
 	p.busy = true
-	target, op, generation, host := p.target, p.operation, p.generation, m.opts.OpenWith
+	target, verb, op, generation, host := p.target, p.verb, p.operation, p.generation, m.opts.OpenWith
 	return func() tea.Msg {
 		var launched openwith.Launched
 		var err error
 		if save {
-			err = host.SetDefault(target.Kind, openwith.Open, id)
+			err = host.SetDefault(target, verb, id)
 		} else {
-			launched, err = host.Launch(target, openwith.Open, id)
+			launched, err = host.Launch(target, verb, id)
 		}
 		if err == nil && launched.Cmd != nil {
-			return editorReady{p, launched.Cmd}
+			return editorReady{p, launched.Cmd, target}
 		}
-		return openWithFinished{operation: op, generation: generation, name: launched.Name, temporary: target.Temporary, saved: save, err: err}
+		return openWithFinished{operation: op, generation: generation, target: target, name: launched.Name, temporary: target.Temporary, saved: save, err: err}
 	}
 }
 func (m *Model) openWithView(w, h int) string {
 	p := m.openWithPicker
+	title := verbTitle(p.verb)
 	if w < 24 || h < 6 {
-		return "Open with: enlarge terminal"
+		return title + ": enlarge terminal"
 	}
-	header := "Open with — " + safe(filepath.Base(p.target.Path))
+	header := title + " — " + safe(filepath.Base(p.target.Path))
 	if p.busy && len(p.choices) == 0 {
-		return "Open with…"
+		return title + "…"
 	}
 	if p.managing {
 		header = "Manage apps — all formats"
@@ -286,9 +358,12 @@ func (m *Model) openWithView(w, h int) string {
 		if i == p.cursor {
 			mark = "› "
 		}
-		label := c.Name
+		label := safe(c.Name)
 		if c.Default {
 			label += " (default)"
+		}
+		if c.Terminal {
+			label += " (terminal)"
 		}
 		if !c.Available {
 			label += " (unavailable)"
@@ -302,10 +377,14 @@ func (m *Model) openWithView(w, h int) string {
 }
 
 func (m *Model) openWithStatus(w int) (string, string) {
-	hint := " ↑/↓ choose · Enter open · d default · Esc close"
-	if _, ok := m.opts.OpenWith.(openwith.Manager); ok {
-		hint = " ↑/↓ choose · Enter open · d default · m manage · Esc close"
+	hint := " ↑/↓ choose · Enter open · Tab edit with · d default"
+	if m.openWithPicker != nil && m.openWithPicker.verb == openwith.Edit {
+		hint = " ↑/↓ choose · Enter edit · Tab open with · d default"
 	}
+	if _, ok := m.opts.OpenWith.(openwith.Manager); ok {
+		hint += " · m manage"
+	}
+	hint += " · Esc close"
 	if m.openWithPicker != nil && m.openWithPicker.managing {
 		hint = " ↑/↓ choose · Space toggle (saved) · Enter/Esc back"
 	}
@@ -332,7 +411,7 @@ func (m *Model) loadOpenWithApps(managing bool, id string, enabled bool) tea.Cmd
 	p.busy = true
 	m.openWithOperation++
 	p.operation = m.openWithOperation
-	op, generation, target := p.operation, p.generation, p.target
+	op, generation, target, verb := p.operation, p.generation, p.target, p.verb
 	return func() tea.Msg {
 		v := openWithAppsLoaded{operation: op, generation: generation, managing: managing}
 		if id != "" {
@@ -341,10 +420,7 @@ func (m *Model) loadOpenWithApps(managing bool, id string, enabled bool) tea.Cmd
 		if managing {
 			v.apps = manager.Apps()
 		} else {
-			v.choices, v.err = host.Choices(target, openwith.Open)
-			if v.err == nil && !target.Directory {
-				v.choices = append(v.choices, openwith.Choice{ID: "copy", Name: "Copy path", Available: true})
-			}
+			v.choices, v.err = openWithChoices(host, target, verb)
 		}
 		return v
 	}

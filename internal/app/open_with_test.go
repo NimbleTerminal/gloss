@@ -6,30 +6,248 @@ import (
 	"fmt"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/openwith"
+	"nimbleterminal.dev/ntopenwith"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
 type fakeOpenHost struct {
-	launched []openwith.Target
-	ids      []string
-	saved    string
+	launched  []openwith.Target
+	ids       []string
+	verbs     []openwith.Verb
+	asked     []openwith.Verb
+	saved     string
+	launchErr map[openwith.Verb]error // what Launch with no app returns
+	launch    *openwith.Launched      // what Launch returns, if not the Editor
 }
 
 func (h *fakeOpenHost) Choices(t openwith.Target, v openwith.Verb) ([]openwith.Choice, error) {
+	h.asked = append(h.asked, v)
+	if t.Directory {
+		return []openwith.Choice{{ID: "reveal", Name: "Reveal", Available: true}}, nil
+	}
+	if v == openwith.Edit {
+		return []openwith.Choice{{ID: "terminal-editor", Name: "Terminal editor", Available: true, Default: true, Terminal: true}, {ID: "editor", Name: "Editor", Available: true}}, nil
+	}
 	return []openwith.Choice{{ID: "system", Name: "System default", Available: true, Default: true}, {ID: "editor", Name: "Editor", Available: true}, {ID: "reveal", Name: "Reveal", Available: true}}, nil
 }
 func (h *fakeOpenHost) Launch(t openwith.Target, v openwith.Verb, id string) (openwith.Launched, error) {
 	h.launched = append(h.launched, t)
 	h.ids = append(h.ids, id)
+	h.verbs = append(h.verbs, v)
+	if err := h.launchErr[v]; err != nil && id == "" {
+		return openwith.Launched{}, err
+	}
+	if h.launch != nil {
+		return *h.launch, nil
+	}
 	return openwith.Launched{Name: "Editor"}, nil
 }
-func (h *fakeOpenHost) SetDefault(kind string, v openwith.Verb, id string) error {
-	h.saved = kind + ":" + id
+func (h *fakeOpenHost) SetDefault(t openwith.Target, v openwith.Verb, id string) error {
+	h.saved = t.Kind + ":" + string(v) + ":" + id
 	return nil
 }
+
+// noteFile is a Markdown file open in m, which asks h.
+func noteFile(t *testing.T, m *Model, h openwith.Host) string {
+	t.Helper()
+	file := filepath.Join(t.TempDir(), "note.md")
+	if err := os.WriteFile(file, []byte("hello"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	m.opts.Files = []string{file}
+	m.opts.OpenWith = h
+	m.kind = "markdown"
+	return file
+}
+
+func TestEditKeyLaunchesEditDefault(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &fakeOpenHost{}
+	file := noteFile(t, m, h)
+	send(m, press("E"))
+	if len(h.launched) != 1 || h.launched[0].Path != file || h.verbs[0] != openwith.Edit || h.ids[0] != "" {
+		t.Fatalf("launch %+v %v %v", h.launched, h.verbs, h.ids)
+	}
+	if m.note != "Editing in Editor" || m.openWithPicker != nil {
+		t.Fatalf("note %q", m.note)
+	}
+}
+
+func TestEditChooseOpensChooser(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &fakeOpenHost{launchErr: map[openwith.Verb]error{openwith.Edit: fmt.Errorf("note.md: %w", ntopenwith.ErrChoose)}}
+	noteFile(t, m, h)
+	send(m, press("E"))
+	if m.layer != layerOpenWith || m.openWithPicker == nil || m.openWithPicker.verb != openwith.Edit {
+		t.Fatalf("chooser not opened: layer %v note %q", m.layer, m.note)
+	}
+	if !strings.Contains(m.View().Content, "Edit with — note.md") {
+		t.Fatal(m.View().Content)
+	}
+	if len(h.asked) != 1 || h.asked[0] != openwith.Edit {
+		t.Fatalf("asked %v", h.asked)
+	}
+}
+
+func TestTabSwitchesVerb(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &fakeOpenHost{}
+	noteFile(t, m, h)
+	send(m, press("W"))
+	if !strings.Contains(m.View().Content, "Open with — note.md") {
+		t.Fatal("Open chooser not shown")
+	}
+	send(m, press("tab"))
+	view := m.View().Content
+	if !strings.Contains(view, "Edit with — note.md") || !strings.Contains(view, "Terminal editor (default) (terminal)") || strings.Contains(view, "Copy path") {
+		t.Fatal(view)
+	}
+	if m.openWithPicker.verb != openwith.Edit || h.asked[len(h.asked)-1] != openwith.Edit {
+		t.Fatalf("asked %v", h.asked)
+	}
+	if _, hint := m.openWithStatus(200); !strings.Contains(hint, "Enter edit · Tab open with") {
+		t.Fatal(hint)
+	}
+	send(m, press("tab"))
+	if m.openWithPicker.verb != openwith.Open || !strings.Contains(m.View().Content, "Open with — note.md") || !strings.Contains(m.View().Content, "Copy path") {
+		t.Fatal("did not switch back to Open")
+	}
+	if _, hint := m.openWithStatus(200); !strings.Contains(hint, "Enter open · Tab edit with") {
+		t.Fatal(hint)
+	}
+	if len(h.launched) != 0 {
+		t.Fatal("Tab launched")
+	}
+}
+
+func TestTabOnFolderAndBusy(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &fakeOpenHost{}
+	m.opts.OpenWith = h
+	dir := t.TempDir()
+	m.openWithPicker = &openWithPicker{verb: openwith.Open, generation: m.generation, target: openwith.Target{Path: dir, Directory: true}, choices: []openwith.Choice{{ID: "reveal", Name: "Reveal", Available: true}}}
+	m.layer = layerOpenWith
+	send(m, press("tab"))
+	if m.note != "Folders cannot be edited" || m.openWithPicker.verb != openwith.Open || len(h.asked) != 0 {
+		t.Fatalf("folder: note %q asked %v", m.note, h.asked)
+	}
+	m.note = ""
+	m.openWithPicker = &openWithPicker{verb: openwith.Open, busy: true, generation: m.generation, target: openwith.Target{Path: "/tmp/note.md", Kind: "markdown"}}
+	send(m, press("tab"))
+	if m.openWithPicker.verb != openwith.Open || len(h.asked) != 0 || m.note != "" {
+		t.Fatal("busy picker took Tab")
+	}
+}
+
+type noEditorHost struct{ fakeOpenHost }
+
+func (h *noEditorHost) Choices(t openwith.Target, v openwith.Verb) ([]openwith.Choice, error) {
+	if v == openwith.Edit {
+		h.asked = append(h.asked, v)
+		return nil, nil
+	}
+	return h.fakeOpenHost.Choices(t, v)
+}
+
+func TestEditBinaryNeverTerminal(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &noEditorHost{fakeOpenHost{launchErr: map[openwith.Verb]error{openwith.Edit: fmt.Errorf("pic.png: %w", ntopenwith.ErrNoEditor)}}}
+	file := filepath.Join(t.TempDir(), "pic.png")
+	if err := os.WriteFile(file, []byte("\x89PNG"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	m.opts.Files = []string{file}
+	m.opts.OpenWith = h
+	m.kind = "png"
+	_, cmd := m.Update(press("E"))
+	msg := cmd()
+	if _, ok := msg.(editorReady); ok {
+		t.Fatal("binary file handed to a terminal editor")
+	}
+	send(m, msg)
+	if m.note != "No app can edit pic.png" || m.openWithPicker != nil {
+		t.Fatalf("note %q", m.note)
+	}
+	// Tab to Edit lists nothing for it either: the chooser stays on Open.
+	send(m, press("W"))
+	send(m, press("tab"))
+	if m.note != "No app can edit pic.png" || m.openWithPicker == nil || m.openWithPicker.verb != openwith.Open || m.openWithPicker.busy {
+		t.Fatalf("note %q", m.note)
+	}
+}
+
+func TestTerminalAppRunsAttached(t *testing.T) {
+	h := &fakeOpenHost{launch: &openwith.Launched{Name: "Vim", Cmd: exec.Command("true")}}
+	file := filepath.Join(t.TempDir(), "note.md")
+	if err := os.WriteFile(file, []byte("hello"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	m := New(Options{Files: []string{file}, Render: "glyph", Theme: "dark", Page: 1, OpenWith: h})
+	t.Cleanup(func() { m.Close() })
+	m.width, m.height = 80, 24
+	drainAnimation(t, m, m.load(false))
+	send(m, press("W"))
+	send(m, press("tab"))
+	_, cmd := m.Update(press("enter"))
+	ready, ok := cmd().(editorReady)
+	if !ok || h.verbs[0] != openwith.Edit || h.ids[0] != "terminal-editor" {
+		t.Fatalf("not handed off: %v %v", h.verbs, h.ids)
+	}
+	cmd, _ = m.terminalEditorMessage(ready)
+	if cmd == nil || !m.openWithPicker.busy {
+		t.Fatal("handoff not prepared")
+	}
+	before := len(h.launched)
+	send(m, editorFinished{picker: ready.picker})
+	if m.openWithPicker != nil || m.note != "Editor closed" || len(h.launched) != before {
+		t.Fatalf("note %q", m.note)
+	}
+	if m.markdown == nil || !strings.Contains(string(m.markdown.doc.Source), "hello") || ready.picker.target.Path != file {
+		t.Fatalf("document not reloaded: %v %+v", m.err, ready.picker.target)
+	}
+}
+
+// w on a file whose default app is a terminal one (a Linux Terminal=true
+// desktop entry) runs it attached without the chooser.
+func TestOpenDefaultTerminalRunsAttached(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &fakeOpenHost{launch: &openwith.Launched{Name: "Vim", Cmd: exec.Command("true")}}
+	file := noteFile(t, m, h)
+	m.opts.IsTemporary = func(p string) bool { return p == file }
+	_, cmd := m.Update(press("w"))
+	ready, ok := cmd().(editorReady)
+	if !ok || m.layer == layerOpenWith || h.verbs[0] != openwith.Open || h.ids[0] != "" {
+		t.Fatalf("not handed off: layer %v %v %v", m.layer, h.verbs, h.ids)
+	}
+	if cmd, _ = m.terminalEditorMessage(ready); cmd == nil || ready.picker.target.Path != file {
+		t.Fatal("handoff not prepared")
+	}
+	send(m, editorFinished{picker: ready.picker})
+	if m.openWithPicker != nil || !strings.HasPrefix(m.note, "Editor closed") || !strings.Contains(m.note, "temporary file") {
+		t.Fatalf("note %q", m.note)
+	}
+}
+
+func TestSaveDefaultPerVerb(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	h := &fakeOpenHost{}
+	noteFile(t, m, h)
+	send(m, press("W"))
+	send(m, press("tab"))
+	send(m, press("down"))
+	send(m, press("d"))
+	if h.saved != "markdown:edit:editor" || len(h.launched) != 0 {
+		t.Fatalf("saved %q", h.saved)
+	}
+	if m.note != "Default saved for markdown (edit)" {
+		t.Fatal(m.note)
+	}
+}
+
 func TestOpenWithPickerAndLaunch(t *testing.T) {
 	m := themedModel(t, "dark", false)
 	h := &fakeOpenHost{}
@@ -49,7 +267,7 @@ func TestOpenWithPickerAndLaunch(t *testing.T) {
 	drainAnimation(t, m, cmd)
 	_, cmd = m.Update(press("d"))
 	drainAnimation(t, m, cmd)
-	if h.saved != "markdown:editor" || len(h.launched) != 0 {
+	if h.saved != "markdown:open:editor" || len(h.launched) != 0 {
 		t.Fatalf("save %q launches %v", h.saved, h.launched)
 	}
 	_, cmd = m.Update(press("enter"))

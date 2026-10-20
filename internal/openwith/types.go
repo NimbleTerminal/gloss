@@ -41,7 +41,8 @@ type Launched struct {
 type Host interface {
 	Choices(Target, Verb) ([]Choice, error)
 	Launch(Target, Verb, string) (Launched, error)
-	SetDefault(kind string, v Verb, id string) error
+	// SetDefault saves id for t's kind and verb, checking it against t.
+	SetDefault(t Target, v Verb, id string) error
 }
 
 // AppPreference describes an installed app's visibility in all file choosers.
@@ -51,7 +52,8 @@ type AppPreference struct {
 }
 
 // Manager is an optional native-host capability for editing app visibility.
-// System default and Reveal are always available and cannot be hidden here.
+// System default, Reveal and terminal editors are always available and are
+// not listed here.
 type Manager interface {
 	Apps() []AppPreference
 	SetEnabled(id string, enabled bool) error
