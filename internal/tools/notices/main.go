@@ -33,13 +33,17 @@ func main() {
 
 func run() error {
 	modules := map[string]module{}
-	// The native binary, and the browser app with its own module.
+	// The native binary for each released OS (some modules are linked on one
+	// only, so the file must not depend on the host), and the browser app with
+	// its own module.
 	for _, build := range []struct {
 		dir  string
 		env  []string
 		pkgs string
 	}{
-		{".", nil, "./cmd/gloss"},
+		{".", []string{"GOOS=darwin"}, "./cmd/gloss"},
+		{".", []string{"GOOS=linux"}, "./cmd/gloss"},
+		{".", []string{"GOOS=windows"}, "./cmd/gloss"},
 		{"examples/demo", []string{"GOOS=js", "GOARCH=wasm"}, "."},
 	} {
 		cmd := exec.Command("go", "list", "-deps", "-f", `{{with .Module}}{{.Path}}	{{.Version}}	{{.Dir}}{{end}}`, build.pkgs)
