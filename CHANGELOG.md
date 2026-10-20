@@ -13,6 +13,9 @@
 
 - Typesetting moved to the nttypeset and ntfonts libraries; no visible change.
 
+- Reading PDFs (their checks, text, page sizes and details) moved to the
+  ntpdf library; no visible change.
+
 - The file browser moved to the ntfilepicker library. Its file-types menu now
   offers Mermaid diagrams, with drawings.
 

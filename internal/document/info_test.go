@@ -270,12 +270,6 @@ func TestInfoForPDFProperties(t *testing.T) {
 		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.276 841.89] >>",
 		"<< /Title (Field Notes) /Author (R. Naturalist) /Subject (Birds) /Keywords (owls, wrens) /Creator (Quill 2) /Producer (libquill) /CreationDate (D:20260304050607+02'00') /ModDate (D:20260405) >>",
 	)
-	// Quartz writes a zone after the Z that the specification says stands alone.
-	for date, want := range map[string]string{"D:20190429190000Z00'00'": "2019-04-29 19:00:00 UTC", "D:20190429190000Z": "2019-04-29 19:00:00 UTC", "D:2019": "2019", "D:20190429190000-08'00": "2019-04-29 19:00:00 -08:00", "last Tuesday": "last Tuesday", "": ""} {
-		if got := pdfDate(date); got != want {
-			t.Errorf("pdfDate(%q) = %q, want %q", date, got, want)
-		}
-	}
 	fields, err := pdfInfo(data, 1)
 	if err != nil {
 		t.Fatal(err)

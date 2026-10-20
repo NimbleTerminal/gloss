@@ -101,9 +101,9 @@ if (config.mode === 'app') {
 
 try {
   const { BoobaTerminal, parseRendererFromURL } = await import('./booba/booba.js');
-  await import('./booba-shim/pdfium/pdfium-shim.js');
+  await import('./ntshim/pdfium/pdfium-shim.js');
   // PDF initialization is asynchronous; its Go bridge waits for readiness.
-  window.boobaShim.pdfium.ready.catch(error => console.error('PDF renderer:', error));
+  window.ntshim.pdfium.ready.catch(error => console.error('PDF renderer:', error));
   const go = new Go();
   go.argv = config.argv;
   status.textContent = 'Connecting to download gloss…';

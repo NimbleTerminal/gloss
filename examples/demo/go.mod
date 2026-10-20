@@ -15,7 +15,6 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
-	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -73,9 +72,10 @@ require (
 	nimbleterminal.dev/ntfilepicker v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
-	nimbleterminal.dev/ntpdf v0.4.0 // indirect
-	nimbleterminal.dev/ntpicture v0.1.0 // indirect
+	nimbleterminal.dev/ntpdf v0.5.0 // indirect
+	nimbleterminal.dev/ntpicture v0.1.1 // indirect
 	nimbleterminal.dev/ntqrcode v0.3.0 // indirect
+	nimbleterminal.dev/ntshim v0.6.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.1 // indirect
 	nimbleterminal.dev/nttypeset v0.1.1 // indirect
 )
@@ -85,6 +85,6 @@ replace nimbleterminal.dev/gloss => ../..
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261014185126-aa0ac3f1b5fe
 
 tool (
-	github.com/NimbleMarkets/booba-shim/cmd/booba-shim-assets
 	github.com/NimbleMarkets/go-booba/cmd/booba-assets
+	nimbleterminal.dev/ntshim/cmd/ntshim-assets
 )

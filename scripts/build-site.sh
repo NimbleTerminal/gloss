@@ -10,7 +10,7 @@ GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -mod=readonly -trimpath -ldflags="-s 
 # A compressed download hides its decoded size; the page uses this for a progress bar.
 wc -c < ../../web/dist/app.wasm | tr -d ' ' > ../../web/dist/app.wasm.size
 go tool booba-assets ../../web/dist
-go tool booba-shim-assets ../../web/dist --shim=pdfium
+go tool ntshim-assets ../../web/dist --shim=pdfium
 # PDF pages are drawn by PDFium, from the @embedpdf/pdfium npm package, which
 # the generated shim loads from a CDN: third-party code, run with the page's
 # own access, from a URL whose output is not fixed. Serve the package from the
@@ -26,7 +26,7 @@ if command -v sha512sum >/dev/null 2>&1; then got=$(sha512sum "$pdfium/package.t
 if [ "$got" != "$PDFIUM_SHA512" ]; then echo "build-site: @embedpdf/pdfium $PDFIUM_VERSION does not match its pinned hash ($got)" >&2; exit 1; fi
 tar -xzf "$pdfium/package.tgz" -C "$pdfium" --strip-components=1 package/dist/index.browser.js package/dist/pdfium.wasm package/LICENSE package/LICENSE.pdfium
 rm "$pdfium/package.tgz"
-shim=../../web/dist/booba-shim/pdfium/pdfium-shim.js
+shim=../../web/dist/ntshim/pdfium/pdfium-shim.js
 sed -e "s|https://cdn.jsdelivr.net/npm/@embedpdf/pdfium@$PDFIUM_VERSION/+esm|../../vendor/embedpdf-pdfium/dist/index.browser.js|" \
     -e "s|https://cdn.jsdelivr.net/npm/@embedpdf/pdfium@$PDFIUM_VERSION/dist/pdfium.wasm|vendor/embedpdf-pdfium/dist/pdfium.wasm|" "$shim" > "$shim.tmp" && mv "$shim.tmp" "$shim"
 # A shim for another PDFium version would escape the patch above: fail, not ship it.

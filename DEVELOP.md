@@ -127,10 +127,11 @@ separate browser-demo module:
   slower, so `race_test.go` lengthens the deadline for the package's tests;
   tests of the deadline itself set their own. The worker protocol
   accepts bounded bytes, never paths to read or shell commands. PDFium rendering
-  retains its existing backend after stream preflight. `pdf_budget.go` follows
-  declared lengths, resolves unambiguous integer length objects, and budgets
-  every supported filter stage before the PDF reader sees the input. Unsupported
-  filters and indirect decoding parameters are explicit errors. Goldmark parses
+  retains its existing backend after stream preflight. The worker reads a PDF
+  only through ntpdf's `pdfdoc.Open`, which follows declared lengths, resolves
+  unambiguous integer length objects, and budgets every supported filter stage
+  before the PDF reader sees the input; unsupported filters and indirect
+  decoding parameters are explicit errors. `pdfLimits` gives it gloss's limits. Goldmark parses
   synchronously with block/inline/transform callbacks checking time and work;
   there are no abandoned timeout goroutines.
 - `internal/app/qr.go`: table URL overlay using the external ntqrcode component.

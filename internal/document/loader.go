@@ -25,6 +25,7 @@ import (
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/nt3d"
 	"nimbleterminal.dev/ntpdf"
+	"nimbleterminal.dev/ntpdf/pdfdoc"
 	"nimbleterminal.dev/ntpicture/animation"
 	_ "nimbleterminal.dev/ntpicture/decoders"
 	svg "nimbleterminal.dev/ntsvg"
@@ -383,7 +384,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		details = func() []Field { return markdownFields(out.Markdown) }
 	case "pdf":
 		details = func() []Field {
-			return Section("Document", Field{"Format", strings.TrimSpace("PDF " + pdfVersion(data))})
+			return Section("Document", Field{"Format", strings.TrimSpace("PDF " + pdfdoc.HeaderVersion(data))})
 		}
 		reader, err := newSafePDF(data, q.Page, q.TextOnly)
 		if err != nil {
@@ -392,7 +393,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		pages := reader.reply.Pages
 		l.path, l.pages, l.pdfData = q.Path, pages, data
-		l.pdfReader, l.pdfVersion, l.file = reader, pdfVersion(data), file
+		l.pdfReader, l.pdfVersion, l.file = reader, pdfdoc.HeaderVersion(data), file
 		return l.renderPDF(q)
 	case "svg":
 		edge := 2400

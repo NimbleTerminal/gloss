@@ -6,12 +6,10 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/ledongthuc/pdf"
 	"golang.org/x/net/html"
 )
 
@@ -20,20 +18,17 @@ import (
 // million deep, objects that hold fifty of the next. Each limit here keeps
 // what a file may cost in step with what it says.
 const (
-	maxCSVFields      = 1 << 16   // Values on one line of a CSV.
-	maxSheetCells     = 2000000   // Cells held for one Excel sheet, empty ones among them.
-	maxWordTableCells = 200000    // Cells of one Word table, padded to its width.
-	maxHTMLTableCells = 1000000   // Rows times columns of one HTML table, as it is padded.
-	maxQuoteDepth     = 64        // Block quotes within block quotes.
-	maxBracketDepth   = 1000      // Unclosed [ in a Markdown document.
-	max3MFVisits      = 1 << 20   // Objects a 3MF may place, counting every component.
-	maxHTMLColspan    = 1 << 20   // A colspan is a width the converter will pad to.
-	zipEndSize        = 22        // The fixed part of a zip archive's end record.
-	zipCommentMax     = 0xFFFF    // And the longest comment it may carry.
-	zipSixtyFour      = 1 << 30   // What a count of 0xFFFF, "see the zip64 record", stands for.
-	maxPDFTreeWalk    = 64        // Parents followed up a PDF's page tree.
-	maxPDFStream      = 256 << 20 // What one Flate stream of a PDF may inflate to.
-	maxPDFInflated    = 1 << 30   // And all of them together.
+	maxCSVFields      = 1 << 16 // Values on one line of a CSV.
+	maxSheetCells     = 2000000 // Cells held for one Excel sheet, empty ones among them.
+	maxWordTableCells = 200000  // Cells of one Word table, padded to its width.
+	maxHTMLTableCells = 1000000 // Rows times columns of one HTML table, as it is padded.
+	maxQuoteDepth     = 64      // Block quotes within block quotes.
+	maxBracketDepth   = 1000    // Unclosed [ in a Markdown document.
+	max3MFVisits      = 1 << 20 // Objects a 3MF may place, counting every component.
+	maxHTMLColspan    = 1 << 20 // A colspan is a width the converter will pad to.
+	zipEndSize        = 22      // The fixed part of a zip archive's end record.
+	zipCommentMax     = 0xFFFF  // And the longest comment it may carry.
+	zipSixtyFour      = 1 << 30 // What a count of 0xFFFF, "see the zip64 record", stands for.
 )
 
 // parseDeadline bounds a parser worker or a cooperatively checked parse.
@@ -49,23 +44,6 @@ func recoverParse[T any](what string, work func() (T, error)) (value T, err erro
 		}
 	}()
 	return work()
-}
-
-// These helpers run only inside the killable parser worker.
-func mediaBox(reader *pdf.Reader, page int) (w, h float64, ok bool, err error) {
-	for node, depth := reader.Page(page).V, 0; !node.IsNull() && depth < maxPDFTreeWalk; node, depth = node.Key("Parent"), depth+1 {
-		box := node.Key("MediaBox")
-		if box.Len() != 4 {
-			continue
-		}
-		w, h = math.Abs(box.Index(2).Float64()-box.Index(0).Float64()), math.Abs(box.Index(3).Float64()-box.Index(1).Float64())
-		return w, h, w > 0 && h > 0 && !math.IsNaN(w) && !math.IsNaN(h) && !math.IsInf(w, 0) && !math.IsInf(h, 0), nil
-	}
-	return 0, 0, false, nil
-}
-
-func pageText(reader *pdf.Reader, page int) (string, error) {
-	return reader.Page(page).GetPlainText(nil)
 }
 
 // openZip is zip.NewReader after a look at how many entries the archive says

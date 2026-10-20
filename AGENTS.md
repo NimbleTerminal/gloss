@@ -41,8 +41,11 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   the current executable on native hosts, Web Workers in the browser. A
   15-second deadline stops and reaps/terminates the worker; at most two run at
   once. Markdown checks its work budget synchronously in Goldmark callbacks.
-  `pdf_budget.go` validates declared lengths, filter chains and predictor sizes
-  before PDF libraries run. Unsupported or ambiguous encodings fail closed.
+  The PDF worker opens files through `nimbleterminal.dev/ntpdf/pdfdoc`, which
+  validates declared lengths, filter chains, predictor sizes and cross-references
+  before the PDF library runs; unsupported or ambiguous encodings fail closed.
+  Gloss passes its limits (`pdfLimits` in `parser_worker.go`) and keeps its own
+  policy: the 16 MiB page-text cap, the no-text-layer error, and sparse pages.
 - Inline Markdown images use `ntpicture.Picture` and
   `playback.Controller`; Gloss owns their document rows, scrolling, and visibility.
   Bounded GIF/WebP decoding, immutable clips/players,

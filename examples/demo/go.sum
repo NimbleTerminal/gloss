@@ -10,8 +10,6 @@ github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 h1:XFJZFWESIWlUEHHjzBuv8R
 github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2/go.mod h1:BHWO8lJzttJLqwuV8Rb1B3OG2OSzLbssZDI1FRg2eAA=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/NimbleMarkets/booba-shim v0.5.0 h1:LH/9GbMb/iMmhoqPp5OtY/ok/6jcovoDQp5FDo++GFM=
-github.com/NimbleMarkets/booba-shim v0.5.0/go.mod h1:+3ch4kZuCLtrwGK2s3ALo/I1Dzcz4e888PC3f2lLbgs=
 github.com/NimbleMarkets/go-booba v0.10.3 h1:yd3rYWLxPjvxruThzF2nbOJlx0g+f1HHQj7QiTJvB+c=
 github.com/NimbleMarkets/go-booba v0.10.3/go.mod h1:i/XjhpdZ8B+gXeaYLQ1HQLw0QOh9Cg/t2I2lNKDSynw=
 github.com/NimbleMarkets/oksvg v0.1.2 h1:yEdKYq/+btcLHrOfCnF3/scwGXEY9lUvLFc1aRhqmGY=
@@ -194,12 +192,14 @@ nimbleterminal.dev/ntfonts v0.1.0 h1:D8PxpASojALkYPV381GQBidooRJarueUfKQoC4srgYk
 nimbleterminal.dev/ntfonts v0.1.0/go.mod h1:G8a7vDkY3uYxrydtdTlJ7KbZpxtL4MTimyMhkwdPr2Q=
 nimbleterminal.dev/ntgpuimage v0.3.0 h1:x3/wbnS6xHFsMbKg+vXTbbEv2pDfnJTbGpKiUoSnAjM=
 nimbleterminal.dev/ntgpuimage v0.3.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=
-nimbleterminal.dev/ntpdf v0.4.0 h1:GX6En9/Ka2WccK4f3CshGevSpsxxM54f7zZUvSr8+XM=
-nimbleterminal.dev/ntpdf v0.4.0/go.mod h1:ukIhg/c+/6F24qyrj+kN3RxmACIHOgIJBcAGFNkIrdM=
-nimbleterminal.dev/ntpicture v0.1.0 h1:CsE+wzMxdG81vxkm31viZ/RiT4pafVajoOoX1DG9BnQ=
-nimbleterminal.dev/ntpicture v0.1.0/go.mod h1:87798EJw9zvJoD1sdT6wzbGBpY+Vwco9U4NVf5Cv0tw=
+nimbleterminal.dev/ntpdf v0.5.0 h1:zXxDV7fyFtevr4L2zQzQVGiZh5fryI/D/irz+A1lih0=
+nimbleterminal.dev/ntpdf v0.5.0/go.mod h1:dVfHJAKjXOvBicRDP7BI/n6wY1r6whSM2OUnyQPKkwU=
+nimbleterminal.dev/ntpicture v0.1.1 h1:OxR7AHgYy60HKOATocQolLlJwe2s/ZDhGQh5QOW9HaU=
+nimbleterminal.dev/ntpicture v0.1.1/go.mod h1:87798EJw9zvJoD1sdT6wzbGBpY+Vwco9U4NVf5Cv0tw=
 nimbleterminal.dev/ntqrcode v0.3.0 h1:l8ugeJP0d/ROatrWIYaIuZ1ERMAsuwxcXCvwTs0hvcc=
 nimbleterminal.dev/ntqrcode v0.3.0/go.mod h1:S3g4wTzCtPktEaPVm0pyu7W1o6mKKWqjc/jhVioOmfw=
+nimbleterminal.dev/ntshim v0.6.0 h1:0m7g3laU1cxwVZLz+yY/c2acHuyQKrd3Bi9cvVS6w3c=
+nimbleterminal.dev/ntshim v0.6.0/go.mod h1:df+RVCGgRjaMTM+IfmTHHe4Fd6yy1njO97P3vYc8yxE=
 nimbleterminal.dev/ntsvg v0.5.1 h1:dXbuWm72ehb4qP6u1AkcpcI2gqhZFwHnc4cjplXbDzY=
 nimbleterminal.dev/ntsvg v0.5.1/go.mod h1:QdqtZA2d9KNjC+nvRuMheo/n+0R0oKVT0wiAxRnpawY=
 nimbleterminal.dev/nttypeset v0.1.1 h1:xevLRXlIBa2v1zr/mExXFDrjwlZHa0pHOMAV4NrSvV8=

@@ -19,7 +19,6 @@ require (
 	github.com/gen2brain/jxl v0.2.0
 	github.com/go-text/typesetting v0.3.5
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
 	github.com/spf13/pflag v1.0.10
@@ -31,8 +30,8 @@ require (
 	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
-	nimbleterminal.dev/ntpdf v0.4.0
-	nimbleterminal.dev/ntpicture v0.1.0
+	nimbleterminal.dev/ntpdf v0.5.0
+	nimbleterminal.dev/ntpicture v0.1.1
 	nimbleterminal.dev/ntqrcode v0.3.0
 	nimbleterminal.dev/ntsvg v0.5.1
 	nimbleterminal.dev/nttypeset v0.1.1
@@ -40,7 +39,6 @@ require (
 
 require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
-	github.com/NimbleMarkets/booba-shim v0.5.0 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
@@ -66,6 +64,7 @@ require (
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/jolestar/go-commons-pool/v2 v2.1.2 // indirect
 	github.com/klippa-app/go-pdfium v1.21.3 // indirect
+	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0 // indirect
 	github.com/lrstanley/bubblezone/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
@@ -88,6 +87,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/ntshim v0.6.0 // indirect
 )
 
 replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2

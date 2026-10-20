@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"image"
 	"image/png"
 	"io"
 	"math"
 
-	"github.com/ledongthuc/pdf"
+	"nimbleterminal.dev/ntpdf/pdfdoc"
 )
 
 const parserWorkerArg = "--gloss-parser-worker"
@@ -59,27 +58,23 @@ func parserWork(q parserRequest) parserReply {
 			}
 			out.PNG = b.Bytes()
 		case "pdf":
-			if err := checkPDFStreams(q.Data); err != nil {
-				return out, err
-			}
-			reader, err := pdf.NewReader(bytes.NewReader(q.Data), int64(len(q.Data)))
+			// pdfdoc checks the streams, filters, predictors and cross-references
+			// against the budget before the PDF library sees the bytes.
+			doc, err := pdfdoc.Open(q.Data, pdfLimits())
 			if err != nil {
 				return out, err
 			}
-			out.Pages = reader.NumPage()
-			if out.Pages < 1 || out.Pages > MaxPages {
-				return out, fmt.Errorf("PDF page count must be 1..%d", MaxPages)
-			}
+			out.Pages = doc.NumPages()
 			out.Page = max(1, min(q.Page, out.Pages))
-			out.Width, out.Height, _, _ = mediaBox(reader, out.Page)
-			out.Fields = pdfFields(reader, pdfVersion(q.Data), out.Pages, out.Page)
+			out.Width, out.Height, _, _ = doc.PageSize(out.Page)
+			out.Fields = pdfFields(doc, out.Page)
 			if q.Text {
-				out.Text, err = pdfPageText(reader, out.Page)
+				out.Text, err = pdfPageText(doc, out.Page)
 				if err != nil && !errors.Is(err, ErrNoTextLayer) {
 					return out, err
 				}
 				out.NoText = errors.Is(err, ErrNoTextLayer)
-				out.Layer = measureLayer(reader, out.Page, out.Text)
+				out.Layer = measureLayer(doc, out.Page, out.Text)
 			}
 		default:
 			return out, errors.New("unknown parser operation")
@@ -90,6 +85,22 @@ func parserWork(q parserRequest) parserReply {
 		reply.Error = err.Error()
 	}
 	return reply
+}
+
+// pdfLimits is gloss's policy for a PDF, read when the worker parses: the
+// deadline is a variable that tests shorten.
+func pdfLimits() pdfdoc.Limits {
+	return pdfdoc.Limits{
+		MaxFileBytes:     MaxFileBytes,
+		MaxPages:         MaxPages,
+		MaxStreamBytes:   256 << 20, // What one stream may inflate to.
+		MaxInflatedBytes: 1 << 30,   // And all of them together.
+		MaxImagePixels:   MaxPixels,
+		Timeout:          parseDeadline,
+		MaxTreeWalk:      64, // Parents followed up the page tree.
+		MaxFormDepth:     8,  // Forms drawn within forms, when images are counted.
+		MaxImageDraws:    100000,
+	}
 }
 
 func serveParser(input io.Reader, output io.Writer) error {

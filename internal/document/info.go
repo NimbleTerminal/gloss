@@ -14,8 +14,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ledongthuc/pdf"
 	"github.com/yuin/goldmark/ast"
+	"nimbleterminal.dev/ntpdf/pdfdoc"
 )
 
 // Field is one line of the info panel. A Field without a Value is a heading.
@@ -185,61 +185,20 @@ func svgFields(data []byte) []Field {
 	return Section("Drawing", Field{"Format", "SVG"}, Field{"Declared size", declared}, Field{"View box", box}, Field{"Title", title}, Field{"Description", desc}, Field{"Elements", count})
 }
 
-func pdfVersion(data []byte) string {
-	head := bytes.TrimSpace(data[:min(len(data), 1024)])
-	if !bytes.HasPrefix(head, []byte("%PDF-")) {
-		return ""
-	}
-	version := string(head[5:min(len(head), 16)])
-	if i := strings.IndexFunc(version, func(r rune) bool { return r != '.' && !unicode.IsDigit(r) }); i >= 0 {
-		version = version[:i]
-	}
-	return version
-}
-
 func pdfInfo(data []byte, page int) ([]Field, error) {
 	reply, err := runParser(parserRequest{Kind: "pdf", Data: data, Page: page})
 	return reply.Fields, err
 }
 
-// pdfDate reads "D:20260304050607+02'00'", of which only the year is required.
-func pdfDate(s string) string {
-	s = strings.TrimPrefix(strings.TrimSpace(s), "D:")
-	digits := strings.IndexFunc(s, func(r rune) bool { return r < '0' || r > '9' })
-	if digits < 0 {
-		digits = len(s)
-	}
-	if digits < 4 {
-		return s
-	}
-	zone := strings.NewReplacer("'", ":").Replace(strings.TrimSuffix(s[digits:], "'"))
-	s = s[:min(digits, 14)]
-	out := s[:4]
-	for i, sep := range []string{"-", "-", " ", ":", ":"} {
-		if len(s) < 6+2*i {
-			return out
-		}
-		out += sep + s[4+2*i:6+2*i]
-	}
-	switch {
-	case strings.HasPrefix(zone, "Z"):
-		out += " UTC"
-	case len(zone) == 6:
-		out += " " + zone
-	}
-	return out
-}
-
-func pdfFields(reader *pdf.Reader, version string, pages, page int) []Field {
+func pdfFields(doc *pdfdoc.Document, page int) []Field {
 	size := ""
-	if w, h, ok, err := mediaBox(reader, page); err == nil && ok {
+	if w, h, ok, err := doc.PageSize(page); err == nil && ok {
 		size = fmt.Sprintf("%.0f × %.0f pt (%.2f × %.2f in)", w, h, w/72, h/72)
 	}
-	info := reader.Trailer().Key("Info")
-	text := func(key string) string { return info.Key(key).Text() }
-	return Section("Document", Field{"Format", strings.TrimSpace("PDF " + version)}, Field{"Pages", strconv.Itoa(pages)}, Field{"Page size", size},
-		Field{"Title", text("Title")}, Field{"Author", text("Author")}, Field{"Subject", text("Subject")}, Field{"Keywords", text("Keywords")},
-		Field{"Creator", text("Creator")}, Field{"Producer", text("Producer")}, Field{"Created", pdfDate(text("CreationDate"))}, Field{"Changed", pdfDate(text("ModDate"))})
+	info := doc.Info()
+	return Section("Document", Field{"Format", strings.TrimSpace("PDF " + doc.Version())}, Field{"Pages", strconv.Itoa(doc.NumPages())}, Field{"Page size", size},
+		Field{"Title", info.Title}, Field{"Author", info.Author}, Field{"Subject", info.Subject}, Field{"Keywords", info.Keywords},
+		Field{"Creator", info.Creator}, Field{"Producer", info.Producer}, Field{"Created", info.CreationDate}, Field{"Changed", info.ModDate})
 }
 
 func meshFields(data []byte, mesh *Mesh) []Field {
