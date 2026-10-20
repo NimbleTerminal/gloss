@@ -52,7 +52,7 @@ require (
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dunglas/httpsfv v1.1.2 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-webgpu/goffi v0.6.4 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
