@@ -41,15 +41,15 @@ var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pd
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
 var Formats = []string{
-	"Images: PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC",
-	"Doc:    SVG, PDF, Word, Excel, Grist, Jupyter",
+	"Images: PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL",
+	"Doc:    SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter",
 	"Text:   Markdown, HTML, JSON, CSV, plain text and source",
-	"3D:     STL and 3MF meshes",
+	"3D:     STL, 3MF, OBJ and PLY meshes",
 }
 
-const FormatsShort = "Images, SVG, PDF, Word, Excel, Grist, Jupyter, Markdown, HTML, text, JSON, CSV, STL, 3MF"
+const FormatsShort = "Images, SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter, Markdown, HTML, text, JSON, CSV, meshes"
 
-var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, PDF, STL, 3MF, Markdown, HTML, JSON, a notebook, Word, Excel, Grist, CSV, or text")
+var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, Mermaid, PDF, a mesh, Markdown, HTML, JSON, a notebook, Word, Excel, Grist, CSV, or text")
 var ErrNotRegular = errors.New("not a regular file")
 var ErrDirectory = errors.New("is a directory")
 var ErrTooLarge = errors.New("file exceeds 128 MiB")

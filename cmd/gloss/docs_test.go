@@ -102,7 +102,7 @@ func TestManPage(t *testing.T) {
 		t.Fatal(err)
 	}
 	page := string(body)
-	for _, want := range []string{".TH GLOSS 1", ".SH NAME", ".SH SYNOPSIS", ".SH OPTIONS", ".SS Meshes: STL and 3MF", ".SH EXIT STATUS", `\fB\-\-output\fR`, `\fB\-o\fR, `} {
+	for _, want := range []string{".TH GLOSS 1", ".SH NAME", ".SH SYNOPSIS", ".SH OPTIONS", ".SS Meshes: STL, 3MF, OBJ and PLY", ".SH EXIT STATUS", `\fB\-\-output\fR`, `\fB\-o\fR, `} {
 		if !strings.Contains(page, want) {
 			t.Errorf("the man page lacks %q", want)
 		}

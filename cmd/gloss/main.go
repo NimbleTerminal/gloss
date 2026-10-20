@@ -1,4 +1,4 @@
-// gloss is a terminal pager for images, SVGs, PDFs, STL and 3MF meshes, and
+// gloss is a terminal pager for images, SVGs, PDFs, 3D meshes, and
 // Markdown, Word, and Excel files.
 package main
 
@@ -79,7 +79,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f := pflag.NewFlagSet("gloss", pflag.ContinueOnError)
 	f.SetOutput(out)
 	f.StringVarP(&opts.Render, "render", "r", "auto", "terminal graphics: auto, kitty, glyph")
-	f.StringVar(&opts.Render3D, "3d", "auto", "mesh renderer for STL and 3MF: auto, software, wireframe")
+	f.StringVar(&opts.Render3D, "3d", "auto", "mesh renderer: auto, software, wireframe")
 	f.StringVar(&opts.Font, "font", "readable", "Typeset font pair: readable, editorial, technical, compact")
 	f.StringVar(&opts.Mono, "mono", "", "Override typeset code face: jetbrains")
 	f.StringVar(&opts.Theme, "theme", "auto", "Colors: "+strings.Join(themeNames(), ", ")+", or theme JSON file")

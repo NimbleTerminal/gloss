@@ -6,7 +6,7 @@ bookToC: false
 
 # gloss
 
-A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL and 3MF meshes, Markdown, HTML, plain text, JSON, Jupyter notebooks, Word, Excel, Grist, and CSV files.
+A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL, 3MF, OBJ and PLY meshes, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks, Word, Excel, Grist, and CSV files.
 
 [**Try it in your browser →**](https://nimbleterminal.github.io/gloss/) The live terminal runs the actual Go pager as WebAssembly, with one sample of every kind.
 

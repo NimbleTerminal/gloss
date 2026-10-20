@@ -243,7 +243,7 @@ func TestEmptySessionIsADropTarget(t *testing.T) {
 		}
 	}
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
-	if view := m.View().Content; !strings.Contains(view, "Drop files here to open") || !strings.Contains(view, "3D:     STL and 3MF meshes") {
+	if view := m.View().Content; !strings.Contains(view, "Drop files here to open") || !strings.Contains(view, "3D:     STL, 3MF, OBJ and PLY meshes") {
 		t.Fatalf("no drop target, or no word on what can be opened:\n%s", view)
 	}
 	// The name is drawn above, and outranks the rest as the screen
