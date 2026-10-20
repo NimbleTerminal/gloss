@@ -81,8 +81,6 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   Node-tested helpers (`node --test web/*.test.mjs`).
 - `examples`: small original runnable fixtures; `examples/demo` is a separate
   Go module pinning the Bubble Tea WASM fork used by the NTCharts demos.
-- `experiments/typeset`: separate-module comparison of direct go-text Markdown
-  layout with the PDF backend; not part of the viewer or root test suite.
 - `docs/hugo`: the documentation site (Hugo, hugo-book theme as a submodule),
   published at `/docs/` beside the demo. The guide pages (`content/guide`) are
   written by hand, except *For LLMs* and *Development*, which are generated

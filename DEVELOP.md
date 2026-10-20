@@ -12,8 +12,8 @@ ground for coding agents.
 ## Go module path
 
 The root module is `nimbleterminal.dev/gloss`. Self-imports and the separate
-`examples/demo` and `experiments/typeset` modules use that prefix; their local
-replacements still point at the root checkout. GitHub remains the source host.
+`examples/demo` module uses that prefix; its local
+replacement still points at the root checkout. GitHub remains the source host.
 Consumers moving from the GitHub module path must update their imports and use
 a version published after the migration. Existing tags are unchanged.
 
@@ -201,8 +201,9 @@ spans for source/JSON; only Markdown is parsed as Markdown.
 Each format retains its original kind.
 `--markdown typeset` is a compatibility alias; `--typeset` and `t` select the shared view mode.
 The production graph no longer uses goldmark-pdf/gopdf; PDF inputs still use
-PDFium. The [comparison experiment](experiments/typeset/README.md) retains a
-frozen PDF adapter in its separate module and its recorded comparison images.
+PDFium. The comparison of the two that chose the direct renderer was the
+`experiments/typeset` module, removed after the move to nttypeset; it is in
+the history before that removal.
 
 Standalone local images, including image-only links, are composited into the
 typeset viewport; embedded GIF blocks animate when visible. Images mixed with prose
