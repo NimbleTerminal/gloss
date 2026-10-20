@@ -114,7 +114,8 @@ func TestForegroundWebPickJSONMessage(t *testing.T) {
 	var stdout bytes.Buffer
 	log, done := make(webPickLog, 1), make(chan error, 1)
 	go func() {
-		done <- served(options{Options: app.Options{Pick: true}, PickWeb: true, JSON: true, NoOpen: true, Timeout: 5 * time.Second}, &stdout, log)
+		_, err := served(options{Options: app.Options{Pick: true}, PickWeb: true, JSON: true, NoOpen: true, Timeout: 5 * time.Second}, &stdout, log)
+		done <- err
 	}()
 	var address string
 	select {
@@ -182,7 +183,7 @@ func asked(t *testing.T, user func(term *terminal, page string) []string) (answe
 	}
 	var stdout, stderr lines
 	ended := make(chan error, 1)
-	go func() { ended <- served(opts, &stdout, &stderr) }()
+	go func() { _, err := served(opts, &stdout, &stderr); ended <- err }()
 	page := ""
 	for start := time.Now(); page == ""; time.Sleep(10 * time.Millisecond) {
 		if _, after, ok := strings.Cut(stderr.String(), "viewer at "); ok && strings.Contains(after, "\n") {

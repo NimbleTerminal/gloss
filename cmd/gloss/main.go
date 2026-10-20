@@ -407,6 +407,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 }
 
 func run(args []string) (err error) {
+	// What a pick comes back with. The deferred report of a detached server
+	// and the removal of downloads read it once run has returned.
+	var picked pickAnswer
 	opts, done, err := parse(args, os.Stdout)
 	if done {
 		return nil
@@ -443,7 +446,7 @@ func run(args []string) (err error) {
 	}
 	if opts.Detached != "" {
 		// The server of a detached start: it answers through its state.
-		defer func() { handoff.Conclude(opts.Detached, err, picked, opts.Pick, pickedMessage) }()
+		defer func() { handoff.Conclude(opts.Detached, err, picked.paths, opts.Pick, picked.message) }()
 	}
 	stdinTTY := term.IsTerminal(os.Stdin.Fd())
 	opts.MarkdownBase, err = os.Getwd()
@@ -509,7 +512,7 @@ func run(args []string) (err error) {
 	// exported as the file it became. Downloads last the session; an
 	// interrupt meanwhile ends the download, and so the session, in order.
 	downloads := fetchFolder{agent: opts.UserAgent}
-	defer func() { downloads.discard(picked) }()
+	defer func() { downloads.discard(picked.paths) }()
 	var failed func(address string, err error)
 	if opts.Info {
 		failed = func(address string, err error) {
@@ -565,7 +568,8 @@ func run(args []string) (err error) {
 		}
 	}
 	if opts.Serve {
-		return served(opts, os.Stdout, os.Stderr)
+		picked, err = served(opts, os.Stdout, os.Stderr)
+		return err
 	}
 	err = configureOpenWith(&opts, nativeOpenWith)
 	if err != nil {
@@ -621,12 +625,16 @@ func run(args []string) (err error) {
 	if err != nil {
 		return err
 	}
-	return finish(m, opts, os.Stdout, os.Stderr)
+	picked, err = finish(m, opts, os.Stdout, os.Stderr)
+	return err
 }
 
-// What the user picked, which a fetched file may be among.
-var picked []string
-var pickedMessage string // Optional reply from the plain web picker.
+// pickAnswer is what the user picked, which a fetched file may be among, and
+// the message an upload-only request may send with it.
+type pickAnswer struct {
+	paths   []string
+	message string
+}
 
 // discardFetched empties the folder of fetched files, except for what was
 // picked, and removes the folder once nothing is left in it.
@@ -669,8 +677,7 @@ func handoffConfig(opts options) handoff.Config {
 }
 
 // served shows the viewer on a page, and waits for it to be done with.
-func served(opts options, stdout, stderr io.Writer) error {
-	pickedMessage = ""
+func served(opts options, stdout, stderr io.Writer) (pickAnswer, error) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	ctx, end := context.WithCancel(ctx)
@@ -678,7 +685,7 @@ func served(opts options, stdout, stderr io.Writer) error {
 	cfg := handoffConfig(opts)
 	s, err := handoff.Start(ctx, end, cfg)
 	if err != nil {
-		return err
+		return pickAnswer{}, err
 	}
 	defer s.Close()
 	fmt.Fprintf(stderr, "gloss: viewer at %s\n", s.URL)
@@ -688,48 +695,48 @@ func served(opts options, stdout, stderr io.Writer) error {
 		}
 	}
 	if opts.PickWeb {
-		picked, pickedMessage, err = s.WaitWebPick(ctx, cfg, stderr)
+		paths, message, err := s.WaitWebPick(ctx, cfg, stderr)
 		if err != nil {
 			s.Discard()
-			return err
+			return pickAnswer{}, err
 		}
-		return handoff.AnswerPicked(picked, pickedMessage, opts.JSON, stdout)
+		return pickAnswer{paths, message}, handoff.AnswerPicked(paths, message, opts.JSON, stdout)
 	}
+	var picked pickAnswer
 	m, err := s.Wait(opts.Timeout)
 	if err == nil && m == nil {
 		err = handoff.ErrCancelled
 	}
 	if err == nil {
 		defer m.Close()
-		err = finish(m, opts, stdout, stderr)
+		picked, err = finish(m, opts, stdout, stderr)
 	}
 	if err != nil || !opts.Pick {
 		s.Discard()
 	}
-	return err
+	return picked, err
 }
 
 // finish reports what came of the viewer once the screen is given back:
 // what was skipped, and the paths a pick was waiting for.
-func finish(m *app.Model, opts options, stdout, stderr io.Writer) error {
-	pickedMessage = ""
-	picked = m.Picked()
+func finish(m *app.Model, opts options, stdout, stderr io.Writer) (pickAnswer, error) {
+	picked := pickAnswer{paths: m.Picked()}
 	for _, line := range m.Skipped() {
 		fmt.Fprintln(stderr, line)
 	}
 	if err := m.Err(); err != nil && !opts.Pick {
-		return err
+		return picked, err
 	}
 	if !opts.Pick {
-		return nil
+		return picked, nil
 	}
-	if len(m.Picked()) == 0 {
-		return handoff.ErrCancelled
+	if len(picked.paths) == 0 {
+		return picked, handoff.ErrCancelled
 	}
-	for _, path := range m.Picked() {
+	for _, path := range picked.paths {
 		fmt.Fprintln(stdout, path)
 	}
-	return nil
+	return picked, nil
 }
 
 var errNoInputs = errors.New("no supported input files")
