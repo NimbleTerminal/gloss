@@ -18,7 +18,6 @@ require (
 	github.com/gen2brain/h265 v0.2.3
 	github.com/gen2brain/jxl v0.2.0
 	github.com/go-text/typesetting v0.3.5
-	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
 	github.com/spf13/pflag v1.0.10
@@ -30,6 +29,7 @@ require (
 	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
+	nimbleterminal.dev/ntopenwith v0.1.0
 	nimbleterminal.dev/ntpdf v0.5.1
 	nimbleterminal.dev/ntpicture v0.1.1
 	nimbleterminal.dev/ntqrcode v0.3.1
@@ -53,6 +53,7 @@ require (
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dunglas/httpsfv v1.1.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-webgpu/goffi v0.6.4 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
@@ -60,6 +61,7 @@ require (
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/jolestar/go-commons-pool/v2 v2.1.2 // indirect

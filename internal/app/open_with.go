@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/openwith"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -25,6 +26,12 @@ type openWithLoaded struct {
 	target     openwith.Target
 	choices    []openwith.Choice
 	err        error
+}
+
+// editorReady carries a terminal app's unstarted command to the editor handoff.
+type editorReady struct {
+	picker  *openWithPicker
+	command *exec.Cmd
 }
 type openWithFinished struct {
 	operation        int
@@ -61,15 +68,18 @@ func (m *Model) requestOpenWith(path, kind string, directory, chooser bool) tea.
 		target, err := openWithTarget(path, kind, directory)
 		target.Temporary = temporary
 		if !chooser {
-			name := ""
+			var launched openwith.Launched
 			if err == nil {
-				name, err = host.Launch(target, "")
+				launched, err = host.Launch(target, openwith.Open, "")
 			}
-			return openWithFinished{operation: op, generation: generation, name: name, temporary: temporary, err: err}
+			if err == nil && launched.Cmd != nil {
+				return editorReady{p, launched.Cmd}
+			}
+			return openWithFinished{operation: op, generation: generation, name: launched.Name, temporary: temporary, err: err}
 		}
 		var choices []openwith.Choice
 		if err == nil {
-			choices, err = host.Choices(target)
+			choices, err = host.Choices(target, openwith.Open)
 		}
 		if err == nil && !directory {
 			choices = append(choices, openwith.Choice{ID: "copy", Name: "Copy path", Available: true})
@@ -194,13 +204,6 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 			return nil
 		}
 		c := p.choices[p.cursor]
-		if c.ID == "terminal-editor" {
-			if msg.String() == "d" {
-				m.note = "Use VISUAL or EDITOR to choose the terminal editor"
-				return nil
-			}
-			return m.startTerminalEditor()
-		}
 		if !c.Available {
 			m.note = "Application is unavailable"
 			return nil
@@ -216,20 +219,30 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 			m.note = "Path copied"
 			return tea.SetClipboard(target)
 		}
-		p.busy = true
-		target, op, generation, host := p.target, p.operation, p.generation, m.opts.OpenWith
-		return func() tea.Msg {
-			name := ""
-			var err error
-			if save {
-				err = host.SetDefault(target.Kind, c.ID)
-			} else {
-				name, err = host.Launch(target, c.ID)
-			}
-			return openWithFinished{operation: op, generation: generation, name: name, temporary: target.Temporary, saved: save, err: err}
-		}
+		return m.openWithLaunch(c.ID, save)
 	}
 	return nil
+}
+
+// openWithLaunch launches the chooser's app id, or saves it as the default.
+// A terminal app's command goes to the editor handoff instead of finishing.
+func (m *Model) openWithLaunch(id string, save bool) tea.Cmd {
+	p := m.openWithPicker
+	p.busy = true
+	target, op, generation, host := p.target, p.operation, p.generation, m.opts.OpenWith
+	return func() tea.Msg {
+		var launched openwith.Launched
+		var err error
+		if save {
+			err = host.SetDefault(target.Kind, openwith.Open, id)
+		} else {
+			launched, err = host.Launch(target, openwith.Open, id)
+		}
+		if err == nil && launched.Cmd != nil {
+			return editorReady{p, launched.Cmd}
+		}
+		return openWithFinished{operation: op, generation: generation, name: launched.Name, temporary: target.Temporary, saved: save, err: err}
+	}
 }
 func (m *Model) openWithView(w, h int) string {
 	p := m.openWithPicker
@@ -328,7 +341,7 @@ func (m *Model) loadOpenWithApps(managing bool, id string, enabled bool) tea.Cmd
 		if managing {
 			v.apps = manager.Apps()
 		} else {
-			v.choices, v.err = host.Choices(target)
+			v.choices, v.err = host.Choices(target, openwith.Open)
 			if v.err == nil && !target.Directory {
 				v.choices = append(v.choices, openwith.Choice{ID: "copy", Name: "Copy path", Available: true})
 			}

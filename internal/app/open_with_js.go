@@ -13,5 +13,4 @@ func openWithTarget(string, string, bool) (openwith.Target, error) {
 }
 func (m *Model) openWithBrowse(tea.Msg) (tea.Cmd, bool) { return nil, false }
 
-func (m *Model) startTerminalEditor() tea.Cmd                  { return nil }
 func (m *Model) terminalEditorMessage(tea.Msg) (tea.Cmd, bool) { return nil, false }

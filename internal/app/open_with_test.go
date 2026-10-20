@@ -18,15 +18,18 @@ type fakeOpenHost struct {
 	saved    string
 }
 
-func (h *fakeOpenHost) Choices(t openwith.Target) ([]openwith.Choice, error) {
+func (h *fakeOpenHost) Choices(t openwith.Target, v openwith.Verb) ([]openwith.Choice, error) {
 	return []openwith.Choice{{ID: "system", Name: "System default", Available: true, Default: true}, {ID: "editor", Name: "Editor", Available: true}, {ID: "reveal", Name: "Reveal", Available: true}}, nil
 }
-func (h *fakeOpenHost) Launch(t openwith.Target, id string) (string, error) {
+func (h *fakeOpenHost) Launch(t openwith.Target, v openwith.Verb, id string) (openwith.Launched, error) {
 	h.launched = append(h.launched, t)
 	h.ids = append(h.ids, id)
-	return "Editor", nil
+	return openwith.Launched{Name: "Editor"}, nil
 }
-func (h *fakeOpenHost) SetDefault(kind, id string) error { h.saved = kind + ":" + id; return nil }
+func (h *fakeOpenHost) SetDefault(kind string, v openwith.Verb, id string) error {
+	h.saved = kind + ":" + id
+	return nil
+}
 func TestOpenWithPickerAndLaunch(t *testing.T) {
 	m := themedModel(t, "dark", false)
 	h := &fakeOpenHost{}
@@ -255,8 +258,8 @@ func (h *managingOpenHost) SetEnabled(id string, enabled bool) error {
 	h.hidden = !enabled
 	return nil
 }
-func (h *managingOpenHost) Choices(target openwith.Target) ([]openwith.Choice, error) {
-	choices, err := h.fakeOpenHost.Choices(target)
+func (h *managingOpenHost) Choices(target openwith.Target, v openwith.Verb) ([]openwith.Choice, error) {
+	choices, err := h.fakeOpenHost.Choices(target, v)
 	if h.hidden {
 		choices = append(choices[:1], choices[2:]...)
 	}

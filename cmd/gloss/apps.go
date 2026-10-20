@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"io"
 	"nimbleterminal.dev/gloss/internal/openwith"
-	"nimbleterminal.dev/gloss/internal/theme"
-	"os"
-	"os/exec"
-	"runtime"
+	"nimbleterminal.dev/ntopenwith"
 	"strings"
 )
 
@@ -24,21 +21,12 @@ type appsListing struct {
 }
 
 func nativeOpenWith() (openwith.Host, error) {
-	dir, err := theme.Dir()
-	if err != nil {
-		return nil, err
-	}
-	home, _ := os.UserHomeDir()
-	c, err := openwith.Discover(runtime.GOOS, openwith.Probes{LookPath: exec.LookPath, Stat: os.Stat, Home: home})
-	if err != nil {
-		return nil, err
-	}
-	return openwith.NewHost(c, dir)
+	return openwith.NewHost(openwith.Source(), ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return nil }), nil
 }
 func writeApps(out io.Writer, host openwith.Host, jsonOutput bool) error {
 	rows := make([]appsListing, 0, len(openwith.Kinds))
 	for _, kind := range openwith.Kinds {
-		choices, err := host.Choices(openwith.Target{Kind: kind})
+		choices, err := host.Choices(openwith.Target{Kind: kind}, openwith.Open)
 		if err != nil {
 			return err
 		}

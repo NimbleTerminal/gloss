@@ -19,13 +19,19 @@ import (
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
+// editorTestHost launches every app as a terminal editor: an unstarted command.
 type editorTestHost struct {
 	fakeOpenHost
 	err error
 }
 
-func (h *editorTestHost) Editor(t openwith.Target) (*exec.Cmd, error) {
-	return exec.Command("test-editor", t.Path), h.err
+func (h *editorTestHost) Launch(t openwith.Target, v openwith.Verb, id string) (openwith.Launched, error) {
+	h.launched = append(h.launched, t)
+	h.ids = append(h.ids, id)
+	if h.err != nil {
+		return openwith.Launched{}, h.err
+	}
+	return openwith.Launched{Name: "Test editor", Cmd: exec.Command("test-editor", t.Path)}, nil
 }
 func TestTerminalEditorReloadAndPosition(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "note.md")
@@ -41,8 +47,8 @@ func TestTerminalEditorReloadAndPosition(t *testing.T) {
 	m.markdown.raw, m.markdown.offset, m.markdown.left = true, 8, 7
 	p := &openWithPicker{target: openwith.Target{Path: path, Kind: "markdown"}, generation: m.generation}
 	m.openWithPicker, m.layer = p, layerOpenWith
-	ready := m.startTerminalEditor()().(editorReady)
-	if ready.err != nil || ready.command.Args[1] != path {
+	ready := m.openWithLaunch("vim", false)().(editorReady)
+	if ready.command.Args[1] != path {
 		t.Fatalf("ready: %+v", ready)
 	}
 	// Preparing the handoff clears graphics and saves the logical text position.
@@ -71,9 +77,8 @@ func TestTerminalEditorErrorAndStaleReady(t *testing.T) {
 	m.opts.OpenWith = &editorTestHost{err: errors.New("set EDITOR")}
 	p := &openWithPicker{generation: m.generation}
 	m.openWithPicker, m.layer = p, layerOpenWith
-	ready := m.startTerminalEditor()()
-	cmd, _ := m.terminalEditorMessage(ready)
-	if cmd != nil || p.busy || !strings.Contains(m.note, "set EDITOR") {
+	send(m, m.openWithLaunch("vim", false)())
+	if m.openWithPicker != p || p.busy || !strings.Contains(m.note, "set EDITOR") {
 		t.Fatal("preparation error lost")
 	}
 	m.closeOpenWith()
@@ -87,14 +92,16 @@ type editorProcessHost struct {
 	command *exec.Cmd
 }
 
-func (h *editorProcessHost) Editor(openwith.Target) (*exec.Cmd, error) { return h.command, nil }
+func (h *editorProcessHost) Launch(openwith.Target, openwith.Verb, string) (openwith.Launched, error) {
+	return openwith.Launched{Name: "Test editor", Cmd: h.command}, nil
+}
 
 type editorProgramTest struct {
 	model    *Model
 	finished bool
 }
 
-func (h *editorProgramTest) Init() tea.Cmd  { return h.model.startTerminalEditor() }
+func (h *editorProgramTest) Init() tea.Cmd  { return h.model.openWithLaunch("vim", false) }
 func (h *editorProgramTest) View() tea.View { return tea.NewView("") }
 func (h *editorProgramTest) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if _, ok := msg.(editorFinished); ok {
@@ -168,7 +175,7 @@ func TestTerminalEditorTypesetViewport(t *testing.T) {
 	m.typesetTop = 120
 	p := &openWithPicker{target: openwith.Target{Path: path, Kind: "markdown"}, generation: m.generation}
 	m.openWithPicker, m.layer = p, layerOpenWith
-	ready := m.startTerminalEditor()().(editorReady)
+	ready := m.openWithLaunch("vim", false)().(editorReady)
 	_, _ = m.terminalEditorMessage(ready)
 	// Editors commonly save by replacing the original file.
 	replacement := filepath.Join(filepath.Dir(path), "replacement.md")
@@ -188,23 +195,21 @@ func TestTerminalEditorTypesetViewport(t *testing.T) {
 	}
 }
 
-func TestTerminalEditorChooserDoesNotSaveOrBackgroundLaunch(t *testing.T) {
+func TestTerminalChoiceHandsOffUnstarted(t *testing.T) {
 	m := themedModel(t, "dark", false)
-	h := &editorTestHost{err: errors.New("set VISUAL or EDITOR")}
+	h := &editorTestHost{}
 	m.opts.OpenWith = h
-	p := &openWithPicker{generation: m.generation, choices: []openwith.Choice{{ID: "terminal-editor", Name: "Edit in terminal"}}}
+	p := &openWithPicker{generation: m.generation, target: openwith.Target{Path: "/tmp/test.md", Kind: "markdown"}, choices: []openwith.Choice{{ID: "vim", Name: "Vim", Available: true, Terminal: true}}}
 	m.openWithPicker, m.layer = p, layerOpenWith
-	_, cmd := m.Update(press("d"))
-	drainAnimation(t, m, cmd)
-	if h.saved != "" || len(h.launched) != 0 || !strings.Contains(m.note, "VISUAL") {
-		t.Fatal("editor treated as background default")
+	_, cmd := m.Update(press("enter"))
+	if cmd == nil || !p.busy {
+		t.Fatal("launch not submitted")
 	}
-	_, cmd = m.Update(press("enter"))
-	drainAnimation(t, m, cmd)
-	if m.openWithPicker != p || p.busy || !strings.Contains(m.note, "set VISUAL") {
-		t.Fatal("unconfigured editor did not explain setup")
+	ready, ok := cmd().(editorReady)
+	if !ok || ready.picker != p || ready.command.Process != nil {
+		t.Fatal("terminal app not handed to the editor handoff unstarted")
 	}
-	if len(h.launched) != 0 {
-		t.Fatal("editor launched in background")
+	if len(h.launched) != 1 || h.ids[0] != "vim" || h.saved != "" {
+		t.Fatalf("launches %v saved %q", h.ids, h.saved)
 	}
 }

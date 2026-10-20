@@ -2,12 +2,29 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"nimbleterminal.dev/gloss/internal/app"
 	"nimbleterminal.dev/gloss/internal/openwith"
+	"nimbleterminal.dev/ntopenwith"
+	"os/exec"
 	"testing"
 )
+
+// systemOnly offers only the system default, for every file and verb.
+type systemOnly struct{}
+
+func (systemOnly) Apps(context.Context, ntopenwith.Target, ntopenwith.Verb) ([]ntopenwith.App, error) {
+	return []ntopenwith.App{{ID: "system", Name: "System default", Default: true}}, nil
+}
+func (systemOnly) Launch(context.Context, ntopenwith.Target, ntopenwith.Verb, ntopenwith.App) (*exec.Cmd, error) {
+	return nil, nil
+}
+
+func testHost() openwith.Host {
+	return openwith.NewHost(systemOnly{}, ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return nil })
+}
 
 func TestAppsParsing(t *testing.T) {
 	for _, args := range [][]string{{"--apps"}, {"--apps", "--json"}} {
@@ -24,13 +41,8 @@ func TestAppsParsing(t *testing.T) {
 	}
 }
 func TestAppsListing(t *testing.T) {
-	c := openwith.Catalog{Entries: []openwith.Entry{{ID: "system", Name: "System default"}, {ID: "reveal", Name: "Reveal"}}, Available: map[string]bool{"system": true, "reveal": true}}
-	h, err := openwith.NewHost(c, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	var b bytes.Buffer
-	if err := writeApps(&b, h, true); err != nil {
+	if err := writeApps(&b, testHost(), true); err != nil {
 		t.Fatal(err)
 	}
 	var rows []appsListing
@@ -53,15 +65,11 @@ func TestOpenWithHostBoundary(t *testing.T) {
 }
 
 func TestAppsSchema(t *testing.T) {
-	h, err := openwith.NewHost(openwith.Catalog{Entries: []openwith.Entry{{ID: "system", Name: "System default"}, {ID: "reveal", Name: "Reveal"}}}, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	var schema, data bytes.Buffer
 	if err := writeSchema(&schema); err != nil {
 		t.Fatal(err)
 	}
-	if err := writeApps(&data, h, true); err != nil {
+	if err := writeApps(&data, testHost(), true); err != nil {
 		t.Fatal(err)
 	}
 	var root map[string]any

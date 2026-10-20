@@ -30,6 +30,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/gen2brain/h265 v0.2.3 // indirect
 	github.com/gen2brain/jxl v0.2.0 // indirect
 	github.com/go-text/render v0.2.1 // indirect
@@ -72,6 +73,7 @@ require (
 	nimbleterminal.dev/ntfilepicker v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/ntopenwith v0.1.0 // indirect
 	nimbleterminal.dev/ntpdf v0.5.1 // indirect
 	nimbleterminal.dev/ntpicture v0.1.1 // indirect
 	nimbleterminal.dev/ntqrcode v0.3.1 // indirect

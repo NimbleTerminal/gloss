@@ -1,5 +1,20 @@
-// Package openwith describes explicit requests to open local files in host apps.
+// Package openwith adapts nimbleterminal.dev/ntopenwith to gloss: its kinds,
+// its old app IDs, and the Reveal and Copy path rows its chooser adds.
 package openwith
+
+import (
+	"os/exec"
+
+	"nimbleterminal.dev/ntopenwith"
+)
+
+// Verb is what to do with a file: Open or Edit.
+type Verb = ntopenwith.Verb
+
+const (
+	Open = ntopenwith.Open
+	Edit = ntopenwith.Edit
+)
 
 // Target is a snapshot of the file selected by the human.
 type Target struct {
@@ -9,27 +24,24 @@ type Target struct {
 
 // Choice is a host action; command lines never cross this interface.
 type Choice struct {
-	ID, Name           string
-	Default, Available bool
+	ID, Name                     string
+	Default, Available, Terminal bool
+}
+
+// Launched names the app started. Cmd is set only for a terminal app: it is
+// unstarted, for the pager to run with the terminal attached.
+type Launched struct {
+	Name string
+	Cmd  *exec.Cmd
 }
 
 // Host is supplied only by an embedding host that permits native launching.
+// Launch with an empty id resolves the app; its errors wrap
+// ntopenwith.ErrChoose and ntopenwith.ErrNoEditor unchanged.
 type Host interface {
-	Choices(Target) ([]Choice, error)
-	Launch(Target, string) (string, error)
-	SetDefault(kind, id string) error
-}
-
-// Kinds are the canonical preference keys, in listing order.
-var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid"}
-
-// Kind maps loader image kinds to their shared preference key.
-func Kind(kind string) string {
-	switch kind {
-	case "png", "jpeg", "gif", "webp", "bmp", "tiff", "heic", "heif", "jxl", "image":
-		return "image/*"
-	}
-	return kind
+	Choices(Target, Verb) ([]Choice, error)
+	Launch(Target, Verb, string) (Launched, error)
+	SetDefault(kind string, v Verb, id string) error
 }
 
 // AppPreference describes an installed app's visibility in all file choosers.

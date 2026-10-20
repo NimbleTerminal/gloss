@@ -3,40 +3,15 @@
 package app
 
 import (
-	"os/exec"
 	"path/filepath"
 
 	tea "charm.land/bubbletea/v2"
-	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
-type terminalEditorHost interface {
-	Editor(openwith.Target) (*exec.Cmd, error)
-}
-type editorReady struct {
-	picker  *openWithPicker
-	command *exec.Cmd
-	err     error
-}
 type editorFinished struct {
 	picker    *openWithPicker
 	top, left int
 	err       error
-}
-
-func (m *Model) startTerminalEditor() tea.Cmd {
-	host, ok := m.opts.OpenWith.(terminalEditorHost)
-	if !ok || m.isPreview {
-		m.note = "Terminal editing is unavailable in this host"
-		return nil
-	}
-	p := m.openWithPicker
-	p.busy = true
-	target := p.target
-	return func() tea.Msg {
-		command, err := host.Editor(target)
-		return editorReady{p, command, err}
-	}
 }
 
 func (m *Model) terminalEditorMessage(msg tea.Msg) (tea.Cmd, bool) {
@@ -47,11 +22,6 @@ func (m *Model) terminalEditorMessage(msg tea.Msg) (tea.Cmd, bool) {
 		}
 		if m.generation != v.picker.generation {
 			return m.closeOpenWith(), true
-		}
-		if v.err != nil {
-			v.picker.busy = false
-			m.note = "Edit in terminal: " + safe(v.err.Error())
-			return nil, true
 		}
 		m.generation++ // Reject document loads already in flight before the handoff.
 		v.picker.generation = m.generation
