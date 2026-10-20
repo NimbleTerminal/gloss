@@ -252,8 +252,8 @@ command line (see [Controls](../controls/)).
 ## File types
 
 **`Ctrl-F`**, or a click on `types ▾` at the right of the footer, opens a list of
-the kinds of file gloss shows: pictures, drawings (SVG), PDF, meshes, Markdown
-and text, JSON, notebooks, Word, and tables.
+the kinds of file gloss shows: pictures, drawings (SVG and Mermaid), PDF,
+meshes, Markdown and text, JSON, notebooks, Word, and tables.
 
 ```text
  ~

@@ -39,14 +39,16 @@ var kindMarks = map[string]string{
 
 // typeFilters are the kinds of file the browser can be told to show alone, by
 // the marks that say what a file is; the menu names them for people.
-var typeFilters = []struct {
+type typeFilter struct {
 	name  string
 	marks []string
-}{
+}
+
+var typeFilters = []typeFilter{
 	{"Pictures", []string{"📷"}},
-	{"Drawings (SVG)", []string{"🎨"}},
+	{"Drawings (SVG, Mermaid)", []string{"🎨", "🧜"}},
 	{"PDF", []string{"📕"}},
-	{"Meshes (STL, 3MF)", []string{"🧊"}},
+	{"Meshes (STL, 3MF, OBJ, PLY)", []string{"🧊"}},
 	{"Markdown, HTML, text", []string{"📝", "📃"}},
 	{"JSON", []string{"🧾"}},
 	{"Notebooks", []string{"📓"}},
