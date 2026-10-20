@@ -4,7 +4,9 @@
 
 - Open with now lists the apps your system knows for each file, with its
   defaults (Launch Services on macOS, XDG on Linux, the registry on Windows),
-  through the ntopenwith library.
+  through the ntopenwith library. On Linux, editors registered for plain text are
+  offered for source files too; on Windows, apps without a registered name show
+  their program's name rather than a class such as `txtfile`.
 
 - `E` edits a file in its editor; Tab in the chooser switches between Open with
   and Edit with; saved choices carry over (defaults now live in

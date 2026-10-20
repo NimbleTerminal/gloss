@@ -193,8 +193,8 @@ nimbleterminal.dev/ntfonts v0.1.0 h1:D8PxpASojALkYPV381GQBidooRJarueUfKQoC4srgYk
 nimbleterminal.dev/ntfonts v0.1.0/go.mod h1:G8a7vDkY3uYxrydtdTlJ7KbZpxtL4MTimyMhkwdPr2Q=
 nimbleterminal.dev/ntgpuimage v0.3.0 h1:x3/wbnS6xHFsMbKg+vXTbbEv2pDfnJTbGpKiUoSnAjM=
 nimbleterminal.dev/ntgpuimage v0.3.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=
-nimbleterminal.dev/ntopenwith v0.1.0 h1:mRYvMea6FFZ6ZTDE1Pp/NHu2bBrv9r4eaPERK1rPu/w=
-nimbleterminal.dev/ntopenwith v0.1.0/go.mod h1:MvWxw+kwx733Q23dTDoW2BHwSU3C29G2jxKQ/mS/DxE=
+nimbleterminal.dev/ntopenwith v0.1.1 h1:BX/bZGeQQvKjbDM22FTMpsPeck2LsmE3sBH+0nuX5ZU=
+nimbleterminal.dev/ntopenwith v0.1.1/go.mod h1:MvWxw+kwx733Q23dTDoW2BHwSU3C29G2jxKQ/mS/DxE=
 nimbleterminal.dev/ntpdf v0.5.1 h1:IerC2cA2YU72twl4XSESp13DiLtUfOreRyd47ZRBWsM=
 nimbleterminal.dev/ntpdf v0.5.1/go.mod h1:FWMvjnh94q0A29+qF9AQm49P4pehB/t6CPgP+XWEYyI=
 nimbleterminal.dev/ntpicture v0.1.1 h1:OxR7AHgYy60HKOATocQolLlJwe2s/ZDhGQh5QOW9HaU=
