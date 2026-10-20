@@ -70,7 +70,7 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 	nimbleterminal.dev/nt3d v0.2.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
-	nimbleterminal.dev/ntfilepicker v0.0.0-20261020004123-65d523ce04af // indirect
+	nimbleterminal.dev/ntfilepicker v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 	nimbleterminal.dev/ntpdf v0.4.0 // indirect

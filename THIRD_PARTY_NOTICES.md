@@ -3560,7 +3560,7 @@ Browser runtime licenses are in web/licenses; regenerate dependency notices with
 `task notices`. Generated runtime assets retain their upstream licenses.
 ```
 
-## nimbleterminal.dev/ntfilepicker v0.0.0-20261020004123-65d523ce04af
+## nimbleterminal.dev/ntfilepicker v0.1.0
 
 ```
 MIT License
