@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"nimbleterminal.dev/gloss/internal/openwith"
-	"nimbleterminal.dev/ntopenwith"
+	"nimbleterminal.dev/gloss/internal/theme"
 	"strings"
 )
 
@@ -21,7 +21,16 @@ type appsListing struct {
 }
 
 func nativeOpenWith() (openwith.Host, error) {
-	return openwith.NewHost(openwith.Source(), ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return nil }), nil
+	dir, err := theme.Dir()
+	if err != nil {
+		return nil, err
+	}
+	prefs, invalid, err := openwith.LoadPreferences(dir)
+	if err != nil {
+		return nil, err
+	}
+	// A damaged file is reported, not fatal; saving then refuses to replace it.
+	return openwith.NewHost(openwith.Source(), prefs, openwith.Saver(dir, invalid)), invalid
 }
 func writeApps(out io.Writer, host openwith.Host, jsonOutput bool) error {
 	rows := make([]appsListing, 0, len(openwith.Kinds))
