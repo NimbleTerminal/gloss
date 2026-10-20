@@ -24,7 +24,13 @@ Update source docs and regenerate the generated guide pages with `task docs`.
 ## Repository layout
 
 - `cmd/gloss`: CLI flags (pflag GNU syntax), stdin handling, PNG export
-  orchestration, and the temporary server behind `--serve`.
+  orchestration, downloads, and dispatch to the handoff (`served`, `finish`).
+- `internal/handoff`: the localhost handoff protocol behind `--serve`, `--pick`
+  and `--pick-web`: tokens, the viewer's lifetime and idle window, upload quotas,
+  detached sessions with `--status`, `--resume` and `--cancel`, network requests
+  and their terminal QR. It takes a `handoff.Config` from the command line; its
+  JSON shapes and exit codes are gloss's agent contract, not a public library.
+  `handoff/handofftest` drives a page from outside, for both packages' tests.
 - `internal/app`: terminal pager, file-selection menu, preview pane, the
   adapter for the file browser, and Markdown layout.
 - The file chooser is `nimbleterminal.dev/ntfilepicker` (layouts: list,
@@ -383,7 +389,7 @@ Agent-facing / scriptable surface:
   `--prompt-loc` positions the prompt box in the terminal only. Pick returns
   exit 0 paths, 1 error, 2 nothing chosen, 124 timeout and blocks, in
   a terminal. With stdin not a terminal, both `--pick` and `--serve` instead
-  detach the server (`cmd/gloss/detach.go`), print one JSON object (`protocol`,
+  detach the server (`internal/handoff/detach.go`), print one JSON object (`protocol`,
   `status`, `url`, `dir`, `timeout_seconds`, `resume_token`, `resume`, `pick`),
   exit 0, and open no browser. Picks default to a fixed 10-minute deadline;
   show-only detached viewers without a positive `--timeout` use a renewable

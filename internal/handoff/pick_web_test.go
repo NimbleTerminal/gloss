@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"bytes"
@@ -23,9 +23,9 @@ import (
 	"nimbleterminal.dev/gloss/internal/app"
 )
 
-func webPicking(t *testing.T, opts app.Options) *server {
+func webPicking(t *testing.T, opts app.Options) *Server {
 	t.Helper()
-	s, err := serveWebPick(context.Background(), options{Options: opts})
+	s, err := serveWebPick(context.Background(), Config{Options: opts})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func webPicking(t *testing.T, opts app.Options) *server {
 	return s
 }
 
-func pickRequest(t *testing.T, s *server, method, route, body string, want int) string {
+func pickRequest(t *testing.T, s *Server, method, route, body string, want int) string {
 	t.Helper()
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(method, s.URL+route, strings.NewReader(body))
@@ -44,7 +44,7 @@ func pickRequest(t *testing.T, s *server, method, route, body string, want int) 
 	return w.Body.String()
 }
 
-func pickUpload(t *testing.T, s *server, want int, files ...upload) []webPickFile {
+func pickUpload(t *testing.T, s *Server, want int, files ...upload) []webPickFile {
 	t.Helper()
 	var body bytes.Buffer
 	form := multipart.NewWriter(&body)
@@ -87,24 +87,6 @@ func confirmMessage(message string, ids ...string) string {
 		Message string   `json:"message"`
 	}{ids, message})
 	return string(data)
-}
-
-func TestWebPickFlags(t *testing.T) {
-	opts, _, err := parse([]string{"--pick-web", "--no-open", "--prompt", "Invoice, please", "--accept", "pdf"}, io.Discard)
-	if err != nil || !opts.Serve || !opts.Pick || !opts.PickWeb || opts.Accept != "pdf" {
-		t.Fatalf("parse: %+v %v", opts, err)
-	}
-	if opts, _, err := parse([]string{"--pick-web", "--json"}, io.Discard); err != nil || !opts.JSON {
-		t.Fatalf("JSON web pick: %+v %v", opts, err)
-	}
-	for _, args := range [][]string{
-		{"invoice.pdf"}, {"-"}, {"--glob", "*.png"}, {"--fetch"}, {"--menu"}, {"--preview"},
-		{"--info"}, {"--text"}, {"--output", "a.png"}, {"--resume", testToken}, {"--status", testToken}, {"--cancel", testToken},
-	} {
-		if _, _, err := parse(append([]string{"--pick-web"}, args...), io.Discard); err == nil {
-			t.Errorf("accepted --pick-web %v", args)
-		}
-	}
 }
 
 func TestWebPickPageHasNoViewerOrHostFileAccess(t *testing.T) {
@@ -168,7 +150,6 @@ func TestWebPickRecoversUploadsAndConfirmsExactIDs(t *testing.T) {
 	if err != nil || !slices.Equal(paths, []string{filepath.Join(s.dir, "b.txt")}) {
 		t.Fatalf("picked %v, %v", paths, err)
 	}
-	discardFetched(s.dir, paths)
 	if data, err := os.ReadFile(paths[0]); err != nil || string(data) != "two" {
 		t.Fatalf("answer was not kept: %q %v", data, err)
 	}
@@ -255,10 +236,10 @@ func TestWebPickDeclineAndTimeout(t *testing.T) {
 	for _, decline := range []bool{true, false} {
 		s := webPicking(t, app.Options{})
 		pickUpload(t, s, 200, upload{"private.txt", []byte("private")})
-		want := errTimeout
+		want := ErrTimeout
 		if decline {
 			pickRequest(t, s, "POST", "decline", "", 200)
-			want = errCancelled
+			want = ErrCancelled
 		}
 		paths, _, err := s.waitWebPick(context.Background(), 10*time.Millisecond)
 		if !errors.Is(err, want) || len(paths) != 0 {
@@ -276,7 +257,7 @@ func TestDetachedWebPickRoundTrip(t *testing.T) {
 		t.Skip("detached server is exercised on Unix")
 	}
 	bin := filepath.Join(t.TempDir(), "gloss")
-	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", bin, "nimbleterminal.dev/gloss/cmd/gloss").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	for name, network := range map[string][]string{
@@ -291,11 +272,11 @@ func TestDetachedWebPickRoundTrip(t *testing.T) {
 			if err := cmd.Run(); err != nil {
 				t.Fatalf("start: %v %s", err, stderr.String())
 			}
-			var got started
+			var got Started
 			if err := json.Unmarshal(stdout.Bytes(), &got); err != nil || !got.Pick || got.ResumeToken == "" {
 				t.Fatalf("startup: %s %v", stdout.String(), err)
 			}
-			t.Cleanup(func() { _ = cancel(options{Cancel: got.ResumeToken}) })
+			t.Cleanup(func() { _ = Cancel(Config{Cancel: got.ResumeToken}) })
 			if len(network) > 0 && !strings.HasPrefix(got.URL, "http://handoff.example:") {
 				t.Fatalf("detached start lost advertised host: %s", got.URL)
 			}
@@ -341,7 +322,7 @@ func TestDetachedWebPickRoundTrip(t *testing.T) {
 				t.Fatalf("confirmation response lost at shutdown: %d %s %v", response.StatusCode, reply, err)
 			}
 			stdout.Reset()
-			if err := resume(options{Resume: got.ResumeToken, Timeout: 5 * time.Second}, &stdout, io.Discard); err != nil {
+			if err := Resume(Config{Resume: got.ResumeToken, Timeout: 5 * time.Second}, &stdout, io.Discard); err != nil {
 				t.Fatal(err)
 			}
 			path := strings.TrimSpace(stdout.String())
@@ -353,65 +334,14 @@ func TestDetachedWebPickRoundTrip(t *testing.T) {
 			}
 			for range 2 {
 				stdout.Reset()
-				if err := resume(options{Resume: got.ResumeToken, JSON: true}, &stdout, io.Discard); err != nil {
+				if err := Resume(Config{Resume: got.ResumeToken, JSON: true}, &stdout, io.Discard); err != nil {
 					t.Fatal(err)
 				}
-				var result resumed
+				var result Resumed
 				if err := json.Unmarshal(stdout.Bytes(), &result); err != nil || result.Message != message || !slices.Equal(result.Paths, []string{path}) {
 					t.Fatalf("JSON resume lost message: %+v %v", result, err)
 				}
 			}
 		})
-	}
-}
-
-type webPickLog chan string
-
-func (c webPickLog) Write(p []byte) (int, error) {
-	c <- string(p)
-	return len(p), nil
-}
-
-func TestForegroundWebPickJSONMessage(t *testing.T) {
-	var stdout bytes.Buffer
-	log, done := make(webPickLog, 1), make(chan error, 1)
-	go func() {
-		done <- served(options{Options: app.Options{Pick: true}, PickWeb: true, JSON: true, NoOpen: true, Timeout: 5 * time.Second}, &stdout, log)
-	}()
-	var address string
-	select {
-	case line := <-log:
-		address = strings.TrimSpace(strings.TrimPrefix(line, "gloss: viewer at "))
-	case err := <-done:
-		t.Fatalf("server stopped before listening: %v", err)
-	case <-time.After(10 * time.Second):
-		t.Fatal("server did not announce itself")
-	}
-	code, _ := drop(t, address+"files", nil, upload{"receipt.txt", []byte("receipt")})
-	if code != 200 {
-		t.Fatalf("upload: %d", code)
-	}
-	_, body := get(t, address+"files", nil)
-	var list struct{ Files []webPickFile }
-	if err := json.Unmarshal([]byte(body), &list); err != nil || len(list.Files) != 1 {
-		t.Fatalf("files: %s %v", body, err)
-	}
-	message := "The invoice is attached.\nPlease check the date."
-	response, err := http.Post(address+"confirm", "application/json", strings.NewReader(confirmMessage(message, list.Files[0].ID)))
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, _ = io.Copy(io.Discard, response.Body)
-	response.Body.Close()
-	if err := <-done; err != nil {
-		t.Fatal(err)
-	}
-	var result resumed
-	if err := json.Unmarshal(stdout.Bytes(), &result); err != nil || result.Status != statusPicked || result.Message != message || len(result.Paths) != 1 {
-		t.Fatalf("foreground answer: %s %v", stdout.String(), err)
-	}
-	t.Cleanup(func() { os.RemoveAll(filepath.Dir(result.Paths[0])) })
-	if data, err := os.ReadFile(result.Paths[0]); err != nil || string(data) != "receipt" {
-		t.Fatalf("file not retained: %q %v", data, err)
 	}
 }

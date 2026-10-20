@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"encoding/json"
@@ -89,7 +89,7 @@ func (v *viewerLifetime) snapshot(now time.Time) viewerSession {
 	return out
 }
 
-func (s *server) viewerSession(w http.ResponseWriter, r *http.Request, route string) {
+func (s *Server) viewerSession(w http.ResponseWriter, r *http.Request, route string) {
 	if s.lifetime == nil {
 		http.NotFound(w, r)
 		return

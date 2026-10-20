@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/handoff"
 )
 
 // conforms checks a decoded value against the part of JSON Schema that
@@ -124,25 +125,22 @@ func TestSchemaDescribesWhatGlossWrites(t *testing.T) {
 	check("info", run(options{Options: app.Options{Files: files, Page: 1, DPI: 72}, Info: true, JSON: true},
 		func(o options, a, b *bytes.Buffer) error { return describe(o, a, b) }))
 
+	// The handoff's answers are encoded from the very types the schema reflects.
+	const token = "0123456789abcdef0123456789abcdef"
 	left := 3
-	for _, s := range []sessionStatus{{Protocol: 1, State: "waiting", SecondsLeft: &left}, {Protocol: 1, State: "picked", Settled: true, Paths: []string{"/a"}, Message: "The receipt ☕"}, {Protocol: 1, State: "failed", Settled: true, Error: "x"}} {
+	for _, s := range []handoff.SessionStatus{{Protocol: 1, State: "waiting", SecondsLeft: &left}, {Protocol: 1, State: "picked", Settled: true, Paths: []string{"/a"}, Message: "The receipt ☕"}, {Protocol: 1, State: "failed", Settled: true, Error: "x"}, {Protocol: 1, State: "declined", Settled: true}} {
 		data, _ := json.Marshal(s)
 		check("status", data)
 	}
-	data, _ := json.Marshal(started{Protocol: 1, Status: statusWaiting, URL: "http://127.0.0.1:1/x/", Dir: "/d", TimeoutSeconds: 600, ResumeToken: testToken, Resume: "gloss --resume " + testToken, Pick: true})
+	data, _ := json.Marshal(handoff.Started{Protocol: 1, Status: "waiting", URL: "http://127.0.0.1:1/x/", Dir: "/d", TimeoutSeconds: 600, ResumeToken: token, Resume: "gloss --resume " + token, Pick: true})
 	check("started", data)
-	for _, st := range []state{{Status: statusPicked, Paths: []string{"/a"}}, {Status: statusPicked, Paths: []string{"/a"}, Message: "The receipt ☕"}, {Status: statusDeclined}} {
+	for _, message := range []string{"", "The receipt ☕"} {
 		var b bytes.Buffer
-		_ = answer(st, true, &b)
+		_ = handoff.AnswerPicked([]string{"/a"}, message, true, &b)
 		check("resumed", b.Bytes())
 	}
-	// What a session really prints, through --status.
-	settle(t, testToken, state{Status: statusDeclined})
-	var b bytes.Buffer
-	if err := status(options{Status: testToken}, &b); err != nil {
-		t.Fatal(err)
-	}
-	check("status", b.Bytes())
+	data, _ = json.Marshal(handoff.Resumed{Protocol: 1, Status: "declined"})
+	check("resumed", data)
 	// And the version stated is the schema's.
 	if !strings.Contains(root["title"].(string), version) {
 		t.Errorf("title %q", root["title"])

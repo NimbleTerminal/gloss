@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"errors"
@@ -14,7 +14,7 @@ var uploadIdleTimeout = 30 * time.Second
 // Reserve each chunk before it can reach disk. stored includes in-flight
 // uploads and exports; unsuccessful files refund every byte they reserved.
 type uploadQuotaReader struct {
-	s       *server
+	s       *Server
 	reader  io.Reader
 	charged int64
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/pflag"
 	"nimbleterminal.dev/gloss/internal/app"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/handoff"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/gloss/skills"
 	"nimbleterminal.dev/nt3d"
@@ -34,7 +35,7 @@ func main() {
 		if !errors.As(err, new(reported)) {
 			fmt.Fprintf(os.Stderr, "gloss: %v\n", err)
 		}
-		os.Exit(exitCode(err))
+		os.Exit(handoff.ExitCode(err))
 	}
 }
 
@@ -116,7 +117,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVar(&opts.JSON, "json", false, "with --apps, --info, --text, --grep, an export, --pick-web, or --resume, print JSON")
 	f.BoolVar(&opts.Pick, "pick", false, "wait for the user to hand over files: Enter prints their paths and quits")
 	f.BoolVar(&opts.PickWeb, "pick-web", false, "experimental file request with Choose files and Send buttons, without a terminal; implies --serve --pick; takes no input files")
-	f.StringVar(&opts.Listen, "listen", defaultPickListen, "with --pick-web, listen on IP:port (IPv6: [IP]:port); port 0 chooses a free port; wildcard requires --advertise-host")
+	f.StringVar(&opts.Listen, "listen", handoff.DefaultListen, "with --pick-web, listen on IP:port (IPv6: [IP]:port); port 0 chooses a free port; wildcard requires --advertise-host")
 	f.StringVar(&opts.AdvertiseHost, "advertise-host", "", "with --pick-web, use this IP or DNS name in the shared URL (no scheme, port, or path); defaults to the specific listen IP")
 	f.BoolVar(&opts.Serve, "serve", false, "show the viewer on a web page, from a temporary server on this machine")
 	f.BoolVar(&opts.NoOpen, "no-open", false, "with --serve, print the page's address without opening a browser")
@@ -209,7 +210,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		if f.Changed("advertise-host") && opts.AdvertiseHost == "" {
 			return opts, false, fmt.Errorf("--advertise-host cannot be empty")
 		}
-		if _, err := parsePickNetwork(opts.Listen, opts.AdvertiseHost); err != nil {
+		if err := handoff.CheckNetwork(opts.Listen, opts.AdvertiseHost); err != nil {
 			return opts, false, err
 		}
 	}
@@ -395,7 +396,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		return opts, false, fmt.Errorf("--status only asks how a pick stands: it takes no files, no timeout, and no other mode")
 	case opts.Cancel != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.JSON || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || opts.Resume != "" || opts.Status != "" || opts.Timeout > 0 || opts.Prompt != "" || len(opts.Globs) > 0):
 		return opts, false, fmt.Errorf("--cancel only ends a session: it takes no files, no timeout, and no other mode")
-	case opts.Detached != "" && (!opts.Serve || !tokenPattern.MatchString(opts.Detached)):
+	case opts.Detached != "" && (!opts.Serve || !handoff.ValidToken(opts.Detached)):
 		return opts, false, fmt.Errorf("--detached is for gloss's own use")
 	}
 
@@ -432,17 +433,17 @@ func run(args []string) (err error) {
 		return installSkill(opts.SkillInstall, os.Stdout, os.Stderr)
 	}
 	if opts.Cancel != "" {
-		return cancel(opts)
+		return handoff.Cancel(handoffConfig(opts))
 	}
 	if opts.Status != "" {
-		return status(opts, os.Stdout)
+		return handoff.Status(handoffConfig(opts), os.Stdout)
 	}
 	if opts.Resume != "" {
-		return resume(opts, os.Stdout, os.Stderr)
+		return handoff.Resume(handoffConfig(opts), os.Stdout, os.Stderr)
 	}
 	if opts.Detached != "" {
 		// The server of a detached start: it answers through its state.
-		defer func() { conclude(opts.Detached, err, picked, opts.Pick, pickedMessage) }()
+		defer func() { handoff.Conclude(opts.Detached, err, picked, opts.Pick, pickedMessage) }()
 	}
 	stdinTTY := term.IsTerminal(os.Stdin.Fd())
 	opts.MarkdownBase, err = os.Getwd()
@@ -457,7 +458,7 @@ func run(args []string) (err error) {
 	// With no terminal to answer, a pick or a page must not hold its
 	// caller: the server runs apart and the start says where it is.
 	if (opts.Pick || opts.Serve) && !stdinTTY && opts.Detached == "" && !exporting && !opts.Info {
-		return detach(args, opts, os.Stdout, os.Stderr)
+		return handoff.Detach(args, handoffConfig(opts), os.Stdout, os.Stderr)
 	}
 	// A page needs no terminal. A pick keeps standard output for its answer,
 	// and draws on the terminal itself.
@@ -615,7 +616,7 @@ func run(args []string) (err error) {
 	case <-late:
 		program.Kill()
 		<-ended
-		return errTimeout
+		return handoff.ErrTimeout
 	}
 	if err != nil {
 		return err
@@ -654,6 +655,19 @@ func arguments(opts options, terminal bool) []string {
 	return opts.Files
 }
 
+// handoffConfig is what the handoff protocol takes from the command line. A
+// detached start readies its arguments here, where downloads are made.
+func handoffConfig(opts options) handoff.Config {
+	return handoff.Config{
+		Options: opts.Options, Listen: opts.Listen, AdvertiseHost: opts.AdvertiseHost,
+		Timeout: opts.Timeout, JSON: opts.JSON, PickWeb: opts.PickWeb,
+		Detached: opts.Detached, Resume: opts.Resume, Status: opts.Status, Cancel: opts.Cancel,
+		Arguments: func(ctx context.Context, args []string, dir string, stdin io.Reader) ([]string, error) {
+			return detachArguments(ctx, args, dir, stdin, opts.Accept, opts.UserAgent)
+		},
+	}
+}
+
 // served shows the viewer on a page, and waits for it to be done with.
 func served(opts options, stdout, stderr io.Writer) error {
 	pickedMessage = ""
@@ -661,65 +675,29 @@ func served(opts options, stdout, stderr io.Writer) error {
 	defer stop()
 	ctx, end := context.WithCancel(ctx)
 	defer end()
-	var s *server
-	var err error
-	if opts.PickWeb {
-		s, err = serveWebPick(ctx, opts)
-	} else {
-		s, err = serve(ctx, opts.Options)
-	}
+	cfg := handoffConfig(opts)
+	s, err := handoff.Start(ctx, end, cfg)
 	if err != nil {
 		return err
 	}
 	defer s.Close()
-	if !opts.PickWeb {
-		idle := time.Duration(0)
-		var save func(time.Time)
-		if opts.Detached != "" && !opts.Pick && opts.Timeout == 0 {
-			idle = defaultDetachedTimeout
-			dir, _ := detachedPaths(opts.Detached)
-			// The lease lives inside the existing private folder. A renewal
-			// cannot recreate the session state removed by --cancel.
-			save = func(deadline time.Time) {
-				_ = writeState(filepath.Join(dir, "viewer-lease.json"), state{Deadline: deadline})
-			}
-		}
-		s.lifetime.configure(opts.Timeout, idle, save)
-	}
-	if opts.Detached != "" {
-		// Drops land in the folder the start made, and its state says where we are.
-		dir, _ := detachedPaths(opts.Detached)
-		s.useFolder(dir)
-		announce(opts.Detached, s.URL)
-		go watchCancel(opts.Detached, end, ctx.Done())
-	}
 	fmt.Fprintf(stderr, "gloss: viewer at %s\n", s.URL)
 	if !opts.NoOpen {
 		if err := browse(s.URL); err != nil {
 			fmt.Fprintf(stderr, "gloss: no browser could be opened (%v); open the address yourself\n", err)
 		}
 	}
-	go func() {
-		<-ctx.Done()
-		s.Close()
-		s.ended.Do(func() { close(s.done) })
-	}()
 	if opts.PickWeb {
-		if pickQRAvailable(opts, stderr) {
-			picked, pickedMessage, err = waitWebPickQR(ctx, s, opts, stderr)
-		} else {
-			picked, pickedMessage, err = s.waitWebPick(ctx, opts.Timeout)
-		}
+		picked, pickedMessage, err = s.WaitWebPick(ctx, cfg, stderr)
 		if err != nil {
 			s.Discard()
 			return err
 		}
-		discardFetched(s.dir, picked)
-		return answer(state{Status: statusPicked, Paths: picked, Message: pickedMessage}, opts.JSON, stdout)
+		return handoff.AnswerPicked(picked, pickedMessage, opts.JSON, stdout)
 	}
 	m, err := s.Wait(opts.Timeout)
 	if err == nil && m == nil {
-		err = errCancelled
+		err = handoff.ErrCancelled
 	}
 	if err == nil {
 		defer m.Close()
@@ -746,7 +724,7 @@ func finish(m *app.Model, opts options, stdout, stderr io.Writer) error {
 		return nil
 	}
 	if len(m.Picked()) == 0 {
-		return errCancelled
+		return handoff.ErrCancelled
 	}
 	for _, path := range m.Picked() {
 		fmt.Fprintln(stdout, path)

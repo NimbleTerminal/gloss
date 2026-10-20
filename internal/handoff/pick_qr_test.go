@@ -1,16 +1,17 @@
-package main
+package handoff
 
 import (
 	"bytes"
-	tea "charm.land/bubbletea/v2"
 	"context"
 	"errors"
 	"fmt"
 	"io"
-	"nimbleterminal.dev/gloss/internal/app"
 	"os"
 	"testing"
 	"time"
+
+	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/app"
 )
 
 func TestPickQRDoesNotAdvertiseLoopbackAsPhoneHandoff(t *testing.T) {
@@ -26,7 +27,7 @@ func TestPickQRDoesNotAdvertiseLoopbackAsPhoneHandoff(t *testing.T) {
 		{"192.168.9.216:0", "", true},
 		{"0.0.0.0:0", "laptop.ts.net", true},
 	} {
-		opts := options{Listen: tt.listen, AdvertiseHost: tt.host}
+		opts := Config{Listen: tt.listen, AdvertiseHost: tt.host}
 		if networkPick(opts) != tt.want {
 			t.Errorf("%+v: wrong QR eligibility", tt)
 		}
@@ -50,7 +51,7 @@ func TestWebPickQRExitCodes(t *testing.T) {
 			files := pickUpload(t, s, 200, upload{"note.txt", []byte("hello")})
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			opts := options{Options: app.Options{Render: "glyph"}, Timeout: 5 * time.Second}
+			opts := Config{Options: app.Options{Render: "glyph"}, Timeout: 5 * time.Second}
 			if tt.action == "timeout" {
 				opts.Timeout = 10 * time.Millisecond
 			}
@@ -74,7 +75,7 @@ func TestWebPickQRExitCodes(t *testing.T) {
 				_, err := p.Run()
 				return err
 			})
-			if got := exitCode(err); got != tt.code {
+			if got := ExitCode(err); got != tt.code {
 				t.Fatalf("exit %d, want %d: %v", got, tt.code, err)
 			}
 			if tt.action == "send" {
@@ -94,8 +95,8 @@ func TestWebPickQRExitCodes(t *testing.T) {
 func TestHandoffEndFromResult(t *testing.T) {
 	for err, want := range map[error]app.HandoffEnd{
 		nil:                                app.HandoffReceived,
-		errCancelled:                       app.HandoffDeclined,
-		fmt.Errorf("pick: %w", errTimeout): app.HandoffTimedOut,
+		ErrCancelled:                       app.HandoffDeclined,
+		fmt.Errorf("pick: %w", ErrTimeout): app.HandoffTimedOut,
 		errors.New("listener closed"):      app.HandoffFailed,
 	} {
 		if got := handoffEnd(err); got != want {

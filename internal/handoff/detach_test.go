@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"bytes"
@@ -38,21 +38,21 @@ func TestResumeAnswersAsPickDoes(t *testing.T) {
 	writeState(file, st)
 
 	var stdout, stderr bytes.Buffer
-	if err := resume(options{Resume: testToken}, &stdout, &stderr); err != nil || strings.TrimSpace(stdout.String()) != picked {
+	if err := Resume(Config{Resume: testToken}, &stdout, &stderr); err != nil || strings.TrimSpace(stdout.String()) != picked {
 		t.Fatalf("picked: %q %v", stdout.String(), err)
 	}
 	// An answer stays while its files do, so a second ask gives it again.
 	stdout.Reset()
-	if err := resume(options{Resume: testToken}, &stdout, &stderr); err != nil || strings.TrimSpace(stdout.String()) != picked {
+	if err := Resume(Config{Resume: testToken}, &stdout, &stderr); err != nil || strings.TrimSpace(stdout.String()) != picked {
 		t.Fatalf("picked again: %q %v", stdout.String(), err)
 	}
 	// The caller deleting its files does not take the answer away.
 	os.RemoveAll(dir)
 	stdout.Reset()
-	if err := resume(options{Resume: testToken, JSON: true}, &stdout, &stderr); err != nil {
+	if err := Resume(Config{Resume: testToken, JSON: true}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	var got resumed
+	var got Resumed
 	if err := json.Unmarshal(stdout.Bytes(), &got); err != nil || got.Protocol != 1 || got.Status != statusPicked || len(got.Paths) != 1 {
 		t.Fatalf("resume --json: %q %v", stdout.String(), err)
 	}
@@ -64,22 +64,22 @@ func TestResumeAnswersAsPickDoes(t *testing.T) {
 func TestCancelEndsASettledSession(t *testing.T) {
 	dir := settle(t, testToken, state{Status: statusPicked, Paths: []string{"x"}})
 	os.WriteFile(filepath.Join(dir, "x"), []byte("x"), 0600)
-	if err := cancel(options{Cancel: testToken}); err != nil {
+	if err := Cancel(Config{Cancel: testToken}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(dir); !os.IsNotExist(err) {
 		t.Fatal("cancel left the folder")
 	}
-	if _, err := ask(t, testToken); !errors.Is(err, errNoSession) || exitCode(err) != 1 {
+	if _, err := ask(t, testToken); !errors.Is(err, errNoSession) || ExitCode(err) != 1 {
 		t.Fatalf("status after cancel: %v", err)
 	}
-	if err := resume(options{Resume: testToken}, &bytes.Buffer{}, &bytes.Buffer{}); exitCode(err) != 1 {
+	if err := Resume(Config{Resume: testToken}, &bytes.Buffer{}, &bytes.Buffer{}); ExitCode(err) != 1 {
 		t.Fatalf("resume after cancel: %v", err)
 	}
-	if err := cancel(options{Cancel: testToken}); !errors.Is(err, errNoSession) {
+	if err := Cancel(Config{Cancel: testToken}); !errors.Is(err, errNoSession) {
 		t.Fatalf("second cancel: %v", err)
 	}
-	if err := cancel(options{Cancel: "../x"}); err == nil {
+	if err := Cancel(Config{Cancel: "../x"}); err == nil {
 		t.Fatal("cancel took what is not a token")
 	}
 }
@@ -88,7 +88,7 @@ func TestConcludeAfterCancelWritesNothing(t *testing.T) {
 	dir := settle(t, testToken, state{Status: statusWaiting})
 	_, file := detachedPaths(testToken)
 	os.Remove(file)
-	conclude(testToken, errCancelled, nil, true, "")
+	Conclude(testToken, ErrCancelled, nil, true, "")
 	if _, err := os.Stat(file); !os.IsNotExist(err) {
 		t.Fatal("conclude brought a cancelled state back")
 	}
@@ -122,8 +122,8 @@ func TestResumeExitCodes(t *testing.T) {
 	for status, want := range map[string]int{statusDeclined: 2, statusTimeout: 124, statusError: 1, statusClosed: 0} {
 		settle(t, testToken, state{Status: status, Error: "boom"})
 		var stdout bytes.Buffer
-		err := resume(options{Resume: testToken}, &stdout, &bytes.Buffer{})
-		if got := exitCode(err); got != want || stdout.Len() != 0 {
+		err := Resume(Config{Resume: testToken}, &stdout, &bytes.Buffer{})
+		if got := ExitCode(err); got != want || stdout.Len() != 0 {
 			t.Errorf("%s: exit %d (%v), stdout %q; want %d", status, got, err, stdout.String(), want)
 		}
 	}
@@ -132,8 +132,8 @@ func TestResumeExitCodes(t *testing.T) {
 func TestResumeTimesOutAWaitingServerThatIsGone(t *testing.T) {
 	dir := settle(t, testToken, state{Status: statusWaiting, Deadline: time.Now().Add(-time.Second)})
 	os.WriteFile(filepath.Join(dir, "dropped.pdf"), []byte("x"), 0600)
-	err := resume(options{Resume: testToken}, &bytes.Buffer{}, &bytes.Buffer{})
-	if !errors.Is(err, errTimeout) {
+	err := Resume(Config{Resume: testToken}, &bytes.Buffer{}, &bytes.Buffer{})
+	if !errors.Is(err, ErrTimeout) {
 		t.Fatalf("err = %v", err)
 	}
 	if _, err := os.Stat(dir); !os.IsNotExist(err) {
@@ -143,8 +143,8 @@ func TestResumeTimesOutAWaitingServerThatIsGone(t *testing.T) {
 
 func TestResumeOwnTimeoutLeavesThePickAlone(t *testing.T) {
 	dir := settle(t, testToken, state{Status: statusWaiting, Deadline: time.Now().Add(time.Hour)})
-	err := resume(options{Resume: testToken, Timeout: 300 * time.Millisecond}, &bytes.Buffer{}, &bytes.Buffer{})
-	if !errors.Is(err, errTimeout) {
+	err := Resume(Config{Resume: testToken, Timeout: 300 * time.Millisecond}, &bytes.Buffer{}, &bytes.Buffer{})
+	if !errors.Is(err, ErrTimeout) {
 		t.Fatalf("err = %v", err)
 	}
 	if _, err := os.Stat(dir); err != nil {
@@ -154,11 +154,11 @@ func TestResumeOwnTimeoutLeavesThePickAlone(t *testing.T) {
 
 func TestResumeRefusesWhatIsNotAToken(t *testing.T) {
 	for _, token := range []string{"../../etc/passwd", "short", strings.Repeat("g", 32)} {
-		if err := resume(options{Resume: token}, &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
+		if err := Resume(Config{Resume: token}, &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
 			t.Errorf("accepted %q", token)
 		}
 	}
-	if err := resume(options{Resume: strings.Repeat("a", 32)}, &bytes.Buffer{}, &bytes.Buffer{}); err == nil || exitCode(err) != 1 {
+	if err := Resume(Config{Resume: strings.Repeat("a", 32)}, &bytes.Buffer{}, &bytes.Buffer{}); err == nil || ExitCode(err) != 1 {
 		t.Fatalf("unknown token: %v", err)
 	}
 }
@@ -171,11 +171,11 @@ func TestConcludeKeepsFilesOnlyForAnAnswer(t *testing.T) {
 		want  string
 	}{
 		{nil, true, true, statusPicked}, {nil, false, false, statusClosed},
-		{errCancelled, true, false, statusDeclined}, {errTimeout, true, false, statusTimeout},
+		{ErrCancelled, true, false, statusDeclined}, {ErrTimeout, true, false, statusTimeout},
 		{errors.New("bad"), true, false, statusError},
 	} {
 		dir := settle(t, testToken, state{Status: statusWaiting})
-		conclude(testToken, tt.err, []string{filepath.Join(dir, "a")}, tt.pick, "user reply")
+		Conclude(testToken, tt.err, []string{filepath.Join(dir, "a")}, tt.pick, "user reply")
 		_, file := detachedPaths(testToken)
 		st, err := readState(file)
 		_, statErr := os.Stat(dir)
@@ -191,18 +191,6 @@ func TestConcludeKeepsFilesOnlyForAnAnswer(t *testing.T) {
 	}
 }
 
-func TestResumeFlags(t *testing.T) {
-	opts, _, err := parse([]string{"--resume", testToken, "--timeout", "5s", "--json"}, &bytes.Buffer{})
-	if err != nil || opts.Resume != testToken || opts.Timeout != 5*time.Second {
-		t.Fatalf("%+v %v", opts, err)
-	}
-	for _, args := range [][]string{{"--resume", testToken, "a.svg"}, {"--resume", testToken, "--pick"}, {"--resume", testToken, "--text"}, {"--detached", testToken}, {"--serve", "--detached", "nope"}} {
-		if _, _, err := parse(args, &bytes.Buffer{}); err == nil {
-			t.Errorf("accepted %v", args)
-		}
-	}
-}
-
 // With no terminal, a pick prints one JSON object and leaves; the server
 // goes on apart, and a second call gives the answer once it times out.
 func TestDetachedPickDoesNotBlock(t *testing.T) {
@@ -210,7 +198,7 @@ func TestDetachedPickDoesNotBlock(t *testing.T) {
 		t.Skip("detached server is exercised on Unix")
 	}
 	bin := filepath.Join(t.TempDir(), "gloss")
-	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", bin, "nimbleterminal.dev/gloss/cmd/gloss").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	for _, args := range [][]string{{"--pick", "--prompt", "A file?"}, {"--serve", "--pick", "--timeout", "2s"}} {
@@ -225,7 +213,7 @@ func TestDetachedPickDoesNotBlock(t *testing.T) {
 		if time.Since(began) > 1500*time.Millisecond {
 			t.Fatalf("%v held its caller for %v", args, time.Since(began))
 		}
-		var got started
+		var got Started
 		if err := json.Unmarshal(stdout.Bytes(), &got); err != nil || bytes.Count(bytes.TrimSpace(stdout.Bytes()), []byte("\n")) != 0 {
 			t.Fatalf("stdout is not one JSON object: %q", stdout.String())
 		}
@@ -272,7 +260,7 @@ func TestCancelStopsADetachedServer(t *testing.T) {
 		t.Skip("detached server is exercised on Unix")
 	}
 	bin := filepath.Join(t.TempDir(), "gloss")
-	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", bin, "nimbleterminal.dev/gloss/cmd/gloss").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	var stdout bytes.Buffer
@@ -281,7 +269,7 @@ func TestCancelStopsADetachedServer(t *testing.T) {
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
-	var got started
+	var got Started
 	if err := json.Unmarshal(stdout.Bytes(), &got); err != nil {
 		t.Fatal(err)
 	}
@@ -317,7 +305,7 @@ func TestDetachedStartReportsABadInput(t *testing.T) {
 		t.Skip("detached server is exercised on Unix")
 	}
 	bin := filepath.Join(t.TempDir(), "gloss")
-	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", bin, "nimbleterminal.dev/gloss/cmd/gloss").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	var stdout, stderr bytes.Buffer

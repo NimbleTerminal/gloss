@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"context"
@@ -48,7 +48,7 @@ type webPickFile struct {
 	path string
 }
 
-func serveWebPick(ctx context.Context, opts options) (*server, error) {
+func serveWebPick(ctx context.Context, opts Config) (*Server, error) {
 	listen := opts.Listen
 	if listen == "" {
 		listen = defaultPickListen
@@ -74,7 +74,7 @@ func serveWebPick(ctx context.Context, opts options) (*server, error) {
 		return nil, fmt.Errorf("--listen %s: %w", listen, err)
 	}
 	access := network.access(listener.Addr().(*net.TCPAddr).Port)
-	s := &server{
+	s := &Server{
 		token: token, prompt: opts.Prompt, accept: opts.Accept, pick: true,
 		cancel: cancel, done: make(chan struct{}),
 		webPick: &webPick{access: access, state: statusWaiting, files: []webPickFile{}},
@@ -93,7 +93,41 @@ func serveWebPick(ctx context.Context, opts options) (*server, error) {
 	return s, nil
 }
 
-func (s *server) waitWebPick(ctx context.Context, timeout time.Duration) ([]string, string, error) {
+// waitWebPick waits for the answer to an upload-only request. Once files are
+// sent, the uploads that were not among them are removed: nothing asked for
+// them, and the folder is left holding the answer alone.
+func (s *Server) waitWebPick(ctx context.Context, timeout time.Duration) ([]string, string, error) {
+	paths, message, err := s.webPickAnswer(ctx, timeout)
+	if err == nil {
+		s.keepOnly(paths)
+	}
+	return paths, message, err
+}
+
+// keepOnly removes the files of the session's folder other than paths, and
+// the folder itself if nothing is left in it.
+func (s *Server) keepOnly(paths []string) {
+	s.mu.Lock()
+	dir := s.dir
+	s.mu.Unlock()
+	if dir == "" {
+		return
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if path := filepath.Join(dir, entry.Name()); !slices.Contains(paths, path) {
+			os.Remove(path)
+		}
+	}
+	if left, err := os.ReadDir(dir); err == nil && len(left) == 0 {
+		os.Remove(dir)
+	}
+}
+
+func (s *Server) webPickAnswer(ctx context.Context, timeout time.Duration) ([]string, string, error) {
 	var late <-chan time.Time
 	if timeout > 0 {
 		timer := time.NewTimer(timeout)
@@ -110,7 +144,7 @@ func (s *server) waitWebPick(ctx context.Context, timeout time.Duration) ([]stri
 		defer s.webPick.mu.Unlock()
 		if s.webPick.state != statusPicked {
 			s.webPick.state = statusTimeout
-			return nil, "", errTimeout
+			return nil, "", ErrTimeout
 		}
 		return slices.Clone(s.webPick.paths), s.webPick.message, nil
 	}
@@ -123,12 +157,12 @@ func (s *server) waitWebPick(ctx context.Context, timeout time.Duration) ([]stri
 	defer s.webPick.mu.Unlock()
 	if s.webPick.state != statusPicked {
 		s.webPick.state = statusDeclined
-		return nil, "", errCancelled
+		return nil, "", ErrCancelled
 	}
 	return slices.Clone(s.webPick.paths), s.webPick.message, nil
 }
 
-func (s *server) serveWebPick(w http.ResponseWriter, r *http.Request, rest string) {
+func (s *Server) serveWebPick(w http.ResponseWriter, r *http.Request, rest string) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src blob:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
 	if rest == "" || rest == "pick.mjs" || rest == "pick-api.mjs" || rest == "drop.mjs" || rest == "pickers.mjs" {

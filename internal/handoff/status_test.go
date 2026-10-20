@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"bytes"
@@ -14,11 +14,11 @@ import (
 )
 
 // ask runs --status as the command line would, and decodes its object.
-func ask(t *testing.T, token string) (sessionStatus, error) {
+func ask(t *testing.T, token string) (SessionStatus, error) {
 	t.Helper()
 	var out bytes.Buffer
-	err := status(options{Status: token}, &out)
-	var got sessionStatus
+	err := Status(Config{Status: token}, &out)
+	var got SessionStatus
 	if err == nil {
 		if e := json.Unmarshal(out.Bytes(), &got); e != nil || bytes.Count(bytes.TrimSpace(out.Bytes()), []byte("\n")) != 0 {
 			t.Fatalf("not one JSON object: %q (%v)", out.String(), e)
@@ -93,7 +93,7 @@ func TestStatusWorksOutWhatItIsWithoutChangingIt(t *testing.T) {
 	}
 	// --resume is the one that settles it, as it always did.
 	var out, errs bytes.Buffer
-	if err := resume(options{Resume: testToken}, &out, &errs); !errors.Is(err, errTimeout) {
+	if err := Resume(Config{Resume: testToken}, &out, &errs); !errors.Is(err, ErrTimeout) {
 		t.Fatalf("resume of an overdue pick: %v", err)
 	}
 	if _, err := os.Stat(dir); !os.IsNotExist(err) {
@@ -133,7 +133,7 @@ func TestStatusDoesNotConsumeTheAnswer(t *testing.T) {
 	writeState(file, st)
 	before := stateFile(t)
 
-	var first sessionStatus
+	var first SessionStatus
 	for i := 0; i < 4; i++ {
 		got, err := ask(t, testToken)
 		if err != nil || got.State != "picked" || len(got.Paths) != 1 || got.Paths[0] != picked {
@@ -149,7 +149,7 @@ func TestStatusDoesNotConsumeTheAnswer(t *testing.T) {
 		t.Fatal("asking changed the state")
 	}
 	var out, errs bytes.Buffer
-	if err := resume(options{Resume: testToken}, &out, &errs); err != nil || strings.TrimSpace(out.String()) != picked {
+	if err := Resume(Config{Resume: testToken}, &out, &errs); err != nil || strings.TrimSpace(out.String()) != picked {
 		t.Fatalf("resume after status: %q %v", out.String(), err)
 	}
 	if got, err := ask(t, testToken); err != nil || got.State != "picked" || len(got.Paths) != 1 || got.Protocol != 1 {
@@ -170,7 +170,7 @@ func TestStatusDoesNotConsumeTheAnswer(t *testing.T) {
 		}
 	}
 	for i := 0; i < 2; i++ {
-		if err := resume(options{Resume: testToken}, &out, &errs); !errors.Is(err, errCancelled) {
+		if err := Resume(Config{Resume: testToken}, &out, &errs); !errors.Is(err, ErrCancelled) {
 			t.Fatalf("resume %d of a decline: %v", i, err)
 		}
 	}
@@ -181,25 +181,13 @@ func TestStatusDoesNotConsumeTheAnswer(t *testing.T) {
 
 func TestStatusRefusesWhatIsNotAPick(t *testing.T) {
 	for _, bad := range []string{"", "nope", "0123456789ABCDEF0123456789ABCDEF", testToken + "0", "../" + testToken[3:]} {
-		if _, err := ask(t, bad); err == nil || exitCode(err) != 1 {
+		if _, err := ask(t, bad); err == nil || ExitCode(err) != 1 {
 			t.Errorf("token %q: err = %v", bad, err)
 		}
 	}
 	// Well formed, and no such pick.
-	if _, err := ask(t, strings.Repeat("a", 32)); !errors.Is(err, errNoSession) || exitCode(err) != 1 {
+	if _, err := ask(t, strings.Repeat("a", 32)); !errors.Is(err, errNoSession) || ExitCode(err) != 1 {
 		t.Errorf("an unknown pick: %v", err)
-	}
-	for _, args := range [][]string{
-		{"--status", testToken, "a.svg"}, {"--status", testToken, "--pick"}, {"--status", testToken, "--serve"},
-		{"--status", testToken, "--json"}, {"--status", testToken, "--timeout", "1s"}, {"--status", testToken, "--resume", testToken},
-		{"--status", testToken, "--info"}, {"--status", testToken, "-o", "x.png"}, {"--status", testToken, "--prompt", "hi"},
-	} {
-		if _, _, err := parse(args, &bytes.Buffer{}); err == nil {
-			t.Errorf("%v was accepted", args)
-		}
-	}
-	if opts, done, err := parse([]string{"--status", testToken}, &bytes.Buffer{}); err != nil || done || opts.Status != testToken {
-		t.Errorf("--status alone: %+v %v %v", opts, done, err)
 	}
 }
 
@@ -211,7 +199,7 @@ func TestStatusOfARealDetachedPick(t *testing.T) {
 		t.Skip("detached server is exercised on Unix")
 	}
 	bin := filepath.Join(t.TempDir(), "gloss")
-	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", bin, "nimbleterminal.dev/gloss/cmd/gloss").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	var started bytes.Buffer
@@ -228,7 +216,7 @@ func TestStatusOfARealDetachedPick(t *testing.T) {
 		t.Fatalf("start: %q %v", started.String(), err)
 	}
 	t.Cleanup(func() { os.RemoveAll(s.Dir) })
-	query := func() (sessionStatus, int) {
+	query := func() (SessionStatus, int) {
 		var out bytes.Buffer
 		c := exec.Command(bin, "--status", s.ResumeToken)
 		c.Stdout = &out
@@ -238,7 +226,7 @@ func TestStatusOfARealDetachedPick(t *testing.T) {
 		if errors.As(err, &exit) {
 			code = exit.ExitCode()
 		}
-		var got sessionStatus
+		var got SessionStatus
 		_ = json.Unmarshal(out.Bytes(), &got)
 		return got, code
 	}

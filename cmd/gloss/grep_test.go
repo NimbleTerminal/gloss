@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"nimbleterminal.dev/gloss/internal/handoff"
+
 	"nimbleterminal.dev/gloss/internal/app"
 )
 
@@ -58,7 +60,7 @@ func TestTextManifestSaysWhenAPageIsAPicture(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	opts := options{Options: app.Options{Files: []string{path}, DPI: 72}, Text: true, JSON: true, Pages: pageRange{all: true}}
 	err := textFiles(opts, &stdout, &stderr)
-	if exitCode(err) != 1 {
+	if handoff.ExitCode(err) != 1 {
 		t.Fatalf("a page with no text layer must fail the run: %v", err)
 	}
 	var got []made
@@ -119,7 +121,7 @@ func TestGrepPrintsMatchingPagesOnly(t *testing.T) {
 	opts.Files = []string{"../../examples/shapes.svg", path, "../../examples/notes.txt"}
 	out, _, err = run(opts)
 	hits = nil
-	if exitCode(err) != 1 || json.Unmarshal([]byte(out), &hits) != nil || len(hits) != 3 ||
+	if handoff.ExitCode(err) != 1 || json.Unmarshal([]byte(out), &hits) != nil || len(hits) != 3 ||
 		!strings.Contains(hits[0].Error, "--output") || hits[1].Page != 1 || hits[1].Error != "" || !strings.Contains(hits[2].Error, "--text") {
 		t.Fatalf("mixed: %v %s", err, out)
 	}

@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"context"
@@ -18,7 +18,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -37,8 +36,8 @@ import (
 )
 
 var (
-	errCancelled = errors.New("nothing was chosen")
-	errTimeout   = errors.New("timed out waiting for the viewer")
+	ErrCancelled = errors.New("nothing was chosen")
+	ErrTimeout   = errors.New("timed out waiting for the viewer")
 )
 
 const maxDrops = 256 // Files in one drop.
@@ -50,13 +49,13 @@ var servePage = template.Must(template.ParseFS(web.Page, "serve.html"))
 // It is a variable so that tests can lower it.
 var maxSessionBytes int64 = 1 << 30
 
-// server shows the viewer on a page of its own, for as long as it is wanted.
+// Server shows the viewer on a page of its own, for as long as it is wanted.
 //
 // Booba runs the viewer and carries its terminal to the page. It listens on
 // a port of its own, and answers only to requests bearing a secret. Those
-// come from the server in front of it, which serves the page, takes what is
+// come from the Server in front of it, which serves the page, takes what is
 // dropped there, and admits nothing without the token in the page's address.
-type server struct {
+type Server struct {
 	URL     string
 	backend string
 	prompt  string
@@ -106,9 +105,9 @@ func random() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
-func serve(ctx context.Context, opts app.Options) (*server, error) {
+func serve(ctx context.Context, opts app.Options) (*Server, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	s := &server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, pick: opts.Pick, drops: make(chan []string, 16), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
+	s := &Server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, pick: opts.Pick, drops: make(chan []string, 16), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
 	s.lifetime = newViewerLifetime()
 	opts.OnQuit = func() { s.lifetime.finish("closed") }
 	// The browser carries the full request as accessible page text, outside
@@ -212,7 +211,7 @@ func serve(ctx context.Context, opts app.Options) (*server, error) {
 
 // Wait returns the viewer once its session is over. A timeout of zero waits
 // as long as it takes.
-func (s *server) Wait(timeout time.Duration) (*app.Model, error) {
+func (s *Server) Wait(timeout time.Duration) (*app.Model, error) {
 	s.lifetime.configure(timeout, 0, nil)
 	for {
 		s.lifetime.mu.Lock()
@@ -244,7 +243,7 @@ func (s *server) Wait(timeout time.Duration) (*app.Model, error) {
 			}
 			s.lifetime.finish("timeout")
 			s.Close()
-			return nil, errTimeout
+			return nil, ErrTimeout
 		}
 	}
 finished:
@@ -254,7 +253,7 @@ finished:
 	return s.model, nil
 }
 
-func (s *server) Close() {
+func (s *Server) Close() {
 	s.closeOnce.Do(func() {
 		if s.lifetime != nil {
 			s.lifetime.finish("closed")
@@ -274,7 +273,7 @@ func (s *server) Close() {
 
 // Discard removes what was dropped on the page. Drops are kept only when
 // they are the answer to a pick; otherwise they were for looking at.
-func (s *server) Discard() {
+func (s *Server) Discard() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.dir != "" {
@@ -282,7 +281,7 @@ func (s *server) Discard() {
 	}
 }
 
-func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// A page elsewhere can point a name of its own at this machine.
 	host, _, err := net.SplitHostPort(r.Host)
 	allowed := err == nil && (host == "127.0.0.1" || host == "localhost")
@@ -340,7 +339,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // receive keeps the files of a drop and tells the viewer where. They are
 // kept past the server's end: whoever started gloss has yet to read them.
-func (s *server) receive(w http.ResponseWriter, r *http.Request) {
+func (s *Server) receive(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "POST a drop", http.StatusMethodNotAllowed)
 		return
@@ -462,7 +461,7 @@ func (s *server) receive(w http.ResponseWriter, r *http.Request) {
 
 // offer keeps an export for the page to download, within what the session
 // may keep.
-func (s *server) offer(name string, data []byte) (string, error) {
+func (s *Server) offer(name string, data []byte) (string, error) {
 	if s.stored.Add(int64(len(data))) > maxSessionBytes {
 		s.stored.Add(-int64(len(data)))
 		return "", errors.New("this session has kept all the files it will")
@@ -477,7 +476,7 @@ func (s *server) offer(name string, data []byte) (string, error) {
 
 // listExports answers the page with the exports from number after on, as
 // soon as there are any or, with none, after a while.
-func (s *server) listExports(w http.ResponseWriter, r *http.Request) {
+func (s *Server) listExports(w http.ResponseWriter, r *http.Request) {
 	after, err := strconv.Atoi(r.URL.Query().Get("after"))
 	if err != nil || after < 0 {
 		http.Error(w, "after what?", http.StatusBadRequest)
@@ -506,7 +505,7 @@ func (s *server) listExports(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(list)
 }
 
-func (s *server) exportsFrom(after int) []export {
+func (s *Server) exportsFrom(after int) []export {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if after >= len(s.exports) {
@@ -516,7 +515,7 @@ func (s *server) exportsFrom(after int) []export {
 }
 
 // sendExport gives the page an export, to be saved where the browser saves.
-func (s *server) sendExport(w http.ResponseWriter, r *http.Request, id string) {
+func (s *Server) sendExport(w http.ResponseWriter, r *http.Request, id string) {
 	i, err := strconv.Atoi(id)
 	s.mu.Lock()
 	ok := err == nil && i >= 0 && i < len(s.exports)
@@ -535,7 +534,7 @@ func (s *server) sendExport(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 // keep writes a dropped file under its own name, or the nearest one free.
-func (s *server) keep(name string, from io.Reader) (string, int64, error) {
+func (s *Server) keep(name string, from io.Reader) (string, int64, error) {
 	dir, err := s.folder()
 	if err != nil {
 		return "", 0, err
@@ -547,14 +546,14 @@ func (s *server) keep(name string, from io.Reader) (string, int64, error) {
 
 // useFolder keeps drops in dir, made by whoever started the session, instead
 // of a folder of its own.
-func (s *server) useFolder(dir string) {
+func (s *Server) useFolder(dir string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.dir = dir
 }
 
 // folder is where drops are kept, made when the first arrives.
-func (s *server) folder() (string, error) {
+func (s *Server) folder() (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.dir == "" {
@@ -588,24 +587,13 @@ func usableName(name string) bool {
 	return true
 }
 
-// browse opens the page in the user's browser.
-func browse(address string) error {
-	switch runtime.GOOS {
-	case "darwin":
-		return exec.Command("open", address).Start()
-	case "windows":
-		return exec.Command("rundll32", "url.dll,FileProtocolHandler", address).Start()
-	}
-	return exec.Command("xdg-open", address).Start()
-}
-
-func exitCode(err error) int {
+func ExitCode(err error) int {
 	switch {
 	case err == nil:
 		return 0
-	case errors.Is(err, errCancelled):
+	case errors.Is(err, ErrCancelled):
 		return 2
-	case errors.Is(err, errTimeout):
+	case errors.Is(err, ErrTimeout):
 		return 124
 	}
 	return 1

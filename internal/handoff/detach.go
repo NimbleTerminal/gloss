@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"context"
@@ -70,8 +70,8 @@ type state struct {
 	IdleTimeoutSeconds int       `json:"idle_timeout_seconds,omitempty"`
 }
 
-// started is the one object a detached start prints on stdout.
-type started struct {
+// Started is the one object a detached start prints on stdout.
+type Started struct {
 	Protocol           int    `json:"protocol" const:"1" doc:"Version of this object's shape."`
 	Status             string `json:"status" enum:"waiting" doc:"Always waiting: the session started, nobody has answered yet."`
 	URL                string `json:"url" doc:"The page for the human: localhost by default, or the advertised host and actual port with --pick-web --listen/--advertise-host. Reachability depends on the network. Its token lets a browser in, and nothing else; treat it as a secret."`
@@ -121,11 +121,11 @@ func readState(file string) (state, error) {
 	return st, json.Unmarshal(data, &st)
 }
 
-// detach starts the server in a process of its own and prints, as one JSON
+// Detach starts the server in a process of its own and prints, as one JSON
 // object, where to find it and how to ask what came of it. args are those
 // gloss was given; "-" in them is replaced by standard input, kept in the
 // private folder, since the server will have none.
-func detach(args []string, opts options, stdout, stderr io.Writer) error {
+func Detach(args []string, opts Config, stdout, stderr io.Writer) error {
 	pruneSessions(time.Now())
 	token, err := random()
 	if err != nil {
@@ -142,9 +142,11 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 			os.Remove(file)
 		}
 	}()
-	child, err := detachArguments(context.Background(), args, dir, os.Stdin, opts.Accept, opts.UserAgent)
-	if err != nil {
-		return err
+	child := args
+	if opts.Arguments != nil {
+		if child, err = opts.Arguments(context.Background(), args, dir, os.Stdin); err != nil {
+			return err
+		}
 	}
 	timeout := opts.Timeout
 	idle := time.Duration(0)
@@ -200,7 +202,7 @@ func detach(args []string, opts options, stdout, stderr io.Writer) error {
 		}
 	}
 	failed = false
-	return json.NewEncoder(stdout).Encode(started{
+	return json.NewEncoder(stdout).Encode(Started{
 		Protocol:           protocolVersion,
 		Status:             statusWaiting,
 		URL:                st.URL,
@@ -247,10 +249,10 @@ func announce(token, address string) {
 	_ = writeState(file, st)
 }
 
-// conclude records how the detached server ended. What was dropped is
+// Conclude records how the detached server ended. What was dropped is
 // kept only for an answer; for anything else the folder goes first, so that
 // whoever reads the state can count on it being gone.
-func conclude(token string, err error, paths []string, pick bool, message string) {
+func Conclude(token string, err error, paths []string, pick bool, message string) {
 	dir, file := detachedPaths(token)
 	st, readErr := readState(file)
 	if errors.Is(readErr, fs.ErrNotExist) {
@@ -266,9 +268,9 @@ func conclude(token string, err error, paths []string, pick bool, message string
 		st.Status, st.Paths, st.Message = statusPicked, paths, message
 	case err == nil:
 		st.Status = statusClosed
-	case errors.Is(err, errCancelled):
+	case errors.Is(err, ErrCancelled):
 		st.Status = statusDeclined
-	case errors.Is(err, errTimeout):
+	case errors.Is(err, ErrTimeout):
 		st.Status = statusTimeout
 	default:
 		st.Status, st.Error = statusError, err.Error()
@@ -279,10 +281,10 @@ func conclude(token string, err error, paths []string, pick bool, message string
 	_ = writeState(file, st)
 }
 
-// resume waits for the answer of a detached pick and gives it as pick does:
+// Resume waits for the answer of a detached pick and gives it as pick does:
 // the paths, one to a line, and exit status 0, 2, or 124. With --timeout it
 // gives up on waiting, not on the pick, which a later call can still ask.
-func resume(opts options, stdout, stderr io.Writer) error {
+func Resume(opts Config, stdout, stderr io.Writer) error {
 	if !tokenPattern.MatchString(opts.Resume) {
 		return fmt.Errorf("--resume takes the token the start printed")
 	}
@@ -307,7 +309,7 @@ func resume(opts options, stdout, stderr io.Writer) error {
 			select {
 			case <-late:
 				fmt.Fprintln(stderr, "gloss: still waiting; the pick itself has not timed out")
-				return errTimeout
+				return ErrTimeout
 			case <-time.After(200 * time.Millisecond):
 			}
 			continue
@@ -349,8 +351,8 @@ func observe(file string, now time.Time) (st state, derived bool, err error) {
 	return st, false, nil
 }
 
-// sessionStatus is what --status prints: how a pick stands, at once.
-type sessionStatus struct {
+// SessionStatus is what --status prints: how a pick stands, at once.
+type SessionStatus struct {
 	Protocol           int      `json:"protocol" const:"1" doc:"Version of this object's shape."`
 	State              string   `json:"state" enum:"waiting,picked,declined,timeout,closed,failed" doc:"How the session stands."`
 	Settled            bool     `json:"settled" doc:"False only while waiting."`
@@ -361,11 +363,11 @@ type sessionStatus struct {
 	IdleTimeoutSeconds int      `json:"idle_timeout_seconds,omitempty" doc:"When present, seconds_left is the renewable viewing inactivity window, not a hard deadline."`
 }
 
-// status says at once how a pick stands, as one JSON object, and exit status
+// Status says at once how a pick stands, as one JSON object, and exit Status
 // 0: the state is in the object. It waits for nothing and changes nothing,
 // neither the answer, nor the files, nor the session, so it can be asked as
 // often as wanted, and --resume then answers as it would have.
-func status(opts options, stdout io.Writer) error {
+func Status(opts Config, stdout io.Writer) error {
 	if !tokenPattern.MatchString(opts.Status) {
 		return fmt.Errorf("--status takes the token the start printed")
 	}
@@ -375,7 +377,7 @@ func status(opts options, stdout io.Writer) error {
 	if err != nil {
 		return errNoSession
 	}
-	out := sessionStatus{Protocol: protocolVersion, State: st.Status, Settled: st.Status != statusWaiting, Error: st.Error}
+	out := SessionStatus{Protocol: protocolVersion, State: st.Status, Settled: st.Status != statusWaiting, Error: st.Error}
 	out.IdleTimeoutSeconds = st.IdleTimeoutSeconds
 	switch st.Status {
 	case statusError:
@@ -397,9 +399,9 @@ func status(opts options, stdout io.Writer) error {
 	return json.NewEncoder(stdout).Encode(out)
 }
 
-// resumed is what --resume --json prints, also used for a confirmed
+// Resumed is what --resume --json prints, also used for a confirmed
 // foreground --pick-web --json answer.
-type resumed struct {
+type Resumed struct {
 	Protocol int      `json:"protocol" const:"1" doc:"Version of this object's shape."`
 	Status   string   `json:"status" enum:"picked,declined,timeout,closed,error" doc:"How the session ended."`
 	Paths    []string `json:"paths" doc:"The answer when picked; null otherwise."`
@@ -415,7 +417,7 @@ func answer(st state, asJSON bool, stdout io.Writer) error {
 		st.Message = ""
 	}
 	if asJSON {
-		_ = json.NewEncoder(stdout).Encode(resumed{Protocol: protocolVersion, Status: st.Status, Paths: st.Paths, Message: st.Message, Error: st.Error})
+		_ = json.NewEncoder(stdout).Encode(Resumed{Protocol: protocolVersion, Status: st.Status, Paths: st.Paths, Message: st.Message, Error: st.Error})
 	}
 	switch st.Status {
 	case statusPicked:
@@ -428,9 +430,9 @@ func answer(st state, asJSON bool, stdout io.Writer) error {
 	case statusClosed:
 		return nil
 	case statusDeclined:
-		return errCancelled
+		return ErrCancelled
 	case statusTimeout:
-		return errTimeout
+		return ErrTimeout
 	}
 	return errors.New(st.Error)
 }
@@ -439,11 +441,11 @@ func answer(st state, asJSON bool, stdout io.Writer) error {
 // is stopped. A variable so that tests can shorten it.
 var cancelWait = 5 * time.Second
 
-// cancel ends a session at once, whatever it stands at: its state goes, which
+// Cancel ends a session at once, whatever it stands at: its state goes, which
 // the server watches for and stops at, and so does its folder, dropped files
 // and answer alike. --status and --resume then know of no such session. It
 // prints nothing.
-func cancel(opts options) error {
+func Cancel(opts Config) error {
 	if !tokenPattern.MatchString(opts.Cancel) {
 		return fmt.Errorf("--cancel takes the resume token the start printed")
 	}

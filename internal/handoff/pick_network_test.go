@@ -1,8 +1,7 @@
-package main
+package handoff
 
 import (
 	"context"
-	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -11,52 +10,6 @@ import (
 	"testing"
 	"time"
 )
-
-func TestPickNetworkFlags(t *testing.T) {
-	for _, args := range [][]string{
-		{}, {"--listen", "192.168.1.42:0"}, {"--listen", "[::1]:8080"},
-		{"--listen", "0.0.0.0:0", "--advertise-host", "laptop.example.ts.net"},
-		{"--listen", "[::]:9090", "--advertise-host", "[fd7a:115c:a1e0::1]"},
-	} {
-		if _, _, err := parse(append([]string{"--pick-web"}, args...), io.Discard); err != nil {
-			t.Errorf("%v: %v", args, err)
-		}
-	}
-	for _, args := range [][]string{
-		{"--listen", ""}, {"--listen", "localhost:0"}, {"--listen", "en0:0"},
-		{"--listen", ":8080"}, {"--listen", "127.0.0.1:65536"},
-		{"--listen", "0.0.0.0:0"}, {"--listen", "[::]:0"},
-		{"--advertise-host", ""}, {"--advertise-host", "https://laptop.ts.net"},
-		{"--advertise-host", "laptop:80"}, {"--advertise-host", "laptop/path"},
-		{"--advertise-host", "0.0.0.0"}, {"--advertise-host", "::"},
-		{"--advertise-host", "user@laptop"}, {"--advertise-host", "laptop?x=1"},
-		{"--advertise-host", "laptop#fragment"}, {"--advertise-host", "☕.example"},
-		{"--advertise-host", "*.example"}, {"--advertise-host", "bad..example"},
-		{"--advertise-host", "-bad.example"}, {"--advertise-host", "bad-.example"},
-		{"--advertise-host", "127.1"}, {"--advertise-host", "2130706433"},
-		{"--advertise-host", "laptop\n.example"},
-		{"--listen", "224.0.0.1:0"}, {"--listen", "255.255.255.255:0"},
-		{"--listen", "169.254.1.2:0"}, {"--listen", "[fe80::1%en0]:0"},
-		{"--listen", "[::]:0", "--advertise-host", "192.168.1.42"},
-		{"--listen", "0.0.0.0:0", "--advertise-host", "::1"},
-		{"--listen", "192.168.1.42:0", "--advertise-host", "192.168.1.43"},
-		{"--listen", "0.0.0.0:0", "--advertise-host", "127.0.0.1"},
-		{"--listen", "0.0.0.0:0", "--advertise-host", "127.0.0.2"},
-		{"--listen", "0.0.0.0:0", "--advertise-host", "LOCALHOST."},
-		{"--listen", "[::]:0", "--advertise-host", "::1"},
-	} {
-		if _, _, err := parse(append([]string{"--pick-web"}, args...), io.Discard); err == nil {
-			t.Errorf("accepted %v", args)
-		}
-	}
-	for _, mode := range [][]string{nil, {"--serve"}, {"--pick"}, {"--resume", testToken}, {"--status", testToken}, {"--cancel", testToken}} {
-		for _, flags := range [][]string{{"--listen", defaultPickListen}, {"--advertise-host", "localhost"}} {
-			if _, _, err := parse(append(append([]string{}, mode...), flags...), io.Discard); err == nil {
-				t.Errorf("accepted network flags outside web pick: %v %v", mode, flags)
-			}
-		}
-	}
-}
 
 func TestPickNetworkAddressesAndHostPolicy(t *testing.T) {
 	for _, tt := range []struct {
@@ -133,7 +86,7 @@ func TestPickOriginMustMatchRequestAuthority(t *testing.T) {
 }
 
 func TestWebPickAdvertisedDNSOverWildcard(t *testing.T) {
-	s, err := serveWebPick(context.Background(), options{Listen: "0.0.0.0:0", AdvertiseHost: "laptop.example.ts.net"})
+	s, err := serveWebPick(context.Background(), Config{Listen: "0.0.0.0:0", AdvertiseHost: "laptop.example.ts.net"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,7 +149,7 @@ func TestWebPickIPv6ListenerAndBusyPort(t *testing.T) {
 		t.Skipf("IPv6 loopback unavailable: %v", err)
 	}
 	address := listener.Addr().String()
-	s, err := serveWebPick(context.Background(), options{Listen: address})
+	s, err := serveWebPick(context.Background(), Config{Listen: address})
 	listener.Close()
 	if err == nil {
 		s.Close()
@@ -205,7 +158,7 @@ func TestWebPickIPv6ListenerAndBusyPort(t *testing.T) {
 	if !strings.Contains(err.Error(), "--listen") {
 		t.Fatalf("bind failure lost context: %v", err)
 	}
-	s, err = serveWebPick(context.Background(), options{Listen: "[::1]:0"})
+	s, err = serveWebPick(context.Background(), Config{Listen: "[::1]:0"})
 	if err != nil {
 		t.Fatal(err)
 	}

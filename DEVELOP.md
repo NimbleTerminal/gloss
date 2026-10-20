@@ -111,8 +111,11 @@ the tape and record directly rather than converting the already quantized GIF.
 The layout follows NTCharts' conventions, with one module for the CLI and a
 separate browser-demo module:
 
-- `cmd/gloss`: CLI flags, stdin handling, export orchestration, and the
-  temporary server behind `--serve`.
+- `cmd/gloss`: CLI flags, stdin handling, export orchestration, downloads, and
+  dispatch to the handoff.
+- `internal/handoff`: the temporary server behind `--serve`, `--pick` and
+  `--pick-web`, and the detached-session protocol (state, status, resume,
+  cancel). `handoff/handofftest` drives its page from outside for tests.
 - `web`: the demo site, the page `--serve` shows, and the experimental plain-JS
   `--pick-web` request page (`pick.html`, `pick.mjs`, `pick-api.mjs`).
 - `internal/app`: terminal pager, selection menu, and Markdown layout.
@@ -572,7 +575,7 @@ Off a terminal it detaches as usual; open the returned `url`, then use
 `gloss --resume TOKEN` to retrieve the confirmed paths. Localhost is the default;
 only this mode supports opt-in network binding.
 
-`cmd/gloss/pick_network.go` separates `--listen IP:port` (default
+`internal/handoff/pick_network.go` separates `--listen IP:port` (default
 `127.0.0.1:0`) from `--advertise-host IP-or-DNS-name`. Validation happens before
 detaching and again at server creation. Listeners use explicit `tcp4`/`tcp6`
 families, so wildcard behavior is consistent across operating systems. A
@@ -599,7 +602,7 @@ They cannot prove another device can route to the address: check real LAN and
 Tailscale access manually, including client isolation and firewall policies.
 
 Foreground network picks show a QR on terminal stderr automatically.
-`cmd/gloss/pick_qr.go` selects this only with terminal stdin/stderr, no detached
+`internal/handoff/pick_qr.go` selects this only with terminal stdin/stderr, no detached
 token, and a non-loopback listener/advertised host. It runs the server wait
 alongside `internal/app/handoff.go`, a small Bubble Tea screen using the same
 `terminalPicture` setup and update helpers as the pager. The existing QR
@@ -612,7 +615,7 @@ Bubble Tea signal handler. Stdout never carries the screen. Tests decode its
 half-block output independently and exercise resizing, graphics toggling, and
 settlement cleanup. The detached startup protocol stays unchanged.
 
-`cmd/gloss/pick_web.go` owns the request state. Under the token URL, `GET files`
+`internal/handoff/pick_web.go` owns the request state. Under the token URL, `GET files`
 lists completed uploads as `{state, files: [{id, name, size}]}`; `POST files`
 accepts multipart uploads and returns the new file entries; `DELETE files/ID`
 removes one; `POST confirm` takes `{ids: [...], message?: "..."}`;
@@ -886,7 +889,7 @@ root record (`app=gloss`) as the foreground program and never sets the status
 back to nil: clearing the root removes every record in the terminal. The last
 view leaves idle, done (a pick or received files) or error behind. The handoff
 learns how its request settled from the CLI (`HandoffEnd`, `handoffEnd` in
-`cmd/gloss/pick_qr.go`). Messages are fixed words, never paths, URLs, prompts or
+`internal/handoff/pick_qr.go`). Messages are fixed words, never paths, URLs, prompts or
 replies. There is no support probe: terminals ignore what they do not know.
 Detached servers keep their JSON protocol and report nothing. ntrecord can
 check it: `Wait+Status blocked app=gloss id=`.

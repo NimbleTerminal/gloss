@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"bufio"
@@ -31,7 +31,7 @@ func (r *uploadGateReader) Read(p []byte) (int, error) {
 	return r.rest.Read(p)
 }
 func TestConcurrentUploadQuota(t *testing.T) {
-	s := &server{drops: make(chan []string, 2)}
+	s := &Server{drops: make(chan []string, 2)}
 	s.useFolder(t.TempDir())
 	s.stored.Store(maxSessionBytes - 10000)
 	ready := make(chan struct{}, 2)
@@ -87,7 +87,7 @@ func TestConcurrentUploadQuota(t *testing.T) {
 func TestUploadRequestBounds(t *testing.T) {
 	for _, kind := range []string{"body", "parts", "concurrency"} {
 		t.Run(kind, func(t *testing.T) {
-			s := &server{drops: make(chan []string, 2)}
+			s := &Server{drops: make(chan []string, 2)}
 			s.useFolder(t.TempDir())
 			old := maxSessionBytes
 			maxSessionBytes = 1024
@@ -129,7 +129,7 @@ func TestUploadIdleTimeoutRollsBack(t *testing.T) {
 	old := uploadIdleTimeout
 	uploadIdleTimeout = 100 * time.Millisecond
 	t.Cleanup(func() { uploadIdleTimeout = old })
-	s := &server{drops: make(chan []string, 2)}
+	s := &Server{drops: make(chan []string, 2)}
 	s.useFolder(t.TempDir())
 	front := httptest.NewServer(http.HandlerFunc(s.receive))
 	defer front.Close()

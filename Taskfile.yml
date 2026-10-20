@@ -38,6 +38,7 @@ tasks:
       - web/pick-api.mjs
       - exclude: '**/*_test.go'
       - exclude: internal/tools/**
+      - exclude: internal/handoff/handofftest/**
     generates:
       - gloss
     # The version is stamped in by -ldflags, which no source file records: it

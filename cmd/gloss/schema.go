@@ -5,6 +5,8 @@ import (
 	"io"
 	"reflect"
 	"strings"
+
+	"nimbleterminal.dev/gloss/internal/handoff"
 )
 
 // The schema of what gloss writes for a program to read is made from the very
@@ -21,9 +23,9 @@ var schemaShapes = []struct {
 	{"results", "What --json prints with --text, --grep, --output, or --output-dir: one object per input and page, or per match with --grep; failed ones carry error.", made{}, true},
 	{"apps", "What --apps --json prints: visible native applications and effective defaults by format.", appsListing{}, true},
 	{"info", "What --info --json prints: one object per file; failed ones carry error.", described{}, true},
-	{"started", "The one object --pick or --serve prints, and exits 0, when standard input is not a terminal.", started{}, false},
-	{"status", "The one object --status prints.", sessionStatus{}, false},
-	{"resumed", "The one object --resume --json prints; also the confirmed answer of --pick-web --json with terminal stdin.", resumed{}, false},
+	{"started", "The one object --pick or --serve prints, and exits 0, when standard input is not a terminal.", handoff.Started{}, false},
+	{"status", "The one object --status prints.", handoff.SessionStatus{}, false},
+	{"resumed", "The one object --resume --json prints; also the confirmed answer of --pick-web --json with terminal stdin.", handoff.Resumed{}, false},
 }
 
 // writeSchema prints the JSON Schema of the shapes, as one document: each in

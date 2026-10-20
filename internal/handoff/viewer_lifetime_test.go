@@ -1,4 +1,4 @@
-package main
+package handoff
 
 import (
 	"bytes"
@@ -44,7 +44,7 @@ func TestViewerLifetimeRenewalAndHardLimit(t *testing.T) {
 
 func TestViewerSessionRoutesAndPageModes(t *testing.T) {
 	for _, pick := range []bool{false, true} {
-		s := &server{token: "token", pick: pick, lifetime: newViewerLifetime(), done: make(chan struct{})}
+		s := &Server{token: "token", pick: pick, lifetime: newViewerLifetime(), done: make(chan struct{})}
 		s.lifetime.configure(0, time.Minute, nil)
 		req := func(method, route, origin string) *httptest.ResponseRecorder {
 			r := httptest.NewRequest(method, "http://127.0.0.1:1234/token/"+route, nil)
@@ -83,10 +83,10 @@ func TestViewerIdleStatusReadsLeaseWithoutChangingIt(t *testing.T) {
 		t.Fatal(err)
 	}
 	var out bytes.Buffer
-	if err := status(options{Status: testToken}, &out); err != nil {
+	if err := Status(Config{Status: testToken}, &out); err != nil {
 		t.Fatal(err)
 	}
-	var got sessionStatus
+	var got SessionStatus
 	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestViewerTimeoutNotifiesPendingSessionPoll(t *testing.T) {
 		s.ServeHTTP(w, r)
 		result <- w.Body.String()
 	}()
-	if _, err := s.Wait(time.Second); err != errTimeout {
+	if _, err := s.Wait(time.Second); err != ErrTimeout {
 		t.Fatal(err)
 	}
 	select {
