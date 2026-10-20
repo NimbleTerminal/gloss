@@ -29,7 +29,7 @@ func TestTypesetDirect(t *testing.T) {
 	defer func() { http.DefaultTransport = old }()
 	var l Loader
 	defer l.Close()
-	r := l.Load(Request{Path: "../../examples/typeset.md", MarkdownMode: "typeset", Page: 1, DPI: 150})
+	r := l.Load(Request{Theme: testTheme("light"), Path: "../../examples/typeset.md", MarkdownMode: "typeset", Page: 1, DPI: 150})
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
@@ -74,7 +74,7 @@ func TestTypesetCache(t *testing.T) {
 	}
 	var l Loader
 	defer l.Close()
-	q := Request{Path: path, MarkdownMode: "typeset", DPI: 150, Page: 1}
+	q := Request{Theme: testTheme("light"), Path: path, MarkdownMode: "typeset", DPI: 150, Page: 1}
 	if r := l.Load(q); r.Err != nil {
 		t.Fatal(r.Err)
 	}
@@ -135,7 +135,7 @@ func TestTypesetConcurrent(t *testing.T) {
 			var l Loader
 			l.Files = fstest.MapFS{"x.md": &fstest.MapFile{Data: []byte("# Concurrent\n\n| A | B |\n|---|---|\n| café | résumé |")}}
 			defer l.Close()
-			if r := l.Load(Request{Path: "x.md", MarkdownMode: "typeset"}); r.Err != nil || r.Image == nil {
+			if r := l.Load(Request{Theme: testTheme("light"), Path: "x.md", MarkdownMode: "typeset"}); r.Err != nil || r.Image == nil {
 				t.Errorf("render: %v", r.Err)
 			}
 		})

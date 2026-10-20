@@ -8,7 +8,6 @@ import (
 	"math"
 	"time"
 
-	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntpicture/animation"
 	"nimbleterminal.dev/nttypeset"
 )
@@ -58,7 +57,13 @@ type TypesetViewport struct {
 }
 
 func (l *Loader) renderTypeset(q Request) (out Result) {
-	out = Result{FontKey: FontKey(q.Font, q.Mono), Theme: theme.Resolve(q.Theme), Generation: q.Generation, Kind: l.typesetKind, Text: l.typesetText, Typeset: l.typeset, TypesetWidth: typesetMeasure(q.TypesetWidth), Page: 1, Pages: 1}
+	out = Result{FontKey: FontKey(q.Font, q.Mono), Theme: q.Theme.Name, Generation: q.Generation, Kind: l.typesetKind, Text: l.typesetText, Typeset: l.typeset, TypesetWidth: typesetMeasure(q.TypesetWidth), Page: 1, Pages: 1}
+	if q.Theme.Palette.Background.A == 0 {
+		// Every theme's background is opaque: no palette is a caller's mistake,
+		// and drawing the page in transparent black would hide it.
+		out.Err = errors.New("typeset page has no theme palette")
+		return
+	}
 	ctx := q.Context
 	if ctx == nil {
 		ctx = context.Background()
@@ -193,7 +198,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			}
 		}
 	}
-	opts := nttypeset.RasterOptions{Palette: typesetPalette(out.Theme), OmitAnimated: len(out.Animated) > 0}
+	opts := nttypeset.RasterOptions{Palette: q.Theme.Palette, OmitAnimated: len(out.Animated) > 0}
 	if q.TypesetSelect != nil {
 		asked := *q.TypesetSelect
 		out.TypesetAsked = &asked

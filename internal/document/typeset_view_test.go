@@ -13,7 +13,7 @@ func TestTypesetViewportProgressAndCancellation(t *testing.T) {
 	var l Loader
 	l.Files = fstest.MapFS{"x.md": &fstest.MapFile{Data: []byte(strings.Repeat("A paragraph with **bold** text.\n\n", 100))}}
 	defer l.Close()
-	q := Request{Path: "x.md", MarkdownMode: "typeset", TypesetView: &TypesetViewport{Height: 300}, DPI: 150}
+	q := Request{Theme: testTheme("light"), Path: "x.md", MarkdownMode: "typeset", TypesetView: &TypesetViewport{Height: 300}, DPI: 150}
 	r := l.Load(q)
 	if r.Err != nil {
 		t.Fatal(r.Err)
@@ -56,7 +56,7 @@ func TestTypesetLayoutLimits(t *testing.T) {
 			var l Loader
 			l.Files = fstest.MapFS{"x.md": &fstest.MapFile{Data: []byte(source)}}
 			defer l.Close()
-			r := l.Load(Request{Path: "x.md", MarkdownMode: "typeset"})
+			r := l.Load(Request{Theme: testTheme("light"), Path: "x.md", MarkdownMode: "typeset"})
 			if r.Err == nil {
 				t.Fatal("accepted oversized layout unit")
 			}
@@ -75,7 +75,7 @@ func TestTypesetViewportRastersToRequestedPixels(t *testing.T) {
 		pixels image.Point
 		zoom   int
 	}{{image.Pt(2400, 1234), 0}, {image.Pt(1001, 333), 0}, {image.Pt(2400, 1234), 1}} {
-		q := Request{Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Top: 100, Height: 1000, Zoom: tc.zoom, Pixels: tc.pixels}}
+		q := Request{Theme: testTheme("light"), Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Top: 100, Height: 1000, Zoom: tc.zoom, Pixels: tc.pixels}}
 		r := l.Load(q)
 		if r.Err != nil {
 			t.Fatal(r.Err)
@@ -87,7 +87,7 @@ func TestTypesetViewportRastersToRequestedPixels(t *testing.T) {
 			t.Fatalf("viewport did not echo pixels: %+v", r.TypesetView)
 		}
 	}
-	q := Request{Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Height: 1000}}
+	q := Request{Theme: testTheme("light"), Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Height: 1000}}
 	if r := l.Load(q); r.Err != nil || r.Image.Bounds().Size() != image.Pt(2000, 1000) {
 		t.Fatalf("zero pixels should keep the layout scale: %v", r.Image.Bounds())
 	}

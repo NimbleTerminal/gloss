@@ -37,7 +37,7 @@ func TestFontLooksAndSubsets(t *testing.T) {
 func TestFontChangesReflowAndPreserveAssets(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"page.md": {Data: []byte(strings.Repeat("A readable paragraph with café and **bold** words.\n\n", 40))}}}
 	defer l.Close()
-	q := Request{Path: "page.md", Typeset: true, Font: "readable", TypesetView: &TypesetViewport{Top: 700, Height: 600}}
+	q := Request{Theme: testTheme("light"), Path: "page.md", Typeset: true, Font: "readable", TypesetView: &TypesetViewport{Top: 700, Height: 600}}
 	r := l.Load(q)
 	if r.Err != nil {
 		t.Fatal(r.Err)
@@ -52,7 +52,7 @@ func TestFontChangesReflowAndPreserveAssets(t *testing.T) {
 		t.Fatal("font switch lost prepared content or did not reflow")
 	}
 	layout = l.direct
-	q.Theme = "nord"
+	q.Theme = testTheme("nord")
 	r = l.Load(q)
 	if r.Err != nil || l.direct != layout {
 		t.Fatal("color change reshaped", r.Err)
@@ -100,7 +100,7 @@ func TestFontFallbackMissingAndLigatures(t *testing.T) {
 	source := "Fallback " + string(candidate) + " and missing 🙂漢.\n"
 	l := &Loader{Files: fstest.MapFS{"page.md": {Data: []byte(source)}}}
 	defer l.Close()
-	r := l.Load(Request{Path: "page.md", Typeset: true, Font: "technical", TypesetView: &TypesetViewport{Height: 300}})
+	r := l.Load(Request{Theme: testTheme("light"), Path: "page.md", Typeset: true, Font: "technical", TypesetView: &TypesetViewport{Height: 300}})
 	if r.Err != nil {
 		t.Fatal(r.Err)
 	}
@@ -116,7 +116,7 @@ func TestFontFallbackMissingAndLigatures(t *testing.T) {
 	}
 }
 func TestFontPreviewBoundedAndCancelled(t *testing.T) {
-	im, err := FontPreview(context.Background(), []byte("# Sample\n\n```go\nfunc hello() {}\n```"), "nord", "", 480, 320)
+	im, err := FontPreview(context.Background(), []byte("# Sample\n\n```go\nfunc hello() {}\n```"), testTheme("nord").Palette, "", 480, 320)
 	if err != nil || im.Bounds() != image.Rect(0, 0, 480, 320) {
 		t.Fatal("preview", err)
 	}
@@ -138,10 +138,10 @@ func TestFontPreviewBoundedAndCancelled(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if _, err := FontPreview(ctx, nil, "light", "", 480, 320); err == nil {
+	if _, err := FontPreview(ctx, nil, testTheme("light").Palette, "", 480, 320); err == nil {
 		t.Fatal("ignored cancellation")
 	}
-	if _, err := FontPreview(context.Background(), nil, "light", "", 5000, 5000); err == nil {
+	if _, err := FontPreview(context.Background(), nil, testTheme("light").Palette, "", 5000, 5000); err == nil {
 		t.Fatal("unbounded preview")
 	}
 }

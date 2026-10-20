@@ -33,14 +33,14 @@ func TestTypesetLinkedImageCompositesLikeStandalone(t *testing.T) {
 		t.Fatal(err)
 	}
 	for name, data := range map[string][]byte{"pic.png": pngData.Bytes(), "pic.gif": gifData.Bytes()} {
-		for _, theme := range []string{"light", "dark"} {
-			t.Run(name+"/"+theme, func(t *testing.T) {
+		for _, themeName := range []string{"light", "dark"} {
+			t.Run(name+"/"+themeName, func(t *testing.T) {
 				files := fstest.MapFS{"docs/" + name: {Data: data}}
 				render := func(source string) *image.RGBA {
 					files["docs/page.md"] = &fstest.MapFile{Data: []byte(source)}
 					l := &Loader{Files: files}
 					defer l.Close()
-					r := l.Load(Request{Path: "docs/page.md", Typeset: true, Theme: theme, TypesetView: &TypesetViewport{Height: 150}})
+					r := l.Load(Request{Path: "docs/page.md", Typeset: true, Theme: testTheme(themeName), TypesetView: &TypesetViewport{Height: 150}})
 					if r.Err != nil {
 						t.Fatal(r.Err)
 					}
@@ -72,7 +72,7 @@ func TestTypesetLinkedImageCompositesLikeStandalone(t *testing.T) {
 func TestTypesetLinkedMissingImagePlaceholder(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"page.md": {Data: []byte("[![missing](no.png)](https://example.invalid)")}}}
 	defer l.Close()
-	r := l.Load(Request{Path: "page.md", Typeset: true})
+	r := l.Load(Request{Theme: testTheme("light"), Path: "page.md", Typeset: true})
 	if b := l.typesetDocument.Blocks; r.Err != nil || len(b) != 1 || b[0].Kind != nttypeset.KindImage || b[0].Image.Still != nil {
 		t.Fatal("missing image should keep its placeholder", r.Err)
 	}
@@ -96,7 +96,7 @@ func TestTypesetAnimatedImageIsReservedRectangle(t *testing.T) {
 	load := func(animate bool) Result {
 		l := &Loader{Files: files}
 		defer l.Close()
-		r := l.Load(Request{Path: "page.md", Typeset: true, Animate: animate, TypesetView: &TypesetViewport{Height: 400}})
+		r := l.Load(Request{Theme: testTheme("light"), Path: "page.md", Typeset: true, Animate: animate, TypesetView: &TypesetViewport{Height: 400}})
 		if r.Err != nil {
 			t.Fatal(r.Err)
 		}
@@ -111,7 +111,7 @@ func TestTypesetAnimatedImageIsReservedRectangle(t *testing.T) {
 	}
 	rect := animated.Animated[0].Rect
 	center := image.Pt((rect.Min.X+rect.Max.X)/2, (rect.Min.Y+rect.Max.Y)/2)
-	want := color.RGBAModel.Convert(typesetPalette("light").Background)
+	want := color.RGBAModel.Convert(testTheme("light").Palette.Background)
 	if got := color.RGBAModel.Convert(animated.AnimationBase.At(center.X, center.Y)); got != want {
 		t.Fatalf("AnimationBase at %v = %v, want background %v", center, got, want)
 	}

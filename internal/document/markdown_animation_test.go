@@ -23,7 +23,7 @@ func TestMarkdownAnimationModesBudgetAndDuplicates(t *testing.T) {
 		for _, q := range []Request{{Animate: true}, {}, {Animate: true, Preview: true}} {
 			l := &Loader{Files: files}
 			q.Path = "test.md"
-			q.MarkdownMode = mode
+			q.MarkdownMode, q.Theme = mode, testTheme("light")
 			r := l.Load(q)
 			l.Close()
 			if r.Err != nil {
@@ -76,7 +76,7 @@ func TestMarkdownAnimationAggregateBytesAndCancellation(t *testing.T) {
 func TestTypesetAnimatedRegionsAndReflow(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"doc.md": {Data: []byte("# Motion\n\n![gif](motion.gif)\n\nAfter.")}, "motion.gif": {Data: gifTestData(t, 0)}}}
 	defer l.Close()
-	q := Request{Path: "doc.md", Typeset: true, Animate: true, TypesetView: &TypesetViewport{Height: 500}}
+	q := Request{Theme: testTheme("light"), Path: "doc.md", Typeset: true, Animate: true, TypesetView: &TypesetViewport{Height: 500}}
 	r := l.Load(q)
 	if r.Err != nil || len(r.Animated) != 1 || r.Playback == nil {
 		t.Fatalf("missing region: %v, %d", r.Err, len(r.Animated))

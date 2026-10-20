@@ -4,6 +4,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"image/color"
+	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/theme"
 )
 
@@ -17,6 +18,12 @@ func (m *Model) themeRequest() tea.Cmd {
 }
 
 func (m *Model) palette() theme.Palette { return theme.Get(m.theme) }
+
+// DocumentTheme is a resolved theme as the document loader takes it: gloss
+// decides themes, and the loader only draws in them.
+func DocumentTheme(name string) document.Theme {
+	return document.Theme{Name: name, Dark: theme.Dark(name), Palette: theme.Typeset(name)}
+}
 
 func (m *Model) pictureBackground() color.Color {
 	if m.typeset != nil {

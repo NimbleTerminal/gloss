@@ -7,7 +7,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/alecthomas/chroma/v2/styles"
-	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/nttypeset"
 )
 
@@ -61,7 +60,7 @@ func (l *Loader) startTypeset(q Request, data []byte, file []Field, kind string,
 	l.path, l.file = q.Path, file
 	l.typesetAnimate = q.Animate && !q.Preview
 	l.typeset, l.typesetBase, l.typesetHash = source, q.BaseDir, sha256.Sum256(data)
-	l.typesetDark = theme.Dark(q.Theme)
+	l.typesetDark = q.Theme.Dark
 	l.typesetType, l.typesetKind, l.typesetText, l.typesetInfo = q.Type, kind, text, info
 	l.typesetEngine, l.typesetDocument = eng, doc
 	return l.renderTypeset(q)

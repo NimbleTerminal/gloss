@@ -14,7 +14,7 @@ func TestTypesetLinksWrapReflowAndViewport(t *testing.T) {
 	// Use the original fixture image for the linked figure.
 	l := &Loader{Files: fstest.MapFS{"doc.md": {Data: []byte(source)}, "local.png": {Data: pngBytes(t)}}}
 	defer l.Close()
-	q := Request{Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 1200}}
+	q := Request{Theme: testTheme("light"), Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 1200}}
 	first := l.Load(q)
 	if first.Err != nil {
 		t.Fatal(first.Err)

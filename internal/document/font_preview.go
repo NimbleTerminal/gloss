@@ -12,7 +12,7 @@ import (
 
 // FontPreview draws the four bounded sample rows with nttypeset, the same
 // shaper and rasterizer as the document. It is called by an asynchronous viewer command.
-func FontPreview(ctx context.Context, source []byte, themeName, override string, width, height int) (image.Image, error) {
+func FontPreview(ctx context.Context, source []byte, palette nttypeset.Palette, override string, width, height int) (image.Image, error) {
 	if width < 160 || height < 160 || width > 1200 || height > 1200 {
 		return nil, fmt.Errorf("font preview does not fit")
 	}
@@ -46,7 +46,7 @@ func FontPreview(ctx context.Context, source []byte, themeName, override string,
 		return s
 	}
 	body, code = trim(body), trim(code)
-	img, err := nttypeset.Preview(ctx, FontLooks(), override, body, code, width, height, typesetPalette(themeName), nttypeset.WithFonts(ntfonts.Embedded))
+	img, err := nttypeset.Preview(ctx, FontLooks(), override, body, code, width, height, palette, nttypeset.WithFonts(ntfonts.Embedded))
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/theme"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
@@ -79,7 +80,7 @@ func (m *Model) layoutFontPicker() tea.Cmd {
 	p.cancel = cancel
 	owner, revision := p.owner, p.revision
 	source := m.typeset.Source
-	palette, mono := m.theme, m.opts.Mono
+	palette, mono := theme.Typeset(m.theme), m.opts.Mono
 	cmds = append(cmds, func() tea.Msg {
 		defer cancel()
 		im, err := document.FontPreview(ctx, source, palette, mono, w*max(1, cw), h*max(1, ch))

@@ -224,6 +224,9 @@ budget. A run holding a bitmap or SVG glyph is drawn by go-text on a tile.
 There is no terminal graphics composition and no new graphics protocol.
 
 `internal/theme` owns named palettes shared by Glamour and the direct renderer.
+The document loader does not read it: a `Request` carries a resolved
+`document.Theme` (`app.DocumentTheme`), and a typeset page without a palette is
+an error rather than a page drawn in transparent black.
 `--theme auto|light|dark|NAME|FILE.json` resolves to light for headless exports. The application
 owns interactive detection: `tea.RequestBackgroundColor` from Init/focus and
 `tea.BackgroundColorMsg` in Update, without blocking reads or extra probes.

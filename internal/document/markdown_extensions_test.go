@@ -26,7 +26,7 @@ func TestTypesetQuoteBordersAreContinuous(t *testing.T) {
 		if err := l.Complete(ctx); err != nil {
 			t.Fatal(err)
 		}
-		img, err := l.Raster(ctx, nttypeset.View{Width: width, Height: l.Extent(), Scale: 1}, nttypeset.RasterOptions{Palette: typesetPalette("light")})
+		img, err := l.Raster(ctx, nttypeset.View{Width: width, Height: l.Extent(), Scale: 1}, nttypeset.RasterOptions{Palette: testTheme("light").Palette})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -77,7 +77,7 @@ func TestMarkdownExtensionTypesetParity(t *testing.T) {
 		if err := l.Complete(context.Background()); err != nil {
 			t.Fatal(err)
 		}
-		img, err := l.Raster(context.Background(), nttypeset.View{Width: width, Height: l.Extent(), Scale: 1}, nttypeset.RasterOptions{Palette: typesetPalette("light")})
+		img, err := l.Raster(context.Background(), nttypeset.View{Width: width, Height: l.Extent(), Scale: 1}, nttypeset.RasterOptions{Palette: testTheme("light").Palette})
 		if err != nil || img.Bounds().Dx() != width || !l.Done() {
 			t.Fatal("incomplete extension raster")
 		}

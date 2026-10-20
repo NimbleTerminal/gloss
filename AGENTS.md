@@ -271,7 +271,10 @@ Text themes: `--theme auto|light|dark|NAME|FILE.json` controls normal text and t
 Auto asks for the terminal background through Bubble Tea's event loop, defaults
 to dark without a reply, and rechecks on focus. Explicit themes ignore replies;
 previews inherit the parent. Headless auto always uses light without probing.
-`internal/theme` supplies shared palettes; typeset theme changes only repaint,
+`internal/theme` supplies shared palettes. `internal/document` never imports it:
+callers resolve the theme and pass `document.Theme` (name, dark bit, typeset
+palette) on `Request`, through `app.DocumentTheme`; exports resolve it with
+`theme.Resolve` first. Typeset theme changes only repaint,
 reusing fonts, shaping, layout and local images while keeping scroll position.
 Glamour styled text/search reindexes on changes. Images/PDFs and QR codes keep
 their original colors.

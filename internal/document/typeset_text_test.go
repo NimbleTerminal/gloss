@@ -21,7 +21,7 @@ func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
 		t.Run(tc.path, func(t *testing.T) {
 			l := &Loader{Files: fstest.MapFS{tc.path: {Data: []byte(tc.input)}}}
 			defer l.Close()
-			q := Request{Path: tc.path, Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
+			q := Request{Theme: testTheme("light"), Path: tc.path, Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
 			r := l.Load(q)
 			if r.Err != nil || r.Image == nil || r.Kind != tc.kind || r.Typeset == nil || r.Markdown != nil {
 				t.Fatalf("typeset: %+v", r)
@@ -65,7 +65,7 @@ func TestTypesetTextLiteralAndHighlighted(t *testing.T) {
 func TestTypesetTextLimits(t *testing.T) {
 	for _, data := range [][]byte{bytes.Repeat([]byte("x"), MaxMarkdownBytes+1), {0xff}, []byte(strings.Repeat("line\n", 8193))} {
 		l := &Loader{Files: fstest.MapFS{"input.txt": {Data: data}}}
-		r := l.Load(Request{Path: "input.txt", Type: "text", Typeset: true})
+		r := l.Load(Request{Theme: testTheme("light"), Path: "input.txt", Type: "text", Typeset: true})
 		if r.Err == nil || l.typesetEngine != nil {
 			t.Fatal("over-budget input reached renderer")
 		}
@@ -77,7 +77,7 @@ func TestTypesetTextContentChange(t *testing.T) {
 	files := fstest.MapFS{"input.txt": {Data: []byte("before")}}
 	l := &Loader{Files: files}
 	defer l.Close()
-	q := Request{Path: "input.txt", Typeset: true}
+	q := Request{Theme: testTheme("light"), Path: "input.txt", Typeset: true}
 	if r := l.Load(q); r.Err != nil {
 		t.Fatal(r.Err)
 	}

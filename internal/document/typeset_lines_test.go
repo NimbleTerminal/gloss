@@ -20,7 +20,7 @@ func linesSource(n int) string {
 func TestTypesetLineNumbersGutter(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"main.go": {Data: []byte("package main\n\nfunc main() {}\n")}}}
 	defer l.Close()
-	q := Request{Path: "main.go", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
+	q := Request{Theme: testTheme("light"), Path: "main.go", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
 	plain := l.Load(q)
 	if plain.Err != nil {
 		t.Fatal(plain.Err)
@@ -44,7 +44,7 @@ func TestTypesetLineNumbersGutter(t *testing.T) {
 func TestTypesetGoToLine(t *testing.T) {
 	l := &Loader{Files: fstest.MapFS{"long.txt": {Data: []byte(linesSource(300))}, "page.md": {Data: []byte("# Title\n\nProse.\n")}}}
 	defer l.Close()
-	q := Request{Path: "long.txt", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400, Line: 120}}
+	q := Request{Theme: testTheme("light"), Path: "long.txt", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400, Line: 120}}
 	r := l.Load(q)
 	if r.Err != nil {
 		t.Fatal(r.Err)
@@ -62,7 +62,7 @@ func TestTypesetGoToLine(t *testing.T) {
 	if r.Err != nil || !r.TypesetDone || r.TypesetView.Top != max(0, r.TypesetExtent-400) {
 		t.Fatalf("past the end %+v extent %d", r.TypesetView, r.TypesetExtent)
 	}
-	q = Request{Path: "page.md", Typeset: true, Page: 1, TypesetLineNumbers: true, TypesetView: &TypesetViewport{Height: 400, Line: 2}}
+	q = Request{Theme: testTheme("light"), Path: "page.md", Typeset: true, Page: 1, TypesetLineNumbers: true, TypesetView: &TypesetViewport{Height: 400, Line: 2}}
 	if r = l.Load(q); r.Err != nil || r.TypesetView.Lines != 0 || r.TypesetView.Line != 0 || r.TypesetView.Top != 0 {
 		t.Fatalf("markdown page %+v", r.TypesetView)
 	}
@@ -74,7 +74,7 @@ func TestTypesetChopLongLines(t *testing.T) {
 	long := "short\n" + strings.Repeat("a long line of words that will wrap at the measure ", 8) + "\nend\n"
 	l := &Loader{Files: fstest.MapFS{"long.txt": {Data: []byte(long)}, "page.md": {Data: []byte("# Title\n\n" + strings.Repeat("prose ", 300) + "\n")}}}
 	defer l.Close()
-	q := Request{Path: "long.txt", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
+	q := Request{Theme: testTheme("light"), Path: "long.txt", Typeset: true, Page: 1, TypesetView: &TypesetViewport{Height: 400}}
 	if r := l.Load(q); r.Err != nil || r.TypesetView.Chop {
 		t.Fatalf("plain %+v %v", r.TypesetView, r.Err)
 	}
@@ -109,7 +109,7 @@ func TestTypesetChopLongLines(t *testing.T) {
 	if r = l.Load(q); r.Err != nil || r.TypesetView.Chop || r.TypesetView.Left != 0 || !wrapped(1) {
 		t.Fatalf("wrapped again %+v", r.TypesetView)
 	}
-	q = Request{Path: "page.md", Typeset: true, Page: 1, TypesetChop: true, TypesetView: &TypesetViewport{Height: 400}}
+	q = Request{Theme: testTheme("light"), Path: "page.md", Typeset: true, Page: 1, TypesetChop: true, TypesetView: &TypesetViewport{Height: 400}}
 	if r = l.Load(q); r.Err != nil || r.TypesetView.Chop {
 		t.Fatalf("markdown page chopped: %+v", r.TypesetView)
 	}

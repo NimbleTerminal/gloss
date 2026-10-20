@@ -10,7 +10,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/yuin/goldmark/ast"
-	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntpicture/animation"
 )
 
@@ -101,7 +100,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 			}
 			destinations = append(destinations, dest)
 			assets[dest] = nil
-			img, e := renderMermaidImage(im, code, theme.Dark(q.Theme))
+			img, e := renderMermaidImage(im, code, q.Theme.Dark)
 			if e != nil {
 				undrawn = append(undrawn, im)
 				return ast.WalkContinue, nil

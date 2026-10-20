@@ -74,3 +74,14 @@ func TestExportHonoursTheRendererAskedFor(t *testing.T) {
 		}
 	}
 }
+
+// Exports never probe a terminal: an automatic or unknown theme is light,
+// resolved here before the loader sees it.
+func TestExportResolvesTheTheme(t *testing.T) {
+	for name, want := range map[string]string{"auto": "light", "": "light", "dark": "dark", "light": "light"} {
+		q := exportRequest(app.Options{Theme: name}, "page.md", 1)
+		if q.Theme.Name != want || q.Theme.Dark != (want == "dark") || q.Theme.Palette.Background.A != 255 {
+			t.Errorf("theme %q: got %+v, want %s", name, q.Theme, want)
+		}
+	}
+}

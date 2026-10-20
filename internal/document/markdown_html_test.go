@@ -22,7 +22,7 @@ func TestReadmeHTMLImages(t *testing.T) {
 			// A nested document directory makes a CWD-relative implementation fail.
 			files := fstest.MapFS{"project/docs/README.md": {Data: []byte(source)}, "project/docs/assets/hello.gif": {Data: gifTestData(t, 0)}}
 			l := &Loader{Files: files}
-			r := l.Load(Request{Path: "project/docs/README.md", Typeset: typeset, Animate: true, TypesetView: &TypesetViewport{Height: 500}})
+			r := l.Load(Request{Theme: testTheme("light"), Path: "project/docs/README.md", Typeset: typeset, Animate: true, TypesetView: &TypesetViewport{Height: 500}})
 			if r.Err != nil {
 				t.Fatal(r.Err)
 			}
@@ -122,7 +122,7 @@ func TestHTMLImageBudgets(t *testing.T) {
 	}
 	l := &Loader{Files: fstest.MapFS{"doc.md": {Data: source}}}
 	defer l.Close()
-	r := l.Load(Request{Path: "doc.md", Typeset: true})
+	r := l.Load(Request{Theme: testTheme("light"), Path: "doc.md", Typeset: true})
 	if r.Err == nil || !strings.Contains(r.Err.Error(), "image references") {
 		t.Fatalf("typeset cap: %v", r.Err)
 	}

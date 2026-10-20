@@ -20,14 +20,14 @@ func TestTypesetThemeRepaintsWithoutRelayout(t *testing.T) {
 		t.Run(tc.path, func(t *testing.T) {
 			l := &Loader{Files: fstest.MapFS{tc.path: {Data: []byte(tc.source)}}}
 			defer l.Close()
-			q := Request{Path: tc.path, Typeset: true, Theme: "light", TypesetView: &TypesetViewport{Height: 900}}
+			q := Request{Path: tc.path, Typeset: true, Theme: testTheme("light"), TypesetView: &TypesetViewport{Height: 900}}
 			light := l.Load(q)
 			if light.Err != nil {
 				t.Fatal(light.Err)
 			}
 			eng, doc, layout := l.typesetEngine, l.typesetDocument, l.direct
 			starts := layout.Starts()
-			q.Theme, q.Generation = "dark", 1
+			q.Theme, q.Generation = testTheme("dark"), 1
 			dark := l.Load(q)
 			if dark.Err != nil {
 				t.Fatal(dark.Err)
@@ -44,7 +44,7 @@ func TestTypesetThemeRepaintsWithoutRelayout(t *testing.T) {
 				}
 			}
 			for _, name := range []string{"nord", "catppuccin-latte", "dracula"} {
-				q.Theme = name
+				q.Theme = testTheme(name)
 				r := l.Load(q)
 				if r.Err != nil || l.direct != layout || !slices.Equal(layout.Starts(), starts) {
 					t.Fatal("named theme reshaped", name, r.Err)
@@ -53,7 +53,7 @@ func TestTypesetThemeRepaintsWithoutRelayout(t *testing.T) {
 					t.Fatal("named background", name)
 				}
 			}
-			q.Theme, q.Generation = "auto", 2
+			q.Theme, q.Generation = testTheme(theme.Resolve("auto")), 2 // As exportRequest resolves it.
 			auto := l.Load(q)
 			if auto.Err != nil || auto.Theme != "light" {
 				t.Fatal("headless auto is not light", auto.Err)
@@ -78,13 +78,13 @@ func TestTypesetThemePreservesImage(t *testing.T) {
 	}
 	l := &Loader{Files: fstest.MapFS{"page.md": {Data: []byte("![local](local.png)")}, "local.png": {Data: encoded.Bytes()}}}
 	defer l.Close()
-	q := Request{Path: "page.md", Typeset: true, Theme: "light", TypesetView: &TypesetViewport{Height: 100}}
+	q := Request{Path: "page.md", Typeset: true, Theme: testTheme("light"), TypesetView: &TypesetViewport{Height: 100}}
 	a := l.Load(q)
 	if a.Err != nil {
 		t.Fatal(a.Err)
 	}
 	asset := l.typesetImages["local.png"]
-	q.Theme, q.Generation = "dark", 1
+	q.Theme, q.Generation = testTheme("dark"), 1
 	b := l.Load(q)
 	if b.Err != nil || l.typesetImages["local.png"] != asset {
 		t.Fatal("image was decoded again", b.Err)

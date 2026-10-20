@@ -111,7 +111,7 @@ func TestTypesetRedrawsMermaidForTheme(t *testing.T) {
 	l := &Loader{Files: files}
 	defer l.Close()
 	load := func(themeName string) *Markdown {
-		r := l.Load(Request{Path: "diagram.md", MarkdownMode: "typeset", Theme: themeName, Page: 1, DPI: 72, Generation: 1})
+		r := l.Load(Request{Path: "diagram.md", MarkdownMode: "typeset", Theme: testTheme(themeName), Page: 1, DPI: 72, Generation: 1})
 		if r.Err != nil {
 			t.Fatal(r.Err)
 		}
@@ -141,7 +141,7 @@ func TestMermaidFile(t *testing.T) {
 	files := fstest.MapFS{"flow.mmd": {Data: []byte(src)}, "bad.mmd": {Data: []byte("flowchart LR\n  A -->\n")}}
 	l := &Loader{Files: files}
 	defer l.Close()
-	r := l.Load(Request{Path: "flow.mmd", Theme: "light", Page: 1})
+	r := l.Load(Request{Path: "flow.mmd", Theme: testTheme("light"), Page: 1})
 	if r.Err != nil || r.Kind != "mermaid" || r.Image == nil {
 		t.Fatalf("load = %q, %v, image %v", r.Kind, r.Err, r.Image != nil)
 	}

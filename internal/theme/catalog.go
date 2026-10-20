@@ -17,6 +17,7 @@ import (
 
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/styles"
+	"nimbleterminal.dev/nttypeset"
 )
 
 // The catalog and preview interaction are adapted from go-thinkt. See
@@ -126,6 +127,13 @@ func Syntax(ref string) string {
 	}
 	return "github"
 }
+
+// Typeset is the theme's colors and syntax style for typeset pages.
+func Typeset(ref string) nttypeset.Palette {
+	p := Get(ref)
+	return nttypeset.Palette{Background: p.Background, Foreground: p.Foreground, Muted: p.Muted, Border: p.Border, Code: p.Code, Header: p.Header, Accent: p.Accent, Selection: p.Selection, Syntax: styles.Get(Syntax(ref))}
+}
+
 func Ink(ref string, token chroma.TokenType) color.RGBA {
 	c := styles.Get(Syntax(ref)).Get(token).Colour
 	if !c.IsSet() {

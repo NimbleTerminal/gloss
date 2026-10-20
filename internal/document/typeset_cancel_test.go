@@ -12,7 +12,7 @@ func TestTypesetCancelledRequestKeepsLayout(t *testing.T) {
 	source := "# Title\n\n" + strings.Repeat("A paragraph of a few words that wraps.\n\n", 60)
 	l := &Loader{Files: fstest.MapFS{"doc.md": {Data: []byte(source)}}}
 	defer l.Close()
-	q := Request{Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 600}}
+	q := Request{Theme: testTheme("light"), Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 600}}
 	if r := l.Load(q); r.Err != nil {
 		t.Fatal(r.Err)
 	}
@@ -35,7 +35,7 @@ func TestTypesetCancelledRequestKeepsLayout(t *testing.T) {
 	// A layout that fails of itself is still dropped.
 	bad := &Loader{Files: fstest.MapFS{"doc.md": {Data: []byte("# Title\n\n" + strings.Repeat("x", 20000) + "\n")}}}
 	defer bad.Close()
-	if r := bad.Load(Request{Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 600}}); r.Err == nil || bad.direct != nil {
+	if r := bad.Load(Request{Theme: testTheme("light"), Path: "doc.md", Typeset: true, TypesetWidth: 192, TypesetView: &TypesetViewport{Height: 600}}); r.Err == nil || bad.direct != nil {
 		t.Fatalf("failed layout kept: %v", r.Err)
 	}
 }

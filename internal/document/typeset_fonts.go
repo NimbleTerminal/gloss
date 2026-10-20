@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alecthomas/chroma/v2/styles"
-	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntfonts"
 	"nimbleterminal.dev/nttypeset"
 )
@@ -47,12 +45,6 @@ func setTypesetFonts(e *nttypeset.Engine, font, mono string) (bool, error) {
 		return false, err
 	}
 	return e.SetFonts(font, mono)
-}
-
-// typesetPalette is the theme's colors and syntax style.
-func typesetPalette(name string) nttypeset.Palette {
-	p := theme.Get(name)
-	return nttypeset.Palette{Background: p.Background, Foreground: p.Foreground, Muted: p.Muted, Border: p.Border, Code: p.Code, Header: p.Header, Accent: p.Accent, Selection: p.Selection, Syntax: styles.Get(theme.Syntax(name))}
 }
 
 // fontFields are the info fields for the engine's look: its families, the
