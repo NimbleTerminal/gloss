@@ -326,13 +326,35 @@ func TestRevealLaunch(t *testing.T) {
 }
 
 func TestSourceAliases(t *testing.T) {
-	for _, goos := range []string{"darwin", "linux", "freebsd", "openbsd", "netbsd"} {
-		if got := aliases(goos); len(got) == 0 {
-			t.Fatalf("no aliases on %s", goos)
+	darwin := [][2]string{
+		{"vscode", "mac:com.microsoft.VSCode"},
+		{"cursor", "mac:com.todesktop.230313mzl4w4u92"},
+		{"zed", "mac:dev.zed.Zed"},
+		{"sublime", "mac:com.sublimetext.4"},
+		{"preview", "mac:com.apple.Preview"},
+		{"skim", "mac:net.sourceforge.skim-app.skim"},
+	}
+	linux := [][2]string{
+		{"vscode", "xdg:code.desktop"},
+		{"cursor", "xdg:cursor.desktop"},
+		{"zed", "xdg:dev.zed.Zed.desktop"},
+		{"sublime", "xdg:sublime_text.desktop"},
+	}
+	if got := aliasTable("darwin"); !slices.Equal(got, darwin) {
+		t.Fatalf("darwin aliases %v", got)
+	}
+	for _, goos := range []string{"linux", "freebsd", "openbsd", "netbsd"} {
+		if got := aliasTable(goos); !slices.Equal(got, linux) {
+			t.Fatalf("%s aliases %v", goos, got)
 		}
 	}
-	if len(aliases("darwin")) != 6 || len(aliases("linux")) != 4 || len(aliases("windows")) != 0 {
-		t.Fatal("alias table changed")
+	if got := aliasTable("windows"); len(got) != 0 {
+		t.Fatalf("windows aliases %v", got)
+	}
+	for goos, want := range map[string]int{"darwin": len(darwin), "linux": len(linux), "windows": 0} {
+		if got := aliases(goos); len(got) != want {
+			t.Fatalf("%s: %d alias sources, want %d", goos, len(got), want)
+		}
 	}
 	if Source() == nil {
 		t.Fatal("no source")

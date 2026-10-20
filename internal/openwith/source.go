@@ -24,7 +24,16 @@ func Source() ntopenwith.Source {
 // aliases map the IDs gloss saved before it used ntopenwith to the apps they
 // named on goos.
 func aliases(goos string) []ntopenwith.Source {
-	var table [][2]string
+	table := aliasTable(goos)
+	out := make([]ntopenwith.Source, 0, len(table))
+	for _, a := range table {
+		out = append(out, ntopenwith.Alias(a[0], a[1]))
+	}
+	return out
+}
+
+// aliasTable lists the old ID and the ID it now means, for each alias on goos.
+func aliasTable(goos string) (table [][2]string) {
 	switch goos {
 	case "darwin":
 		table = [][2]string{
@@ -43,9 +52,5 @@ func aliases(goos string) []ntopenwith.Source {
 			{"sublime", "xdg:sublime_text.desktop"},
 		}
 	}
-	out := make([]ntopenwith.Source, 0, len(table))
-	for _, a := range table {
-		out = append(out, ntopenwith.Alias(a[0], a[1]))
-	}
-	return out
+	return table
 }
