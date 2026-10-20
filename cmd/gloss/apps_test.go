@@ -9,6 +9,7 @@ import (
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/ntopenwith"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -152,5 +153,29 @@ func TestAppsSchema(t *testing.T) {
 	}
 	if err := conforms(root, root["$defs"].(map[string]any)["apps"].(map[string]any), value, "apps"); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// hostile names and IDs, as an OS could report them.
+type hostileSource struct{ systemOnly }
+
+func (hostileSource) Apps(context.Context, ntopenwith.Target, ntopenwith.Verb) ([]ntopenwith.App, error) {
+	return []ntopenwith.App{{ID: "mac:\x1b]0;x\a\u009b", Name: "Evil\x1b]0;x\a\u009b33m App", Default: true}}, nil
+}
+
+func TestAppsTextSanitizesOSNames(t *testing.T) {
+	var b bytes.Buffer
+	host := openwith.NewHost(hostileSource{}, ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return nil })
+	if err := writeApps(&b, host, false); err != nil {
+		t.Fatal(err)
+	}
+	out := b.String()
+	if !strings.Contains(out, "Evil") {
+		t.Fatalf("names missing: %q", out)
+	}
+	for _, r := range out {
+		if r != '\n' && (r < ' ' || (r >= 0x7f && r <= 0x9f)) {
+			t.Fatalf("control %U reached the text output: %q", r, out)
+		}
 	}
 }

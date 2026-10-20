@@ -320,7 +320,7 @@ correction, the terminal editors), Reveal and Copy path, and preferences in
 is reported and saving is refused until it is repaired. `Options.OpenWith` is
 nil in browser/serve hosts, previews, and every headless mode. `--apps [--json]`
 only lists choices, one row per kind and verb (`verb`, `terminal`; `available`
-is always true; `default` is `system` (open rows only), an app ID such as `mac:…`/`xdg:…`, a bare terminal-app ID such as `vim`, or empty on edit rows nothing can edit; `apps` can also hold `reveal` on open rows and `terminal-editor` or terminal apps on edit rows of text kinds);
+is always true; `default` is `system` (open rows only), an app ID such as `mac:…`/`xdg:…`, a bare terminal-app ID such as `vim`, or empty when there is no default: `E` opens the chooser, or nothing can edit it; `apps` can also hold `reveal` on open rows and `terminal-editor` or terminal apps on edit rows of text kinds);
 its result is included in `gloss skill schema`. Temporary files retain their
 original lifetime. No headless launch option.
 

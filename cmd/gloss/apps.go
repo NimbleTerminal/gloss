@@ -6,6 +6,7 @@ import (
 	"io"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/gloss/internal/theme"
+	svg "nimbleterminal.dev/ntsvg"
 	"strings"
 )
 
@@ -18,7 +19,7 @@ type listedApp struct {
 type appsListing struct {
 	Kind    string      `json:"kind" doc:"Canonical gloss format name."`
 	Verb    string      `json:"verb" doc:"Which action the row is for." enum:"open,edit"`
-	Default string      `json:"default" doc:"Effective default app identifier: system (open rows only), an app ID such as mac:…, xdg:… or win:…, a bare terminal-app ID such as vim, or empty when the row has no default (an edit row nothing can edit)."`
+	Default string      `json:"default" doc:"Effective default app identifier: system (open rows only), an app ID such as mac:…, xdg:… or win:…, a bare terminal-app ID such as vim, or empty when there is no default: E opens the chooser, or nothing can edit it."`
 	Apps    []listedApp `json:"apps" doc:"Visible compatible apps in chooser order; open rows end with reveal, and edit rows of text kinds can hold terminal-editor or other terminal apps."`
 }
 
@@ -56,15 +57,16 @@ func writeApps(out io.Writer, host openwith.Host, jsonOutput bool) error {
 	if jsonOutput {
 		return json.NewEncoder(out).Encode(rows)
 	}
+	// App IDs and names come from the operating system: data, not terminal input.
 	var b strings.Builder
 	for _, row := range rows {
-		fmt.Fprintf(&b, "%s %s (default: %s)\n", row.Kind, row.Verb, row.Default)
+		fmt.Fprintf(&b, "%s %s (default: %s)\n", row.Kind, row.Verb, svg.SanitizeForTerminal(row.Default))
 		for _, a := range row.Apps {
 			suffix := ""
 			if !a.Available {
 				suffix = " (unavailable)"
 			}
-			fmt.Fprintf(&b, "  %s — %s%s\n", a.ID, a.Name, suffix)
+			fmt.Fprintf(&b, "  %s — %s%s\n", svg.SanitizeForTerminal(a.ID), svg.SanitizeForTerminal(a.Name), suffix)
 		}
 	}
 	_, err := io.WriteString(out, b.String())
