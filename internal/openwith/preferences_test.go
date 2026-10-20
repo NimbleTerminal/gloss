@@ -82,6 +82,9 @@ func TestCorruptPreferencesRefuseSaving(t *testing.T) {
 	if err != nil || invalid == nil || len(prefs.Defaults) != 0 || len(prefs.Hidden) != 0 {
 		t.Fatalf("%+v %v %v", prefs, invalid, err)
 	}
+	if !strings.Contains(invalid.Error(), "open-with-v1.json") {
+		t.Fatalf("damaged file not named: %v", invalid)
+	}
 	err = Saver(dir, invalid)(ntopenwith.Preferences{Hidden: []string{"a"}})
 	if err == nil || !strings.Contains(err.Error(), "repair open-with-v1.json") {
 		t.Fatalf("%v", err)
@@ -97,6 +100,9 @@ func TestCorruptLegacyStillSavesV1(t *testing.T) {
 	_, invalid, err := LoadPreferences(dir)
 	if err != nil || invalid == nil {
 		t.Fatalf("invalid=%v err=%v", invalid, err)
+	}
+	if !strings.Contains(invalid.Error(), "open-with.json") || strings.Contains(invalid.Error(), "-v1") {
+		t.Fatalf("damaged file not named: %v", invalid)
 	}
 	var p ntopenwith.Preferences
 	p.SetHidden("a", true)

@@ -32,7 +32,7 @@ func LoadPreferences(dir string) (prefs ntopenwith.Preferences, invalid error, e
 	if _, serr := os.Stat(v1); serr == nil {
 		prefs, err = ntopenwith.LoadPreferences(v1)
 		if err != nil {
-			prefs, invalid, err = unreadable(err)
+			prefs, invalid, err = unreadable(preferencesFile, err)
 			if invalid != nil {
 				invalid = v1Invalid{invalid}
 			}
@@ -43,18 +43,19 @@ func LoadPreferences(dir string) (prefs ntopenwith.Preferences, invalid error, e
 	}
 	prefs, err = ntopenwith.LoadLegacyPreferences(filepath.Join(dir, legacyFile))
 	if err != nil {
-		return unreadable(err)
+		return unreadable(legacyFile, err)
 	}
 	return prefs, nil, nil
 }
 
-// unreadable tells a file that could not be read from one that is damaged.
-func unreadable(err error) (ntopenwith.Preferences, error, error) {
+// unreadable tells a file that could not be read from one that is damaged,
+// whose error then names the file.
+func unreadable(name string, err error) (ntopenwith.Preferences, error, error) {
 	var pe *fs.PathError
 	if errors.As(err, &pe) {
 		return ntopenwith.Preferences{}, nil, err
 	}
-	return ntopenwith.Preferences{}, err, nil
+	return ntopenwith.Preferences{}, fmt.Errorf("%s: %w", name, err), nil
 }
 
 // Saver returns the function that writes changed choices to open-with-v1.json
