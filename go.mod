@@ -32,7 +32,7 @@ require (
 	nimbleterminal.dev/ntfonts v0.1.0
 	nimbleterminal.dev/ntpdf v0.5.0
 	nimbleterminal.dev/ntpicture v0.1.1
-	nimbleterminal.dev/ntqrcode v0.3.0
+	nimbleterminal.dev/ntqrcode v0.3.1
 	nimbleterminal.dev/ntsvg v0.5.1
 	nimbleterminal.dev/nttypeset v0.1.1
 )
@@ -70,7 +70,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
-	github.com/piglig/go-qr/v2 v2.6.0 // indirect
+	github.com/piglig/go-qr/v2 v2.7.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.63.0 // indirect
 	github.com/quic-go/webtransport-go v0.13.0 // indirect

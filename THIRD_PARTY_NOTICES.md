@@ -2732,7 +2732,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/piglig/go-qr/v2 v2.6.0
+## github.com/piglig/go-qr/v2 v2.7.0
 
 ```
 MIT License
@@ -3713,7 +3713,7 @@ these two fixtures. Animation decoder/player source and baseline tests are
 also adapted from Gloss under the same MIT license.
 ```
 
-## nimbleterminal.dev/ntqrcode v0.3.0
+## nimbleterminal.dev/ntqrcode v0.3.1
 
 ```
 MIT License

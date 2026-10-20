@@ -52,7 +52,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa // indirect
-	github.com/piglig/go-qr/v2 v2.6.0 // indirect
+	github.com/piglig/go-qr/v2 v2.7.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
@@ -74,7 +74,7 @@ require (
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
 	nimbleterminal.dev/ntpdf v0.5.0 // indirect
 	nimbleterminal.dev/ntpicture v0.1.1 // indirect
-	nimbleterminal.dev/ntqrcode v0.3.0 // indirect
+	nimbleterminal.dev/ntqrcode v0.3.1 // indirect
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.1 // indirect
 	nimbleterminal.dev/nttypeset v0.1.1 // indirect
