@@ -466,108 +466,122 @@ func (m *Model) movePage(page int) tea.Cmd {
 	return m.load(false)
 }
 
-func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
-	cw, ch := m.lastCellW, m.lastCellH
+// Update hands the message to the screen it is for, then lets every picture
+// consumer see it: they must, even when a dialog took the message.
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	terminalCmd := m.terminal.Update(msg)
 	if m.autoKitty {
 		m.kitty = m.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported
 	}
-	defer func() {
-		cmd = tea.Batch(terminalCmd, cmd, m.syncSearch(), m.updateStill(msg))
-		if m.typeset == nil {
-			m.typesetPending = nil
-			cmd = tea.Batch(cmd, m.clearTypesetLayers())
-		}
-		cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg))
-		if m.markdown != nil {
-			cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument), m.markdown.update(msg))
-		}
-		if p := m.fontPicker; p != nil {
-			cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
-		}
-		if m.qr != nil {
-			cw, ch := m.cellPixelSize()
-			cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.kitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
-		}
-	}()
+	cmd := m.handle(msg)
+	return m, tea.Batch(terminalCmd, cmd, m.graphicsTick(msg))
+}
+
+// graphicsTick passes a message to the pictures, after the screen has handled
+// it: search, the still picture, animation, typeset layers, Markdown pictures,
+// the font preview and the QR code, which follow whatever the screen became.
+func (m *Model) graphicsTick(msg tea.Msg) tea.Cmd {
+	cmd := tea.Batch(m.syncSearch(), m.updateStill(msg))
+	if m.typeset == nil {
+		m.typesetPending = nil
+		cmd = tea.Batch(cmd, m.clearTypesetLayers())
+	}
+	cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg))
+	if m.markdown != nil {
+		cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument), m.markdown.update(msg))
+	}
+	if p := m.fontPicker; p != nil {
+		cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
+	}
+	if m.qr != nil {
+		cw, ch := m.cellPixelSize()
+		cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.kitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))
+	}
+	return cmd
+}
+
+// handle is the screen's answer to a message; Update runs graphicsTick after
+// it on every path.
+func (m *Model) handle(msg tea.Msg) tea.Cmd {
+	cw, ch := m.lastCellW, m.lastCellH
 	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {
-		return m, nil
+		return nil
 	}
 	if cmd, handled := m.openWithBrowse(msg); handled {
-		return m, cmd
+		return cmd
 	}
 	if _, ok := msg.(tea.MouseMsg); ok && m.openWithPicker != nil {
-		return m, nil
+		return nil
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok {
 		if cmd, took := m.scrubberMouse(mouse); took {
-			return m, cmd
+			return cmd
 		}
 	}
 	if m.browsing() {
 		if _, ok := msg.(tea.MouseMsg); ok {
 			if m.help || m.opener.find != nil {
-				return m, nil
+				return nil
 			}
-			return m, m.browse(m.onBody(msg))
+			return m.browse(m.onBody(msg))
 		}
 	}
 	msg = m.onBody(msg)
 	selectCmd, selecting := m.typesetSelectMouse(msg)
 	if cmd, handled := m.linkMouse(msg); handled || selecting {
-		return m, tea.Batch(cmd, selectCmd)
+		return tea.Batch(cmd, selectCmd)
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok && m.listing() {
 		if m.help {
-			return m, nil
+			return nil
 		}
 		if m.screen == screenGrid && m.grid != nil {
-			return m, m.gridMouse(mouse)
+			return m.gridMouse(mouse)
 		}
-		return m, m.previewMouse(mouse)
+		return m.previewMouse(mouse)
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok && m.pickingColor() {
 		if cmd, took := m.colorMouse(mouse); took {
 			if m.colorPicker == nil {
 				m.layer = layerNone
 			}
-			return m, cmd
+			return cmd
 		}
 	}
 	if cmd, handled := m.terminalEditorMessage(msg); handled {
-		return m, cmd
+		return cmd
 	}
 	switch v := msg.(type) {
 	case openWithAppsLoaded:
-		return m, m.openWithAppsLoaded(v)
+		return m.openWithAppsLoaded(v)
 	case openWithLoaded:
-		return m, m.openWithLoaded(v)
+		return m.openWithLoaded(v)
 	case openWithFinished:
-		return m, m.openWithFinished(v)
+		return m.openWithFinished(v)
 	case fontPreviewResult:
 		if p := m.fontPicker; p != nil && p.owner == v.owner && p.revision == v.revision {
 			p.base, p.err = v.image, v.err
-			return m, m.showFontPreview()
+			return m.showFontPreview()
 		}
-		return m, nil
+		return nil
 	case fontSaved:
 		if v.err != nil {
 			m.note = "save font: " + safe(v.err.Error())
 		}
-		return m, nil
+		return nil
 	case themeSaved:
 		if v.err != nil {
 			m.note = "save theme: " + safe(v.err.Error())
 		}
-		return m, nil
+		return nil
 	case linkOpened:
 		if v.generation == m.generation && v.err != nil {
 			m.note = "open link: " + safe(v.err.Error())
 		}
-		return m, nil
+		return nil
 	case tea.BackgroundColorMsg:
 		if v.Color == nil {
-			return m, nil
+			return nil
 		}
 		name := "light"
 		if v.IsDark() {
@@ -575,25 +589,25 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		}
 		m.detectedTheme = name
 		if m.themePicker != nil || m.opts.Theme != "" && m.opts.Theme != "auto" {
-			return m, nil
+			return nil
 		}
-		return m, m.applyTheme(name)
+		return m.applyTheme(name)
 	case tea.FocusMsg:
-		return m, m.themeRequest()
+		return m.themeRequest()
 	case searchResult:
-		return m, m.searched(v)
+		return m.searched(v)
 	case previewResult:
 		if m.preview != nil && v.owner == m.preview.ownerID {
 			_, cmd := m.preview.Update(v.result)
-			return m, cmd
+			return cmd
 		}
-		return m, nil
+		return nil
 	case typesetResize:
-		return m, m.reflowTypeset(v)
+		return m.reflowTypeset(v)
 	case typesetSettled:
-		return m, m.typesetSettled(v)
+		return m.typesetSettled(v)
 	case typesetReflowResult:
-		return m, m.typesetReflowed(v)
+		return m.typesetReflowed(v)
 	case tea.WindowSizeMsg:
 		oldWidth, oldHeight := m.width, m.height
 		m.width, m.height = max(1, v.Width), max(1, v.Height)
@@ -619,60 +633,60 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			cmd = tea.Batch(cmd, m.queueTypesetReflow())
 		}
 		if m.chart != nil {
-			return m, tea.Batch(cmd, m.chart.SetSize(m.width, m.meshHeight()), m.refit())
+			return tea.Batch(cmd, m.chart.SetSize(m.width, m.meshHeight()), m.refit())
 		}
-		return m, cmd
+		return cmd
 	case tea.PasteMsg:
 		if m.search != nil && m.search.editing {
 			m.search.insert(v.Content)
-			return m, nil
+			return nil
 		}
 		// Terminals deliver dropped files as a bracketed paste of their paths.
 		if m.isPreview || m.opts.FilesFS != nil {
-			return m, nil
+			return nil
 		}
 		if address := document.DropURL(v.Content); address != "" {
-			return m, m.open(address)
+			return m.open(address)
 		}
-		return m, m.probeDrop(document.ParseDrop(v.Content))
+		return m.probeDrop(document.ParseDrop(v.Content))
 	case DropMsg:
 		if m.isPreview {
-			return m, nil
+			return nil
 		}
-		return m, m.probeDrop(v.Paths)
+		return m.probeDrop(v.Paths)
 	case outsideDrop:
-		return m, tea.Batch(m.probeDrop(v.paths), m.awaitDrops())
+		return tea.Batch(m.probeDrop(v.paths), m.awaitDrops())
 	case dropResult:
-		return m, m.addDropped(v)
+		return m.addDropped(v)
 	case exportResult:
 		m.note = v.note()
-		return m, nil
+		return nil
 	case openResult:
-		return m, m.opened(v)
+		return m.opened(v)
 	case findResult:
 		if m.browsing() && m.opener.find != nil {
 			m.opener.find.answered(v)
 		}
-		return m, nil
+		return nil
 	case fetchResult:
-		return m, m.fetchedFile(v)
+		return m.fetchedFile(v)
 	case partsResult:
-		return m, m.assembled(v)
+		return m.assembled(v)
 	case thumbResult:
-		return m, m.thumbnailMade(v)
+		return m.thumbnailMade(v)
 	case document.Result:
-		return m, m.loaded(v)
+		return m.loaded(v)
 	case tea.MouseWheelMsg:
 		if m.typeset != nil && m.markdown == nil && !m.help && m.screen == screenDocument {
 			if v.Button == tea.MouseWheelUp {
 				cmd, _ := m.typesetKey("up")
-				return m, cmd
+				return cmd
 			}
 			if v.Button == tea.MouseWheelDown {
 				cmd, _ := m.typesetKey("down")
-				return m, cmd
+				return cmd
 			}
-			return m, nil
+			return nil
 		}
 		if m.markdown != nil && !m.help && m.screen == screenDocument {
 			if v.Button == tea.MouseWheelUp {
@@ -680,7 +694,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			} else if v.Button == tea.MouseWheelDown {
 				m.markdown.scroll(3)
 			}
-			return m, nil
+			return nil
 		}
 		if m.sheet != nil && !m.help && m.screen == screenDocument {
 			if v.Button == tea.MouseWheelUp {
@@ -688,11 +702,11 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 			} else if v.Button == tea.MouseWheelDown {
 				m.sheet.scroll(3, m.width, m.bodyHeight()-1)
 			}
-			return m, nil
+			return nil
 		}
 	case tea.KeyPressMsg:
 		if cmd, handled := m.key(v); handled {
-			return m, cmd
+			return cmd
 		}
 	}
 	var cmds []tea.Cmd
@@ -743,7 +757,7 @@ func (m *Model) Update(msg tea.Msg) (model tea.Model, cmd tea.Cmd) {
 		_, cmd := m.preview.Update(msg)
 		cmds = append(cmds, cmd)
 	}
-	return m, tea.Batch(cmds...)
+	return tea.Batch(cmds...)
 }
 
 // loaded takes what the loader made of the current file onto the screen.
