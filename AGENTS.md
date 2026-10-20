@@ -51,7 +51,9 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   asked only for pictures, and `Request.Describe` (`--info`) skips it. Each
   request has a 15-second deadline and follows the request's context; either
   stops and reaps/terminates the worker, and the next request opens a new
-  one. At most two requests run at once; an idle open worker holds no slot.
+  one. The pager's PDF loads end with the document (`leaveDocument`: another
+  file, a reload, closing), not with the next page turn, which needs the
+  same worker. At most two requests run at once; an idle open worker holds no slot.
   Markdown checks its work budget synchronously in Goldmark callbacks.
   The PDF worker opens files through `nimbleterminal.dev/ntpdf/pdfdoc`, which
   validates declared lengths, filter chains, predictor sizes and cross-references

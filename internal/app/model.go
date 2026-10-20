@@ -103,30 +103,35 @@ type meshState struct {
 // textState is what the model keeps for a Markdown or sheet document, and the
 // view to return to when a fetched file closes.
 type textState struct {
-	typesetLinks            []document.TypesetLink
-	typesetSelect           *document.TypesetSelection // The text selected, or being selected, on the typeset page.
-	typesetSelectShown      *document.TypesetSelection // The selection the shown picture highlights.
-	typesetSelected         string                     // The shown selection's text.
-	typesetDragging         bool                       // A left button is down on the typeset page.
-	typesetDragFrom         image.Point                // Where it went down, on the page.
-	pressedLink             string
-	hoverLinkPoint          image.Point
-	hoverLinkActive         bool
-	linkPoint               image.Point
-	typesetPlayback         *ntanimation.Composite
-	typesetLayers           *playback.Layers
-	typesetPaused           bool
-	typesetPending          *document.Result // A page view whose overlays wait for the view to settle.
-	typesetSettle           uint64
-	search                  *textSearch
-	searchWorker            *searchWorker
-	markdown                *markdownView
-	typeset                 *document.Markdown
-	typesetWidth            int
-	typesetRevision         uint64
-	typesetActive           uint64
-	typesetWaitSize         bool
-	typesetCancel           context.CancelFunc
+	typesetLinks       []document.TypesetLink
+	typesetSelect      *document.TypesetSelection // The text selected, or being selected, on the typeset page.
+	typesetSelectShown *document.TypesetSelection // The selection the shown picture highlights.
+	typesetSelected    string                     // The shown selection's text.
+	typesetDragging    bool                       // A left button is down on the typeset page.
+	typesetDragFrom    image.Point                // Where it went down, on the page.
+	pressedLink        string
+	hoverLinkPoint     image.Point
+	hoverLinkActive    bool
+	linkPoint          image.Point
+	typesetPlayback    *ntanimation.Composite
+	typesetLayers      *playback.Layers
+	typesetPaused      bool
+	typesetPending     *document.Result // A page view whose overlays wait for the view to settle.
+	typesetSettle      uint64
+	search             *textSearch
+	searchWorker       *searchWorker
+	markdown           *markdownView
+	typeset            *document.Markdown
+	typesetWidth       int
+	typesetRevision    uint64
+	typesetActive      uint64
+	typesetWaitSize    bool
+	typesetCancel      context.CancelFunc
+	// The document being loaded, and what ends its loads when the pager
+	// leaves it: another file, a reload, or closing.
+	document                string
+	documentCtx             context.Context
+	documentCancel          context.CancelFunc
 	typesetTop, typesetLeft int
 	typesetEnd              bool
 	lineNumbers             bool       // Show file line numbers, where the view's rows are file lines.
@@ -255,6 +260,7 @@ func (m *Model) Close() error {
 	m.clearStandalone()
 	m.clearTypesetLayers()
 	m.stopTypeset()
+	m.leaveDocument()
 	m.clearStill()
 	m.clearFontPicker()
 	m.clearSearch()
@@ -363,7 +369,19 @@ func (m *Model) load(reload bool) tea.Cmd {
 	m.loading, m.err = true, nil
 	q := m.request(reload)
 	m.stopTypeset()
-	q.Context, m.typesetCancel = context.WithCancel(context.Background())
+	same := m.documentCtx != nil && q.Path == m.document && !reload
+	if !same {
+		m.leaveDocument()
+		m.document = q.Path
+		m.documentCtx, m.documentCancel = context.WithCancel(context.Background())
+	}
+	q.Context, m.typesetCancel = context.WithCancel(m.documentCtx)
+	if same && m.kind == "pdf" {
+		// The worker that has the PDF open answers for every page: turning
+		// a page must not stop the worker the next page needs.
+		m.typesetCancel()
+		q.Context, m.typesetCancel = m.documentCtx, nil
+	}
 	preview := m.isPreview
 	return tea.Batch(stopped, func() tea.Msg {
 		r := m.loader.Load(q)
@@ -372,6 +390,14 @@ func (m *Model) load(reload bool) tea.Cmd {
 		}
 		return r
 	})
+}
+
+// leaveDocument ends the loads of the document the pager is leaving.
+func (m *Model) leaveDocument() {
+	if m.documentCancel != nil {
+		m.documentCancel()
+	}
+	m.document, m.documentCtx, m.documentCancel = "", nil, nil
 }
 
 func (m *Model) bodyHeight() int {

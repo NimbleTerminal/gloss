@@ -170,3 +170,30 @@ func TestHelpLinksToTheDocs(t *testing.T) {
 		t.Fatalf("the docs are on line %d of %d:\n%s", at, len(lines), strings.Join(lines, "\n"))
 	}
 }
+
+// A PDF's worker serves all its pages, so turning a page leaves the loads'
+// context alone; leaving the document, or closing, ends it.
+func TestPDFLoadsEndWithTheDocument(t *testing.T) {
+	m := New(Options{Files: []string{"a.pdf", "b.svg"}, Page: 1, DPI: 72, Render: "glyph"})
+	defer m.Close()
+	m.load(false)
+	opened := m.documentCtx
+	m.kind, m.pages, m.page = "pdf", 3, 2
+	m.load(false)
+	if m.documentCtx != opened || opened.Err() != nil || m.typesetCancel != nil {
+		t.Fatal("turning a page can end the load in flight")
+	}
+	m.show(1)
+	if opened.Err() == nil {
+		t.Fatal("leaving the PDF did not end its loads")
+	}
+	left := m.documentCtx
+	m.load(true)
+	if left.Err() == nil || m.documentCtx == left {
+		t.Fatal("a reload kept the old loads")
+	}
+	m.Close()
+	if m.documentCtx != nil {
+		t.Fatal("closing kept the document's loads")
+	}
+}
