@@ -27,12 +27,12 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   orchestration, and the temporary server behind `--serve`.
 - `internal/app`: terminal pager, file-selection menu, preview pane, the
   adapter for the file browser, and Markdown layout.
-- `internal/browse`: the file chooser, a Bubble Tea component with no gloss
-  dependencies (layouts: list, columns, places; ranked filter, tab completion,
-  breadcrumbs, mouse). `internal/browse/browsetest` is its harness: an
-  in-memory filesystem, a key driver, and script-driven golden screens
-  (`testdata/scripts`, `task browse:screens`). Change the
-  browser by adding a script first.
+- The file chooser is `nimbleterminal.dev/ntfilepicker` (layouts: list,
+  columns, places; ranked filter, tab completion, breadcrumbs, mouse), with
+  its script harness and golden screens in that repo. `internal/app/opener.go`
+  is the adapter: marks, sort, kinds of file, which files may be chosen, and
+  the note on those that cannot. Change the chooser there, by adding a
+  script first.
 - `internal/document`: bounded loaders, renderers, and vision-image sizing.
   Typeset layout, raster, selection and highlighting come from
   `nimbleterminal.dev/nttypeset` and its faces from `nimbleterminal.dev/ntfonts`;
@@ -57,8 +57,8 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   and scroll-settle policy in `internal/app/typeset_layers.go`.
   The font chooser also uses `ntpicture.Picture`. All graphics consumers share
   ntpicture's single-image ID allocator; async message owners use separate IDs.
-  ntpicture, ntsvg, ntpdf, ntqrcode, nt3d, nttypeset, and ntfonts use published
-  version pins.
+  ntpicture, ntsvg, ntpdf, ntqrcode, nt3d, nttypeset, ntfonts, and ntfilepicker
+  use published version pins.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
   camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
   and its `widget` package. Gloss owns the projection/title rows around the
@@ -453,11 +453,6 @@ Uses [Task](https://taskfile.dev/); without it, `go build -o gloss ./cmd/gloss`.
   changes in sibling modules. A test (`internal/tools/taskcheck`) fails if a file the binary
   uses is missing from them, as when a package outside `internal/` is added.
 - `task test` — `go test ./...`; `task test-race`, `task vet`
-- `task browse:test` / `browse:screens` / `browse:bench` / `browse:gif SCRIPT=name` —
-  the file browser's tests, golden screens, benchmark, and a VHS recording of a
-  script (needs `vhs`); `browse:play` / `browse:record NAME=x` /
-  `browse:replay SCRIPT=x` are for a person at a terminal (try it, keep a session
-  as a script, watch a script); see DEVELOP.md.
 - `task ci` — the full gate: `fmt-check`, `go-tidy-check`, `go-verify`,
   `test-race`, `vet`, `cross-windows`, `staticcheck`, `vulncheck`, `build`,
   `notices-check`, `docs-check`. Run this before considering work done.

@@ -85,8 +85,8 @@ func TestGlobs(t *testing.T) {
 	}{
 		{"cmd/**/*.go", "cmd/gloss/main.go", true},
 		{"cmd/**/*.go", "cmd/main.go", true},
-		{"internal/**/*.go", "internal/browse/browsetest/play.go", true},
-		{"internal/browse/browsetest/**", "internal/browse/browsetest/tape/main.go", true},
+		{"internal/**/*.go", "internal/document/a/b.go", true},
+		{"internal/tools/**", "internal/tools/docsite/main/x.go", true},
 		{"skills/*.go", "skills/skills.go", true},
 		{"skills/*.go", "skills/gloss/x.go", false},
 		{"**/*_test.go", "internal/app/a_test.go", true},

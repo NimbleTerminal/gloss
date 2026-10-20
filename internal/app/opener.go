@@ -14,8 +14,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"nimbleterminal.dev/gloss/internal/browse"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/ntfilepicker"
 )
 
 // The orders a folder can be listed in, cycled with Ctrl-S.
@@ -58,11 +58,11 @@ var typeFilters = []typeFilter{
 
 // browseFilters are those kinds as the chooser takes them. A file is looked
 // into only for the kind that text by content is part of.
-func browseFilters() []browse.Filter {
-	out := make([]browse.Filter, len(typeFilters))
+func browseFilters() []ntfilepicker.Filter {
+	out := make([]ntfilepicker.Filter, len(typeFilters))
 	for i, f := range typeFilters {
 		byContent := slices.Contains(f.marks, "📃")
-		out[i] = browse.Filter{Name: f.name, Mark: f.marks[0], Match: func(e fs.DirEntry) bool {
+		out[i] = ntfilepicker.Filter{Name: f.name, Mark: f.marks[0], Match: func(e fs.DirEntry) bool {
 			if m, ok := extMark(e); ok {
 				return slices.Contains(f.marks, m)
 			}
@@ -134,9 +134,9 @@ func kindOrder(e fs.DirEntry) string {
 }
 
 // opener browses the host's folders for a file to add to the session. The
-// browsing itself is the browse package's; this is what gloss adds to it.
+// browsing itself is ntfilepicker's; this is what gloss adds to it.
 type opener struct {
-	picker browse.Model
+	picker ntfilepicker.Model
 	reads  *readLog
 	dir    string // The folder being browsed, for the status bar.
 	going  bool   // A folder's path is being typed, to go to.
@@ -219,7 +219,7 @@ func (l *readLog) ReadDir(name string) ([]fs.DirEntry, error) {
 	hide, allowed := l.hide && l.allowed != nil, l.allowed
 	l.mu.Unlock()
 	entries, err := l.ReadDirFS.ReadDir(name)
-	entries = browse.FollowLinks(l, name, entries) // Before any are left out.
+	entries = ntfilepicker.FollowLinks(l, name, entries) // Before any are left out.
 	if allowed == nil {
 		return entries, err
 	}
@@ -323,14 +323,14 @@ func (m *Model) browseFrom(dir string) tea.Cmd {
 		return nil
 	}
 	reads := &readLog{ReadDirFS: os.DirFS(string(filepath.Separator)).(fs.ReadDirFS), hide: m.hideUnsupported, text: !m.noTextFiles}
-	options := []browse.Option{browse.WithMarker(mark), browse.WithSort(ordering(m.sortBy)), browse.WithLayout(browse.Layout(m.browseLayout)), browse.WithPrompt(filterPrompt),
-		browse.WithFilters(browseFilters()), browse.WithActiveFilters(m.browseTypes...), browse.WithLinksFollowed()}
+	options := []ntfilepicker.Option{ntfilepicker.WithMarker(mark), ntfilepicker.WithSort(ordering(m.sortBy)), ntfilepicker.WithLayout(ntfilepicker.Layout(m.browseLayout)), ntfilepicker.WithPrompt(filterPrompt),
+		ntfilepicker.WithFilters(browseFilters()), ntfilepicker.WithActiveFilters(m.browseTypes...), ntfilepicker.WithLinksFollowed(), ntfilepicker.WithUnchoosableNote("gloss cannot show this file")}
 	if m.opts.Type == "" {
 		// Judged by name where the name says; the rest by a look inside.
 		reads.allowed = document.Extensions
-		options = append(options, browse.WithSelectable(reads.selectable))
+		options = append(options, ntfilepicker.WithSelectable(reads.selectable))
 	}
-	m.opener = &opener{picker: browse.New(reads, filepath.ToSlash(dir), options...), reads: reads, dir: dir}
+	m.opener = &opener{picker: ntfilepicker.New(reads, filepath.ToSlash(dir), options...), reads: reads, dir: dir}
 	m.opener.resize(m.width, m.bodyHeight())
 	m.screen, m.help = screenBrowser, false
 	m.keepLayer()

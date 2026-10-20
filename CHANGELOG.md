@@ -13,7 +13,8 @@
 
 - Typesetting moved to the nttypeset and ntfonts libraries; no visible change.
 
-- The file browser's file-types menu offers Mermaid diagrams, with drawings.
+- The file browser moved to the ntfilepicker library. Its file-types menu now
+  offers Mermaid diagrams, with drawings.
 
 - JSON Lines piped in or saved without a `.jsonl` name now opens as JSON
   records rather than plain text, and `--type`/`--accept` take `jsonl` and

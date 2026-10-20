@@ -5,9 +5,9 @@ package app
 import (
 	tea "charm.land/bubbletea/v2"
 	"fmt"
-	"nimbleterminal.dev/gloss/internal/browse"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/openwith"
+	"nimbleterminal.dev/ntfilepicker"
 	"os"
 	"path/filepath"
 )
@@ -30,7 +30,7 @@ func openWithTarget(path, kind string, directory bool) (openwith.Target, error) 
 	return openwith.Target{Path: filepath.Clean(absolute), Kind: openwith.Kind(kind), Directory: directory}, nil
 }
 func (m *Model) openWithBrowse(msg tea.Msg) (tea.Cmd, bool) {
-	v, ok := msg.(browse.OpenWithMsg)
+	v, ok := msg.(ntfilepicker.OpenWithMsg)
 	if !ok {
 		return nil, false
 	}

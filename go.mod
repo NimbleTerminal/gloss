@@ -15,7 +15,6 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/coder/websocket v1.8.15
-	github.com/dustin/go-humanize v1.0.1
 	github.com/gen2brain/h265 v0.2.3
 	github.com/gen2brain/jxl v0.2.0
 	github.com/go-text/typesetting v0.3.5
@@ -23,7 +22,6 @@ require (
 	github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
-	github.com/rivo/uniseg v0.4.7
 	github.com/spf13/pflag v1.0.10
 	github.com/yuin/goldmark v1.8.2
 	github.com/yuin/goldmark-emoji v1.0.5
@@ -31,6 +29,7 @@ require (
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
 	nimbleterminal.dev/nt3d v0.2.0
+	nimbleterminal.dev/ntfilepicker v0.0.0-20261020004123-65d523ce04af
 	nimbleterminal.dev/ntfonts v0.1.0
 	nimbleterminal.dev/ntpdf v0.4.0
 	nimbleterminal.dev/ntpicture v0.1.0
@@ -55,6 +54,7 @@ require (
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
 	github.com/dunglas/httpsfv v1.1.2 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-webgpu/goffi v0.6.4 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
@@ -75,6 +75,7 @@ require (
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.63.0 // indirect
 	github.com/quic-go/webtransport-go v0.13.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect

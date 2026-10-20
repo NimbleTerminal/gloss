@@ -1,9 +1,0 @@
--- fs --
-home/evan/.profile
-home/evan/.config/
-home/evan/notes.md
--- script --
-option hidden true
-start /home/evan
-size 50 8
-snapshot shown
