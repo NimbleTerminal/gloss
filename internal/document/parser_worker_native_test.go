@@ -154,3 +154,29 @@ func TestParserHangHelper(t *testing.T) {
 		time.Sleep(time.Hour)
 	}
 }
+
+// A load whose context is done stops PDFium too; the stopped renderer is
+// closed and the next page opens another.
+func TestPDFRenderStopsWithTheContext(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "one.pdf")
+	if err := os.WriteFile(path, pagesPDF("BT /F1 12 Tf 10 10 Td (one) Tj ET"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	loader := &Loader{}
+	defer loader.Close()
+	if r := loader.Load(Request{Path: path, Page: 1, DPI: 72, Generation: 1}); r.Err != nil || r.Image == nil {
+		t.Fatalf("first draw: %v", r.Err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	// The page's details are kept, so the cancelled context reaches PDFium.
+	if r := loader.Load(Request{Path: path, Page: 1, DPI: 72, Generation: 2, Context: ctx}); !errors.Is(r.Err, context.Canceled) {
+		t.Fatalf("cancelled draw: %v", r.Err)
+	}
+	if loader.pdf != nil {
+		t.Fatal("the stopped renderer was kept")
+	}
+	if r := loader.Load(Request{Path: path, Page: 1, DPI: 72, Generation: 3}); r.Err != nil || r.Image == nil {
+		t.Fatalf("draw after a stop: %v", r.Err)
+	}
+}

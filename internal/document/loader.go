@@ -656,7 +656,13 @@ func (l *Loader) renderPDF(q Request) Result {
 			return out
 		}
 	}
-	out.Image, out.Err = l.pdf.RenderPage(page, max(36, min(reply.dpi(q.MaxEdge, q.DPI), 600)))
+	// Leaving the document stops PDFium mid-page too. A stopped renderer
+	// cannot draw again, so it is closed, and the next page opens another.
+	out.Image, out.Err = ntpdf.RenderPageContext(q.Context, l.pdf, page, max(36, min(reply.dpi(q.MaxEdge, q.DPI), 600)))
+	if errors.Is(out.Err, ntpdf.ErrRendererStopped) || (out.Err != nil && q.Context != nil && q.Context.Err() != nil) {
+		_ = l.pdf.Close()
+		l.pdf = nil
+	}
 	return out
 }
 

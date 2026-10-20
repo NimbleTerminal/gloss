@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- PDFs written by macOS (Quartz) and linearized PDFs open: ntpdf v0.5.1 no
+  longer refuses their cross-references. Leaving a PDF also stops a page
+  that is still being drawn.
+
 - PDFs are parsed once per open file rather than once per page: turning
   pages, `/` search and `--grep` are much faster on long documents, and
   `--info` no longer draws the page to describe it.
