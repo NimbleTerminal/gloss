@@ -10,13 +10,15 @@ import (
 )
 
 type listedApp struct {
-	ID        string `json:"id" doc:"Stable compiled-in app identifier."`
+	ID        string `json:"id" doc:"Stable app identifier: system, reveal, terminal-editor, mac:…, xdg:…, win:…."`
 	Name      string `json:"name" doc:"Human-readable app name."`
-	Available bool   `json:"available" doc:"Whether the native opener is installed."`
+	Available bool   `json:"available" doc:"Always true: only apps that can be launched are listed."`
+	Terminal  bool   `json:"terminal" doc:"Runs in the terminal, which it takes over until it exits."`
 }
 type appsListing struct {
 	Kind    string      `json:"kind" doc:"Canonical gloss format name."`
-	Default string      `json:"default" doc:"Effective default app identifier."`
+	Verb    string      `json:"verb" doc:"Which action the row is for." enum:"open,edit"`
+	Default string      `json:"default" doc:"Effective default app identifier: system, or an app ID such as mac:…, xdg:… or win:…."`
 	Apps    []listedApp `json:"apps" doc:"Visible compatible apps in chooser order."`
 }
 
@@ -33,27 +35,30 @@ func nativeOpenWith() (openwith.Host, error) {
 	return openwith.NewHost(openwith.Source(), prefs, openwith.Saver(dir, invalid)), invalid
 }
 func writeApps(out io.Writer, host openwith.Host, jsonOutput bool) error {
-	rows := make([]appsListing, 0, len(openwith.Kinds))
+	verbs := []openwith.Verb{openwith.Open, openwith.Edit}
+	rows := make([]appsListing, 0, len(verbs)*len(openwith.Kinds))
 	for _, kind := range openwith.Kinds {
-		choices, err := host.Choices(openwith.Target{Kind: kind}, openwith.Open)
-		if err != nil {
-			return err
-		}
-		row := appsListing{Kind: kind, Apps: []listedApp{}}
-		for _, c := range choices {
-			if c.Default {
-				row.Default = c.ID
+		for _, verb := range verbs {
+			choices, err := host.Choices(openwith.Target{Kind: kind}, verb)
+			if err != nil {
+				return err
 			}
-			row.Apps = append(row.Apps, listedApp{c.ID, c.Name, c.Available})
+			row := appsListing{Kind: kind, Verb: string(verb), Apps: []listedApp{}}
+			for _, c := range choices {
+				if c.Default {
+					row.Default = c.ID
+				}
+				row.Apps = append(row.Apps, listedApp{c.ID, c.Name, c.Available, c.Terminal})
+			}
+			rows = append(rows, row)
 		}
-		rows = append(rows, row)
 	}
 	if jsonOutput {
 		return json.NewEncoder(out).Encode(rows)
 	}
 	var b strings.Builder
 	for _, row := range rows {
-		fmt.Fprintf(&b, "%s (default: %s)\n", row.Kind, row.Default)
+		fmt.Fprintf(&b, "%s %s (default: %s)\n", row.Kind, row.Verb, row.Default)
 		for _, a := range row.Apps {
 			suffix := ""
 			if !a.Available {

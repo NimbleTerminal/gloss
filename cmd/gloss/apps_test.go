@@ -49,8 +49,78 @@ func TestAppsListing(t *testing.T) {
 	if err := json.Unmarshal(b.Bytes(), &rows); err != nil {
 		t.Fatal(err)
 	}
-	if len(rows) != len(openwith.Kinds) || rows[0].Default != "system" || len(rows[0].Apps) != 2 {
+	if len(rows) != 2*len(openwith.Kinds) || rows[0].Verb != "open" || rows[0].Default != "system" || len(rows[0].Apps) != 2 {
 		t.Fatalf("%+v", rows)
+	}
+}
+
+// editorSource offers the system default for opening and a terminal editor for editing.
+type editorSource struct{ systemOnly }
+
+func (editorSource) Apps(_ context.Context, _ ntopenwith.Target, v ntopenwith.Verb) ([]ntopenwith.App, error) {
+	if v == ntopenwith.Edit {
+		return []ntopenwith.App{{ID: "terminal-editor", Name: "Edit in terminal", Terminal: true, Default: true}}, nil
+	}
+	return []ntopenwith.App{{ID: "system", Name: "System default", Default: true}}, nil
+}
+
+func TestAppsJSONHasVerbs(t *testing.T) {
+	var b bytes.Buffer
+	host := openwith.NewHost(editorSource{}, ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return nil })
+	if err := writeApps(&b, host, true); err != nil {
+		t.Fatal(err)
+	}
+	var rows []appsListing
+	if err := json.Unmarshal(b.Bytes(), &rows); err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 2*len(openwith.Kinds) {
+		t.Fatalf("%d rows for %d kinds", len(rows), len(openwith.Kinds))
+	}
+	for i, kind := range openwith.Kinds {
+		open, edit := rows[2*i], rows[2*i+1]
+		if open.Kind != kind || open.Verb != "open" || edit.Kind != kind || edit.Verb != "edit" {
+			t.Fatalf("%s: %s %s, %s %s", kind, open.Kind, open.Verb, edit.Kind, edit.Verb)
+		}
+		// Only text can be edited; other kinds list no editor.
+		wantEdit := ""
+		if openwith.Editable(kind) {
+			wantEdit = "terminal-editor"
+		}
+		if open.Default != "system" || edit.Default != wantEdit {
+			t.Fatalf("%s defaults %q %q", kind, open.Default, edit.Default)
+		}
+		last := open.Apps[len(open.Apps)-1]
+		if last.ID != "reveal" || last.Terminal {
+			t.Fatalf("%s open apps %+v", kind, open.Apps)
+		}
+		for _, a := range edit.Apps {
+			if a.ID == "reveal" {
+				t.Fatalf("%s edit offers reveal", kind)
+			}
+		}
+		if openwith.Editable(kind) && (len(edit.Apps) != 1 || !edit.Apps[0].Terminal) {
+			t.Fatalf("%s edit apps %+v", kind, edit.Apps)
+		}
+		if !openwith.Editable(kind) && len(edit.Apps) != 0 {
+			t.Fatalf("%s edit apps %+v", kind, edit.Apps)
+		}
+	}
+	if !bytes.Contains(b.Bytes(), []byte(`"terminal":true`)) || !bytes.Contains(b.Bytes(), []byte(`"verb":"edit"`)) {
+		t.Fatalf("%s", b.String())
+	}
+}
+
+func TestAppsText(t *testing.T) {
+	var b bytes.Buffer
+	if err := writeApps(&b, testHost(), false); err != nil {
+		t.Fatal(err)
+	}
+	k := openwith.Kinds[0]
+	for _, want := range []string{k + " open (default: system)\n", k + " edit (default: system)\n"} {
+		if !bytes.Contains(b.Bytes(), []byte(want)) {
+			t.Fatalf("missing %q in %s", want, b.String())
+		}
 	}
 }
 

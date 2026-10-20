@@ -532,9 +532,9 @@ change across formats; Enter/Esc returns to the chooser. Hidden apps can be
 restored there. This changes visibility, not the built-in command catalog.
 
 `gloss --apps` lists compatible native actions and the effective default for
-each file kind. `gloss --apps --json` emits an array of
-`{kind, default, apps: [{id, name, available}]}`; `gloss skill schema` includes
-this shape. This command takes no files, needs no terminal, launches nothing,
+each file kind and verb (`open`, then `edit`). `gloss --apps --json` emits an
+array of `{kind, verb, default, apps: [{id, name, available, terminal}]}`, one
+row per kind and verb; `gloss skill schema` includes this shape. This command takes no files, needs no terminal, launches nothing,
 and does not change preferences. The human can use `w`/`W` in the native viewer
 to open a file in an app or choose another, and `d` in the chooser to save a
 per-format default. This is unavailable in `--serve`, `--pick-web` and the public
@@ -546,7 +546,8 @@ The native chooser also offers **Edit in terminal** for text, Markdown, JSON,
 HTML, SVG, CSV and notebook originals. It uses VISUAL first, then EDITOR when
 VISUAL is empty, and waits before reloading the file. It edits the actual file;
 it does not change temporary-file retention. `--apps` reports this action as
-`terminal-editor`; `available` means the configured executable resolves.
+`terminal-editor`; `available` is always true, since only apps that can be
+launched are listed, and `terminal` marks apps that take over the terminal.
 Agents should not set these variables from uploaded content or reply messages.
 There is still no served/browser or headless editor launch.
 
