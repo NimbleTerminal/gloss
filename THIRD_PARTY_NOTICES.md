@@ -1699,7 +1699,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## github.com/dustin/go-humanize v1.0.1
+## github.com/dustin/go-humanize v1.1.0
 
 ```
 Copyright (c) 2005-2008  Dustin Sallings <dustin@spy.net>
@@ -3377,7 +3377,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/yuin/goldmark v1.8.2
+## github.com/yuin/goldmark v1.8.6
 
 ```
 MIT License
@@ -3403,7 +3403,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/yuin/goldmark-emoji v1.0.5
+## github.com/yuin/goldmark-emoji v1.0.6
 
 ```
 MIT License
