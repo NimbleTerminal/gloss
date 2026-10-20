@@ -171,13 +171,14 @@ saved choice stays saved.
 
 `E` edits with the app resolved for editing. For text, Markdown, JSON, HTML,
 SVG, CSV, Mermaid, OBJ and notebook files that is `$VISUAL`, falling back to
-`$EDITOR` when VISUAL is empty, unless you saved another default; for other
-files it is the system's default editor. When there is none, the **Edit with**
+`$EDITOR` when VISUAL is empty, unless you saved another default, provided that
+names an installed program; otherwise, and for other files, it is the system's
+default editor. When there is none, the **Edit with**
 chooser opens instead. A binary file is never sent to the terminal editor, and
 when no app can edit a file gloss says so. Tab in the chooser switches between
 **Open with** and **Edit with**; defaults are saved per kind of file and per verb,
 so the app you open a Markdown file with can differ from the one you edit it in.
-Choose System default and press `d` to remove an override. For example, run
+On **Open with**, choose System default and press `d` to remove an override. For example, run
 `EDITOR=nano gloss README.md` or set `VISUAL='nvim -f'` in your shell.
 
 A terminal app (a terminal editor, or on Linux a desktop entry marked
@@ -195,8 +196,8 @@ default uses the system default until that app is restored.
 Preferences live in `gloss/open-with-v1.json` under your OS user-config
 directory. They contain app IDs, never executable commands. An unavailable
 saved app falls back to the system default. If that file is missing, gloss reads
-the older `gloss/open-with.json` once, including its short IDs (`vscode`,
-`preview`, ...), and leaves it untouched; your choices are saved to the new file.
+the older `gloss/open-with.json` while the new one does not exist yet, including
+its short IDs (`vscode`, `preview`, ...), and leaves it untouched; your choices are saved to the new file.
 If `open-with-v1.json` is damaged, gloss reports it and does not save until you
 repair or delete it. On Linux avoid making gloss its own default opener.
 

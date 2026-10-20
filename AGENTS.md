@@ -300,9 +300,9 @@ Native open-with: apps and their defaults come from the OS through
 `nimbleterminal.dev/ntopenwith` (Launch Services on macOS, XDG on Linux/BSD, the
 registry on Windows). `w` opens the current/highlighted file with the resolved
 app, `W` opens the chooser on "Open with", `E` edits with the resolved app, and
-browser Alt+Enter emits `browse.OpenWithMsg` and opens the chooser on Open
+browser Alt+Enter emits `ntfilepicker.OpenWithMsg` and opens the chooser on Open
 without selecting the file. Text files edit in `$VISUAL`/`$EDITOR` by default,
-other files in the OS's default editor; with none the "Edit with" chooser opens,
+other files (and text when `$VISUAL`/`$EDITOR` names no installed program) in the OS's default editor; with none the "Edit with" chooser opens,
 a binary file never goes to the terminal editor, and "No app can edit <file>" is
 the note when nothing can. In the chooser Tab switches between "Open with" and
 "Edit with", `d` saves the default for that kind and verb, `m` opens the global
@@ -316,11 +316,11 @@ on an editor error. `internal/openwith` is gloss's adapter: kinds, the
 `Source` (`system.System()`, aliases for gloss's old IDs, a QuickTime Player
 correction, the terminal editors), Reveal and Copy path, and preferences in
 `open-with-v1.json` in gloss's config folder. When that file is missing the old
-`open-with.json` is read once and never written; a corrupt `open-with-v1.json`
+`open-with.json` is read while `open-with-v1.json` does not exist yet, and never written; a corrupt `open-with-v1.json`
 is reported and saving is refused until it is repaired. `Options.OpenWith` is
 nil in browser/serve hosts, previews, and every headless mode. `--apps [--json]`
 only lists choices, one row per kind and verb (`verb`, `terminal`; `available`
-is always true; `default` is `system` or an app ID such as `mac:…`/`xdg:…`);
+is always true; `default` is `system` (open rows only), an app ID such as `mac:…`/`xdg:…`, a bare terminal-app ID such as `vim`, or empty on edit rows nothing can edit; `apps` can also hold `reveal` on open rows and `terminal-editor` or terminal apps on edit rows of text kinds);
 its result is included in `gloss skill schema`. Temporary files retain their
 original lifetime. No headless launch option.
 

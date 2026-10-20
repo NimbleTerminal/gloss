@@ -855,7 +855,7 @@ old IDs (`vscode`, `preview`, ...) working, `HideFor` keeping QuickTime Player
 from editing images, and the terminal editors from `$VISUAL`/`$EDITOR`; and the
 Reveal and Copy path rows, which are not apps. Preferences are
 `open-with-v1.json` in `theme.Dir()`; when it is missing the old `open-with.json`
-is read once with `LoadLegacyPreferences` and never written, and a damaged v1
+is read, while v1 does not exist yet, with `LoadLegacyPreferences` and never written, and a damaged v1
 file is reported and refuses saves until repaired (`Saver`).
 
 `Options.OpenWith` is installed only in the direct native pager. The chooser
@@ -866,9 +866,8 @@ image placeholders are drawn through the chooser. `w` and `E` call
 `Host.Launch` with an empty ID, so ntopenwith resolves the app; when it answers
 `ErrChoose` the chooser opens on that verb, and `ErrNoEditor` becomes a note. Tab
 reloads the other verb's rows (`openWithLoaded.switching`) and keeps the chooser
-where it is if that fails or lists nothing. `browse.OpenWithMsg` carries intent
-without selecting a file. The harness records emitted messages and browsecfg
-exposes the intent to scripts. `--apps` reads preferences for discovery but never
+where it is if that fails or lists nothing. `ntfilepicker.OpenWithMsg` carries intent
+without selecting a file. `--apps` reads preferences for discovery but never
 launches or loads a document, and lists one row per kind and verb; exports do
 not read these preferences.
 

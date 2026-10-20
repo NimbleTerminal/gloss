@@ -109,7 +109,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringArrayVar(&opts.Globs, "glob", nil, "search the folders named, or the current one, for files: a glob, an extension, or a kind such as images (repeatable)")
 	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
 	f.StringVar(&opts.UserAgent, "user-agent", "", "what downloads send as their User-Agent; else $GLOSS_USER_AGENT, else gloss and its version")
-	f.BoolVar(&opts.Apps, "apps", false, "list installed apps for each file kind without opening a file; --json for scripts")
+	f.BoolVar(&opts.Apps, "apps", false, "list the apps for each file kind, to open and to edit it, without opening a file; --json for scripts")
 	f.BoolVar(&opts.Print, "print", false, "print one content viewport to stdout and exit; pictures use ANSI-colored half-blocks, no terminal required")
 	f.IntVar(&opts.PrintWidth, "print-width", 0, "with --print, viewport columns (1–512; default terminal width or 80)")
 	f.IntVar(&opts.PrintHeight, "print-height", 0, "with --print, viewport rows (1–256; default terminal height or 24)")

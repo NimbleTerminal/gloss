@@ -8,7 +8,7 @@
 
 - `E` edits a file in its editor; Tab in the chooser switches between Open with
   and Edit with; saved choices carry over (defaults now live in
-  `open-with-v1.json`; the old `open-with.json` is read once and left alone).
+  `open-with-v1.json`; the old `open-with.json` is read until the new file exists, and left alone).
   The old **Edit in terminal** row is now under Edit with.
 
 - `--apps --json` rows now carry `verb` (`open` or `edit`) and `terminal`, and

@@ -537,8 +537,11 @@ there. This changes visibility, not which apps the system knows.
 each file kind and verb (`open`, then `edit`). `gloss --apps --json` emits an
 array of `{kind, verb, default, apps: [{id, name, available, terminal}]}`, one
 row per kind and verb, so a consumer that keyed rows by kind alone now sees two
-rows per kind; `gloss skill schema` includes this shape. `default` is `system`
-or an app ID such as `mac:…`, `xdg:…` or `win:…`. `available` is always true,
+rows per kind; `gloss skill schema` includes this shape. `default` is the app a plain `w` or `E` would use: `system` (open rows only),
+an app ID such as `mac:…`, `xdg:…` or `win:…`, or a bare terminal-app ID such as
+`vim`; it is empty when the row has no default, as on edit rows nothing can
+edit (3mf, grist). `apps` can also hold `reveal` (open rows) and, on edit rows
+of text kinds, `terminal-editor` and other terminal apps. `available` is always true,
 since only apps that can be launched are listed, and `terminal` marks apps that
 take over the terminal. This command takes no files, needs no terminal,
 launches nothing, and does not change preferences. The human can use `w`/`W`
@@ -551,7 +554,8 @@ session cleanup rules; save a copy to keep them.
 
 `E` in the native viewer edits the file: text originals (text, Markdown, JSON,
 HTML, SVG, CSV, Mermaid, OBJ, notebooks) go to VISUAL first, then EDITOR when
-VISUAL is empty, and other files to the system's default editor; with neither,
+VISUAL is empty, provided that names an installed program; otherwise, and for other
+files, they go to the system's default editor; with none,
 the **Edit with** chooser opens (Tab in the chooser switches between **Open
 with** and **Edit with**). A terminal editor runs attached, and gloss reloads
 the file afterward. It edits the actual file; it does not change
