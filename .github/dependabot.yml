@@ -1,5 +1,6 @@
-# Keeps the pinned actions and modules current: each update is a pull request
-# that CI checks, rather than a tag that moves under the workflows.
+# Keeps the actions and modules current. Actions are pinned to their major
+# version, so Dependabot proposes a new major; modules get every release.
+# Each update is a pull request that CI checks.
 version: 2
 updates:
   - package-ecosystem: github-actions
