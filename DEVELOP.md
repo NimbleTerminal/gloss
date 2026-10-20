@@ -844,43 +844,55 @@ ignores it, since its blocks are not lines.
 
 ## Native app handoff
 
-`internal/openwith` separates portable Host/Target/Choice values from native
-catalog, preferences and process code (`!js`). `Options.OpenWith` is installed
-only in the direct native pager. The app chooser snapshots the target and uses
-commands/results tagged by operation and document generation; it intercepts keys
-before the browser filter and owns an opaque modal body while open. Underlying
-view state is retained, animation is paused and no image placeholders are drawn
-through the chooser. `browse.OpenWithMsg` carries intent without selecting a file.
-The harness records emitted messages and browsecfg exposes the intent to scripts.
+Apps, defaults and launching come from `nimbleterminal.dev/ntopenwith` (Launch
+Services, XDG, the Windows registry); gloss adds no catalog of its own.
+`internal/openwith` is the adapter, `!js` where it touches the OS. It keeps the
+portable Host/Target/Choice values; `Kinds`, `Editable` and `ExtOf`, which
+turn gloss's formats into the `Target` ntopenwith asks about (`Kind`, `Text`,
+and for a kind with no file, a stand-in `Ext`); `Source`, a
+`ntopenwith.Layered` of `system.System()`, `Alias` entries that keep gloss's
+old IDs (`vscode`, `preview`, ...) working, `HideFor` keeping QuickTime Player
+from editing images, and the terminal editors from `$VISUAL`/`$EDITOR`; and the
+Reveal and Copy path rows, which are not apps. Preferences are
+`open-with-v1.json` in `theme.Dir()`; when it is missing the old `open-with.json`
+is read once with `LoadLegacyPreferences` and never written, and a damaged v1
+file is reported and refuses saves until repaired (`Saver`).
 
-The catalog/probe, trusted-ID preference and nonblocking launch design follows
-`go-thinkt/internal/config/apps.go` and its platform catalogs; no thinkt code or
-dependency is imported. Launch uses argv, never a shell, and reaps the child in
-a goroutine. Preferences are limited to 64 KiB and atomically replaced; malformed
-files cannot be silently overwritten. Tests inject probes and fake child
-processes, and exercise picker keys through the event loop. The native CLI owns
-stdin/download provenance. `--apps` reads preferences for discovery but never
-launches or loads a document; exports do not read these preferences.
+`Options.OpenWith` is installed only in the direct native pager. The chooser
+snapshots the target and uses commands/results tagged by operation and document
+generation; it intercepts keys before the browser filter and owns an opaque modal
+body while open. Underlying view state is retained, animation is paused and no
+image placeholders are drawn through the chooser. `w` and `E` call
+`Host.Launch` with an empty ID, so ntopenwith resolves the app; when it answers
+`ErrChoose` the chooser opens on that verb, and `ErrNoEditor` becomes a note. Tab
+reloads the other verb's rows (`openWithLoaded.switching`) and keeps the chooser
+where it is if that fails or lists nothing. `browse.OpenWithMsg` carries intent
+without selecting a file. The harness records emitted messages and browsecfg
+exposes the intent to scripts. `--apps` reads preferences for discovery but never
+launches or loads a document, and lists one row per kind and verb; exports do
+not read these preferences.
 
 ### Native app visibility
 
 The Open with chooser's `m` checklist uses the optional `openwith.Manager`
-host interface. Lists include installed apps even when hidden; System default
-and Reveal are excluded. Saves use the same bounded atomic preferences as
-per-format defaults, and failed writes leave in-memory preferences unchanged.
-The UI loads and saves through tagged messages in the existing event loop.
+host interface, over the resolver's `AllApps`, `IsHidden` and `SetHidden`. Lists
+include installed apps even when hidden; System default, Reveal and terminal
+apps are excluded. Every change is applied to a copy of the preferences and kept
+only when it is saved, so a failed write leaves them unchanged. The UI loads and
+saves through tagged messages in the existing event loop.
 The checklist interaction (arrows, Space to toggle) follows
 [thinkt's setup app chooser](https://github.com/wethinkt/go-thinkt/blob/main/internal/tui/setup/steps_apps.go);
 the implementation is native to gloss and adds no dependency.
 
-### Terminal editors
+### Terminal apps
 
-The optional native `Editor(Target)` capability prepares an `exec.Cmd` from
-VISUAL/EDITOR using Google's shlex parser. No shell is inserted. Only the pager
-calls `tea.ExecProcess`; the asynchronous GUI `Launch` path refuses this action.
-The app uses tagged preparation and completion messages, rejects stale requests,
-and clears Kitty placements and animation work before yielding the terminal.
-After completion it reloads the document or refreshes the current menu/browser.
+A terminal app (a terminal editor, or on Linux a desktop entry with
+`Terminal=true`) is not launched in the background: `Host.Launch` returns the
+unstarted `exec.Cmd` in `Launched.Cmd`, and only the pager calls
+`tea.ExecProcess` with it. The app uses tagged preparation and completion
+messages, rejects stale requests, and clears Kitty placements and animation work
+before yielding the terminal. After completion it reloads the document or
+refreshes the current menu/browser.
 Tests run a child process through Bubble Tea to verify writes and nonzero exits,
 and cover source/scroll restoration and typeset reload after atomic replacement.
 Actual editor interaction and Kitty/tmux restoration still require terminal tests.

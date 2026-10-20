@@ -296,21 +296,33 @@ context-specific help. Help consumes navigation keys, and Esc/F1 returns to the
 same filter, selection, popup and folder. A question mark in an existing filter
 remains literal.
 
-Native open-with: `w` opens the current/highlighted file in the default host app,
-`W` chooses an app, and browser Alt+Enter emits `browse.OpenWithMsg` without
-selecting the file. Chooser `d` saves a per-format default; `m` opens a global app checklist.
-Space saves visibility immediately, Enter/Esc returns, and hidden apps remain
-restorable. System default and Reveal cannot be hidden. `internal/openwith`
-owns the compiled native catalog, argv launch, and bounded 64 KiB atomic JSON
-preferences; `Options.OpenWith` is nil in browser/serve hosts and previews.
-GUI commands never come from preferences or a shell. The native-only
-`terminal-editor` action uses VISUAL then EDITOR for textual originals, with
-bounded shlex argument parsing (8 KiB, 64 words) and no implicit shell.
-`tea.ExecProcess` owns terminal suspension/restoration; graphics are cleared
-before handoff and file contents reloaded afterward, even on an editor error. `--apps [--json]` only lists
-choices; its result is included in `gloss skill schema`. Temporary files retain
-their original lifetime. No headless launch option. Terminal editors cannot be stored as GUI defaults
-or hidden in Manage apps; binary/converted documents are excluded.
+Native open-with: apps and their defaults come from the OS through
+`nimbleterminal.dev/ntopenwith` (Launch Services on macOS, XDG on Linux/BSD, the
+registry on Windows). `w` opens the current/highlighted file with the resolved
+app, `W` opens the chooser on "Open with", `E` edits with the resolved app, and
+browser Alt+Enter emits `browse.OpenWithMsg` and opens the chooser on Open
+without selecting the file. Text files edit in `$VISUAL`/`$EDITOR` by default,
+other files in the OS's default editor; with none the "Edit with" chooser opens,
+a binary file never goes to the terminal editor, and "No app can edit <file>" is
+the note when nothing can. In the chooser Tab switches between "Open with" and
+"Edit with", `d` saves the default for that kind and verb, `m` opens the global
+app checklist (terminal apps are not listed there), and Esc closes. Space saves
+visibility immediately, Enter/Esc returns, and hidden apps remain restorable.
+System default and Reveal cannot be hidden; Copy path is in Open only.
+Terminal apps (terminal editors, Linux `Terminal=true` desktop entries) run
+attached through `tea.ExecProcess`, which owns terminal suspension/restoration;
+graphics are cleared before handoff and file contents reloaded afterward, even
+on an editor error. `internal/openwith` is gloss's adapter: kinds, the
+`Source` (`system.System()`, aliases for gloss's old IDs, a QuickTime Player
+correction, the terminal editors), Reveal and Copy path, and preferences in
+`open-with-v1.json` in gloss's config folder. When that file is missing the old
+`open-with.json` is read once and never written; a corrupt `open-with-v1.json`
+is reported and saving is refused until it is repaired. `Options.OpenWith` is
+nil in browser/serve hosts, previews, and every headless mode. `--apps [--json]`
+only lists choices, one row per kind and verb (`verb`, `terminal`; `available`
+is always true; `default` is `system` or an app ID such as `mac:…`/`xdg:…`);
+its result is included in `gloss skill schema`. Temporary files retain their
+original lifetime. No headless launch option.
 
 Program status (OSC 7501): the pager and handoff screen set
 `View.ProgramStatus` on gloss's root record, `app=gloss`

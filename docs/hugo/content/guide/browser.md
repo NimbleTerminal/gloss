@@ -69,6 +69,7 @@ cannot read says why in the list (`permission denied`, `no such folder`) and
 | `→` | Into the folder under the cursor |
 | `←`, `Backspace` on an empty filter, `Alt-↑` | Up a folder, the cursor on the one you left |
 | `Alt-←` `Alt-→`, `Ctrl-O` | Back and forward through the folders you visited |
+| `Alt-Enter` | Choose an app to open the entry under the cursor with, without selecting it; see [Open in another app](../using/#open-in-another-app) |
 | `Esc` | Close what floats over the folder, then leave the browser |
 
 Going up lands the cursor on the folder you came from, and gloss remembers where
@@ -327,7 +328,7 @@ the browser is open; it is added the same way.
 
 ## Notes on terminals
 
-- **Alt keys.** `Alt-↑`, `Alt-←`, and `Alt-→` need your terminal to send Alt as
+- **Alt keys.** `Alt-↑`, `Alt-←`, `Alt-→`, and `Alt-Enter` need your terminal to send Alt as
   Escape (in macOS Terminal and iTerm, set Option to act as Meta). `←`,
   `Backspace`, and `Ctrl-O` do the same without it.
 - **The mouse.** The browser asks the terminal for clicks and the wheel. If your

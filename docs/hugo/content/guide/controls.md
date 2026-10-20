@@ -18,7 +18,7 @@ bookToC: false
 | `m` | Open the file-selection menu |
 | `o`, `O` | Browse folders for a file to open |
 | `?` with an empty browser filter, or `F1` | Show file-browser help; Esc/F1 returns to the same filter and selection |
-| `w`, `W`; Alt+Enter in the browser | Open in the default native app / choose an app; choose **Edit in terminal** for text; chooser `d` saves the default, `m` manages apps (Space toggles, Enter/Esc returns) |
+| `w`, `W`, `E`; Alt+Enter in the browser | Open with the default app / choose an app / edit with the default editor; Alt+Enter opens the chooser on **Open with**. In the chooser Tab switches **Open with** and **Edit with**, `d` saves the default for that kind and verb, `m` manages apps (Space toggles, Enter/Esc returns) |
 | `]`, `Tab` / `[`, `Shift-Tab` | Next / previous file |
 | `n`, `Space`, `PageDown` / `p`, `b`, `PageUp` | Next / previous PDF page, sheet, or Grist table; next / previous file for other formats |
 | `/` | Search text in the current document; `Enter` submits, `Esc` cancels editing |
@@ -58,9 +58,12 @@ At a PDF boundary, page navigation stays on that page. Use `[` and `]` to change
 files. Loading and rendering run asynchronously; errors appear in the viewer
 with retry and next-file controls.
 
-Native app handoff: `w` opens the current or highlighted file in its default app;
-`W` opens the app chooser. In the file browser use Alt+Enter. In the chooser,
-arrows select, Enter opens, `d` saves the default for that format, and Esc closes.
+Native app handoff: `w` opens the current or highlighted file with its default app;
+`W` opens the app chooser on **Open with**, and `E` edits with the default editor
+(text files use `$VISUAL` or `$EDITOR`; otherwise the **Edit with** chooser opens).
+In the file browser use Alt+Enter. In the chooser, arrows select, Enter opens,
+Tab switches between **Open with** and **Edit with**, `d` saves the default for
+that kind and verb, and Esc closes.
 See [Open in another app](../using/#open-in-another-app).
 
 ## Line numbers, going to a line, and long lines

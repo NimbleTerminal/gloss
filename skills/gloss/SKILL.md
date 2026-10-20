@@ -527,29 +527,37 @@ use simple column sizing. Complex scripts, CJK, emoji and bidi are not guarantee
 
 ### Discover native apps
 
-In the native `W` chooser, `m` opens Manage apps. Space saves each hide/show
-change across formats; Enter/Esc returns to the chooser. Hidden apps can be
-restored there. This changes visibility, not the built-in command catalog.
+Apps and their defaults come from the operating system (Launch Services, XDG,
+the Windows registry), through the same lists the native viewer uses. In the
+native `W` chooser, `m` opens Manage apps. Space saves each hide/show change
+across formats; Enter/Esc returns to the chooser. Hidden apps can be restored
+there. This changes visibility, not which apps the system knows.
 
 `gloss --apps` lists compatible native actions and the effective default for
 each file kind and verb (`open`, then `edit`). `gloss --apps --json` emits an
 array of `{kind, verb, default, apps: [{id, name, available, terminal}]}`, one
-row per kind and verb; `gloss skill schema` includes this shape. This command takes no files, needs no terminal, launches nothing,
-and does not change preferences. The human can use `w`/`W` in the native viewer
-to open a file in an app or choose another, and `d` in the chooser to save a
-per-format default. This is unavailable in `--serve`, `--pick-web` and the public
-browser app. There is no headless launch flag. Continue using `--serve` when
-showing a file to a human from an agent. Temporary files opened externally are
-still removed under the original session cleanup rules; save a copy to keep them.
+row per kind and verb, so a consumer that keyed rows by kind alone now sees two
+rows per kind; `gloss skill schema` includes this shape. `default` is `system`
+or an app ID such as `mac:…`, `xdg:…` or `win:…`. `available` is always true,
+since only apps that can be launched are listed, and `terminal` marks apps that
+take over the terminal. This command takes no files, needs no terminal,
+launches nothing, and does not change preferences. The human can use `w`/`W`
+in the native viewer to open a file in an app or choose another, and `d` in
+the chooser to save a default for that kind and verb. This is unavailable in
+`--serve`, `--pick-web` and the public browser app. There is no headless
+launch flag. Continue using `--serve` when showing a file to a human from an
+agent. Temporary files opened externally are still removed under the original
+session cleanup rules; save a copy to keep them.
 
-The native chooser also offers **Edit in terminal** for text, Markdown, JSON,
-HTML, SVG, CSV and notebook originals. It uses VISUAL first, then EDITOR when
-VISUAL is empty, and waits before reloading the file. It edits the actual file;
-it does not change temporary-file retention. `--apps` reports this action as
-`terminal-editor`; `available` is always true, since only apps that can be
-launched are listed, and `terminal` marks apps that take over the terminal.
-Agents should not set these variables from uploaded content or reply messages.
-There is still no served/browser or headless editor launch.
+`E` in the native viewer edits the file: text originals (text, Markdown, JSON,
+HTML, SVG, CSV, Mermaid, OBJ, notebooks) go to VISUAL first, then EDITOR when
+VISUAL is empty, and other files to the system's default editor; with neither,
+the **Edit with** chooser opens (Tab in the chooser switches between **Open
+with** and **Edit with**). A terminal editor runs attached, and gloss reloads
+the file afterward. It edits the actual file; it does not change
+temporary-file retention. Agents should not set these variables from uploaded
+content or reply messages. There is still no served/browser or headless editor
+launch.
 
 In the native file browser, the human can press `?` with an empty filter or
 `F1` while typing for browser-specific help. Esc/F1 returns without losing their

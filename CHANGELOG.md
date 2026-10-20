@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Open with now lists the apps your system knows for each file, with its
+  defaults (Launch Services on macOS, XDG on Linux, the registry on Windows),
+  through the ntopenwith library.
+
+- `E` edits a file in its editor; Tab in the chooser switches between Open with
+  and Edit with; saved choices carry over (defaults now live in
+  `open-with-v1.json`; the old `open-with.json` is read once and left alone).
+  The old **Edit in terminal** row is now under Edit with.
+
+- `--apps --json` rows now carry `verb` (`open` or `edit`) and `terminal`, and
+  there are two rows per kind, one for each verb: a script that keyed rows by
+  `kind` alone must also look at `verb`. Defaults can be an app ID such as
+  `mac:com.apple.Preview`.
+
 - PDFs written by macOS (Quartz) and linearized PDFs open: ntpdf v0.5.1 no
   longer refuses their cross-references. Leaving a PDF also stops a page
   that is still being drawn.

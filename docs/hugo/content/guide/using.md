@@ -151,53 +151,59 @@ The [controls reference](../controls/) covers the keys for each media type.
 
 ## Open in another app
 
-In the native viewer, `w` opens the current file in its default app. `W` opens
-an **Open with** chooser: system default, installed compatible apps, Reveal in
-Finder/Explorer (the containing folder on Linux), and Copy path. In the file
-menu or thumbnail grid these keys act on the highlighted file. In the file
-browser, Alt+Enter opens the chooser without selecting the entry; directories
-only offer Reveal. If your terminal does not report Alt+Enter, open a supported
-file with Enter and press `W`, or configure the terminal's key binding.
+The apps gloss offers, and which one is the default for each kind of file, come
+from your operating system: Launch Services on macOS, the XDG desktop entries
+and MIME defaults on Linux and BSD, the registry on Windows. Gloss adds no
+catalog of its own.
 
+In the native viewer, `w` opens the current file in its default app, `W` opens
+an **Open with** chooser, and `E` edits the file. In the file menu or thumbnail
+grid these keys act on the highlighted file. In the file browser, Alt+Enter opens
+the **Open with** chooser without selecting the entry; directories only offer
+Reveal. If your terminal does not report Alt+Enter, open a supported file with
+Enter and press `W`, or configure the terminal's key binding.
+
+The chooser lists System default, the apps your system knows for this kind of
+file, Reveal in Finder/Explorer (the containing folder on Linux), and Copy path.
 Use arrows to choose and Enter to open. Press `d` on an app to save it as the
-default for this format; this does not launch it. Choose System default and
-press `d` to remove an override. Esc closes the chooser; a saved choice stays
-saved. Press `m` in the chooser to manage installed apps across all formats:
-arrows select, Space hides or restores an app and saves immediately, and Enter
-or Esc returns to the chooser. Hidden apps remain in this checklist. System
-default and Reveal cannot be hidden. Hiding a saved default uses the system
-default until that app is restored.
+default for this format; this does not launch it. Esc closes the chooser; a
+saved choice stays saved.
 
-Preferences live in `gloss/open-with.json` under your OS user-config
+`E` edits with the app resolved for editing. For text, Markdown, JSON, HTML,
+SVG, CSV, Mermaid, OBJ and notebook files that is `$VISUAL`, falling back to
+`$EDITOR` when VISUAL is empty, unless you saved another default; for other
+files it is the system's default editor. When there is none, the **Edit with**
+chooser opens instead. A binary file is never sent to the terminal editor, and
+when no app can edit a file gloss says so. Tab in the chooser switches between
+**Open with** and **Edit with**; defaults are saved per kind of file and per verb,
+so the app you open a Markdown file with can differ from the one you edit it in.
+Choose System default and press `d` to remove an override. For example, run
+`EDITOR=nano gloss README.md` or set `VISUAL='nvim -f'` in your shell.
+
+A terminal app (a terminal editor, or on Linux a desktop entry marked
+`Terminal=true`) takes over the terminal: gloss suspends its UI, waits for the
+app, then reloads the file, keeping the source view and scroll position where
+possible. The menu and browser return to their existing selection. Use an editor
+that stays in the foreground until you finish.
+
+Press `m` in the chooser to manage installed apps across all formats: arrows
+select, Space hides or restores an app and saves immediately, and Enter or Esc
+returns to the chooser. Hidden apps remain in this checklist. System default and
+Reveal cannot be hidden, and terminal apps are not listed. Hiding a saved
+default uses the system default until that app is restored.
+
+Preferences live in `gloss/open-with-v1.json` under your OS user-config
 directory. They contain app IDs, never executable commands. An unavailable
-saved app falls back to the system default. On Linux this needs `xdg-open` and
-a desktop association; avoid making gloss its own default opener.
+saved app falls back to the system default. If that file is missing, gloss reads
+the older `gloss/open-with.json` once, including its short IDs (`vscode`,
+`preview`, ...), and leaves it untouched; your choices are saved to the new file.
+If `open-with-v1.json` is damaged, gloss reports it and does not save until you
+repair or delete it. On Linux avoid making gloss its own default opener.
 
-`gloss --apps` lists the available apps by format; `--apps --json` provides the
-same listing for scripts without opening anything. App discovery is limited to
-a built-in catalog and installed executable or app-bundle probes: initially
-Preview and Skim on macOS, plus VS Code, Cursor, Zed and Sublime Text on macOS
-and Linux. Windows offers the system default and Reveal. Other installed apps
-remain accessible through OS file associations. Custom GUI commands are not
-supported. The browser demo, served viewer,
-and web picker cannot launch host apps.
-
-For text, Markdown, JSON, HTML, SVG, CSV and notebook files, choose **Edit in
-terminal** in `W`. Gloss uses `$VISUAL`, falling back to `$EDITOR` when VISUAL is
-empty. For example, run `EDITOR=nano gloss README.md` or set
-`VISUAL='nvim -f'` in your shell. The editor receives the original file path;
-Word/PDF conversions and other binary formats are not offered for editing.
-If no editor is configured, select the action for setup guidance.
-
-Gloss suspends its terminal UI, waits for the editor, then reloads the file,
-keeping the source view and scroll position where possible. The menu and browser
-return to their existing selection. Use an editor that stays in the foreground
-until you finish. Settings support arguments and POSIX-style quotes, with no
-shell expansion, pipelines, or command substitution; an exact executable path
-may also contain spaces. On Windows, use forward slashes or single quotes for
-paths with backslashes when adding arguments. Settings are bounded to 8 KiB and
-64 words. An invalid VISUAL is reported rather than silently using EDITOR.
-The terminal editor is configured by these variables, not chooser `d` or `m`.
+`gloss --apps` lists the available apps by format and verb, with the effective
+default; `--apps --json` provides the same listing for scripts without opening
+anything. Custom GUI commands are not supported. The browser demo, served
+viewer, and web picker cannot launch host apps.
 
 Opening a stdin or downloaded file does not extend its lifetime. Save a copy
 from the other app before gloss exits if you want to keep it. Opening submits a
