@@ -80,6 +80,23 @@ stderr, with exit 0 on success and 1 on error; an error stops the batch after
 any earlier views already printed. `-X` remains the interactive main-screen
 viewer, which requires a terminal.
 
+## Showing a link as a QR code
+
+`--qr TEXT` shows TEXT, usually a web address, as a QR code in place of a file,
+for a phone or tablet to scan. It works wherever a picture does: the viewer,
+`--serve` (a web page, where an agent with no terminal can show it to you),
+`--output` and `--print`. The viewer and the page show the text above the code,
+unless `--prompt` says something else. The text is only encoded: nothing is
+fetched, and `GLOSS_NO_FETCH` does not apply.
+
+```sh
+gloss --serve --qr http://192.168.1.20:8000/
+gloss --qr https://example.com/ --output qr.png
+```
+
+A code for a `localhost` address is no use on another device; give the address
+the device can reach.
+
 ## Opening a web address
 
 Any argument that is an `http` or `https` URL is downloaded before gloss starts
@@ -94,7 +111,9 @@ exactly as a file that cannot be opened, except that `--info` reports it among
 the others, under its address, and goes on. The file is named after the end of
 the address and removed when gloss exits, unless it was picked. A detached
 `--serve` or `--pick` downloads before the server starts, into the session's
-private folder, where a picked download then stays for the caller.
+private folder, where a picked download then stays for the caller. Only file
+arguments are downloaded; an address given to an option, such as `--qr` or
+`--prompt`, is passed on as it is.
 
 Downloads identify themselves as `gloss/` and the version, as `gloss --version`
 prints it. A host that wants another name gets it from `--user-agent`, or from

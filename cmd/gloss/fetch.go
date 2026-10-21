@@ -189,27 +189,42 @@ func redacted(address string) string {
 // input, when named, is kept in the session folder, and so is what each web
 // address names, so the server starts at once with files, and a download
 // that fails is the caller's error rather than a server that never comes up.
-func detachArguments(ctx context.Context, args []string, dir string, stdin io.Reader, accept document.AcceptFilter, agent string) ([]string, error) {
+func detachArguments(ctx context.Context, args []string, files []bool, dir string, stdin io.Reader, accept document.AcceptFilter, agent string) ([]string, error) {
+	// Only the arguments that name files: an option's value, such as the
+	// address of --qr or --prompt, is passed on as it is.
+	var named []int
+	for i := range args {
+		if i < len(files) && files[i] {
+			named = append(named, i)
+		}
+	}
 	child := slices.Clone(args)
-	for i, arg := range child {
-		if arg != "-" {
+	kept := ""
+	for _, i := range named {
+		if child[i] != "-" {
 			continue
 		}
-		data, err := document.ReadLimited(stdin)
-		if err != nil {
-			return nil, fmt.Errorf("stdin: %w", err)
-		}
-		kept, err := document.WriteNew(filepath.Join(dir, "stdin"), data)
-		if err != nil {
-			return nil, err
-		}
-		for j := i; j < len(child); j++ {
-			if child[j] == "-" {
-				child[j] = kept
+		if kept == "" {
+			data, err := document.ReadLimited(stdin)
+			if err != nil {
+				return nil, fmt.Errorf("stdin: %w", err)
+			}
+			if kept, err = document.WriteNew(filepath.Join(dir, "stdin"), data); err != nil {
+				return nil, err
 			}
 		}
-		break
+		child[i] = kept
 	}
-	child, _, err := downloadArguments(ctx, child, &fetchFolder{dir: dir, agent: agent}, accept, nil)
-	return child, err
+	paths := make([]string, len(named))
+	for n, i := range named {
+		paths[n] = child[i]
+	}
+	paths, _, err := downloadArguments(ctx, paths, &fetchFolder{dir: dir, agent: agent}, accept, nil)
+	if err != nil {
+		return nil, err
+	}
+	for n, i := range named {
+		child[i] = paths[n]
+	}
+	return child, nil
 }

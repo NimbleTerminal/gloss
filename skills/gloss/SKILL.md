@@ -433,6 +433,22 @@ https://nimbleterminal.github.io/gloss/app.html?src=<url-encoded-address>
 The page fetches the document in the user's browser; nothing is uploaded
 anywhere. Say that when you send the link.
 
+### Hand a link to a phone or tablet: `--qr`
+
+When the human needs a URL on another device (to test a site on a phone, or
+open a dev server on a tablet), show it as a QR code for them to scan. gloss
+draws it; no QR package or other tool is needed.
+
+```sh
+gloss --serve --qr http://192.168.1.20:8000/   # in their browser (no terminal: detached JSON; show the url)
+gloss --qr http://192.168.1.20:8000/           # in the terminal pager
+gloss --qr http://192.168.1.20:8000/ --output qr.png   # a PNG to attach
+```
+
+The text is only encoded, never fetched; the page and pager show it above
+the code. The code is only as useful as the address: a `localhost` or
+`127.0.0.1` URL does not reach another device.
+
 ## Guardrails
 
 - **Never run the interactive pager** (none of `--text`, `--output`, `--info`,

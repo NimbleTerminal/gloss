@@ -15,6 +15,8 @@ import (
 	"testing"
 
 	"nimbleterminal.dev/gloss/internal/app"
+
+	"github.com/spf13/pflag"
 )
 
 func TestWebAddress(t *testing.T) {
@@ -237,7 +239,14 @@ func TestDetachDownloadsAddressesIntoTheSession(t *testing.T) {
 	srv := httptest.NewServer(http.FileServer(http.Dir("../../examples")))
 	defer srv.Close()
 	dir := t.TempDir()
-	args, err := detachArguments(context.Background(), []string{"--serve", srv.URL + "/shapes.svg", "-"}, dir, strings.NewReader("hello\n"), "", "gloss/test")
+	detach := func(args []string, stdin string) ([]string, error) {
+		opts, _, err := parse(args, io.Discard)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return detachArguments(context.Background(), args, opts.fileArgs, dir, strings.NewReader(stdin), "", "gloss/test")
+	}
+	args, err := detach([]string{"--serve", srv.URL + "/shapes.svg", "-"}, "hello\n")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,8 +259,61 @@ func TestDetachDownloadsAddressesIntoTheSession(t *testing.T) {
 		}
 	}
 	// A failed download fails the start before any server runs.
-	if _, err := detachArguments(context.Background(), []string{srv.URL + "/missing.png"}, dir, strings.NewReader(""), "", "gloss/test"); err == nil || !strings.Contains(err.Error(), "HTTP 404") {
+	if _, err := detach([]string{"--serve", srv.URL + "/missing.png"}, ""); err == nil || !strings.Contains(err.Error(), "HTTP 404") {
 		t.Fatalf("err=%v", err)
+	}
+	// An option's value is passed on as it is, never downloaded: the address
+	// of --qr, a --prompt that is an address, and a "-" given to --prompt.
+	for _, args := range [][]string{
+		{"--serve", "--qr", srv.URL + "/missing.png"},
+		{"--serve", "--qr=" + srv.URL + "/missing.png"},
+		{"--serve", "--prompt", srv.URL + "/missing.png", "-"},
+		{"view", "--serve", "--prompt", "-", "--", "-"},
+	} {
+		got, err := detach(args, "hello\n")
+		if err != nil {
+			t.Fatalf("%v: %v", args, err)
+		}
+		for i, arg := range args {
+			if arg == "-" && i == len(args)-1 {
+				if filepath.Dir(got[i]) != dir || !strings.HasPrefix(filepath.Base(got[i]), "stdin") {
+					t.Fatalf("%v: stdin at %d: %v", args, i, got)
+				}
+			} else if got[i] != arg {
+				t.Fatalf("%v: argument %d rewritten: %v", args, i, got)
+			}
+		}
+	}
+}
+
+func TestFileArguments(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		want string // f for a file, - for anything else
+	}{
+		{[]string{"a.png", "--serve", "b.png"}, "f-f"},
+		{[]string{"--qr", "https://x.dev/", "--prompt=hi", "c.pdf"}, "---f"},
+		{[]string{"-p", "2", "-Xp3", "d.pdf", "-sX", "4", "e.pdf"}, "---f-ff"},
+		{[]string{"-NS", "f.txt", "--", "--serve", "-"}, "-f-ff"},
+		{[]string{"-", "--json", "g.png"}, "f-f"},
+	} {
+		f := pflag.NewFlagSet("t", pflag.ContinueOnError)
+		f.Bool("serve", false, "")
+		f.Bool("json", false, "")
+		f.String("qr", "", "")
+		f.String("prompt", "", "")
+		f.StringP("page", "p", "", "")
+		f.IntP("max-edge", "s", 0, "")
+		f.BoolP("no-alt-screen", "X", false, "")
+		f.BoolP("line-numbers", "N", false, "")
+		f.BoolP("chop", "S", false, "")
+		var got strings.Builder
+		for _, file := range fileArguments(f, tc.args) {
+			got.WriteString(map[bool]string{true: "f", false: "-"}[file])
+		}
+		if got.String() != tc.want {
+			t.Errorf("%v: got %s, want %s", tc.args, got.String(), tc.want)
+		}
 	}
 }
 

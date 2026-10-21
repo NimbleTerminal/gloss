@@ -13,6 +13,9 @@
 - Open with lists the apps and defaults your system knows (Launch Services on
   macOS, XDG on Linux, the registry on Windows). Saved choices carry over and
   now live in `open-with-v1.json`.
+- `--qr TEXT` shows text, such as a URL, as a QR code: in the viewer, on a
+  `--serve` page, or as a PNG with `--output`. An agent can hand you a link to
+  scan with a phone or tablet: `gloss --serve --qr URL`. Nothing is fetched.
 - `--print` writes one screen of a file to stdout without a terminal, with
   pictures as colored half-blocks. `--print-width` and `--print-height` size it.
 - Recognize JSON Lines by content; `--type` and `--accept` take `jsonl` and
@@ -28,10 +31,11 @@
   the skill. `install` always uses the shared `~/.agents/skills` folder too,
   replaces broken links, and handles `--help`, `auto` and a missing home folder
   correctly.
-- Fixes: Kitty images and inline Markdown images stay on screen after `Q`; a
-  still picture stays visible while its background color changes; exports of
-  animated typeset pages show the displayed frame; the browser demo's mouse
-  works again.
+- Fixes: a detached `--serve` or `--pick` no longer downloads an address given
+  to an option, such as `--prompt https://…`; Kitty images and inline Markdown
+  images stay on screen after `Q`; a still picture stays visible while its
+  background color changes; exports of animated typeset pages show the
+  displayed frame; the browser demo's mouse works again.
 - **Scripts:** `--apps --json` now has one row per kind and verb, with `verb`
   (`open` or `edit`) and `terminal`. Match rows on `kind` and `verb`.
 - Requires Go 1.26.10 or later.

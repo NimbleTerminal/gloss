@@ -68,6 +68,12 @@ type options struct {
 	SkillInstall  string         // Where gloss skill install writes.
 	SkillDetect   bool           // gloss skill install with no folder: write for the agents found here.
 
+	QR string // Text to show as a QR code, in place of files.
+
+	// fileArgs says which of the command line's arguments name files, not
+	// options or their values: a detached start rewrites only those.
+	fileArgs []bool
+
 	Print                   bool // Draw one viewport to stdout without a terminal.
 	PrintWidth, PrintHeight int
 }
@@ -75,6 +81,7 @@ type options struct {
 func parse(args []string, out io.Writer) (options, bool, error) {
 	var opts options
 	opts.Version = version
+	whole := args
 	name, args := splitVerb(args)
 	f := pflag.NewFlagSet("gloss", pflag.ContinueOnError)
 	f.SetOutput(out)
@@ -110,6 +117,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
 	f.StringVar(&opts.UserAgent, "user-agent", "", "what downloads send as their User-Agent; else $GLOSS_USER_AGENT, else gloss and its version")
 	f.BoolVar(&opts.Apps, "apps", false, "list the apps for each file kind, to open and to edit it, without opening a file; --json for scripts")
+	f.StringVar(&opts.QR, "qr", "", "show this text, such as a URL, as a QR code instead of a file, to scan with a phone or tablet; with --serve, on a web page; nothing is fetched")
 	f.BoolVar(&opts.Print, "print", false, "print one content viewport to stdout and exit; pictures use ANSI-colored half-blocks, no terminal required")
 	f.IntVar(&opts.PrintWidth, "print-width", 0, "with --print, viewport columns (1–512; default terminal width or 80)")
 	f.IntVar(&opts.PrintHeight, "print-height", 0, "with --print, viewport rows (1–256; default terminal height or 24)")
@@ -202,6 +210,16 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if (f.Changed("listen") || f.Changed("advertise-host")) && !opts.PickWeb {
 		return opts, false, fmt.Errorf("--listen and --advertise-host require --pick-web; the full --serve viewer remains localhost-only")
 	}
+	if f.Changed("qr") {
+		switch {
+		case opts.QR == "":
+			return opts, false, fmt.Errorf("--qr needs the text to encode")
+		case f.NArg() > 0 || len(opts.Globs) > 0:
+			return opts, false, fmt.Errorf("--qr shows its own code: no input files or --glob")
+		case opts.Pick || opts.PickWeb:
+			return opts, false, fmt.Errorf("--qr shows a code; it cannot be combined with --pick or --pick-web")
+		}
+	}
 	if opts.PickWeb {
 		opts.Serve, opts.Pick = true, true
 		if f.NArg() > 0 || len(opts.Globs) > 0 || opts.FetchAllowed || opts.Menu || opts.Preview {
@@ -272,6 +290,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		return opts, false, fmt.Errorf("--dpi must be between 36 and 600")
 	}
 	opts.Files = f.Args()
+	opts.fileArgs = append(make([]bool, len(whole)-len(args)), fileArguments(f, args)...)
 	if opts.Columns, err = document.ParseColumns(*cols, *coln); err != nil {
 		return opts, false, err
 	}
@@ -476,6 +495,18 @@ func run(args []string) (err error) {
 	default:
 		return fmt.Errorf("output must be a terminal; run gloss directly in your terminal, or use --print for a static view or --serve for a browser viewer")
 	}
+	qrPath := ""
+	if opts.QR != "" {
+		path, remove, err := qrFile(opts.QR)
+		if err != nil {
+			return err
+		}
+		defer remove()
+		qrPath, opts.Files = path, []string{path}
+		if !exporting && !opts.Info && opts.Prompt == "" {
+			opts.Prompt = opts.QR // Say what the code holds, above it.
+		}
+	}
 	stdinPath := ""
 	defer func() {
 		if stdinPath != "" {
@@ -576,7 +607,7 @@ func run(args []string) (err error) {
 		fmt.Fprintf(os.Stderr, "gloss: open-with preferences: %v\n", err)
 	}
 	opts.IsTemporary = func(path string) bool {
-		if path == stdinPath && stdinPath != "" {
+		if path == stdinPath && stdinPath != "" || path == qrPath && qrPath != "" {
 			return true
 		}
 		return downloads.holds(path)
@@ -657,10 +688,45 @@ func discardFetched(dir string, picked []string) {
 // in and none is. A program that starts gloss to ask for a file pipes in
 // nothing: there, standard input is read only if it is named.
 func arguments(opts options, terminal bool) []string {
-	if len(opts.Files) == 0 && !terminal && !opts.Serve && !opts.Pick {
+	if len(opts.Files) == 0 && opts.QR == "" && !terminal && !opts.Serve && !opts.Pick {
 		return []string{"-"}
 	}
 	return opts.Files
+}
+
+// fileArguments marks the arguments pflag takes as files: those that are not
+// options, nor the value an option takes in the next argument, and all after
+// "--".
+func fileArguments(f *pflag.FlagSet, args []string) []bool {
+	files := make([]bool, len(args))
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--":
+			for j := i + 1; j < len(args); j++ {
+				files[j] = true
+			}
+			return files
+		case strings.HasPrefix(arg, "--"):
+			if flag := f.Lookup(arg[2:]); flag != nil && flag.NoOptDefVal == "" {
+				i++ // --name value
+			}
+		case strings.HasPrefix(arg, "-") && arg != "-":
+			// A cluster of shorthands; the first that takes a value takes the
+			// rest of the argument, or else the next one.
+			for j := 1; j < len(arg); j++ {
+				if flag := f.ShorthandLookup(arg[j : j+1]); flag != nil && flag.NoOptDefVal == "" {
+					if j == len(arg)-1 {
+						i++
+					}
+					break
+				}
+			}
+		default:
+			files[i] = true
+		}
+	}
+	return files
 }
 
 // handoffConfig is what the handoff protocol takes from the command line. A
@@ -671,7 +737,7 @@ func handoffConfig(opts options) handoff.Config {
 		Timeout: opts.Timeout, JSON: opts.JSON, PickWeb: opts.PickWeb,
 		Detached: opts.Detached, Resume: opts.Resume, Status: opts.Status, Cancel: opts.Cancel,
 		Arguments: func(ctx context.Context, args []string, dir string, stdin io.Reader) ([]string, error) {
-			return detachArguments(ctx, args, dir, stdin, opts.Accept, opts.UserAgent)
+			return detachArguments(ctx, args, opts.fileArgs, dir, stdin, opts.Accept, opts.UserAgent)
 		},
 	}
 }

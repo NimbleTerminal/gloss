@@ -247,7 +247,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `--info` reports it as an `error` entry and names downloads by their
   address (`Origins`/`Failed` in `options`). A detached start downloads in
   the parent into the session `dir` before the server runs
-  (`detachArguments`). Downloads send `gloss/<version>` as their
+  (`detachArguments`), rewriting only the arguments `parse` marked as files
+  (`fileArgs`, from `fileArguments`), never an option's value. Downloads send `gloss/<version>` as their
   User-Agent, or `--user-agent`, or else `GLOSS_USER_AGENT` (`userAgent` in
   `cmd/gloss/fetch.go`, resolved in `parse`). `GLOSS_NO_FETCH`, set and not empty,
   refuses address arguments and `--fetch`. With `--fetch`, `Enter` on a
@@ -369,6 +370,13 @@ Agent-facing / scriptable surface:
   (`internal/app/print.go`); no cursor, query, OSC or graphics escapes. Auto
   theme is light. `cmd/gloss/print.go` shares export loading.
   Single pages only; an error stops the batch with exit 1.
+
+- `--qr TEXT` (`cmd/gloss/qr.go`): writes TEXT as an ntqrcode PNG, `qr.png`
+  in a private temporary folder removed at exit, and opens it as the only
+  file, so the viewer, `--serve`, exports, `--print` and `--info` take it as a
+  picture. Never fetched; no files, `--glob`, `--pick` or `--pick-web`. When
+  interactive, TEXT becomes the `--prompt` unless one is given. The agent's
+  way to hand a URL to a phone: `gloss --serve --qr URL`.
 
 - `--output file.png` / `--output-dir` / `--output -`: headless PNG export for
   vision models, no TTY needed; `--max-edge 1..4096`, aspect preserved, white
