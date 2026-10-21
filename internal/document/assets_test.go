@@ -18,6 +18,14 @@ func TestEmbeddedGallery(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			l := &Loader{Files: examples.Files}
 			defer l.Close()
+			if isVideoName(name) {
+				// Held in memory, a video has no picture: it is described,
+				// and the browser plays it (TestMemoryVideo).
+				if r := l.Load(Request{Path: name, Generation: 1, Describe: true}); r.Err != nil || r.Kind != "video" {
+					t.Fatalf("kind=%q err=%v", r.Kind, r.Err)
+				}
+				return
+			}
 			r := l.Load(Request{Path: name, Page: 1, DPI: 72, Generation: 1})
 			if r.Err != nil {
 				t.Fatal(r.Err)

@@ -4069,7 +4069,7 @@ pako sources; review it when updating the pinned booba runtime.
 for gloss, Copyright (c) 2026 Neomantra Corp. It carries no third-party notice.
 ```
 
-## nimbleterminal.dev/ntvideo v0.1.1-0.20261021215438-8cede0aa5a84
+## nimbleterminal.dev/ntvideo v0.1.1-0.20261021222010-7e2758bcd36e
 
 ```
 MIT License

@@ -24,8 +24,13 @@ import (
 // videoExtensions name the containers gloss takes as video.
 var videoExtensions = []string{".mp4", ".m4v", ".mov", ".webm", ".mkv"}
 
-// ErrVideoNative is a video where nothing can play it: the browser's files.
-var ErrVideoNative = errors.New("video plays in the native gloss, not in the browser")
+// ErrVideoNative is a video held in memory where nothing can play it: the
+// native gallery's embedded files.
+var ErrVideoNative = errors.New("a video held in memory plays only in the browser")
+
+// ErrVideoPreview is a video in the browser asked for a picture: its frames
+// come from ffmpeg, which the browser does not have.
+var ErrVideoPreview = errors.New("no picture of a video in the browser: open it to play")
 
 // videoHeadBytes is how much of a file says whether it is a video.
 const videoHeadBytes = 64
@@ -119,8 +124,7 @@ func pictureMagic(data []byte) bool {
 func (l *Loader) loadVideo(q Request) (out Result) {
 	out.Generation, out.Kind, out.Page, out.Pages = q.Generation, "video", 1, 1
 	if l.Files != nil {
-		out.Err = ErrVideoNative
-		return out
+		return l.loadMemoryVideo(q)
 	}
 	info, statErr := os.Stat(q.Path)
 	if statErr != nil {
@@ -152,9 +156,36 @@ func (l *Loader) loadVideo(q Request) (out Result) {
 	return out
 }
 
-// Video is a video file, played from Path.
+// loadMemoryVideo is a video the page holds, in the browser: the browser
+// plays it from a blob: URL, and nothing describes it or draws its frames.
+func (l *Loader) loadMemoryVideo(q Request) (out Result) {
+	out.Generation, out.Kind, out.Page, out.Pages = q.Generation, "video", 1, 1
+	size := 0
+	if info, err := fs.Stat(l.Files, q.Path); err == nil {
+		size = int(min(info.Size(), int64(^uint(0)>>1)))
+	}
+	out.Info = append(fileFields(l.Files, q.Path, size, q.Stdin), Section("Video", Field{"Format", videoFormat(q.Path)})...)
+	if q.Describe {
+		return out
+	}
+	if !q.Animate || q.Preview {
+		out.Err = ErrVideoPreview
+		return out
+	}
+	url, revoke, err := videoURL(l.Files, q.Path)
+	if err != nil {
+		out.Err = err
+		return out
+	}
+	out.Video = &Video{Path: q.Path, URL: url, Revoke: revoke}
+	return out
+}
+
+// Video is a video file, played from Path, or in the browser from URL.
 type Video struct {
 	Path     string
+	URL      string // A blob: URL the browser plays; empty natively.
+	Revoke   func() // Frees URL once the video is closed; nil natively.
 	Info     ntvideo.MediaInfo
 	ProbeErr error // Why there are no details: usually no ffprobe.
 	FrameErr error // Why there is no first frame: usually no ffmpeg.
@@ -169,11 +200,16 @@ func ffmpegHint(err error, what string) error {
 	return err
 }
 
-func videoFields(path string, info ntvideo.MediaInfo, probeErr error) []Field {
-	format := strings.ToUpper(strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), "."))
-	if format == "" {
-		format = "video"
+// videoFormat names a video's container by its name.
+func videoFormat(path string) string {
+	if format := strings.ToUpper(strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), ".")); format != "" {
+		return format
 	}
+	return "video"
+}
+
+func videoFields(path string, info ntvideo.MediaInfo, probeErr error) []Field {
+	format := videoFormat(path)
 	if probeErr != nil {
 		return Section("Video", Field{"Format", format}, Field{"Details", ffmpegHint(probeErr, "read its details").Error()})
 	}

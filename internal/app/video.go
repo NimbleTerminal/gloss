@@ -20,8 +20,17 @@ const videoSeek = 5 * time.Second
 func (m *Model) showVideo(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	m.source = nil
 	m.videoInfo = v.Video
+	source := v.Video.Path
+	if v.Video.URL != "" {
+		source = v.Video.URL // In the browser: the file the page holds.
+	}
 	m.video = ntvideo.New(
-		ntvideo.WithSource(v.Video.Path),
+		ntvideo.WithSource(source),
+		// In the browser, the page's host lays a <video> over the cells;
+		// gloss keeps the keys and draws the scrub bar, so it has no
+		// controls of its own. Natively these change nothing.
+		ntvideo.WithHost("terminal"),
+		ntvideo.WithNativeControls(false),
 		ntvideo.WithPoster(v.Image),
 		ntvideo.WithAutoplay(false),
 		ntvideo.WithScrubber(true),
@@ -50,14 +59,19 @@ func (m *Model) layoutVideo() tea.Cmd {
 	return m.video.SetBounds(ntvideo.CellRect{X: 0, Y: top, Cols: m.width, Rows: m.bodyHeight()})
 }
 
-// clearVideo stops the video and takes its picture down.
+// clearVideo stops the video and takes its picture down, then frees the
+// browser's URL for it, which must outlive the video.
 func (m *Model) clearVideo() tea.Cmd {
 	if m.video == nil {
 		return nil
 	}
-	video := m.video
+	video, info := m.video, m.videoInfo
 	m.video, m.videoInfo = nil, nil
-	return video.Close()
+	closed := video.Close()
+	if info == nil || info.Revoke == nil {
+		return closed
+	}
+	return tea.Sequence(closed, func() tea.Msg { info.Revoke(); return nil })
 }
 
 // updateVideo passes a message to the video, and shows or hides it as the

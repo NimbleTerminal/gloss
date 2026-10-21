@@ -120,7 +120,15 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   image IDs), paused on the first frame: Space play/pause, ←/→ 5 s, Home
   start, scrub bar on its last row; hidden and paused behind help, the menu and
   the app chooser; the menu restores its position; `Q` keeps the frame; `e`
-  exports the frame on screen. Browser/embedded files: an error (no backend).
+  exports the frame on screen. In the browser (`l.Files` set) the loader
+  makes a blob: URL of the in-memory file (`video_js.go`, revoked by
+  `clearVideo` after `Close`), and ntvideo's DOM backend plays it in a
+  `<video>` laid over the cells by the page's host (`registerBoobaHost` in
+  `web/runtime.js`, assets from `go tool ntvideo-assets`; `media-src blob:` in
+  the pages' CSP), with `WithNativeControls(false)` so gloss keeps the keys and
+  scrub bar; no details, previews or thumbnails there. The demo's sample is
+  `examples/recording.mp4`, gloss's demo GIF as H.264 (`task gen-assets`).
+  Natively, embedded files cannot play (`ErrVideoNative`).
 - **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar

@@ -11,6 +11,7 @@ GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -mod=readonly -trimpath -ldflags="-s 
 wc -c < ../../web/dist/app.wasm | tr -d ' ' > ../../web/dist/app.wasm.size
 go tool booba-assets ../../web/dist
 go tool ntshim-assets ../../web/dist --shim=pdfium
+go tool ntvideo-assets ../../web/dist --force
 # PDF pages are drawn by PDFium, from the @embedpdf/pdfium npm package, which
 # the generated shim loads from a CDN: third-party code, run with the page's
 # own access, from a URL whose output is not fixed. Serve the package from the

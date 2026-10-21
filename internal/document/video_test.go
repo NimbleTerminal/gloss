@@ -1,11 +1,13 @@
 package document
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 func TestSniffVideo(t *testing.T) {
@@ -147,4 +149,22 @@ func fieldsText(fields []Field) string {
 		b.WriteString(f.Label + " " + f.Value + "\n")
 	}
 	return b.String()
+}
+
+// A video held in memory, as the browser's files are, is described without
+// ffmpeg and has no picture; natively it cannot be played from memory.
+func TestMemoryVideo(t *testing.T) {
+	files := fstest.MapFS{"clip.mp4": {Data: []byte("\x00\x00\x00\x20ftypisom\x00\x00\x02\x00")}}
+	l := &Loader{Files: files}
+	defer l.Close()
+	r := l.Load(Request{Path: "clip.mp4", Generation: 1, Describe: true})
+	if r.Err != nil || r.Kind != "video" || !strings.Contains(fieldsText(r.Info), "Format MP4") {
+		t.Fatalf("describe: err=%v info=%v", r.Err, r.Info)
+	}
+	if r = l.Load(Request{Path: "clip.mp4", Generation: 2, Preview: true}); !errors.Is(r.Err, ErrVideoPreview) {
+		t.Fatalf("preview: %v", r.Err)
+	}
+	if r = l.Load(Request{Path: "clip.mp4", Generation: 3, Animate: true}); !errors.Is(r.Err, ErrVideoNative) || r.Video != nil {
+		t.Fatalf("viewer: err=%v video=%v", r.Err, r.Video)
+	}
 }

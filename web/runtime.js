@@ -121,6 +121,10 @@ try {
   status.textContent = 'Starting the terminal…';
   const terminal = new BoobaTerminal('terminal', { renderer: parseRendererFromURL() });
   await terminal.init();
+  // Videos play in the browser's own <video>, laid over the cells gloss gives
+  // them: register the terminal as ntvideo's host before gloss starts.
+  const { registerBoobaHost } = await import('./ntvideo/surface.js');
+  registerBoobaHost('terminal', terminal);
   go.run(instance).catch(error => message(`Unable to run gloss: ${error.message || error}`));
   terminal.connectWasm();
   status.hidden = true;

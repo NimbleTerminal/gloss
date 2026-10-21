@@ -80,7 +80,7 @@ require (
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.1 // indirect
 	nimbleterminal.dev/nttypeset v0.1.1 // indirect
-	nimbleterminal.dev/ntvideo v0.1.1-0.20261021215438-8cede0aa5a84 // indirect
+	nimbleterminal.dev/ntvideo v0.1.1-0.20261021222010-7e2758bcd36e // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..
@@ -90,4 +90,5 @@ replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-2026
 tool (
 	github.com/NimbleMarkets/go-booba/cmd/booba-assets
 	nimbleterminal.dev/ntshim/cmd/ntshim-assets
+	nimbleterminal.dev/ntvideo/cmd/ntvideo-assets
 )

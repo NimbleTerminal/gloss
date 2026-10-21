@@ -6,7 +6,9 @@
   (`brew install mpv`). They open paused on the first frame; Space plays,
   ←/→ seek, and the bottom row is a scrub bar. With FFmpeg installed, `i` and
   `--info` describe them, and previews, thumbnails, `--output` and `--print`
-  use a frame. `--type video` and `--accept video/*` name them.
+  use a frame. `--type video` and `--accept video/*` name them. In the browser
+  demo and app, videos play in the browser's own player, with the same keys;
+  the demo has a sample.
 
 - Click a file in the file menu to select it, and again to open it; the wheel
   moves the selection. This works in the browser demo too.

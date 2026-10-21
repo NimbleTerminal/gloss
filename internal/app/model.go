@@ -285,6 +285,9 @@ func (m *Model) Close() error {
 	}
 	if m.video != nil {
 		_ = m.video.Release()
+		if m.videoInfo != nil && m.videoInfo.Revoke != nil {
+			m.videoInfo.Revoke()
+		}
 	}
 	if m.grid != nil {
 		_ = m.grid.loader.Close() // A PDF thumbnail's worker.

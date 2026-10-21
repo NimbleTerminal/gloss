@@ -38,7 +38,10 @@ bookToC: false
   `ffmpeg`, both from FFmpeg. Without mpv a video does not play and says so;
   without FFmpeg it plays but has no details or first frame. A video is never
   read into gloss: it may be up to 2 GiB and 4096×4096, from a local file
-  only, not a URL. The browser demo cannot play video.
+  only, not a URL. In the browser demo and app, a video plays in the
+  browser's own video player, laid over gloss's cells, with the same keys:
+  whatever the browser can decode, within the app's 128 MiB file limit.
+  There it has no details, preview or thumbnail, which come from FFmpeg.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder
