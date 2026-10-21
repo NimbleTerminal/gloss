@@ -5,7 +5,7 @@
 A visual pager for the terminal: like `less`, for images, SVGs, PDFs, STL, 3MF, OBJ and PLY
 meshes, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks, Word, Excel,
 Grist, and CSV files.
-Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.9+) on Bubble
+Written in Go (module `nimbleterminal.dev/gloss`, Go 1.26.10+) on Bubble
 Tea, ntsvg, ntpdf, ntpicture, and nt3d. The README is the
 short introduction; the user reference is the guide on the documentation site
 (`docs/hugo/content/guide`); DEVELOP.md is for working on gloss. Keep them and

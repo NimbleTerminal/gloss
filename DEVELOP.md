@@ -19,7 +19,7 @@ a version published after the migration. Existing tags are unchanged.
 
 ## Build and run
 
-Requires Go **1.26.9+** and [Task](https://taskfile.dev/) for the development
+Requires Go **1.26.10+** and [Task](https://taskfile.dev/) for the development
 commands. Without Task, build with `go build -o gloss ./cmd/gloss`. Go's
 automatic toolchain selection can download that version. Dependencies are
 pinned in `go.mod`, including published releases of ntpicture, ntsvg, ntpdf,

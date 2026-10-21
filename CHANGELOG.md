@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Require Go 1.26.10+ for the `crypto/x509` fix (GO-2026-6809).
+
 - Open with now lists the apps your system knows for each file, with its
   defaults (Launch Services on macOS, XDG on Linux, the registry on Windows),
   through the ntopenwith library. On Linux, editors registered for plain text are
