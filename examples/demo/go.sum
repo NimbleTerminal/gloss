@@ -10,8 +10,8 @@ github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 h1:XFJZFWESIWlUEHHjzBuv8R
 github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2/go.mod h1:BHWO8lJzttJLqwuV8Rb1B3OG2OSzLbssZDI1FRg2eAA=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/NimbleMarkets/go-booba v0.10.3 h1:yd3rYWLxPjvxruThzF2nbOJlx0g+f1HHQj7QiTJvB+c=
-github.com/NimbleMarkets/go-booba v0.10.3/go.mod h1:i/XjhpdZ8B+gXeaYLQ1HQLw0QOh9Cg/t2I2lNKDSynw=
+github.com/NimbleMarkets/go-booba v0.10.4 h1:kX1GBMJsh+MzFiwPiflhc2YRvXhPzKXfKpOv7sVc6eo=
+github.com/NimbleMarkets/go-booba v0.10.4/go.mod h1:i/XjhpdZ8B+gXeaYLQ1HQLw0QOh9Cg/t2I2lNKDSynw=
 github.com/NimbleMarkets/oksvg v0.1.2 h1:yEdKYq/+btcLHrOfCnF3/scwGXEY9lUvLFc1aRhqmGY=
 github.com/NimbleMarkets/oksvg v0.1.2/go.mod h1:UjBClYuMoMN0Pb9nUI1d5sm/3H8DSGd6YopliZWA3qw=
 github.com/alecthomas/assert/v2 v2.11.0 h1:2Q9r3ki8+JYXvGsDyBXwH3LcJ+WK5D0gc5E8vS6K3D0=
