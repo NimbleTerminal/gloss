@@ -115,6 +115,53 @@ func (m *Model) closeMenu(open bool) tea.Cmd {
 	return cleanup
 }
 
+// menuStart is the first file the list shows: the selection stays centered.
+func (m *Model) menuStart() int {
+	h := m.bodyHeight()
+	return max(0, min(m.selection-h/2, len(m.opts.Files)-h))
+}
+
+// listMouse takes the mouse on the list, as the grid does: a click selects a
+// row, a second click on the selected row opens it, and the wheel moves the
+// selection. The preview pane, and a drag begun there, keep theirs.
+func (m *Model) listMouse(msg tea.MouseMsg) tea.Cmd {
+	mouse := msg.Mouse()
+	list := m.width
+	if pw := m.previewWidth(); pw > 0 {
+		list -= pw + 1
+	}
+	if mouse.X >= list || m.previewDrag {
+		return m.previewMouse(msg)
+	}
+	switch v := msg.(type) {
+	case tea.MouseWheelMsg:
+		switch v.Button {
+		case tea.MouseWheelUp:
+			m.selection--
+		case tea.MouseWheelDown:
+			m.selection++
+		default:
+			return nil
+		}
+	case tea.MouseClickMsg:
+		if v.Button != tea.MouseLeft || mouse.Y < 0 || mouse.Y >= m.bodyHeight() {
+			return nil
+		}
+		i := m.menuStart() + mouse.Y
+		if i >= len(m.opts.Files) {
+			return nil
+		}
+		if i == m.selection {
+			return m.closeMenu(true) // A second click opens.
+		}
+		m.selection = i
+	default:
+		return nil
+	}
+	m.selection = max(0, min(len(m.opts.Files)-1, m.selection))
+	return m.updatePreview()
+}
+
 // The chart's zones are local to the right pane. Capture a drag so release
 // outside that pane still reaches the chart and ends the gesture.
 func (m *Model) previewMouse(msg tea.MouseMsg) tea.Cmd {
@@ -203,7 +250,7 @@ func (m *Model) menuView() string {
 	if pw > 0 {
 		w -= pw + 1
 	}
-	start := max(0, min(m.selection-h/2, len(m.opts.Files)-h))
+	start := m.menuStart()
 	digits := len(strconv.Itoa(len(m.opts.Files))) // Numbers stand right-aligned, names in one column.
 	lines := make([]string, 0, h)
 	for i := start; i < len(m.opts.Files) && len(lines) < h; i++ {

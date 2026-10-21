@@ -1,5 +1,10 @@
 # `gloss` CHANGELOG
 
+## Unreleased
+
+- Click a file in the file menu to select it, and again to open it; the wheel
+  moves the selection. This works in the browser demo too.
+
 ## `v0.4.0` (2026-10-21)
 
 - Open OBJ and PLY meshes: OBJ with material colors and PNG/JPEG textures, PLY

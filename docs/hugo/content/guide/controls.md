@@ -134,7 +134,8 @@ row order. This keeps their content available at narrow widths.
 
 The file menu preserves argument order and marks the active file with `*`.
 Use arrows or `j`/`k` to select, `Enter` to open, and `Esc` to cancel without
-changing the current page, zoom, or camera. `PageUp`/`PageDown` scroll through
+changing the current page, zoom, or camera. With the mouse, a click selects a
+file, a second click opens it, and the wheel moves the selection. `PageUp`/`PageDown` scroll through
 long lists; `Home`/`End` jump to the ends. Full paths distinguish duplicate names.
 Press `v` to toggle an independent preview pane. PDF previews show page 1 at
 reduced DPI; mesh previews are drawn as the viewer draws them, and 3MF previews show the

@@ -346,3 +346,33 @@ func TestMenuListsDroppedFilesByName(t *testing.T) {
 		t.Fatalf("menu:\n%s", view)
 	}
 }
+
+func TestMenuMouseSelectsAndOpens(t *testing.T) {
+	m := New(Options{Files: []string{"a.pdf", "b.svg", "c.stl"}, Render: "glyph", Page: 1, DPI: 72})
+	defer m.Close()
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 10})
+	m.Update(press("m"))
+	if mode := m.View().MouseMode; mode != tea.MouseModeCellMotion {
+		t.Fatalf("the list asks for mouse mode %v", mode)
+	}
+	click := func(y int) {
+		m.Update(tea.MouseClickMsg{X: 3, Y: y, Button: tea.MouseLeft})
+		m.Update(tea.MouseReleaseMsg{X: 3, Y: y, Button: tea.MouseLeft})
+	}
+	click(2)
+	if !m.listing() || m.selection != 2 || m.index != 0 {
+		t.Fatalf("a first click should select the row: listing=%v selection=%d index=%d", m.listing(), m.selection, m.index)
+	}
+	m.Update(tea.MouseWheelMsg{X: 3, Y: 0, Button: tea.MouseWheelUp})
+	if m.selection != 1 {
+		t.Fatalf("the wheel should move the selection: %d", m.selection)
+	}
+	click(7) // Below the last file.
+	if !m.listing() || m.selection != 1 {
+		t.Fatal("a click below the files changed the selection")
+	}
+	click(1)
+	if m.listing() || m.index != 1 {
+		t.Fatalf("a second click should open the row: listing=%v index=%d", m.listing(), m.index)
+	}
+}

@@ -71,8 +71,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body = m.emptyView(w)
 	case m.listing():
 		body, plain = m.menuView(), false
+		mouse = tea.MouseModeCellMotion // Clicks on rows, and the wheel.
 		if m.preview != nil && m.previewWidth() > 0 {
-			mouse = m.preview.View().MouseMode
+			mouse = max(mouse, m.preview.View().MouseMode)
 		}
 		if m.screen == screenGrid {
 			mouse = tea.MouseModeCellMotion

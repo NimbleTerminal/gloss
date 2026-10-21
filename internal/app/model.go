@@ -567,7 +567,7 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		if m.screen == screenGrid && m.grid != nil {
 			return m.gridMouse(mouse)
 		}
-		return m.previewMouse(mouse)
+		return m.listMouse(mouse)
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok && m.pickingColor() {
 		if cmd, took := m.colorMouse(mouse); took {
