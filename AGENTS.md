@@ -507,7 +507,9 @@ Uses [Task](https://taskfile.dev/); without it, `go build -o gloss ./cmd/gloss`.
   demo site (Node 18+ for `web-check`).
 - `task release` — GoReleaser snapshot into `dist/`, publishing nothing:
   macOS/Linux/Windows amd64/arm64 archives, `.deb` packages, and the Homebrew
-  cask (`.goreleaser.yaml`; `task release-check` validates it). Pushing a
+  cask (`.goreleaser.yaml`; `task release-check` validates it). macOS is
+  built with cgo (minimum macOS 12), Linux/Windows without, so it runs on a
+  Mac (see DEVELOP.md). Pushing a
   `v*` tag publishes them via GitHub Actions, the cask to
   `NimbleTerminal/homebrew-tap`.
 - `task gen-assets` — regenerates the original PNG/HEIC/JPEG XL/GIF/PDF/STL fixtures,

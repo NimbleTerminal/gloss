@@ -548,6 +548,12 @@ packages macOS, Linux, and Windows amd64 and arm64 binaries: archives, `.deb`
 packages, and SHA-256 checksums go to a GitHub Release, and a cask to the
 [Homebrew tap](https://github.com/NimbleTerminal/homebrew-tap). Locally,
 `task release` produces the same in `dist/` as a snapshot, without publishing.
+Linux and Windows are built without cgo; macOS is built with it, so releases
+and snapshots run on a Mac (the release workflow uses `macos-latest`). Without
+cgo the macOS link fails: purego (ntopenwith's Launch Services) and goffi
+(nt3d's GPU renderer) each bring a `fakecgo` defining `_cgo_init`. The macOS
+build pins `-mmacosx-version-min=12.0`, else the binary would require the
+building Mac's own version; `internal/tools/releasecheck` checks both.
 Release binaries use software STL rendering when native GPU support is
 unavailable. The macOS binaries are signed and notarized with the hardened
 runtime, which forbids executing memory the process wrote itself unless an

@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # gloss .goreleaser.yaml
-# One pure-Go binary (CGO_ENABLED=0) for macOS, Linux, and Windows: archives,
-# Debian packages, and a Homebrew cask in NimbleTerminal/homebrew-tap.
+# One binary each for macOS, Linux, and Windows: archives, Debian packages, and
+# a Homebrew cask in NimbleTerminal/homebrew-tap. Linux and Windows are pure Go
+# (CGO_ENABLED=0); macOS is built with cgo, so this runs on a Mac.
 # Try it without publishing: task release
 
 version: 2
@@ -25,7 +26,27 @@ builds:
     main: ./cmd/gloss
     binary: gloss
     env: [CGO_ENABLED=0]
-    goos: [linux, darwin, windows]
+    goos: [linux, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+      - -mod=readonly
+    ldflags:
+      - -s -w -X main.version=v{{.Version}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+  # Without cgo, macOS links two copies of the runtime glue that stands in
+  # for it, purego's (ntopenwith's Launch Services) and goffi's (nt3d's GPU
+  # renderer), and both define _cgo_init. With cgo neither is linked. The
+  # minimum macOS is pinned; it would otherwise be the building Mac's own.
+  - id: gloss-darwin
+    main: ./cmd/gloss
+    binary: gloss
+    env:
+      - CGO_ENABLED=1
+      - MACOSX_DEPLOYMENT_TARGET=12.0
+      - CGO_CFLAGS=-O2 -g -mmacosx-version-min=12.0
+      - CGO_LDFLAGS=-mmacosx-version-min=12.0
+    goos: [darwin]
     goarch: [amd64, arm64]
     flags:
       - -trimpath
@@ -38,6 +59,7 @@ archives:
   - id: default
     ids:
       - gloss
+      - gloss-darwin
     formats:
       - tar.gz
     format_overrides:
@@ -115,7 +137,7 @@ notarize:
   macos:
     - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
       ids:
-        - gloss
+        - gloss-darwin
       sign:
         certificate: "{{.Env.MACOS_SIGN_P12}}"
         password: "{{.Env.MACOS_SIGN_PASSWORD}}"

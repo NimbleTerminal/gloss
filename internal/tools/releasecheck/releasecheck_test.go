@@ -62,3 +62,42 @@ func TestReleaseSigningAllowsUnsignedExecutableMemory(t *testing.T) {
 		t.Fatalf("%s does not set %s to true", path, entitlement)
 	}
 }
+
+// TestReleaseBuildsMacOSWithCgo keeps the macOS build on cgo, with a pinned
+// minimum, and its binaries signed. Without cgo the link fails: purego
+// (ntopenwith) and goffi (nt3d's GPU renderer) each bring a fakecgo, and both
+// define _cgo_init. A cgo build also needs a Mac, so the release runs on one.
+func TestReleaseBuildsMacOSWithCgo(t *testing.T) {
+	root := filepath.Join("..", "..", "..")
+	config, err := os.ReadFile(filepath.Join(root, ".goreleaser.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(config)
+	start := strings.Index(text, "  - id: gloss-darwin\n")
+	if start < 0 {
+		t.Fatal("no gloss-darwin build")
+	}
+	build := text[start:]
+	if end := strings.Index(build[1:], "\n  - id: "); end >= 0 {
+		build = build[:end+1]
+	}
+	if end := strings.Index(build, "\n\n"); end >= 0 {
+		build = build[:end]
+	}
+	for _, want := range []string{"CGO_ENABLED=1", "-mmacosx-version-min=12.0", "goos: [darwin]"} {
+		if !strings.Contains(build, want) {
+			t.Errorf("the gloss-darwin build lacks %q:\n%s", want, build)
+		}
+	}
+	if !strings.Contains(text, "      ids:\n        - gloss-darwin\n      sign:") {
+		t.Error("notarize does not sign the gloss-darwin build")
+	}
+	workflow, err := os.ReadFile(filepath.Join(root, ".github", "workflows", "release.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := strings.Count(string(workflow), "runs-on: macos-"); n != 2 {
+		t.Errorf("release.yml: %d jobs on macOS, want the snapshot and the release", n)
+	}
+}
