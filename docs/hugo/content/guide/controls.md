@@ -60,7 +60,8 @@ with retry and next-file controls.
 
 Native app handoff: `w` opens the current or highlighted file with its default app;
 `W` opens the app chooser on **Open with**, and `E` edits with the default editor
-(text files use `$VISUAL` or `$EDITOR`; otherwise the **Edit with** chooser opens).
+(text files use `$VISUAL` or `$EDITOR`, other files the system's default editor;
+with neither, the **Edit with** chooser opens).
 In the file browser use Alt+Enter. In the chooser, arrows select, Enter opens,
 Tab switches between **Open with** and **Edit with**, `d` saves the default for
 that kind and verb, and Esc closes.

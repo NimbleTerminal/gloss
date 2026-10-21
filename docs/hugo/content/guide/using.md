@@ -166,7 +166,9 @@ Enter and press `W`, or configure the terminal's key binding.
 The chooser lists System default, the apps your system knows for this kind of
 file, Reveal in Finder/Explorer (the containing folder on Linux), and Copy path.
 Use arrows to choose and Enter to open. Press `d` on an app to save it as the
-default for this format; this does not launch it. Esc closes the chooser; a
+default for this kind of file and verb; this does not launch it. On Linux an app
+registered for a general type is offered for its subtypes too, so a plain-text
+editor appears for source files, Markdown and JSON. Esc closes the chooser; a
 saved choice stays saved.
 
 `E` edits with the app resolved for editing. For text, Markdown, JSON, HTML,
