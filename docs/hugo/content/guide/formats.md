@@ -30,6 +30,15 @@ bookToC: false
   destinations and 64 MiB of animation storage per document (decoded GIF
   frames; a WebP's canvas plus its retained compressed container); excess animations
   remain still.
+- Video: MP4, M4V, MOV, WebM and MKV, by name or by their first bytes. The
+  viewer plays them through [mpv](https://mpv.io)'s library, found when a
+  video is opened (`brew install mpv` or your system's mpv package); it opens
+  paused on the first frame. Details (`i`, `--info`) come from `ffprobe`, and
+  the first frame, for previews, thumbnails, `--output` and `--print`, from
+  `ffmpeg`, both from FFmpeg. Without mpv a video does not play and says so;
+  without FFmpeg it plays but has no details or first frame. A video is never
+  read into gloss: it may be up to 2 GiB and 4096×4096, from a local file
+  only, not a URL. The browser demo cannot play video.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder

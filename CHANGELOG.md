@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Play videos: MP4, M4V, MOV, WebM and MKV, through ntvideo and mpv's library
+  (`brew install mpv`). They open paused on the first frame; Space plays,
+  ←/→ seek, and the bottom row is a scrub bar. With FFmpeg installed, `i` and
+  `--info` describe them, and previews, thumbnails, `--output` and `--print`
+  use a frame. `--type video` and `--accept video/*` name them.
+
 - Click a file in the file menu to select it, and again to open it; the wheel
   moves the selection. This works in the browser demo too.
 

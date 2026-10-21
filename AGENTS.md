@@ -75,7 +75,8 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   The font chooser also uses `ntpicture.Picture`. All graphics consumers share
   ntpicture's single-image ID allocator; async message owners use separate IDs.
   ntpicture, ntsvg, ntpdf, ntqrcode, nt3d, nttypeset, ntfonts, ntfilepicker, and
-  ntopenwith use published version pins.
+  ntopenwith use published version pins; ntvideo is pinned to a commit until
+  it is tagged.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
   camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
   and its `widget` package. Gloss owns the projection/title rows around the
@@ -106,6 +107,20 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   HEIC/HEIF via a pure-Go HEVC decoder, and JPEG XL (bare codestream or
   container, first frame, oriented by the decoder, Exif from the container)
   via the pure-Go `gen2brain/jxl` decoder — no CGO or external converters.
+- **Video** (`internal/document/video.go`, `internal/app/video.go`): `.mp4 .m4v
+  .mov .webm .mkv`, or an ftyp box (not HEIC/AVIF) or EBML header, through
+  `nimbleterminal.dev/ntvideo`. Known before reading (`isVideoFile`, 64 bytes),
+  and never read into memory: ntvideo's limits (2 GiB, 4096×4096, local
+  regular files) replace the 128 MiB cap, and `--accept` checks the head.
+  The loader describes it with `ntvideo.Probe` (ffprobe) and draws the frame at
+  `Request.At` (default the first) with `FrameAt` (ffmpeg): previews,
+  thumbnails, exports, `--print`. Missing ffmpeg: details say "install ffmpeg",
+  headless loads fail, the viewer still plays. The viewer plays it with an
+  `ntvideo.Model` (libmpv at run time, via goffi; shared terminal session and
+  image IDs), paused on the first frame: Space play/pause, ←/→ 5 s, Home
+  start, scrub bar on its last row; hidden and paused behind help, the menu and
+  the app chooser; the menu restores its position; `Q` keeps the frame; `e`
+  exports the frame on screen. Browser/embedded files: an error (no backend).
 - **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar

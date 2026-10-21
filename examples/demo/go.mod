@@ -35,7 +35,7 @@ require (
 	github.com/gen2brain/jxl v0.2.0 // indirect
 	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-text/typesetting v0.3.5 // indirect
-	github.com/go-webgpu/goffi v0.6.4 // indirect
+	github.com/go-webgpu/goffi v0.6.7 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect
@@ -80,6 +80,7 @@ require (
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.1 // indirect
 	nimbleterminal.dev/nttypeset v0.1.1 // indirect
+	nimbleterminal.dev/ntvideo v0.1.1-0.20261021215438-8cede0aa5a84 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..

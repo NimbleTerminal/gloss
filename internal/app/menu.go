@@ -93,6 +93,9 @@ func (m *Model) openMenu(selection int) tea.Cmd {
 		camera := m.chart.Camera()
 		m.savedCamera = &camera
 	}
+	if m.video != nil {
+		m.savedVideoAt = m.video.Status().CurrentTime
+	}
 	if m.thumbs {
 		return tea.Sequence(m.clearGraphics(), m.openGrid())
 	}

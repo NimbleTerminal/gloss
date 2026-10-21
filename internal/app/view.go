@@ -85,6 +85,8 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body = "Loading " + safe(filepath.Base(m.opts.Files[m.index])) + "…"
 	case m.err != nil:
 		body = "Cannot open file\n\n" + safe(m.err.Error()) + "\n\nR retry · ] next file · q quit"
+	case m.video != nil:
+		body, mouse, plain = m.video.View(), tea.MouseModeCellMotion, false
 	case m.chart != nil:
 		v := m.chart.View()
 		body, mouse, plain = m.meshFrame(v.Content, w), v.MouseMode, false
@@ -331,6 +333,8 @@ func (m *Model) detail(w, h int) string {
 		detail += fmt.Sprintf(" · page %d/%d", m.page, m.pages)
 	}
 	switch {
+	case m.video != nil:
+		detail = m.videoDetail()
 	case m.chart != nil:
 		detail = fmt.Sprintf("%s · %s", strings.ToUpper(m.kind), plural(m.triangles, "triangle"))
 		if m.triangles == 0 && m.points > 0 {
@@ -451,6 +455,8 @@ func (m *Model) hints() string {
 		if m.sheet.url() != "" {
 			keys = " u QR of address ·" + strings.TrimPrefix(keys, " q quit ·")
 		}
+	case m.video != nil:
+		keys = " q quit · Space play/pause · ←/→ seek · ? help · m files · [/] files · e export · i info"
 	case m.chart != nil && m.mesh != nil:
 		keys = " q quit · ? help · m files · [/] files · e export · i info · C color · B bg-color"
 		if m.hasParts() {

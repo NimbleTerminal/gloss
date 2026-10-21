@@ -36,7 +36,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -165,18 +165,19 @@ type Request struct {
 	Page, DPI   int
 	Generation  uint64
 	Reload      bool
-	MaxEdge     int         // Export raster target; zero keeps interactive defaults.
-	Animate     bool        // Decode bounded GIF/WebP playback; still exports and previews leave this false.
-	TextOnly    bool        // The text layer of a PDF page is wanted, not a picture of it.
-	Describe    bool        // Only the info fields are wanted: a PDF page is not drawn.
-	Preview     bool        // A small, quick rendering is wanted: a thumbnail will do.
-	Parts       PartFilter  // The parts of a 3MF to show; empty shows them all.
-	Up          string      // "y" or "z": the up axis of an STL, OBJ or PLY; empty is the format's usual.
-	Shown       []bool      // The parts of a 3MF already chosen, over any filter; nil for all.
-	Color       *color.RGBA // Paint for the faces of a mesh that its file left plain.
-	PaintAll    bool        // Paint every face, not only the plain ones.
-	Stdin       bool        // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
-	BaseDir     string      // Relative Markdown assets; empty uses the source directory.
+	MaxEdge     int           // Export raster target; zero keeps interactive defaults.
+	Animate     bool          // Decode bounded GIF/WebP playback; still exports and previews leave this false.
+	TextOnly    bool          // The text layer of a PDF page is wanted, not a picture of it.
+	Describe    bool          // Only the info fields are wanted: a PDF page is not drawn.
+	At          time.Duration // The moment of a video to draw; its first frame when zero.
+	Preview     bool          // A small, quick rendering is wanted: a thumbnail will do.
+	Parts       PartFilter    // The parts of a 3MF to show; empty shows them all.
+	Up          string        // "y" or "z": the up axis of an STL, OBJ or PLY; empty is the format's usual.
+	Shown       []bool        // The parts of a 3MF already chosen, over any filter; nil for all.
+	Color       *color.RGBA   // Paint for the faces of a mesh that its file left plain.
+	PaintAll    bool          // Paint every face, not only the plain ones.
+	Stdin       bool          // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
+	BaseDir     string        // Relative Markdown assets; empty uses the source directory.
 	// Exactly what was asked for: a page or part that is not there is an
 	// error, not the nearest one. The viewer turns pages and keeps within
 	// them; an export or a text must not answer for another page.
@@ -202,6 +203,7 @@ type Result struct {
 	Image            image.Image
 	Animation        *animation.Player
 	Mesh             *Mesh
+	Video            *Video                      // A video, played from its file; Image is its first frame.
 	Parts            []Part                      // What a 3MF build places, for choosing among.
 	Shown            []bool                      // Which of them the mesh holds; nil for all.
 	Assemble         func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
@@ -340,6 +342,9 @@ func (l *Loader) Load(q Request) (out Result) {
 	}
 	if l.book != nil {
 		return l.turnSheet(q)
+	}
+	if isVideoFile(l.Files, q.Path, q.Type) {
+		return l.loadVideo(q)
 	}
 	data, err := readFileFrom(l.Files, q.Path)
 	if err != nil {
@@ -761,6 +766,9 @@ func Detect(path string, data []byte, forced string) (string, error) {
 	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("%PDF-")) {
 		return "pdf", nil
 	}
+	if sniffVideo(data) {
+		return "video", nil
+	}
 	if bytes.HasPrefix(data, []byte("ply\n")) || bytes.HasPrefix(data, []byte("ply\r\n")) {
 		return "ply", nil
 	}
@@ -836,6 +844,8 @@ func Detect(path string, data []byte, forced string) (string, error) {
 		return "docx", nil
 	case ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff":
 		return "image", nil
+	case ".mp4", ".m4v", ".mov", ".webm", ".mkv":
+		return "video", nil
 	}
 	// Whatever is not binary can be read as text, as less would.
 	if IsText(data) {

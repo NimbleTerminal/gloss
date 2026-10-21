@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"path/filepath"
 	"strings"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
@@ -33,6 +34,15 @@ func (m *Model) exportRequest() document.Request {
 		q.TypesetWidth = m.typesetWidth
 	}
 	q.Preview, q.Animate, q.MaxEdge = false, false, m.opts.MaxEdge
+	if m.video != nil {
+		// The frame on screen, not the first; at the end, the one before it,
+		// since ffmpeg finds no frame at or after the end.
+		s := m.video.Status()
+		q.At = s.CurrentTime
+		if s.Duration > 0 && q.At >= s.Duration {
+			q.At = max(0, s.Duration-time.Second/10)
+		}
+	}
 	if q.MaxEdge == 0 {
 		q.MaxEdge = 1536
 	}

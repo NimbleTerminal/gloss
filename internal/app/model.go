@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"io/fs"
 	"sync/atomic"
+	"time"
 
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
 	"nimbleterminal.dev/ntpicture/playback"
@@ -19,6 +20,7 @@ import (
 	widget "nimbleterminal.dev/nt3d/widget"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	svg "nimbleterminal.dev/ntsvg"
+	"nimbleterminal.dev/ntvideo"
 )
 
 type Options struct {
@@ -84,6 +86,8 @@ type Options struct {
 // embedded in Model, so its fields read as the model's own.
 type meshState struct {
 	chart       *widget.Model
+	video       *ntvideo.Model  // A video being played; its first frame stands in elsewhere.
+	videoInfo   *document.Video // The file it plays, as the loader found it.
 	triangles   int
 	points      int             // A point cloud's, which has no triangles.
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
@@ -96,8 +100,10 @@ type meshState struct {
 	tintAll     bool           // On every face, not only the plain ones.
 	colorPicker *colorPicker
 	savedCamera *nt3d.Camera
-	home        nt3d.Camera    // Where the camera starts, and returns on reset.
-	homeView    *document.View // The view the home is fitted from, when it is a fit.
+	// Where a video was when the menu set it aside, to go back to.
+	savedVideoAt time.Duration
+	home         nt3d.Camera    // Where the camera starts, and returns on reset.
+	homeView     *document.View // The view the home is fitted from, when it is a fit.
 }
 
 // textState is what the model keeps for a Markdown or sheet document, and the
@@ -277,6 +283,9 @@ func (m *Model) Close() error {
 	if m.chart != nil {
 		_ = m.chart.Close()
 	}
+	if m.video != nil {
+		_ = m.video.Release()
+	}
 	if m.grid != nil {
 		_ = m.grid.loader.Close() // A PDF thumbnail's worker.
 	}
@@ -312,6 +321,10 @@ func (m *Model) quit() tea.Cmd {
 	var keepMesh tea.Cmd
 	if m.chart != nil {
 		keepMesh = m.chart.Keep()
+	}
+	if m.video != nil {
+		m.video.Pause()
+		keepMesh = tea.Batch(keepMesh, m.video.Keep())
 	}
 	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture(), keepMesh), tea.Quit)
 }
@@ -454,7 +467,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	overlayCleanup := m.clearTypesetLayers()
 	stopped := m.stopAnimation()
 	m.sheet = nil
-	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearMarkdown())
+	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearVideo(), m.clearMarkdown())
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -515,7 +528,7 @@ func (m *Model) graphicsTick(msg tea.Msg) tea.Cmd {
 		m.typesetPending = nil
 		cmd = tea.Batch(cmd, m.clearTypesetLayers())
 	}
-	cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg))
+	cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg), m.updateVideo(msg))
 	if m.markdown != nil {
 		cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument), m.markdown.update(msg))
 	}
@@ -664,7 +677,7 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		if m.chart != nil {
 			return tea.Batch(cmd, m.chart.SetSize(m.width, m.meshHeight()), m.refit())
 		}
-		return cmd
+		return tea.Batch(cmd, m.layoutVideo())
 	case tea.PasteMsg:
 		if m.search != nil && m.search.editing {
 			m.search.insert(v.Content)
@@ -831,6 +844,9 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	if v.Mesh != nil {
 		return m.showMesh(v, cleanup)
+	}
+	if v.Video != nil && !m.isPreview {
+		return m.showVideo(v, cleanup)
 	}
 	m.source = v.Image
 	if v.Animation != nil && !m.isPreview {

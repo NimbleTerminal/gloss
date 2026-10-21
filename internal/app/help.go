@@ -16,7 +16,7 @@ type helpSection struct {
 }
 
 // helpLeft is what works everywhere and in text documents; helpRight is for
-// pictures, pages, meshes and GIFs. At 80 columns they sit side by side in
+// pictures, pages, meshes, GIFs and videos. At 80 columns they sit side by side in
 // 22 rows, the room a 24-row terminal leaves; narrower, they stack.
 var helpLeft = []helpSection{
 	{"Everywhere", []helpRow{
@@ -55,10 +55,10 @@ var helpRight = []helpSection{
 		{"r", "auto-rotate"},
 		{"C  B", "model color · background"},
 	}},
-	{"GIFs", []helpRow{
+	{"GIFs and videos", []helpRow{
 		{"Space , .", "play / pause · step frames"},
 		{"< > Bksp", "speed · back to 1×"},
-		{"drag bar", "seek"},
+		{"drag  ← →", "seek (a video: 5 s)"},
 	}},
 }
 

@@ -35,6 +35,7 @@ require (
 	nimbleterminal.dev/ntqrcode v0.3.1
 	nimbleterminal.dev/ntsvg v0.5.1
 	nimbleterminal.dev/nttypeset v0.1.1
+	nimbleterminal.dev/ntvideo v0.1.1-0.20261021215438-8cede0aa5a84
 )
 
 require (
@@ -55,7 +56,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/go-text/render v0.2.1 // indirect
-	github.com/go-webgpu/goffi v0.6.4 // indirect
+	github.com/go-webgpu/goffi v0.6.7 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect

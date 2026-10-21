@@ -31,6 +31,7 @@ var orderNames = []string{"name", "date", "kind"}
 // what gloss cannot open has none.
 var kindMarks = map[string]string{
 	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".bmp": "📷", ".tif": "📷", ".tiff": "📷", ".heic": "📷", ".heif": "📷", ".hif": "📷", ".jxl": "📷",
+	".mp4": "🎬", ".m4v": "🎬", ".mov": "🎬", ".webm": "🎬", ".mkv": "🎬",
 	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊", ".obj": "🧊", ".ply": "🧊",
 	".md": "📝", ".markdown": "📝", ".mdown": "📝", ".html": "📝", ".htm": "📝", ".txt": "📝", ".text": "📝", ".log": "📝",
 	".json": "🧾", ".jsonl": "🧾", ".ndjson": "🧾", ".ipynb": "📓",
@@ -54,6 +55,7 @@ var typeFilters = []typeFilter{
 	{"Notebooks", []string{"📓"}},
 	{"Word", []string{"📄"}},
 	{"Tables (CSV, Excel, Grist)", []string{"📊"}},
+	{"Videos", []string{"🎬"}},
 }
 
 // browseFilters are those kinds as the chooser takes them. A file is looked

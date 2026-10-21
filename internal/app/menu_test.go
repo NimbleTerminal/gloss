@@ -376,3 +376,32 @@ func TestMenuMouseSelectsAndOpens(t *testing.T) {
 		t.Fatalf("a second click should open the row: listing=%v index=%d", m.listing(), m.index)
 	}
 }
+
+// A video plays in the body, takes Space and the arrows, and the menu sets it
+// aside and brings it back where it was.
+func TestVideoInTheViewer(t *testing.T) {
+	m := New(Options{Files: []string{"clip.mp4", "b.svg"}, Render: "glyph"})
+	defer m.Close()
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m.kind = "video"
+	m.loaded(document.Result{Generation: m.generation, Kind: "video", Page: 1, Pages: 1,
+		Video: &document.Video{Path: "clip.mp4"}, Image: image.NewRGBA(image.Rect(0, 0, 16, 9))})
+	if m.video == nil || m.source != nil {
+		t.Fatal("a loaded video should play in the body")
+	}
+	if !strings.Contains(m.View().Content, "VIDEO") || !strings.Contains(m.View().Content, "Space play/pause") {
+		t.Fatalf("status line:\n%s", m.View().Content)
+	}
+	for _, k := range []string{"space", "left", "right", "home"} {
+		if _, ok := m.videoKey(k); !ok {
+			t.Errorf("the video did not take %s", k)
+		}
+	}
+	if _, ok := m.videoKey("n"); ok {
+		t.Error("the video took n, which turns to the next file")
+	}
+	m.Update(press("m"))
+	if m.video != nil || !m.listing() {
+		t.Fatal("the menu should set the video aside")
+	}
+}

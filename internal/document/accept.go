@@ -16,7 +16,7 @@ func ParseAccept(value string) (AcceptFilter, error) {
 	}
 	for _, item := range strings.Split(value, ",") {
 		switch strings.TrimSpace(item) {
-		case "image", "images", "image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid":
+		case "image", "images", "image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "video/*":
 		default:
 			return "", fmt.Errorf("--accept: unknown format %q; use gloss format names, or image/*", item)
 		}
@@ -51,6 +51,8 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 			case "png", "jpeg", "gif", "webp", "bmp", "tiff", "heic", "heif", "jxl", "svg":
 				return nil
 			}
+		case "video/*":
+			item = "video"
 		case "md":
 			item = "markdown"
 		case "jsonl", "ndjson":
@@ -66,6 +68,10 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 func (a AcceptFilter) CheckFile(files fs.FS, name string) error {
 	if a == "" {
 		return nil
+	}
+	// A video is known by its first bytes, and is never read whole.
+	if head, err := readHead(files, name, videoHeadBytes); err == nil && sniffVideo(head) {
+		return a.Check(name, head)
 	}
 	data, err := readFileFrom(files, name)
 	if err != nil {

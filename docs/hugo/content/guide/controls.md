@@ -232,6 +232,14 @@ without standalone playback controls; `e` exports the first visible GIF’s curr
 frame in normal Markdown or the whole viewport in typeset mode. Large/slow frames play
 more slowly rather than building a rendering backlog.
 
+A video opens paused on its first frame. **Space** plays and pauses (after the
+end, it starts again), **← / →** seek 5 seconds, and **Home** returns to the
+start. The bottom row is a scrub bar: click or drag it to seek. The status bar
+shows the time, the length and whether it is playing. Sound comes from your
+computer, through mpv. Help, the file menu and the app chooser pause it, and
+the menu comes back to the same place. `e` exports the frame on screen as PNG,
+and `Q` leaves it on screen. See [Formats](../formats/) for what video needs.
+
 In native Markdown views, click an HTTP(S) link or linked image to open it in
 the default browser. This also works in typeset mode; wheel scrolling remains
 available. Dragging, source view, and overlays do not activate links.

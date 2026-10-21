@@ -169,9 +169,9 @@ homebrew_casks:
       To teach your AI agents how to use gloss:
         gloss skill install
 
-      Optional companion tools (gloss does not require or invoke them):
-        brew install mpv       # audio/video playback
-        brew install ffmpeg    # media conversion and frame extraction
+      To play videos, and to describe them and draw their frames:
+        brew install mpv       # video playback in gloss
+        brew install ffmpeg    # video details and frames (--info, --output)
     binaries:
       - gloss
     manpages:

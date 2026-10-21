@@ -254,6 +254,11 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			return m.layoutMarkdown(), true
 		}
 	}
+	if m.layer == layerNone {
+		if cmd, ok := m.videoKey(k); ok {
+			return cmd, true
+		}
+	}
 	switch k {
 	case "m":
 		return m.openMenu(m.index), true
