@@ -1,101 +1,42 @@
 # `gloss` CHANGELOG
 
-## Unreleased
+## `v0.4.0` (2026-10-21)
 
-- Require Go 1.26.10+ for the `crypto/x509` fix (GO-2026-6809).
-
-- Open with now lists the apps your system knows for each file, with its
-  defaults (Launch Services on macOS, XDG on Linux, the registry on Windows),
-  through the ntopenwith library. On Linux, editors registered for plain text are
-  offered for source files too; on Windows, apps without a registered name show
-  their program's name rather than a class such as `txtfile`.
-
-- `E` edits a file in its editor; Tab in the chooser switches between Open with
-  and Edit with; saved choices carry over (defaults now live in
-  `open-with-v1.json`; the old `open-with.json` is read until the new file exists, and left alone).
-  The old **Edit in terminal** row is now under Edit with.
-
-- `--apps --json` rows now carry `verb` (`open` or `edit`) and `terminal`, and
-  there are two rows per kind, one for each verb: a script that keyed rows by
-  `kind` alone must also look at `verb`. Defaults can be an app ID such as
-  `mac:com.apple.Preview`.
-
-- PDFs written by macOS (Quartz) and linearized PDFs open: ntpdf v0.5.1 no
-  longer refuses their cross-references. Leaving a PDF also stops a page
-  that is still being drawn.
-
-- PDFs are parsed once per open file rather than once per page: turning
-  pages, `/` search and `--grep` are much faster on long documents, and
-  `--info` no longer draws the page to describe it.
-
-- Open OBJ and PLY meshes, through nt3d: OBJ with its material colors and
-  PNG or JPEG textures, PLY with vertex colors, and PLY point clouds drawn as
-  a surface of discs. Both are taken as Y-up; `--up z` (or `--up y` for an
-  STL) stands up a model written the other way.
-
-- Report gloss's state to terminals that support the Program Status Protocol
-  (OSC 7501): waiting for files during a pick or phone request, done when they
-  arrive, working while a file loads, and idle or error otherwise.
-
-- Typesetting moved to the nttypeset and ntfonts libraries; no visible change.
-
-- Reading PDFs (their checks, text, page sizes and details) moved to the
-  ntpdf library; no visible change.
-
-- The file browser moved to the ntfilepicker library. Its file-types menu now
-  offers Mermaid diagrams, with drawings.
-
-- JSON Lines piped in or saved without a `.jsonl` name now opens as JSON
-  records rather than plain text, and `--type`/`--accept` take `jsonl` and
-  `ndjson` as names for `json`.
-
-- Draw fenced `mermaid` blocks in Markdown as diagrams, in terminal text and
-  typeset views and in exports, with pure-Go go-mermaid: no browser or
-  network. Diagrams follow a light or dark theme, redrawing in place when it
-  changes. A diagram that does not parse shows its error, and typeset shows
-  its source. Standalone `.mmd` and `.mermaid` files open as one diagram, and
-  `--text` gives their source.
-
-- The browser demo uses go-booba v0.10.2, which fixes its mouse input.
-
-- SVG markers (such as arrowheads) and percentage lengths in shape geometry now
-  render, through ntsvg v0.5.1 and oksvg v0.1.2; meshes use nt3d v0.2.0.
-
-- `--print` draws one content viewport to stdout and exits, without a terminal.
-  Pictures use colored half-blocks; `--print-width` and `--print-height` size
-  captured output. Text, tables and the selected document page work too.
-
-- Show the build version in the `?` help heading.
-
-- Keep the displayed still picture visible while a background-color change renders.
-
-- Keep inline Markdown images on `Q` exit and update their layout when terminal
-  cell dimensions change, while preserving animation positions.
-
-- Preserve Kitty images when `Q` leaves the alternate screen, including
-  standalone animations and typeset pages.
-
-- Export the displayed animated typeset viewport, including its current image
-  layers, while retaining the displayed frame during pending reflow.
-
-- Use nt3d's bounded STL and 3MF decoders, including STL binary face colors,
-  while preserving Gloss's part selection and oversized-model summaries.
-- Honor cancellation while decoding GIF/WebP images and count the complete
-  retained WebP container against Markdown's animation storage budget.
-
-- Show help for `gloss skill install --help` instead of installing the skill
-  under a folder named `--help`, and reject unknown `gloss skill` options.
-- Always install the skill under the shared `~/.agents/skills` folder, which
-  Codex and other agents read but do not create, besides the agents found.
-- Replace a broken link left at a skill folder (for example by a moved
-  checkout) instead of failing with "file exists", and refuse to write
-  through or replace a link to a folder that exists or cannot be checked.
-- `gloss skill` alone now prints its help; `gloss skill show` prints the skill.
-- `gloss skill install auto` installs under a folder named `auto`, like any
-  other name; only `gloss skill install` alone looks for the agents. A `~`
-  folder with no home folder set is an error rather than a literal `~`.
-- `gloss skill install` names the shared folder "shared agents folder" in its
-  messages, which were long enough to wrap.
+- Open OBJ and PLY meshes: OBJ with material colors and PNG/JPEG textures, PLY
+  with vertex colors, and PLY point clouds. `--up y|z` sets which axis is up.
+- Draw Mermaid diagrams: fenced `mermaid` blocks in Markdown and standalone
+  `.mmd`/`.mermaid` files, in the theme's light or dark palette. No browser or
+  network is used.
+- Edit files with `E`. Text files go to `$VISUAL`/`$EDITOR`, other files to the
+  system's default editor. In the chooser, Tab switches between Open with and
+  Edit with.
+- Open with lists the apps and defaults your system knows (Launch Services on
+  macOS, XDG on Linux, the registry on Windows). Saved choices carry over and
+  now live in `open-with-v1.json`.
+- `--print` writes one screen of a file to stdout without a terminal, with
+  pictures as colored half-blocks. `--print-width` and `--print-height` size it.
+- Recognize JSON Lines by content; `--type` and `--accept` take `jsonl` and
+  `ndjson`.
+- Report gloss's state (working, waiting for files, done, error) to terminals
+  that support OSC 7501.
+- Show the version in the `?` help heading.
+- PDFs: open macOS (Quartz) and linearized files that were refused before.
+  Turning pages, `/` search and `--grep` are much faster on long documents, and
+  `--info` no longer renders the page.
+- SVG: draw markers such as arrowheads, and percentage lengths.
+- `gloss skill`: bare `gloss skill` prints help and `gloss skill show` prints
+  the skill. `install` always uses the shared `~/.agents/skills` folder too,
+  replaces broken links, and handles `--help`, `auto` and a missing home folder
+  correctly.
+- Fixes: Kitty images and inline Markdown images stay on screen after `Q`; a
+  still picture stays visible while its background color changes; exports of
+  animated typeset pages show the displayed frame; the browser demo's mouse
+  works again.
+- **Scripts:** `--apps --json` now has one row per kind and verb, with `verb`
+  (`open` or `edit`) and `terminal`. Match rows on `kind` and `verb`.
+- Requires Go 1.26.10 or later.
+- Internals: typesetting, PDF reading, the file browser and open-with now come
+  from the nttypeset/ntfonts, ntpdf, ntfilepicker and ntopenwith libraries.
 
 ## `v0.3.2` (2026-10-12)
 
