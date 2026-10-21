@@ -160,7 +160,8 @@ gloss photo.png drawing.svg model.stl -mP
 - Search document text, table cells, or PDF text with `/`. On source and text,
   `#` shows line numbers, `:` goes to a line, and `S` toggles long-line wrapping.
 - Pause a standalone GIF or animated WebP with Space, change speed with `<`/`>`, and scrub or
-  step frames. Orbit STL, 3MF, OBJ and PLY meshes and select 3MF parts with `c`.
+  step frames. Play a video (MP4, MOV, WebM, MKV, OGV, AVI and more) with Space,
+  seek with ←/→ or the bar; see [Formats](../formats/) for what it needs. Orbit STL, 3MF, OBJ and PLY meshes and select 3MF parts with `c`.
 - Press `e` to export the current image or typeset viewport. Scripts use
   `--output` without a terminal; meshes can export several views in one sheet.
 - Show a table URL as a QR with `u`, or use `--pick-web` for phone uploads and

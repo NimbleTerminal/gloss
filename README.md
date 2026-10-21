@@ -25,7 +25,9 @@ brew install --cask nimbleterminal/tap/gloss     # macOS or Linux
 On Debian or Ubuntu, download the `.deb` from the
 [latest release](https://github.com/NimbleTerminal/gloss/releases/latest) and run
 `sudo apt install ./gloss_*_linux_amd64.deb` (or `_arm64`). The release also has
-archives for macOS, Linux, and Windows: one binary, nothing else to install. With
+archives for macOS, Linux, and Windows: one binary, nothing else to install,
+except [mpv](https://mpv.io) to play videos and [FFmpeg](https://ffmpeg.org) to
+describe them and draw their frames (`brew install mpv ffmpeg`). With
 Go, clone the repository and run `go install ./cmd/gloss` in it to build from
 source.
 
@@ -34,6 +36,7 @@ source.
 ```sh
 gloss photo.png report.pdf model.stl   # page through them
 gloss animation.gif                   # plays automatically; Space pauses
+gloss clip.mp4                         # a video, paused on its first frame; Space plays
 gloss --menu *.png                     # choose from a menu
 gloss --preview ~/Documents/*          # a menu with a preview pane
 gloss ~/Pictures                       # browse a folder
@@ -59,6 +62,7 @@ gloss -N -S main.go                    # numbered source, long lines scroll side
 | `u` | Show a selected table URL as a QR code |
 | Space, `<` / `>` on a GIF or animated WebP | Pause / resume; slower / faster playback |
 | `,` / `.` on a GIF or animated WebP | Step frames; click or drag the bottom bar to seek |
+| Space, `←` / `→` on a video | Play / pause; seek 5 seconds; click or drag the bottom bar to seek |
 
 Pictures use Kitty graphics where the terminal has them, and colored half-blocks
 where it does not. Name an `https://` address to download and view it. Drag

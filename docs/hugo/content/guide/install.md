@@ -12,14 +12,18 @@ With [Homebrew](https://brew.sh), on macOS or Linux:
 brew install --cask nimbleterminal/tap/gloss
 ```
 
-The Homebrew installation note includes `gloss skill install` for AI agents
-and two optional companion tools: [mpv](https://formulae.brew.sh/formula/mpv)
-for audio/video playback, and [FFmpeg](https://formulae.brew.sh/formula/ffmpeg)
-for media conversion and frame extraction. Gloss does not require or invoke them.
+The Homebrew installation note includes `gloss skill install` for AI agents,
+and two tools for video, which gloss needs only for that:
+[mpv](https://formulae.brew.sh/formula/mpv), whose library plays videos in the
+viewer, and [FFmpeg](https://formulae.brew.sh/formula/ffmpeg), whose `ffprobe`
+and `ffmpeg` describe them and draw their frames for previews, thumbnails and
+exports. Without mpv a video does not play; without FFmpeg it plays, without
+details or a still. On Debian or Ubuntu, install the `libmpv2` (or `mpv`) and
+`ffmpeg` packages; on Windows, put `libmpv-2.dll` and FFmpeg on your `PATH`.
 
 ```sh
-brew install mpv       # optional player
-brew install ffmpeg    # optional conversion tools
+brew install mpv       # video playback
+brew install ffmpeg    # video details and frames
 ```
 
 On Debian or Ubuntu, download the `.deb` for your machine from the

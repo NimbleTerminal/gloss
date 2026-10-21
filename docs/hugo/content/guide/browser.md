@@ -254,7 +254,7 @@ command line (see [Controls](../controls/)).
 
 **`Ctrl-F`**, or a click on `types ▾` at the right of the footer, opens a list of
 the kinds of file gloss shows: pictures, drawings (SVG and Mermaid), PDF,
-meshes, Markdown and text, JSON, notebooks, Word, and tables.
+meshes, Markdown and text, JSON, notebooks, Word, tables, and videos.
 
 ```text
  ~
