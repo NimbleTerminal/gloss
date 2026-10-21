@@ -108,7 +108,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   container, first frame, oriented by the decoder, Exif from the container)
   via the pure-Go `gen2brain/jxl` decoder — no CGO or external converters.
 - **Video** (`internal/document/video.go`, `internal/app/video.go`): `.mp4 .m4v
-  .mov .webm .mkv`, or an ftyp box (not HEIC/AVIF) or EBML header, through
+  .mov .webm .mkv .ogv .avi .mpg .mpeg .wmv .flv`, or a container header
+  (`sniffVideo`: ftyp but not HEIC/AVIF, EBML, Ogg with Theora, AVI, MPEG-PS,
+  ASF, FLV; not `.ts`, which is TypeScript), through
   `nimbleterminal.dev/ntvideo`. Known before reading (`isVideoFile`, 64 bytes),
   and never read into memory: ntvideo's limits (2 GiB, 4096×4096, local
   regular files) replace the 128 MiB cap, and `--accept` checks the head.

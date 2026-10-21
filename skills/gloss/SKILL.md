@@ -51,7 +51,7 @@ machine look for skills. A file named `skill`, `view` or `help` is opened as
 
 It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL, SVG, Mermaid diagrams
 (`.mmd`), PDF, STL, 3MF, OBJ, PLY (meshes and point clouds), Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
-documents, CSV, and videos (MP4, MOV, M4V, WebM, MKV). One binary, no external
+documents, CSV, and videos (MP4, MOV, M4V, WebM, MKV, OGV, AVI, MPEG, WMV, FLV). One binary, no external
 converters, except for video. Inputs are limited to 128 MiB, except videos.
 
 ## Static command output: `--print`
@@ -461,7 +461,8 @@ the code. The code is only as useful as the address: a `localhost` or
   Interactive `e` exports the displayed frame. Animation is limited to 1,000
   frames and the same 32 MP canvas cap; a GIF's decoded frames to 64 Mi pixels
   total, while WebP frames are decoded as shown and bounded by the file limit.
-- Videos (`.mp4 .m4v .mov .webm .mkv`, or an MP4/QuickTime/Matroska header)
+- Videos (`.mp4 .m4v .mov .webm .mkv .ogv .avi .mpg .mpeg .wmv .flv`, or the
+  container's header: MP4/QuickTime, Matroska, Ogg Theora, AVI, MPEG, ASF, FLV)
   are never read into gloss: `--info` describes them with `ffprobe`, and
   `--output`/`--print` draw the first frame with `ffmpeg`. Without ffmpeg,
   `--info` still reports the file and says to install ffmpeg, and `--output`

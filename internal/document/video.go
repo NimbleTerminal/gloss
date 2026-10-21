@@ -22,7 +22,7 @@ import (
 // MaxFileBytes. It is known by its name or by its first bytes.
 
 // videoExtensions name the containers gloss takes as video.
-var videoExtensions = []string{".mp4", ".m4v", ".mov", ".webm", ".mkv"}
+var videoExtensions = []string{".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
 
 // ErrVideoNative is a video held in memory where nothing can play it: the
 // native gallery's embedded files.
@@ -35,9 +35,19 @@ var ErrVideoPreview = errors.New("no picture of a video in the browser: open it 
 // videoHeadBytes is how much of a file says whether it is a video.
 const videoHeadBytes = 64
 
-// sniffVideo says whether data begins as an MP4 or QuickTime file (an ftyp
-// box) or a Matroska or WebM one (an EBML header).
+// sniffVideo says whether data begins as a video container: MP4 or
+// QuickTime (an ftyp box), Matroska or WebM (an EBML header), Ogg with a
+// Theora stream (not Ogg audio), AVI, MPEG program stream, ASF (WMV) or FLV.
 func sniffVideo(data []byte) bool {
+	switch {
+	case bytes.HasPrefix(data, []byte("OggS")):
+		return bytes.Contains(data, []byte("\x80theora"))
+	case len(data) >= 12 && string(data[:4]) == "RIFF" && string(data[8:12]) == "AVI ",
+		bytes.HasPrefix(data, []byte{0x00, 0x00, 0x01, 0xba}),
+		bytes.HasPrefix(data, []byte{0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11}),
+		bytes.HasPrefix(data, []byte("FLV\x01")):
+		return true
+	}
 	if len(data) >= 12 && string(data[4:8]) == "ftyp" {
 		// HEIC and AVIF pictures are ftyp files too; they are images.
 		switch string(data[8:12]) {

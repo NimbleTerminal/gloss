@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Play videos: MP4, M4V, MOV, WebM and MKV, through ntvideo and mpv's library
+- Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV, through ntvideo and mpv's library
   (`brew install mpv`). They open paused on the first frame; Space plays,
   ←/→ seek, and the bottom row is a scrub bar. With FFmpeg installed, `i` and
   `--info` describe them, and previews, thumbnails, `--output` and `--print`

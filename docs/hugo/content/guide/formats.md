@@ -30,7 +30,8 @@ bookToC: false
   destinations and 64 MiB of animation storage per document (decoded GIF
   frames; a WebP's canvas plus its retained compressed container); excess animations
   remain still.
-- Video: MP4, M4V, MOV, WebM and MKV, by name or by their first bytes. The
+- Video: MP4, M4V, MOV, WebM, MKV, Ogg (`.ogv`, Theora), AVI, MPEG, WMV and
+  FLV, by name or by their first bytes (Ogg audio is not a video). The
   viewer plays them through [mpv](https://mpv.io)'s library, found when a
   video is opened (`brew install mpv` or your system's mpv package); it opens
   paused on the first frame. Details (`i`, `--info`) come from `ffprobe`, and

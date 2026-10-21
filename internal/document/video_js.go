@@ -36,6 +36,16 @@ func videoMIME(path string) string {
 		return "video/quicktime"
 	case ".mkv":
 		return "video/x-matroska"
+	case ".ogv":
+		return "video/ogg"
+	case ".avi":
+		return "video/x-msvideo"
+	case ".mpg", ".mpeg":
+		return "video/mpeg"
+	case ".wmv":
+		return "video/x-ms-wmv"
+	case ".flv":
+		return "video/x-flv"
 	}
 	return "video/mp4"
 }

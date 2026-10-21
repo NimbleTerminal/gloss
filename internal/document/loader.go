@@ -36,7 +36,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -844,7 +844,7 @@ func Detect(path string, data []byte, forced string) (string, error) {
 		return "docx", nil
 	case ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff":
 		return "image", nil
-	case ".mp4", ".m4v", ".mov", ".webm", ".mkv":
+	case ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv":
 		return "video", nil
 	}
 	// Whatever is not binary can be read as text, as less would.
