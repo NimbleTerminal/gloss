@@ -130,7 +130,13 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   the pages' CSP), with `WithNativeControls(false)` so gloss keeps the keys and
   scrub bar; no details, previews or thumbnails there. The demo's sample is
   `examples/recording.mp4`, gloss's demo GIF as H.264 (`task gen-assets`).
-  Natively, embedded files cannot play (`ErrVideoNative`).
+  Natively, embedded files cannot play (`ErrVideoNative`). Subtitles
+  (`subtitles.go`): `findSubtitles` lists `NAME[.LANG].srt|vtt|ass|ssa` beside
+  the video (16 files, 2 MiB each, no-language first), passed as
+  `ntvideo.Caption`s, the first `Default`; mpv draws them. In the browser SRT
+  becomes WebVTT (`srtToVTT`) behind a blob: URL revoked with the video's, and
+  ASS/SSA are skipped. `c` cycles `Status.CaptionTracks` (embedded ones too)
+  and off; the status line names the shown track; `i` lists the files.
 - **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar

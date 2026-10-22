@@ -17,13 +17,19 @@ func videoURL(files fs.FS, path string) (url string, revoke func(), err error) {
 	if err != nil {
 		return "", nil, err
 	}
+	url, revoke = blobURL(data, videoMIME(path))
+	return url, revoke, nil
+}
+
+// blobURL makes a blob: URL of data, of the type mime; revoke frees it.
+func blobURL(data []byte, mime string) (url string, revoke func()) {
 	bytes := js.Global().Get("Uint8Array").New(len(data))
 	js.CopyBytesToJS(bytes, data)
 	options := js.Global().Get("Object").New()
-	options.Set("type", videoMIME(path))
+	options.Set("type", mime)
 	blob := js.Global().Get("Blob").New([]any{bytes}, options)
 	url = js.Global().Get("URL").Call("createObjectURL", blob).String()
-	return url, func() { js.Global().Get("URL").Call("revokeObjectURL", url) }, nil
+	return url, func() { js.Global().Get("URL").Call("revokeObjectURL", url) }
 }
 
 // videoMIME is the type a browser is told a video is, by its name; MP4 when

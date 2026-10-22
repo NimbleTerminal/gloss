@@ -62,7 +62,7 @@ gloss -N -S main.go                    # numbered source, long lines scroll side
 | `u` | Show a selected table URL as a QR code |
 | Space, `<` / `>` on a GIF or animated WebP | Pause / resume; slower / faster playback |
 | `,` / `.` on a GIF or animated WebP | Step frames; click or drag the bottom bar to seek |
-| Space, `←` / `→` on a video | Play / pause; seek 5 seconds; click or drag the bottom bar to seek |
+| Space, `←` / `→`, `c` on a video | Play / pause; seek 5 seconds; change subtitles. Click or drag the bottom bar to seek |
 
 Pictures use Kitty graphics where the terminal has them, and colored half-blocks
 where it does not. Name an `https://` address to download and view it. Drag

@@ -80,7 +80,7 @@ require (
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.1 // indirect
 	nimbleterminal.dev/nttypeset v0.1.1 // indirect
-	nimbleterminal.dev/ntvideo v0.1.1-0.20261021222010-7e2758bcd36e // indirect
+	nimbleterminal.dev/ntvideo v0.2.0 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..

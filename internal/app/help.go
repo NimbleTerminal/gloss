@@ -58,7 +58,7 @@ var helpRight = []helpSection{
 	{"GIFs and videos", []helpRow{
 		{"Space , .", "play / pause · step frames"},
 		{"< > Bksp", "speed · back to 1×"},
-		{"drag  ← →", "seek (a video: 5 s)"},
+		{"drag ← → c", "seek (video 5 s) · subtitles"},
 	}},
 }
 

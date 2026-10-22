@@ -12,6 +12,9 @@
 
 - Click a file in the file menu to select it, and again to open it; the wheel
   moves the selection. This works in the browser demo too.
+- Show a video's subtitles: files beside it named after it (`clip.srt`,
+  `clip.en.srt`, `.vtt`, `.ass`) and its own tracks; `c` changes track or
+  turns them off. `i` names the files. ntvideo v0.2.0.
 - Click a cell in a spreadsheet (CSV, Excel, Grist) to select it; a second click
   on a cell with an address opens it, as Enter does with `--fetch`.
 

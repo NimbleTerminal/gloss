@@ -457,6 +457,9 @@ func (m *Model) hints() string {
 		}
 	case m.video != nil:
 		keys = " q quit · Space play/pause · ←/→ seek · ? help · m files · [/] files · e export · i info"
+		if len(m.video.Status().CaptionTracks) > 0 {
+			keys = " q quit · Space play/pause · ←/→ seek · c subtitles · ? help · m files · [/] files · e export · i info"
+		}
 	case m.chart != nil && m.mesh != nil:
 		keys = " q quit · ? help · m files · [/] files · e export · i info · C color · B bg-color"
 		if m.hasParts() {

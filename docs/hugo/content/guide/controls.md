@@ -235,7 +235,9 @@ more slowly rather than building a rendering backlog.
 
 A video opens paused on its first frame. **Space** plays and pauses (after the
 end, it starts again), **← / →** seek 5 seconds, and **Home** returns to the
-start. The bottom row is a scrub bar: click or drag it to seek. The status bar
+start. **`c`** changes subtitles: the next track, then none, then the first
+again; the first subtitle file is shown when the video opens. The bottom row is
+a scrub bar: click or drag it to seek. The status bar
 shows the time, the length and whether it is playing. Sound comes from your
 computer, through mpv. Help, the file menu and the app chooser pause it, and
 the menu comes back to the same place. `e` exports the frame on screen as PNG,

@@ -43,6 +43,11 @@ bookToC: false
   browser's own video player, laid over gloss's cells, with the same keys:
   whatever the browser can decode, within the app's 128 MiB file limit.
   There it has no details, preview or thumbnail, which come from FFmpeg.
+  Subtitles: files beside a video and named after it (`clip.srt`,
+  `clip.en.srt`, `clip.vtt`, `clip.fr.ass`), up to 16 of 2 MiB each, the one
+  with no language first, then by name; and the video's own subtitle streams.
+  mpv draws them into the picture. In the browser, SRT is converted to WebVTT
+  and ASS/SSA are left out.
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder

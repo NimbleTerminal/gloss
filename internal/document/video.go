@@ -148,8 +148,9 @@ func (l *Loader) loadVideo(q Request) (out Result) {
 		ctx = context.Background()
 	}
 	media, probeErr := ntvideo.Probe(ctx, q.Path, ntvideo.HeadlessOptions{})
-	out.Video = &Video{Path: q.Path, Info: media, ProbeErr: probeErr}
-	out.Info = append(file, describe(func() []Field { return videoFields(q.Path, media, probeErr) })...)
+	subs := findSubtitles(nil, q.Path)
+	out.Video = &Video{Path: q.Path, Info: media, ProbeErr: probeErr, Subtitles: subs}
+	out.Info = append(file, describe(func() []Field { return append(videoFields(q.Path, media, probeErr), subtitleFields(subs)...) })...)
 	if q.Describe {
 		return out
 	}
@@ -174,7 +175,8 @@ func (l *Loader) loadMemoryVideo(q Request) (out Result) {
 	if info, err := fs.Stat(l.Files, q.Path); err == nil {
 		size = int(min(info.Size(), int64(^uint(0)>>1)))
 	}
-	out.Info = append(fileFields(l.Files, q.Path, size, q.Stdin), Section("Video", Field{"Format", videoFormat(q.Path)})...)
+	subs := findSubtitles(l.Files, q.Path)
+	out.Info = append(fileFields(l.Files, q.Path, size, q.Stdin), Section("Video", append([]Field{{"Format", videoFormat(q.Path)}}, subtitleFields(subs)...)...)...)
 	if q.Describe {
 		return out
 	}
@@ -188,17 +190,34 @@ func (l *Loader) loadMemoryVideo(q Request) (out Result) {
 		return out
 	}
 	out.Video = &Video{Path: q.Path, URL: url, Revoke: revoke}
+	// The browser reads WebVTT: an SRT is converted, and ASS/SSA left out.
+	for _, sub := range subs {
+		data, err := readFileFrom(l.Files, sub.Path)
+		switch ext := strings.ToLower(filepath.Ext(sub.Path)); {
+		case err != nil || ext == ".ass" || ext == ".ssa":
+			continue
+		case ext == ".srt":
+			data = srtToVTT(data)
+		}
+		url, free := blobURL(data, "text/vtt")
+		sub.URL = url
+		out.Video.Subtitles = append(out.Video.Subtitles, sub)
+		video := out.Video.Revoke
+		out.Video.Revoke = func() { video(); free() }
+	}
 	return out
 }
 
 // Video is a video file, played from Path, or in the browser from URL.
 type Video struct {
-	Path     string
-	URL      string // A blob: URL the browser plays; empty natively.
-	Revoke   func() // Frees URL once the video is closed; nil natively.
-	Info     ntvideo.MediaInfo
-	ProbeErr error // Why there are no details: usually no ffprobe.
-	FrameErr error // Why there is no first frame: usually no ffmpeg.
+	Path   string
+	URL    string // A blob: URL the browser plays; empty natively.
+	Revoke func() // Frees URL, and the subtitles', once the video is closed; nil natively.
+	// The subtitle files beside it, the first shown first.
+	Subtitles []Subtitle
+	Info      ntvideo.MediaInfo
+	ProbeErr  error // Why there are no details: usually no ffprobe.
+	FrameErr  error // Why there is no first frame: usually no ffmpeg.
 }
 
 // ffmpegHint says what to install, to do what, when ffmpeg or ffprobe was

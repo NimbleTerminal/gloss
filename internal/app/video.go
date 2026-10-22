@@ -24,8 +24,17 @@ func (m *Model) showVideo(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	if v.Video.URL != "" {
 		source = v.Video.URL // In the browser: the file the page holds.
 	}
+	// The subtitle files beside it; the first is shown, and c changes track.
+	media := ntvideo.Source{URL: source}
+	for i, sub := range v.Video.Subtitles {
+		file := sub.Path
+		if v.Video.URL != "" {
+			file = sub.URL
+		}
+		media.Captions = append(media.Captions, ntvideo.Caption{Source: file, Label: sub.Label(), Language: sub.Language, Default: i == 0})
+	}
 	m.video = ntvideo.New(
-		ntvideo.WithSource(source),
+		ntvideo.WithMedia(media),
 		// In the browser, the page's host lays a <video> over the cells;
 		// gloss keeps the keys and draws the scrub bar, so it has no
 		// controls of its own. Natively these change nothing.
@@ -124,8 +133,44 @@ func (m *Model) videoKey(k string) (tea.Cmd, bool) {
 	case "home":
 		m.video.Seek(0)
 		return nil, true
+	case "c":
+		m.nextSubtitles(s.CaptionTracks)
+		return nil, true
 	}
 	return nil, false
+}
+
+// nextSubtitles shows the track after the one shown, or none after the last,
+// and the first again after none: files beside the video, and its own.
+func (m *Model) nextSubtitles(tracks []ntvideo.Track) {
+	if len(tracks) == 0 {
+		m.note = "no subtitles"
+		return
+	}
+	next := 0
+	for i, t := range tracks {
+		if t.Selected {
+			next = i + 1
+		}
+	}
+	if next == len(tracks) {
+		m.video.SelectCaptionTrack("")
+		m.note = "subtitles off"
+		return
+	}
+	m.video.SelectCaptionTrack(tracks[next].ID)
+	m.note = "subtitles: " + safe(trackName(tracks[next]))
+}
+
+// trackName is what a subtitle track is called: its label, else its language.
+func trackName(t ntvideo.Track) string {
+	switch {
+	case t.Label != "":
+		return t.Label
+	case t.Language != "":
+		return t.Language
+	}
+	return "track " + t.ID
 }
 
 // videoDetail is the status line's account of the video.
@@ -138,6 +183,11 @@ func (m *Model) videoDetail() string {
 	state := string(s.State)
 	if s.Err != nil {
 		state = s.Err.Error()
+	}
+	for _, t := range s.CaptionTracks {
+		if t.Selected {
+			detail += " · subtitles " + safe(trackName(t))
+		}
 	}
 	return detail + " · " + state
 }
