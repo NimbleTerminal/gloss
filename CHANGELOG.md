@@ -12,6 +12,8 @@
 
 - Click a file in the file menu to select it, and again to open it; the wheel
   moves the selection. This works in the browser demo too.
+- Click a cell in a spreadsheet (CSV, Excel, Grist) to select it; a second click
+  on a cell with an address opens it, as Enter does with `--fetch`.
 
 ## `v0.4.0` (2026-10-21)
 

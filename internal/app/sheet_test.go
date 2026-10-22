@@ -368,3 +368,61 @@ func TestColumnsOptionHidesColumnsOnLoad(t *testing.T) {
 		t.Fatalf("header %q", header)
 	}
 }
+
+// A click picks the cell under it, as the arrows would; a row number keeps
+// the column and a column letter keeps the row. A second click on a cell
+// with an address opens it, as Enter does.
+func TestSheetClicks(t *testing.T) {
+	sheet := &document.Sheet{Name: "links", Columns: 2, Rows: [][]string{{"name", "picture"}, {"fern", "https://example.com/fern.png"}, {"moss", "plain"}}}
+	var fetched []string
+	m := viewing(t, Options{Files: []string{"links.csv"}, Fetch: func(address string) (string, error) {
+		fetched = append(fetched, address)
+		return "", fmt.Errorf("HTTP 404")
+	}}, "")
+	m.Update(document.Result{Generation: m.generation, Kind: "csv", Page: 1, Pages: 1, Sheet: sheet})
+	if mode := m.View().MouseMode; mode != tea.MouseModeCellMotion {
+		t.Fatalf("mouse mode %v", mode)
+	}
+	cursor := func() string { return document.ColumnName(m.sheet.column()) + fmt.Sprint(m.sheet.at[0]+1) }
+	at := func(row int, text string) int {
+		line := plain(m)[row]
+		i := strings.Index(line, text)
+		if i < 0 {
+			t.Fatalf("%q not on row %d: %q", text, row, line)
+		}
+		return ansi.StringWidth(line[:i])
+	}
+	click := func(x, y int) {
+		send(m, tea.MouseClickMsg{X: x, Y: y, Button: tea.MouseLeft}, tea.MouseReleaseMsg{X: x, Y: y, Button: tea.MouseLeft})
+	}
+	click(at(3, "moss"), 3)
+	if cursor() != "A3" {
+		t.Fatalf("a click on moss: %s", cursor())
+	}
+	click(at(3, "plain"), 3)
+	click(at(3, "plain"), 3) // Again, on a cell with no address: nothing.
+	if cursor() != "B3" || len(fetched) != 0 {
+		t.Fatalf("a click on plain: %s, fetched %q", cursor(), fetched)
+	}
+	click(0, 2) // The row number.
+	if cursor() != "B2" {
+		t.Fatalf("a click on row 2's number: %s", cursor())
+	}
+	click(at(0, "A"), 0) // The column letter.
+	if cursor() != "A2" {
+		t.Fatalf("a click on column A's letter: %s", cursor())
+	}
+	click(at(2, "🔗"), 2)
+	if cursor() != "B2" || len(fetched) != 0 {
+		t.Fatalf("a first click on the address: %s, fetched %q", cursor(), fetched)
+	}
+	click(at(2, "🔗"), 2)
+	if len(fetched) != 1 || fetched[0] != "https://example.com/fern.png" {
+		t.Fatalf("a second click should open the address: %q", fetched)
+	}
+	click(90, 2) // Past the last column.
+	click(5, 20) // Below the last row.
+	if cursor() != "B2" {
+		t.Fatalf("clicks off the sheet moved the cursor: %s", cursor())
+	}
+}

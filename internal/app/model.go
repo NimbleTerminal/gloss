@@ -721,6 +721,15 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return m.thumbnailMade(v)
 	case document.Result:
 		return m.loaded(v)
+	case tea.MouseClickMsg:
+		// A click picks a cell; a second click on it does what Enter does.
+		if m.sheet != nil && !m.help && m.screen == screenDocument && m.layer == layerNone && v.Button == tea.MouseLeft {
+			again, ok := m.sheet.click(v.X, v.Y, m.width, m.bodyHeight())
+			if ok && again && m.sheet.url() != "" {
+				return m.open(m.sheet.url())
+			}
+			return nil
+		}
 	case tea.MouseWheelMsg:
 		if m.typeset != nil && m.markdown == nil && !m.help && m.screen == screenDocument {
 			if v.Button == tea.MouseWheelUp {

@@ -31,6 +31,7 @@ bookToC: false
 | `S` | Chop long lines at the right edge instead of wrapping them, as `less -S` does, and back; chopped, `←`/`→` and `h`/`l` scroll sideways and `Home` returns to the left edge |
 | `Home` / `End`, `G` | First / last PDF page |
 | Arrows, `h j k l` | Move about a spreadsheet by row and column |
+| Click a cell | Select it in a spreadsheet; a row number keeps the column, a column letter the row; a second click on a cell with an address opens it, as `Enter` does |
 | `x`, `X` | Hide the column under the cursor / show every column |
 | `c` | List the columns, to show and hide them: `Space` toggles, `a` all, `n` none |
 | `Enter` | With `--fetch`, open the web address under the cursor |

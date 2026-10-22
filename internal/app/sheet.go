@@ -194,6 +194,55 @@ func (v *sheetView) key(k string, w, h int) bool {
 // url is the web address under the cursor, if any.
 func (v *sheetView) url() string { return v.sheet.URL(v.at[0], v.column()) }
 
+// cellAt is the cell drawn at x, y of a grid w cells wide, as view draws it:
+// the header of column letters on the first row, then the rows under the
+// gutter of row numbers. row is -1 on the header, place -1 on the gutter, and
+// ok is false off the sheet.
+func (v *sheetView) cellAt(x, y, w, h int) (row, place int, ok bool) {
+	if v.rows() == 0 || x < 0 || y < 0 || x >= w || y >= h {
+		return 0, 0, false
+	}
+	row, place = -1, -1
+	if y > 0 {
+		if row = v.row + y - 1; row >= v.rows() {
+			return 0, 0, false
+		}
+	}
+	// Each column is the space before it and its width.
+	left := v.gutter()
+	for p := v.col; p < v.col+v.shown(v.col, w); p++ {
+		right := left + 1 + v.widths[v.cols[p]]
+		if x >= left && x < right {
+			place = p
+			break
+		}
+		left = right
+	}
+	if place < 0 && x >= v.gutter() {
+		return 0, 0, false // Past the last column.
+	}
+	return row, place, true
+}
+
+// click moves the cursor to the cell clicked: a row number keeps the column,
+// a column letter keeps the row. It says whether the cursor was already
+// there, for a second click to act on.
+func (v *sheetView) click(x, y, w, h int) (again, ok bool) {
+	row, place, ok := v.cellAt(x, y, w, h)
+	if !ok {
+		return false, false
+	}
+	at := v.at
+	if row >= 0 {
+		v.at[0] = row
+	}
+	if place >= 0 {
+		v.at[1] = place
+	}
+	v.settle(w, h-1)
+	return v.at == at && row >= 0 && place >= 0, true
+}
+
 func (v *sheetView) view(w, h int) string {
 	if v.rows() == 0 {
 		return "(empty sheet)"
