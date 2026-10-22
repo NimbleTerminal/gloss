@@ -46,8 +46,13 @@ bookToC: false
   Subtitles: files beside a video and named after it (`clip.srt`,
   `clip.en.srt`, `clip.vtt`, `clip.fr.ass`), up to 16 of 2 MiB each, the one
   with no language first, then by name; and the video's own subtitle streams.
-  mpv draws them into the picture. In the browser, SRT is converted to WebVTT
-  and ASS/SSA are left out.
+  mpv draws them into the picture; drawn with glyphs, where they could not be
+  read, they are terminal text over it instead. In the browser, SRT is
+  converted to WebVTT and ASS/SSA are left out. `--text` prints a video's
+  subtitles with their times: the first SRT or WebVTT file beside it, else
+  its own text subtitles (FFmpeg); `--info` lists those. `--at` and
+  `--frames` export frames at chosen times; see
+  [Frames of a video](../using/#frames-of-a-video).
 - HEIC/HEIF: primary still image, up to 32 megapixels, with container rotation
   and mirroring. Uses the [pure-Go h265 decoder](https://github.com/gen2brain/h265),
   without CGO or external converters. Unsupported HEVC features report decoder

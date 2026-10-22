@@ -37,6 +37,7 @@ source.
 gloss photo.png report.pdf model.stl   # page through them
 gloss animation.gif                   # plays automatically; Space pauses
 gloss clip.mp4                         # a video, paused on its first frame; Space plays
+gloss --frames 9 -o sheet.png clip.mp4 # nine frames of it, one sheet, for a model to look at
 gloss --menu *.png                     # choose from a menu
 gloss --preview ~/Documents/*          # a menu with a preview pane
 gloss ~/Pictures                       # browse a folder

@@ -104,6 +104,7 @@ gloss --grep '(?i)invoice total' report.pdf  # matching pages only: "3: …the i
 | Excel, Grist, CSV | CSV of the sheet or table (`--page` picks which) |
 | PDF | the page's text layer (`--page 3`, `2-5`, or `all` with `--output-dir`/`--json`); page 1 by default |
 | Mermaid (`.mmd`) | the diagram source |
+| video | its subtitles, one line each after its times: `[0:01.0–0:04.0] Hello.` (needs FFmpeg for a video's own) |
 | image, SVG, mesh | *no text*: an error saying to use `--output` |
 
 A PDF page with **no text layer** (a scan, a figure) is an error on that page,
@@ -219,6 +220,32 @@ gloss --output posed.png --camera 20,-120 --projection perspective model.stl
   z, OBJ and PLY to y). If a model's `top` view looks like its side, or
   `--info` shows a flat Z extent for an upright object, export again with the
   other axis. 3MF is always Z-up.
+
+### Videos: frames at chosen times, and what is said
+
+A video is a long series of pictures: look at a few, and read its
+subtitles for what is said. Both need FFmpeg (`ffmpeg`, `ffprobe`).
+
+```sh
+gloss --frames 9 --output sheet.png clip.mp4           # nine frames spread through it, one labelled sheet
+gloss --at 1:23 --output frame.png clip.mp4            # the frame at 1:23 (also 83.5, 1m23s)
+gloss --at 0:05,0:30,1:00 --output-dir frames --json clip.mp4   # a PNG each: "frames":[{"at":5,"caption":"…"}]
+gloss --text clip.mp4                                  # the subtitles, timed
+gloss --text --json clip.mp4                           # "cues":[{"start","end","text"}], "subtitles": where from
+```
+
+- Start with `--info` for its length, then `--frames 9` (or up to 16) for an
+  overview, then `--at` where something happens. Without either, `--output`
+  draws the very first frame, often black.
+- A sheet labels each frame with its time in the corner; frames are drawn by
+  one ffmpeg, at most 16 at once, and never enlarged.
+- With `--json`, each frame has `at` (seconds) and `caption`, the subtitle
+  shown then, when the video has subtitles.
+- Subtitles come from an SRT or WebVTT file named after the video beside it
+  (`clip.srt`, `clip.en.srt`), else from the video's own text subtitles,
+  the default one first; `--info` lists those. Picture subtitles (DVD, Blu-ray)
+  have no text. A video with none is an error saying so.
+- A time at or past the end is an error naming the length.
 
 ## 3. Learn about a file: `--info`
 
@@ -464,7 +491,8 @@ the code. The code is only as useful as the address: a `localhost` or
 - Videos (`.mp4 .m4v .mov .webm .mkv .ogv .avi .mpg .mpeg .wmv .flv`, or the
   container's header: MP4/QuickTime, Matroska, Ogg Theora, AVI, MPEG, ASF, FLV)
   are never read into gloss: `--info` describes them with `ffprobe`, and
-  `--output`/`--print` draw the first frame with `ffmpeg`. Without ffmpeg,
+  `--output`/`--print` draw the first frame with `ffmpeg`, or the frames of
+  `--at`/`--frames`; `--text` gives their subtitles. Without ffmpeg,
   `--info` still reports the file and says to install ffmpeg, and `--output`
   fails saying so. Up to 2 GiB and 4096×4096; local files only. Playing one is
   the interactive viewer's (libmpv, from mpv).

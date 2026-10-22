@@ -151,7 +151,28 @@ func (l *Loader) loadVideo(q Request) (out Result) {
 	subs := findSubtitles(nil, q.Path)
 	out.Video = &Video{Path: q.Path, Info: media, ProbeErr: probeErr, Subtitles: subs}
 	out.Info = append(file, describe(func() []Field { return append(videoFields(q.Path, media, probeErr), subtitleFields(subs)...) })...)
-	if q.Describe {
+	switch {
+	case q.Describe:
+		return out
+	case q.TextOnly:
+		// Its text is its subtitles, with their times.
+		cues, from, err := videoCues(ctx, q.Path, media, subs)
+		if err != nil {
+			out.Err = fmt.Errorf("video: %w", err)
+			return out
+		}
+		out.Cues, out.Text, out.Video.CueSource = cues, Transcript(cues), from
+		if len(cues) == 0 {
+			out.Err = fmt.Errorf("video: %s has no subtitles in it", from)
+		}
+		return out
+	case len(q.Times) > 0 || q.FrameCount > 0:
+		frames, err := loadFrames(ctx, q, media, probeErr, subs)
+		if err != nil {
+			out.Err = fmt.Errorf("video: %w", err)
+			return out
+		}
+		out.Frames, out.Image = frames, frames[0].Image
 		return out
 	}
 	frame, err := ntvideo.FrameAt(ctx, q.Path, max(0, q.At), ntvideo.HeadlessOptions{})
@@ -216,8 +237,9 @@ type Video struct {
 	// The subtitle files beside it, the first shown first.
 	Subtitles []Subtitle
 	Info      ntvideo.MediaInfo
-	ProbeErr  error // Why there are no details: usually no ffprobe.
-	FrameErr  error // Why there is no first frame: usually no ffmpeg.
+	ProbeErr  error  // Why there are no details: usually no ffprobe.
+	FrameErr  error  // Why there is no first frame: usually no ffmpeg.
+	CueSource string // Where Result.Cues came from: a file's name, or a stream of the video's.
 }
 
 // ffmpegHint says what to install, to do what, when ffmpeg or ffprobe was
@@ -257,5 +279,12 @@ func videoFields(path string, info ntvideo.MediaInfo, probeErr error) []Field {
 		audio = info.AudioCodec
 	}
 	fields = append(fields, Field{"Audio", audio})
+	if len(info.Subtitles) > 0 {
+		names := make([]string, len(info.Subtitles))
+		for i, sub := range info.Subtitles {
+			names[i] = strings.TrimPrefix(streamName(sub), "subtitle ") + ", " + sub.Codec
+		}
+		fields = append(fields, Field{"Subtitle streams", strings.Join(names, "; ")})
+	}
 	return Section("Video", fields...)
 }

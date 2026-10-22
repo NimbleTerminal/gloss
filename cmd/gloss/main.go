@@ -103,6 +103,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVarP(&opts.Menu, "menu", "m", false, "start with the file-selection menu")
 	f.BoolVarP(&opts.Preview, "preview", "P", false, "start with the file menu and a preview pane")
 	view := f.String("view", "", "views of a mesh: front, back, left, right, top, bottom, iso, all; several, as front,top, export as one sheet")
+	at := f.String("at", "", "moments of a video, as 1:23, 83.5 or 1m23s, comma-separated: the frames an export draws, several as one sheet or a file each with --output-dir; the viewer starts at the first")
+	f.IntVar(&opts.FrameCount, "frames", 0, "export this many frames of a video, 1..16, spread through it: one sheet, or a file each with --output-dir")
 	camera := f.String("camera", "", "camera for a mesh, as elevation,azimuth or elevation,azimuth,distance in degrees")
 	projection := f.String("projection", "ortho", "projection of a mesh: ortho, perspective")
 	f.StringVar(&opts.Prompt, "prompt", "", "show this request to the user in a box, to say what to pick or look at")
@@ -337,6 +339,22 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	}
 	if !slices.Contains([]string{"ortho", "perspective"}, *projection) {
 		return opts, false, fmt.Errorf("--projection must be ortho or perspective")
+	}
+	if f.Changed("at") {
+		if opts.Times, err = parseTimes(*at); err != nil {
+			return opts, false, err
+		}
+	}
+	exporting := opts.Output != "" || opts.OutputDir != "" || opts.Print
+	switch {
+	case f.Changed("frames") && (opts.FrameCount < 1 || opts.FrameCount > document.MaxFrames):
+		return opts, false, fmt.Errorf("--frames must be 1..%d", document.MaxFrames)
+	case f.Changed("at") && f.Changed("frames"):
+		return opts, false, fmt.Errorf("choose --at or --frames")
+	case (f.Changed("at") || f.Changed("frames")) && (opts.Text || opts.Info || opts.Grep != nil):
+		return opts, false, fmt.Errorf("--at and --frames choose frames to draw; --text gives a video's subtitles, with their times")
+	case (opts.FrameCount > 0 || len(opts.Times) > 1) && !exporting:
+		return opts, false, fmt.Errorf("several frames need --output, --output-dir or --print; the viewer starts at one --at")
 	}
 	for i := range opts.Views {
 		if *projection == "perspective" {

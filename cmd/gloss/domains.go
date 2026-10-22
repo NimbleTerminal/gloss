@@ -67,6 +67,18 @@ var domains = []domain{
 		},
 	},
 	{
+		ID: "video", Title: "Videos",
+		Summary: "Frames of a video for a model to look at, drawn by ffmpeg without playing it: at the times named, or a number spread through it, as one labelled sheet or a file each. With `--json` each frame comes with its time and the subtitle shown then. `--text` gives a video's subtitles, with their times: an SRT or WebVTT file named after it beside it, or its own text subtitles.",
+		Flags:   []string{"at", "frames"},
+		Examples: []example{
+			{"The frame at 1:23, as a PNG", "gloss --at 1:23 --output frame.png clip.mp4"},
+			{"Nine frames through a video, as one sheet", "gloss --frames 9 --output sheet.png clip.mp4"},
+			{"Frames at three times, a file each, with their subtitles", "gloss --at 0:05,0:30,1:00 --output-dir frames --json clip.mp4"},
+			{"The subtitles, with their times", "gloss --text clip.mp4"},
+			{"Start playing at 1:23", "gloss --at 1:23 clip.mp4"},
+		},
+	},
+	{
 		ID: "export", Title: "Exporting images",
 		Summary: "Writing PNGs without a terminal, sized for the vision models that will read them. Export never overwrites a file; it numbers the name instead. `--max-edge` is the stable way to size an image; `--vision-profile` is only an alias for one.",
 		Flags:   []string{"output", "output-dir", "max-edge", "vision-profile"},

@@ -30,6 +30,9 @@ func ExportImage(r Result, maxEdge int) (image.Image, error) {
 	if r.Mesh != nil {
 		return exportMesh(r, maxEdge)
 	}
+	if len(r.Frames) > 1 {
+		return frameSheet(r.Frames, maxEdge)
+	}
 	if r.Image == nil || r.Image.Bounds().Empty() {
 		return nil, fmt.Errorf("document has no image")
 	}
@@ -121,12 +124,25 @@ func exportMesh(r Result, maxEdge int) (image.Image, error) {
 // label names a tile in its top-left corner, in letters large enough to be
 // read in a sheet shown small.
 func label(sheet *image.RGBA, tile image.Rectangle, name string) {
+	drawLabel(sheet, tile, name, false)
+}
+
+// boxedLabel is a label on a white box, for a tile whose picture fills it.
+func boxedLabel(sheet *image.RGBA, tile image.Rectangle, name string) {
+	drawLabel(sheet, tile, name, true)
+}
+
+func drawLabel(sheet *image.RGBA, tile image.Rectangle, name string, boxed bool) {
 	face := basicfont.Face7x13
 	text := image.NewRGBA(image.Rect(0, 0, len(name)*face.Advance, face.Height))
 	(&font.Drawer{Dst: text, Src: image.NewUniform(color.RGBA{R: 40, G: 40, B: 40, A: 255}), Face: face, Dot: fixed.P(0, face.Ascent)}).DrawString(name)
 	scale := max(1, tile.Dx()/200)
 	margin := max(2, tile.Dx()/40)
 	at := image.Rect(0, 0, text.Bounds().Dx()*scale, text.Bounds().Dy()*scale).Add(tile.Min).Add(image.Pt(margin, margin)).Intersect(tile)
+	if boxed {
+		pad := max(1, scale*2)
+		draw.Draw(sheet, at.Inset(-pad).Intersect(tile), image.NewUniform(color.White), image.Point{}, draw.Src)
+	}
 	xdraw.NearestNeighbor.Scale(sheet, at, text, text.Bounds(), draw.Over, nil)
 }
 

@@ -15,6 +15,15 @@
 - Show a video's subtitles: files beside it named after it (`clip.srt`,
   `clip.en.srt`, `.vtt`, `.ass`) and its own tracks; `c` changes track or
   turns them off. `i` names the files. ntvideo v0.2.0.
+- Export frames of a video at chosen times: `--at 1:23,2:05`, or `--frames 9`
+  spread through it, as one sheet with each frame's time, or a file each with
+  `--output-dir`. With `--json` each frame carries its time and the subtitle
+  shown then. `--at` alone starts the viewer there.
+- `--text` on a video prints its subtitles with their times, from a file
+  beside it or its own text subtitles; `--info` lists its subtitle streams.
+- Subtitles drawn with glyphs are terminal text over the picture, readable
+  where mpv's would not be; `g` switches a video between glyphs and Kitty
+  graphics. ntvideo v0.3.0.
 - Click a cell in a spreadsheet (CSV, Excel, Grist) to select it; a second click
   on a cell with an address opens it, as Enter does with `--fetch`.
 

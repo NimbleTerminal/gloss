@@ -302,6 +302,9 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		m.autoKitty = false
 		if m.chart == nil {
 			m.toggleGraphics()
+			if m.video != nil {
+				return m.video.SetRenderMode(m.videoRenderMode()), true
+			}
 			if m.source != nil && m.markdown == nil {
 				return m.refreshImage(), true
 			}

@@ -74,9 +74,8 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   and scroll-settle policy in `internal/app/typeset_layers.go`.
   The font chooser also uses `ntpicture.Picture`. All graphics consumers share
   ntpicture's single-image ID allocator; async message owners use separate IDs.
-  ntpicture, ntsvg, ntpdf, ntqrcode, nt3d, nttypeset, ntfonts, ntfilepicker, and
-  ntopenwith use published version pins; ntvideo is pinned to a commit until
-  it is tagged.
+  ntpicture, ntsvg, ntpdf, ntqrcode, nt3d, nttypeset, ntfonts, ntfilepicker,
+  ntopenwith, and ntvideo use published version pins.
 - STL and 3MF parsing and selection stay in `internal/document`; 3D geometry,
   camera frames, snapshots, and terminal rendering use `nimbleterminal.dev/nt3d`
   and its `widget` package. Gloss owns the projection/title rows around the
@@ -116,7 +115,14 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   regular files) replace the 128 MiB cap, and `--accept` checks the head.
   The loader describes it with `ntvideo.Probe` (ffprobe) and draws the frame at
   `Request.At` (default the first) with `FrameAt` (ffmpeg): previews,
-  thumbnails, exports, `--print`. Missing ffmpeg: details say "install ffmpeg",
+  thumbnails, exports, `--print`. `--at`/`--frames` (`Request.Times`,
+  `FrameCount`, `video_frames.go`) draw up to 16 frames in one `ntvideo.Frames`
+  batch into `Result.Frames`, each with the subtitle shown then; `ExportImage`
+  makes several a sheet (`frameSheet`, time labels), `--output-dir` a file each
+  (`-at-83.5s`), and the viewer starts at one `--at`. `--text`
+  (`TextOnly`) gives the subtitles as `Transcript` lines from `videoCues`: the
+  first SRT/WebVTT sidecar, else the video's text subtitle streams by
+  `ntvideo.Cues`; `--info` lists streams. Missing ffmpeg: details say "install ffmpeg",
   headless loads fail, the viewer still plays. The viewer plays it with an
   `ntvideo.Model` (libmpv at run time, via goffi; shared terminal session and
   image IDs), paused on the first frame: Space play/pause, ←/→ 5 s, Home
@@ -137,6 +143,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   becomes WebVTT (`srtToVTT`) behind a blob: URL revoked with the video's, and
   ASS/SSA are skipped. `c` cycles `Status.CaptionTracks` (embedded ones too)
   and off; the status line names the shown track; `i` lists the files.
+  Under glyphs, `WithNativeCaptionOverlay` draws them as terminal text
+  (`updateVideo` follows `Transport()`); `g` sets the video's render mode.
 - **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar

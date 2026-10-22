@@ -80,6 +80,25 @@ stderr, with exit 0 on success and 1 on error; an error stops the batch after
 any earlier views already printed. `-X` remains the interactive main-screen
 viewer, which requires a terminal.
 
+## Frames of a video
+
+A video's first frame is often black. `--at` names the moments wanted, as
+`1:23`, `1:02:03`, `83.5` or `1m23s`, up to 16, separated by commas;
+`--frames N` spreads N of them through the video, the middle of each of N
+equal parts. Several make one sheet with each frame's time in its corner,
+or a file each with `--output-dir`, and `--print` shows them too. One ffmpeg
+draws them all, and none is enlarged. With `--json`, each entry lists its
+frames' times in seconds and the subtitle shown at each. In the viewer,
+one `--at` starts the video there.
+
+```sh
+gloss --frames 9 --output sheet.png clip.mp4
+gloss --at 1:23 --output frame.png clip.mp4
+gloss --at 0:05,0:30,1:00 --output-dir frames clip.mp4
+gloss --text clip.mp4             # its subtitles, each after its times
+gloss --at 1:23 clip.mp4          # play from 1:23
+```
+
 ## Showing a link as a QR code
 
 `--qr TEXT` shows TEXT, usually a web address, as a QR code in place of a file,

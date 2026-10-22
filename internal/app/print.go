@@ -54,6 +54,12 @@ func PrintView(ctx context.Context, r document.Result, opts Options, width, heig
 				return "", err
 			}
 		}
+		if len(r.Frames) > 1 {
+			var err error
+			if r.Image, err = document.ExportImage(r, min(4096, max(width*2, height*4))); err != nil {
+				return "", err
+			}
+		}
 		if r.Image == nil {
 			return "", fmt.Errorf("document has no printable view")
 		}

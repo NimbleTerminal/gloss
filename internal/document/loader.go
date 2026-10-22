@@ -29,6 +29,7 @@ import (
 	_ "nimbleterminal.dev/ntpicture/decoders"
 	svg "nimbleterminal.dev/ntsvg"
 	"nimbleterminal.dev/nttypeset"
+	"nimbleterminal.dev/ntvideo"
 )
 
 const MaxFileBytes = 128 << 20
@@ -165,19 +166,21 @@ type Request struct {
 	Page, DPI   int
 	Generation  uint64
 	Reload      bool
-	MaxEdge     int           // Export raster target; zero keeps interactive defaults.
-	Animate     bool          // Decode bounded GIF/WebP playback; still exports and previews leave this false.
-	TextOnly    bool          // The text layer of a PDF page is wanted, not a picture of it.
-	Describe    bool          // Only the info fields are wanted: a PDF page is not drawn.
-	At          time.Duration // The moment of a video to draw; its first frame when zero.
-	Preview     bool          // A small, quick rendering is wanted: a thumbnail will do.
-	Parts       PartFilter    // The parts of a 3MF to show; empty shows them all.
-	Up          string        // "y" or "z": the up axis of an STL, OBJ or PLY; empty is the format's usual.
-	Shown       []bool        // The parts of a 3MF already chosen, over any filter; nil for all.
-	Color       *color.RGBA   // Paint for the faces of a mesh that its file left plain.
-	PaintAll    bool          // Paint every face, not only the plain ones.
-	Stdin       bool          // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
-	BaseDir     string        // Relative Markdown assets; empty uses the source directory.
+	MaxEdge     int             // Export raster target; zero keeps interactive defaults.
+	Animate     bool            // Decode bounded GIF/WebP playback; still exports and previews leave this false.
+	TextOnly    bool            // The text layer of a PDF page is wanted, not a picture of it.
+	Describe    bool            // Only the info fields are wanted: a PDF page is not drawn.
+	At          time.Duration   // The moment of a video to draw; its first frame when zero.
+	Times       []time.Duration // Moments of a video to draw, as Frames, in one batch; several make a sheet.
+	FrameCount  int             // Draw this many frames of a video, spread through it, as Frames.
+	Preview     bool            // A small, quick rendering is wanted: a thumbnail will do.
+	Parts       PartFilter      // The parts of a 3MF to show; empty shows them all.
+	Up          string          // "y" or "z": the up axis of an STL, OBJ or PLY; empty is the format's usual.
+	Shown       []bool          // The parts of a 3MF already chosen, over any filter; nil for all.
+	Color       *color.RGBA     // Paint for the faces of a mesh that its file left plain.
+	PaintAll    bool            // Paint every face, not only the plain ones.
+	Stdin       bool            // The file is what stdin was read into: it is shown as "stdin", not by its temporary name.
+	BaseDir     string          // Relative Markdown assets; empty uses the source directory.
 	// Exactly what was asked for: a page or part that is not there is an
 	// error, not the nearest one. The viewer turns pages and keeps within
 	// them; an export or a text must not answer for another page.
@@ -204,6 +207,8 @@ type Result struct {
 	Animation        *animation.Player
 	Mesh             *Mesh
 	Video            *Video                      // A video, played from its file; Image is its first frame.
+	Frames           []Frame                     // The frames of a video asked for by Times or FrameCount; Image is the first.
+	Cues             []ntvideo.CaptionCue        // A video's subtitles, when its text was asked for; Text is them written out.
 	Parts            []Part                      // What a 3MF build places, for choosing among.
 	Shown            []bool                      // Which of them the mesh holds; nil for all.
 	Assemble         func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.

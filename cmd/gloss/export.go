@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"nimbleterminal.dev/gloss/internal/app"
@@ -17,7 +18,7 @@ import (
 )
 
 func exportRequest(opts app.Options, path string, generation int) document.Request {
-	q := document.Request{Path: path, Type: opts.Type, MarkdownMode: opts.MarkdownMode, Typeset: opts.Typeset, TypesetLineNumbers: opts.LineNumbers, TypesetChop: opts.ChopLines, Theme: app.DocumentTheme(theme.Resolve(opts.Theme)), Font: opts.Font, Mono: opts.Mono, Page: opts.Page, DPI: opts.DPI, MaxEdge: opts.MaxEdge, Generation: uint64(generation), Parts: opts.Parts, Up: opts.Up, Color: opts.Color, Stdin: opts.IsStdin(path), Strict: true}
+	q := document.Request{Path: path, Type: opts.Type, MarkdownMode: opts.MarkdownMode, Typeset: opts.Typeset, TypesetLineNumbers: opts.LineNumbers, TypesetChop: opts.ChopLines, Theme: app.DocumentTheme(theme.Resolve(opts.Theme)), Font: opts.Font, Mono: opts.Mono, Page: opts.Page, DPI: opts.DPI, MaxEdge: opts.MaxEdge, Generation: uint64(generation), Parts: opts.Parts, Up: opts.Up, Color: opts.Color, Stdin: opts.IsStdin(path), Strict: true, Times: opts.Times, FrameCount: opts.FrameCount}
 	if q.Stdin {
 		q.BaseDir = opts.MarkdownBase
 	}
@@ -32,7 +33,7 @@ func onCPU(opts app.Options) bool { return opts.Render3D != "auto" && opts.Rende
 // page of each input, with what went wrong where something did.
 type made struct {
 	Path   string `json:"path" doc:"The input, as named; stdin for -."`
-	Kind   string `json:"kind,omitempty" doc:"The format gloss read it as: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid."`
+	Kind   string `json:"kind,omitempty" doc:"The format gloss read it as: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid, video."`
 	Page   int    `json:"page,omitempty" doc:"The page, sheet, or table, from 1."`
 	Pages  int    `json:"pages,omitempty" doc:"How many the document has."`
 	Output string `json:"output,omitempty" doc:"The file written; read this, not stderr, as a taken name is numbered."`
@@ -47,12 +48,38 @@ type made struct {
 	Chars  *int `json:"chars,omitempty" doc:"With --text on a PDF page, runes in its text layer."`
 	Images *int `json:"images,omitempty" doc:"With --text on a PDF page, images drawn on it, inline ones among them; absent when they could not be counted."`
 	Sparse bool `json:"sparse,omitempty" doc:"With --text on a PDF page: images and almost no text; export the page with --output instead."`
+	// The frames of a video drawn, with --at or --frames.
+	Frames []frame `json:"frames,omitempty" doc:"With --at or --frames, the video's frames in the PNG written: one, or several in a sheet, left to right and down."`
+	// A video's subtitles, with --text.
+	Subtitles string `json:"subtitles,omitempty" doc:"With --text on a video, where its subtitles came from: a file beside it, or a stream of its own."`
+	Cues      []cue  `json:"cues,omitempty" doc:"With --text --json on a video, its subtitles, timed."`
 	// With --grep, one match and the words about it.
 	Excerpt string `json:"excerpt,omitempty" doc:"With --grep, the match in a line of its context."`
 	// What was made instead of what was asked, as a 3MF's thumbnail for a
 	// mesh too large to draw.
 	Note  string `json:"note,omitempty" doc:"Something stands in for what was asked, or was left out; says what."`
 	Error string `json:"error,omitempty" doc:"Why this input or page failed; the other entries still stand."`
+}
+
+// frame is a moment of a video drawn in an export.
+type frame struct {
+	At      float64 `json:"at" doc:"Seconds into the video."`
+	Caption string  `json:"caption,omitempty" doc:"The subtitle shown then, if it has subtitles: a .srt or .vtt beside it, or text subtitles of its own."`
+}
+
+// cue is one subtitle of a video.
+type cue struct {
+	Start float64 `json:"start" doc:"Seconds into the video it appears."`
+	End   float64 `json:"end" doc:"Seconds into the video it goes."`
+	Text  string  `json:"text" doc:"What it says; lines are separated by newlines."`
+}
+
+func framesOf(r document.Result) []frame {
+	var out []frame
+	for _, f := range r.Frames {
+		out = append(out, frame{At: f.At.Seconds(), Caption: f.Caption})
+	}
+	return out
 }
 
 // reported is an error already written to stderr, beside the file it
@@ -89,34 +116,46 @@ func exportFiles(opts options, stdout, stderr io.Writer) error {
 			generation++
 			q := exportRequest(opts.Options, path, generation)
 			q.Page = page
-			r := loader.Load(q)
-			entry := made{Path: path, Kind: r.Kind, Page: r.Page, Pages: r.Pages, MaxEdge: opts.MaxEdge, VisionProfile: opts.VisionProfile, VisionReason: opts.EdgeReason}
-			r.CPU, r.Views = onCPU(opts.Options), opts.Views
-			img, err := document.ExportImage(r, opts.MaxEdge)
-			if err == nil && r.Standin != "" {
-				entry.Note = r.Standin + standinLoses(opts)
-				fmt.Fprintf(stderr, "gloss: %s: %s\n", svg.SanitizeForTerminal(path), svg.SanitizeForTerminal(entry.Note))
-			}
-			if err == nil {
-				var data bytes.Buffer
-				if err = png.Encode(&data, img); err == nil {
-					entry.Width, entry.Height = img.Bounds().Dx(), img.Bounds().Dy()
-					entry.Output, err = deliver(opts, i, path, r, ".png", data.Bytes(), stdout)
+			loaded := loader.Load(q)
+			loaded.CPU, loaded.Views = onCPU(opts.Options), opts.Views
+			// Into a folder, a video's frames are a file each, not a sheet.
+			results := []document.Result{loaded}
+			if opts.OutputDir != "" && len(loaded.Frames) > 1 {
+				results = nil
+				for _, f := range loaded.Frames {
+					one := loaded
+					one.Frames, one.Image = []document.Frame{f}, f.Image
+					results = append(results, one)
 				}
 			}
-			if err != nil {
-				entry.Error = err.Error()
-				fmt.Fprintf(stderr, "gloss: %s: %s\n", svg.SanitizeForTerminal(path), svg.SanitizeForTerminal(err.Error()))
-				if failed == nil {
-					failed = fmt.Errorf("%s: %w", path, err)
+			for _, r := range results {
+				entry := made{Path: path, Kind: r.Kind, Page: r.Page, Pages: r.Pages, MaxEdge: opts.MaxEdge, VisionProfile: opts.VisionProfile, VisionReason: opts.EdgeReason, Frames: framesOf(r)}
+				img, err := document.ExportImage(r, opts.MaxEdge)
+				if err == nil && r.Standin != "" {
+					entry.Note = r.Standin + standinLoses(opts)
+					fmt.Fprintf(stderr, "gloss: %s: %s\n", svg.SanitizeForTerminal(path), svg.SanitizeForTerminal(entry.Note))
 				}
-			} else if entry.Output != "" {
-				fmt.Fprintf(stderr, "%s: %d×%d PNG\n", svg.SanitizeForTerminal(entry.Output), entry.Width, entry.Height)
-				if !opts.JSON {
-					fmt.Fprintln(stdout, entry.Output)
+				if err == nil {
+					var data bytes.Buffer
+					if err = png.Encode(&data, img); err == nil {
+						entry.Width, entry.Height = img.Bounds().Dx(), img.Bounds().Dy()
+						entry.Output, err = deliver(opts, i, path, r, ".png", data.Bytes(), stdout)
+					}
 				}
+				if err != nil {
+					entry.Error = err.Error()
+					fmt.Fprintf(stderr, "gloss: %s: %s\n", svg.SanitizeForTerminal(path), svg.SanitizeForTerminal(err.Error()))
+					if failed == nil {
+						failed = fmt.Errorf("%s: %w", path, err)
+					}
+				} else if entry.Output != "" {
+					fmt.Fprintf(stderr, "%s: %d×%d PNG\n", svg.SanitizeForTerminal(entry.Output), entry.Width, entry.Height)
+					if !opts.JSON {
+						fmt.Fprintln(stdout, entry.Output)
+					}
+				}
+				manifest = append(manifest, entry)
 			}
-			manifest = append(manifest, entry)
 		}
 	}
 	if opts.JSON {
@@ -174,6 +213,14 @@ func textFiles(opts options, stdout, stderr io.Writer) error {
 				}
 				if entry.Sparse {
 					fmt.Fprintf(stderr, "gloss: %s: page %d has %d %s and only %d characters of text: export it with --output to see it\n", svg.SanitizeForTerminal(path), r.Page, r.Layer.Images, plural(r.Layer.Images, "image"), r.Layer.Chars)
+				}
+			}
+			if r.Video != nil {
+				entry.Subtitles = r.Video.CueSource
+				if opts.JSON {
+					for _, c := range r.Cues {
+						entry.Cues = append(entry.Cues, cue{Start: c.Start.Seconds(), End: c.End.Seconds(), Text: c.Text})
+					}
 				}
 			}
 			text, ext, err := document.Text(r)
@@ -300,6 +347,8 @@ func targetFor(opts options, i int, path string, r document.Result, ext string) 
 		suffix = fmt.Sprintf("-sheet-%d", r.Page)
 	case r.Kind == "grist" && r.Pages > 1:
 		suffix = fmt.Sprintf("-table-%d", r.Page)
+	case len(r.Frames) == 1:
+		suffix = "-at-" + strconv.FormatFloat(r.Frames[0].At.Seconds(), 'f', -1, 64) + "s"
 	}
 	return filepath.Join(opts.OutputDir, fmt.Sprintf("%03d-%s%s%s", i+1, base, suffix, ext))
 }

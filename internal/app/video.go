@@ -43,6 +43,10 @@ func (m *Model) showVideo(v document.Result, cleanup tea.Cmd) tea.Cmd {
 		ntvideo.WithPoster(v.Image),
 		ntvideo.WithAutoplay(false),
 		ntvideo.WithScrubber(true),
+		ntvideo.WithRenderMode(m.videoRenderMode()),
+		// Subtitles drawn into half-blocks cannot be read: glyphs get them
+		// as text over the picture (updateVideo keeps this in step).
+		ntvideo.WithNativeCaptionOverlay(!m.kitty),
 		ntvideo.WithTerminalSession(m.terminal),
 		ntvideo.WithImageIDAllocator(ntpicture.NextImageID),
 		ntvideo.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
@@ -50,10 +54,22 @@ func (m *Model) showVideo(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	)
 	m.keepLayer()
 	if at := m.savedVideoAt; at > 0 {
-		m.video.Seek(at) // Where the menu, or a reload, left it.
+		m.video.Seek(at) // Where the menu, a reload or --at left it.
 	}
 	m.savedVideoAt = 0
 	return tea.Sequence(cleanup, m.video.Init(), m.layoutVideo())
+}
+
+// videoRenderMode is how the video is drawn: as the terminal allows, until
+// g or --render chooses.
+func (m *Model) videoRenderMode() ntvideo.RenderMode {
+	switch {
+	case m.autoKitty:
+		return ntvideo.RenderAuto
+	case m.kitty:
+		return ntvideo.RenderRaster
+	}
+	return ntvideo.RenderGlyph
 }
 
 // layoutVideo puts the video over the body, under any prompt above it.
@@ -91,6 +107,7 @@ func (m *Model) updateVideo(msg tea.Msg) tea.Cmd {
 	}
 	visible := m.screen == screenDocument && !m.help && !m.suspended && m.openWithPicker == nil
 	cmd := m.video.SetVisible(visible)
+	m.video.SetNativeCaptionOverlay(m.video.Transport() == "glyph")
 	if _, mouse := msg.(tea.MouseMsg); mouse {
 		// Its bounds, and so its scrub bar, are in the terminal's cells.
 		if !visible || m.layer != layerNone {
@@ -176,9 +193,9 @@ func trackName(t ntvideo.Track) string {
 // videoDetail is the status line's account of the video.
 func (m *Model) videoDetail() string {
 	s := m.video.Status()
-	detail := fmt.Sprintf("VIDEO · %s", clock(s.CurrentTime))
+	detail := fmt.Sprintf("VIDEO · %s", document.Clock(s.CurrentTime))
 	if s.Duration > 0 {
-		detail += "/" + clock(s.Duration)
+		detail += "/" + document.Clock(s.Duration)
 	}
 	state := string(s.State)
 	if s.Err != nil {
@@ -190,14 +207,4 @@ func (m *Model) videoDetail() string {
 		}
 	}
 	return detail + " · " + state
-}
-
-// clock writes a time as m:ss, or h:mm:ss.
-func clock(d time.Duration) string {
-	d = d.Round(time.Second)
-	h, mm, ss := int(d.Hours()), int(d.Minutes())%60, int(d.Seconds())%60
-	if h > 0 {
-		return fmt.Sprintf("%d:%02d:%02d", h, mm, ss)
-	}
-	return fmt.Sprintf("%d:%02d", mm, ss)
 }

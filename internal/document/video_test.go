@@ -2,12 +2,17 @@ package document
 
 import (
 	"errors"
+	"image"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
+
+	"nimbleterminal.dev/ntvideo"
 )
 
 func TestSniffVideo(t *testing.T) {
@@ -173,5 +178,95 @@ func TestMemoryVideo(t *testing.T) {
 	}
 	if r = l.Load(Request{Path: "clip.mp4", Generation: 3, Animate: true}); !errors.Is(r.Err, ErrVideoNative) || r.Video != nil {
 		t.Fatalf("viewer: err=%v video=%v", r.Err, r.Video)
+	}
+}
+
+func TestSpread(t *testing.T) {
+	got := Spread(12*time.Second, 4)
+	want := []time.Duration{1500 * time.Millisecond, 4500 * time.Millisecond, 7500 * time.Millisecond, 10500 * time.Millisecond}
+	if !slices.Equal(got, want) {
+		t.Fatalf("Spread = %v, want %v", got, want)
+	}
+}
+
+func TestTranscript(t *testing.T) {
+	cues := []ntvideo.CaptionCue{
+		{Start: time.Second, End: 4 * time.Second, Text: "Hello there.\nSecond line"},
+		{Start: 3723*time.Second + 450*time.Millisecond, End: 3725 * time.Second, Text: "Later."},
+	}
+	want := "[0:01.0–0:04.0] Hello there. / Second line\n[1:02:03.5–1:02:05.0] Later.\n"
+	if got := Transcript(cues); got != want {
+		t.Fatalf("Transcript =\n%s\nwant\n%s", got, want)
+	}
+	if got := captionAt(cues, 2*time.Second); got != "Hello there.\nSecond line" {
+		t.Fatalf("captionAt(2s) = %q", got)
+	}
+	if got := captionAt(cues, 4*time.Second); got != "" {
+		t.Fatalf("captionAt(4s), as the cue ends = %q", got)
+	}
+}
+
+// Frames of several shapes share a sheet, each at its own aspect, and none
+// is enlarged past its size.
+func TestFrameSheet(t *testing.T) {
+	wide := image.NewRGBA(image.Rect(0, 0, 160, 90))
+	tall := image.NewRGBA(image.Rect(0, 0, 90, 160))
+	sheet, err := frameSheet([]Frame{{At: 0, Image: wide}, {At: time.Second, Image: tall}, {At: 2 * time.Second, Image: wide}}, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b := sheet.Bounds(); b.Dx() > 2*160+16 || b.Dy() > 2*160+16 {
+		t.Fatalf("sheet %v: frames were enlarged", b)
+	}
+	sheet, err = frameSheet([]Frame{{Image: wide}, {Image: wide}, {Image: wide}, {Image: wide}}, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b := sheet.Bounds(); b.Dx() > 100 || b.Dy() > 100 {
+		t.Fatalf("sheet %v is over its edge", b)
+	}
+}
+
+// With ffmpeg, a video gives its frames at the times asked, or spread through
+// it, with the subtitles shown then, and its subtitles as text.
+func TestVideoFramesAndSubtitles(t *testing.T) {
+	for _, tool := range []string{"ffmpeg", "ffprobe"} {
+		if _, err := exec.LookPath(tool); err != nil {
+			t.Skipf("%s is not installed", tool)
+		}
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "clip.mp4")
+	out, err := exec.Command("ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc2=size=64x48:rate=10", "-t", "4", "-pix_fmt", "yuv420p", path).CombinedOutput()
+	if err != nil {
+		t.Skipf("ffmpeg could not make a clip: %v %s", err, out)
+	}
+	srt := "1\n00:00:01,000 --> 00:00:02,000\nHello.\n"
+	if err := os.WriteFile(filepath.Join(dir, "clip.en.srt"), []byte(srt), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	l := &Loader{}
+	defer l.Close()
+	r := l.Load(Request{Path: path, Generation: 1, Times: []time.Duration{1500 * time.Millisecond, 3 * time.Second}})
+	if r.Err != nil || len(r.Frames) != 2 || r.Image != r.Frames[0].Image {
+		t.Fatalf("--at: frames=%d err=%v", len(r.Frames), r.Err)
+	}
+	if r.Frames[0].Caption != "Hello." || r.Frames[1].Caption != "" {
+		t.Fatalf("captions %q, %q", r.Frames[0].Caption, r.Frames[1].Caption)
+	}
+	r = l.Load(Request{Path: path, Generation: 2, FrameCount: 4})
+	if r.Err != nil || len(r.Frames) != 4 || r.Frames[0].At != 500*time.Millisecond {
+		t.Fatalf("--frames: %d frames, first at %v, err=%v", len(r.Frames), r.Frames, r.Err)
+	}
+	if r = l.Load(Request{Path: path, Generation: 3, Times: []time.Duration{9 * time.Second}}); r.Err == nil || !strings.Contains(r.Err.Error(), "past the end") {
+		t.Fatalf("past the end: %v", r.Err)
+	}
+	r = l.Load(Request{Path: path, Generation: 4, TextOnly: true})
+	if r.Err != nil || r.Text != "[0:01.0–0:02.0] Hello.\n" || r.Video.CueSource != "clip.en.srt" {
+		t.Fatalf("text %q from %q: %v", r.Text, r.Video.CueSource, r.Err)
+	}
+	os.Remove(filepath.Join(dir, "clip.en.srt"))
+	if r = l.Load(Request{Path: path, Generation: 5, TextOnly: true}); r.Err == nil || !strings.Contains(r.Err.Error(), "no subtitles") {
+		t.Fatalf("no subtitles: %v", r.Err)
 	}
 }
