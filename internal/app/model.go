@@ -484,6 +484,10 @@ func (m *Model) clearGraphics() tea.Cmd {
 	overlayCleanup := m.clearTypesetLayers()
 	stopped := m.stopAnimation()
 	m.sheet = nil
+	if m.layer == layerActions {
+		// A new file, a reload or a drop leaves no menu holding the mouse.
+		m.closeLayer()
+	}
 	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearVideo(), m.clearMarkdown())
 }
 
@@ -595,6 +599,9 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		}
 	}
 	msg = m.onBody(msg)
+	if click, ok := msg.(tea.MouseClickMsg); ok && click.Button == tea.MouseRight && m.itemsHere() {
+		return m.openItemActions(image.Pt(click.X, click.Y), true)
+	}
 	selectCmd, selecting := m.typesetSelectMouse(msg)
 	if cmd, handled := m.linkMouse(msg); handled || selecting {
 		return tea.Batch(cmd, selectCmd)
@@ -729,6 +736,10 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 	case exportResult:
 		m.note = v.note()
 		return nil
+	case imageCopied:
+		return m.imageCopied(v)
+	case shownSaved:
+		return m.shownSaved(v)
 	case openResult:
 		return m.opened(v)
 	case findResult:

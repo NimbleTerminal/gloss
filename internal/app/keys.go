@@ -1,6 +1,8 @@
 package app
 
 import (
+	"image"
+
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
@@ -148,6 +150,12 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			case "N":
 				return m.nextMatch(-1), true
 			}
+		}
+	}
+	if (k == "a" || k == "shift+f10") && m.layer == layerNone {
+		// A key a mesh wants, when there is nothing here to act on.
+		if cmd := m.openItemActions(image.Pt(0, 0), false); m.layer == layerActions {
+			return cmd, true
 		}
 	}
 	if k == "esc" && m.typeset != nil && m.markdown == nil {

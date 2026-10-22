@@ -481,6 +481,9 @@ func (m *Model) hints() string {
 			keys += " · c parts"
 		}
 	}
+	if _, ok := m.viewPicture(); ok {
+		keys += " · a actions"
+	}
 	if m.isFetched() {
 		keys = " Esc close ·" + strings.TrimPrefix(keys, " q quit ·")
 	}

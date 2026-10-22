@@ -28,7 +28,7 @@ var helpLeft = []helpSection{
 		{"", "Tab in the app chooser: open / edit"},
 		{"e  i  R", "export · details · reload"},
 		{"/  n  N", "search · next / prev match"},
-		{"T", "choose a color theme"},
+		{"T  a", "color theme · item actions"},
 		{"", "Drop files or paste paths to open"},
 	}},
 	{"Text", []helpRow{

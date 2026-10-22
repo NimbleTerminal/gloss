@@ -103,15 +103,25 @@ func TestActionMenuStaysOnScreen(t *testing.T) {
 
 func TestActionMenuIgnoresClicksUnderLayers(t *testing.T) {
 	right := tea.MouseClickMsg{X: 5, Y: 5, Button: tea.MouseRight}
+	picture := func() *Model {
+		m := loaded(t, "photos/landscape.png")
+		m.opts.CopyImage = func([]byte) error { return nil }
+		// Without a layer over it, this click opens the menu.
+		if m.Update(right); m.layer != layerActions {
+			t.Fatalf("a right-click on a picture opened no menu: layer=%v", m.layer)
+		}
+		m.closeLayer()
+		return m
+	}
 
-	m := loaded(t, "photos/landscape.png")
+	m := picture()
 	m.Update(press("i"))
 	m.Update(right)
 	if m.layer != layerInfo || m.actions != nil {
 		t.Fatalf("a right-click under the info box: layer=%v actions=%v", m.layer, m.actions)
 	}
 
-	m = loaded(t, "photos/landscape.png")
+	m = picture()
 	m.Update(press("?"))
 	m.Update(right)
 	if !m.help || m.layer != layerNone || m.actions != nil {

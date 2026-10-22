@@ -108,6 +108,9 @@ func (m *Model) updateVideo(msg tea.Msg) tea.Cmd {
 	visible := m.screen == screenDocument && !m.help && !m.suspended && m.openWithPicker == nil
 	cmd := m.video.SetVisible(visible)
 	m.video.SetNativeCaptionOverlay(m.video.Transport() == "glyph")
+	if click, ok := msg.(tea.MouseClickMsg); ok && click.Button == tea.MouseRight {
+		return cmd // The menu's, not a seek.
+	}
 	if _, mouse := msg.(tea.MouseMsg); mouse {
 		// Its bounds, and so its scrub bar, are in the terminal's cells.
 		if !visible || m.layer != layerNone {
