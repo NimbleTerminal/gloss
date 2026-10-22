@@ -27,6 +27,7 @@ const (
 	layerFont    // Typeset font pairs.
 	layerTheme   // Theme selection over the document.
 	layerQR      // The selected table URL, as a QR code.
+	layerActions // The menu of what can be done with the thing under the pointer.
 )
 
 // listing says whether the file list is on screen, in either style.
@@ -42,7 +43,7 @@ func (m *Model) showingInfo() bool  { return m.layer == layerInfo }
 // color still being chosen.
 func (m *Model) closeLayer() tea.Cmd {
 	was := m.layer
-	m.layer = layerNone
+	m.layer, m.actions = layerNone, nil
 	switch was {
 	case layerOpenWith:
 		return m.closeOpenWith()
@@ -92,7 +93,7 @@ func (m *Model) closeLayer() tea.Cmd {
 // chosen is kept.
 func (m *Model) keepLayer() {
 	m.openWithPicker = nil
-	m.layer, m.colorPicker, m.partPicker = layerNone, nil, nil
+	m.layer, m.colorPicker, m.partPicker, m.actions = layerNone, nil, nil, nil
 	if m.sheet != nil {
 		m.sheet.picker = nil
 	}

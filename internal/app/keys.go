@@ -53,7 +53,7 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 		m.helpKey(k)
 		return nil, true
 	}
-	if (k == "o" || k == "O") && m.layer != layerColumns && m.layer != layerParts && m.layer != layerColor && m.layer != layerQR {
+	if (k == "o" || k == "O") && m.layer != layerColumns && m.layer != layerParts && m.layer != layerColor && m.layer != layerQR && m.layer != layerActions {
 		return m.openBrowser(), true
 	}
 	if (k == "w" || k == "W" || k == "E") && m.layer == layerNone {
@@ -356,6 +356,8 @@ func (m *Model) layerKey(k string) (tea.Cmd, bool) {
 		return nil, true
 	case layerNone:
 		return nil, false
+	case layerActions:
+		return m.actionsKey(k)
 	case layerInfo:
 		if k == "esc" {
 			return m.closeLayer(), true

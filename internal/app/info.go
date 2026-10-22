@@ -129,6 +129,18 @@ func themedBox(lines []string, padding int, p theme.Palette) string {
 // Rows are cut between cells, so a Kitty image keeps the placeholders that
 // remain visible and gives up only those the box covers.
 func overlay(body, box string, w, top int) string {
+	return overlayRows(body, box, w, top, func(row int) int { return w - row })
+}
+
+// overlayAt lays box over body, which is w cells wide, with its left edge x
+// cells in and top rows below the first; what the box does not cover stays.
+func overlayAt(body, box string, w, x, top int) string {
+	return overlayRows(body, box, w, top, func(int) int { return x })
+}
+
+// overlayRows lays each row of box over body at the cell where, given the
+// row's width, the row is to start.
+func overlayRows(body, box string, w, top int, start func(width int) int) string {
 	if box == "" {
 		return body
 	}
@@ -138,9 +150,14 @@ func overlay(body, box string, w, top int) string {
 		if i >= len(lines) {
 			break
 		}
-		x := max(0, w-ansi.StringWidth(row))
+		rowWidth := ansi.StringWidth(row)
+		x := max(0, start(rowWidth))
 		left := ansi.Truncate(lines[i], x, "")
-		lines[i] = left + "\x1b[m" + strings.Repeat(" ", max(0, x-ansi.StringWidth(left))) + row
+		line := left + "\x1b[m" + strings.Repeat(" ", max(0, x-ansi.StringWidth(left))) + row
+		if end := x + rowWidth; end < w {
+			line += "\x1b[m" + ansi.TruncateLeft(ansi.Truncate(lines[i], w, ""), end, "")
+		}
+		lines[i] = line
 	}
 	return strings.Join(lines, "\n")
 }

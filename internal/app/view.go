@@ -32,6 +32,9 @@ func (m *Model) View() tea.View {
 	if m.search != nil && m.screen == screenDocument && !m.help && m.layer == layerNone {
 		hint = ansi.Truncate(m.search.status(w), w, "…")
 	}
+	if m.layer == layerActions && mouse < tea.MouseModeCellMotion {
+		mouse = tea.MouseModeCellMotion // For clicks on the entries.
+	}
 	body = m.framed(body)
 	palette := m.palette()
 	hint = lipgloss.NewStyle().Foreground(palette.Muted).Background(palette.Background).Width(w).Render(hint)
@@ -196,6 +199,12 @@ func (m *Model) layered(body string, w, h int) string {
 		return overlay(body, m.themePickerView(w, h), w, 0)
 	case layerQR:
 		return overlay(body, m.qrView(w, h), w, 0)
+	case layerActions:
+		box := m.actionsView(w, h)
+		if box == "" {
+			return body
+		}
+		return overlayAt(body, box, w, m.actions.box.Min.X, m.actions.box.Min.Y)
 	case layerInfo:
 		// The mesh view keeps its own title on the first row.
 		top := 0
@@ -293,6 +302,9 @@ func (m *Model) documentStatus(w, h int) (bar, hint string) {
 		detail = m.note + " · " + detail
 	}
 	status := fmt.Sprintf(" %s  [%d/%d]  %s", name, m.index+1, len(m.opts.Files), detail)
+	if note := m.actionsNote(); note != "" {
+		status = " " + note + " · " + status[1:]
+	}
 	if empty {
 		status = " No files yet"
 		if m.note != "" {
@@ -410,6 +422,8 @@ func (m *Model) hints() string {
 	switch m.layer {
 	case layerTheme:
 		return " ↑/↓ preview theme · Enter keep · Esc cancel"
+	case layerActions:
+		return " ↑/↓ choose · Enter do · Esc close"
 	case layerQR:
 		return " Esc/u close QR · g graphics · e export QR · q quit"
 	case layerColumns:

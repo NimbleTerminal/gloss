@@ -195,6 +195,7 @@ type Model struct {
 	lastCellW, lastCellH     int  // Last geometry applied by this consumer of the shared session.
 	kitty                    bool // Current graphics mode; capability and geometry belong to terminal.
 	qr                       *qrOverlay
+	actions                  *actionMenu
 	width, height, index     int
 	page, pages              int
 	generation               uint64
@@ -566,6 +567,15 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return nil
 	}
 	if cmd, handled := m.openWithBrowse(msg); handled {
+		return cmd
+	}
+	if _, mouse := msg.(tea.MouseMsg); mouse && m.layer == layerActions {
+		// The menu takes every click, before the sheet, the links and the
+		// scrubber; behind the help page it takes them and does nothing.
+		if m.help || m.openWithPicker != nil || m.screen != screenDocument {
+			return nil
+		}
+		cmd, _ := m.actionsMouse(m.onBody(msg))
 		return cmd
 	}
 	if _, ok := msg.(tea.MouseMsg); ok && m.openWithPicker != nil {
