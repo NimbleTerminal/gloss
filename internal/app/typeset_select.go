@@ -26,11 +26,11 @@ func (m *Model) clearTypesetSelection() {
 }
 
 // typesetPixel maps a body cell to a pixel of the shown page picture, which
-// is fitted to the body as the picture library fits it, letterboxing in
-// whole cells. With clamp, a cell beside the picture maps to its nearest
+// is fitted to the body as the picture library fits it, in the cell shape
+// it draws (typesetCell), letterboxing in whole cells. With clamp, a cell beside the picture maps to its nearest
 // edge pixel, for a drag that leaves it.
 func (m *Model) typesetPixel(x, y int, clamp bool) (image.Point, bool) {
-	cw, ch := m.cellPixelSize()
+	cw, ch := m.typesetCell()
 	tw, th := m.width*cw, m.bodyHeight()*ch
 	b := m.source.Bounds()
 	sw, sh := b.Dx(), b.Dy()

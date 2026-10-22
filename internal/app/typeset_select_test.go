@@ -196,3 +196,27 @@ func TestTypesetSelectionDragShowsSupersededFrames(t *testing.T) {
 		t.Fatalf("current selection not reached: %q then %q", first, m.typesetSelected)
 	}
 }
+
+// Glyphs draw a picture as if each cell were one pixel by two, whatever
+// the terminal's cell. The page fills that shape, and a cell maps to the
+// part of the page drawn in it, so a drag starts under the pointer.
+func TestTypesetSelectionGlyphGeometry(t *testing.T) {
+	files := fstest.MapFS{"page.md": {Data: []byte(strings.Repeat("A paragraph of words.\n\n", 40))}}
+	m := New(Options{Files: []string{"page.md"}, FilesFS: files, MarkdownMode: "typeset", Render: "glyph", DPI: 150, Page: 1})
+	t.Cleanup(func() { _ = m.Close() })
+	m.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
+	m.terminal.Update(uv.CellSizeEvent{Width: 10, Height: 22})
+	drainAnimation(t, m, m.load(false))
+	b := m.source.Bounds()
+	w, h := m.width, m.bodyHeight()
+	if got, want := float64(b.Dx())/float64(b.Dy()), float64(w)/float64(2*h); got < want*0.99 || got > want*1.01 {
+		t.Fatalf("page %v is %.3f wide for its height; glyphs draw %.3f", b, got, want)
+	}
+	for _, c := range []image.Point{{0, 0}, {10, 5}, {w - 1, h - 1}} {
+		got, ok := m.typesetPixel(c.X, c.Y, false)
+		want := image.Pt((2*c.X+1)*b.Dx()/(2*w), (2*c.Y+1)*b.Dy()/(2*h))
+		if !ok || got.Sub(want).X/2 != 0 || got.Sub(want).Y/2 != 0 {
+			t.Fatalf("cell %v maps to %v, %v; drawn at %v", c, got, ok, want)
+		}
+	}
+}

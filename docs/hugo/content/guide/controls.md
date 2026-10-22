@@ -248,7 +248,8 @@ the default browser. This also works in typeset mode; wheel scrolling remains
 available. Dragging, source view, and overlays do not activate links.
 
 Text screens take the mouse for the wheel and for clicks, so select text on
-them with your terminal's override, usually Shift held while dragging. A
+them with your terminal's override, usually Shift held while dragging
+(Option in iTerm2), as the status bar says. A
 typeset page is a picture, which the terminal cannot select from: drag over
 it to select text, `y` copies the selection through the terminal's clipboard
 (OSC 52, which the terminal must allow; most do), and `Esc` clears it. The

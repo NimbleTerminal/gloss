@@ -26,6 +26,10 @@
   graphics. ntvideo v0.3.0.
 - Click a cell in a spreadsheet (CSV, Excel, Grist) to select it; a second click
   on a cell with an address opens it, as Enter does with `--fetch`.
+- The status bar of a text screen says how to select text: Shift-drag, or
+  ⌥-drag in iTerm2, since gloss takes plain drags for the wheel and clicks.
+- Selecting text on a typeset page drawn with glyphs starts and ends under
+  the pointer, as hovering a link does; the page fills the screen.
 
 ## `v0.4.0` (2026-10-21)
 

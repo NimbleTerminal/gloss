@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -440,7 +441,7 @@ func (m *Model) hints() string {
 		if m.markdown.numbered() {
 			keys += " · : line · # numbers"
 		}
-		keys += " · S " + map[bool]string{false: "chop", true: "wrap"}[m.markdown.chop]
+		keys += " · S " + map[bool]string{false: "chop", true: "wrap"}[m.markdown.chop] + " · " + selectHint()
 	case m.sheet != nil:
 		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info"
 		switch {
@@ -480,4 +481,13 @@ func (m *Model) hints() string {
 		keys = " Enter send " + what + " · q cancel ·" + strings.TrimPrefix(keys, " q quit ·")
 	}
 	return keys
+}
+
+// selectHint says how to select text the terminal's way on a screen that
+// takes the mouse: with Option held in iTerm2, with Shift in most others.
+func selectHint() string {
+	if os.Getenv("TERM_PROGRAM") == "iTerm.app" {
+		return "⌥-drag select"
+	}
+	return "Shift-drag select"
 }

@@ -53,6 +53,18 @@ func (m *Model) toggleTypeset() tea.Cmd {
 	m.savedMarkdown = nil
 	return tea.Sequence(m.clearGraphics(), m.load(false))
 }
+
+// typesetCell is a body cell's shape as the page picture is drawn into it:
+// the terminal's cell in pixels with Kitty graphics. Glyphs draw every
+// cell as one pixel by two, whatever the terminal's: here two by four, so
+// that a cell has a middle.
+func (m *Model) typesetCell() (int, int) {
+	if m.kitty {
+		return m.cellPixelSize()
+	}
+	return 2, 4
+}
+
 func (m *Model) typesetMeasure() int {
 	if !m.opts.typesetEnabled() || m.isPreview || m.width < 1 {
 		return 0
@@ -61,7 +73,7 @@ func (m *Model) typesetMeasure() int {
 	return max(192, min(960, int(math.Round(float64(m.width*max(1, cw))*72/150))))
 }
 func (m *Model) typesetViewport() document.TypesetViewport {
-	cw, ch := m.cellPixelSize()
+	cw, ch := m.typesetCell()
 	width := float64(m.typesetMeasure()) * 150 / 72
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
 	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}
