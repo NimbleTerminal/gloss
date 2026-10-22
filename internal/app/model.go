@@ -29,7 +29,15 @@ type Options struct {
 	IsTemporary func(string) bool
 	// OpenLink asks the embedding host to open an explicitly clicked web URL.
 	// Nil leaves link activation to the terminal (OSC 8). It never fetches a document.
-	OpenLink               func(string) error
+	OpenLink func(string) error
+	// CopyImage puts a PNG on the system clipboard as a picture. Nil where
+	// pictures cannot reach the system clipboard.
+	CopyImage func(png []byte) error
+	// Scratch writes data to a new file called name in a folder of the
+	// viewer's own temporaries, and gives its path. The file is the host's to
+	// remove, never overwrites another, and is not the user's document. Nil
+	// where there is no such folder.
+	Scratch                func(name string, data []byte) (string, error)
 	STLCamera              *nt3d.Camera    // Optional initial/reset view for an embedded gallery.
 	Views                  []document.View // Views of a mesh asked for: the first is where the viewer starts.
 	Times                  []time.Duration // Moments of a video asked for: an export draws them, the viewer starts at the first.

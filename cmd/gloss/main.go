@@ -21,6 +21,7 @@ import (
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/pflag"
 	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/clipimage"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/handoff"
 	"nimbleterminal.dev/gloss/internal/theme"
@@ -620,6 +621,8 @@ func run(args []string) (err error) {
 		picked, err = served(opts, os.Stdout, os.Stderr)
 		return err
 	}
+	var scratch scratchFolder
+	defer scratch.remove()
 	err = configureOpenWith(&opts, nativeOpenWith)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gloss: open-with preferences: %v\n", err)
@@ -628,9 +631,11 @@ func run(args []string) (err error) {
 		if path == stdinPath && stdinPath != "" || path == qrPath && qrPath != "" {
 			return true
 		}
-		return downloads.holds(path)
+		return downloads.holds(path) || scratch.holds(path)
 	}
 	opts.OpenLink = browse
+	opts.CopyImage = func(png []byte) error { return clipimage.Copy(context.Background(), png) }
+	opts.Scratch = scratch.write
 	opts.ThemeChoices = theme.Available()
 	opts.SaveTheme = theme.SaveChoice
 	opts.SaveFont = saveFontChoice
