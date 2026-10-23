@@ -224,7 +224,7 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Rendered Markdown (text, typeset, and Word/HTML/notebooks shown as Markdown)
   has page items (`internal/app/items.go`: pictures, links, tables, each with
   its rows or typeset rectangles). Tab and Shift-Tab move between them, drawn in
-  reverse video or as an outline in the typeset raster (and in `e` exports); with
+  reverse video in text, or an outline in the typeset raster (only the outline reaches `e` exports); with
   none, a note. Everywhere else Tab still switches files; `]`/`[` always do.
   `a`, Shift-F10 or a right-click opens `layerActions` (`actions.go`): a menu of
   `menuEntry`s per item (`picture_actions.go`, `table_actions.go`,
