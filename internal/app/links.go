@@ -4,6 +4,7 @@ import (
 	"image"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -237,6 +238,29 @@ func linkEntries(m *Model, url string, label string) []menuEntry {
 		m.note = "Address copied"
 		return tea.SetClipboard(url)
 	}})
+}
+
+// typesetHoverMouse tints the link under the pointer on a typeset page,
+// every line of it, and untints it when the pointer leaves it, a button is
+// pressed or the page moves.
+func (m *Model) typesetHoverMouse(msg tea.Msg) tea.Cmd {
+	var marks []document.TypesetMark
+	switch v := msg.(type) {
+	case tea.MouseMotionMsg:
+		if v.Button == tea.MouseNone && m.layer == layerNone && !m.help && !m.isPreview && m.markdown == nil {
+			if i := m.typesetItemIndex(v.X, v.Y); i >= 0 && m.typesetItems[i].Kind == document.TypesetLinkItem {
+				marks = m.typesetItems[i].Marks
+			}
+		}
+	case tea.MouseClickMsg, tea.MouseWheelMsg:
+	default:
+		return nil
+	}
+	if slices.Equal(marks, m.typesetHover) {
+		return nil
+	}
+	m.typesetHover = marks
+	return m.queueTypesetReflow()
 }
 
 func (m *Model) jumpFootnote(target string) tea.Cmd {

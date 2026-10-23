@@ -25,6 +25,7 @@ const (
 type TypesetItem struct {
 	Kind        TypesetItemKind
 	Rects       []image.Rectangle // Page layout pixels (scale 1, top of page 0).
+	Marks       []TypesetMark     // A text link's text, line by line, to tint.
 	URL         string            // A link, or the link around a picture.
 	Destination string            // A picture's key.
 	Path        string            // A picture's own file, as MarkdownImage.Path.
@@ -60,10 +61,10 @@ links:
 		// The lines of one wrapped link meet in its paragraph's runes; two
 		// links to one URL do not.
 		if last >= 0 && items[last].URL == link.URL && prev.Block == link.Block && prev.Para == link.Para && prev.Runes[1] >= link.Runes[0] {
-			items[last].Rects, prev = append(items[last].Rects, link.Rect), link
+			items[last].Rects, items[last].Marks, prev = append(items[last].Rects, link.Rect), append(items[last].Marks, link.Mark()), link
 			continue
 		}
-		items = append(items, TypesetItem{Kind: TypesetLinkItem, Rects: []image.Rectangle{link.Rect}, URL: link.URL})
+		items = append(items, TypesetItem{Kind: TypesetLinkItem, Rects: []image.Rectangle{link.Rect}, Marks: []TypesetMark{link.Mark()}, URL: link.URL})
 		last, prev = len(items)-1, link
 	}
 	// A table is where the layout drew it.

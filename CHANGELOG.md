@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Hovering a link on a typeset page tints it, every line of it, as well as
+  showing its address in the status bar. A theme's `hover` color sets the
+  tint; without one it is the selection color halfway to the page.
+  nttypeset v0.1.3.
+- Quitting with the mouse moving no longer leaves mouse reports, such as
+  `35;61;18M`, typed at the shell prompt.
+
 ## `v0.5.0` (2026-10-23)
 
 - Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV,

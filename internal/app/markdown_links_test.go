@@ -6,6 +6,7 @@ import (
 	"image"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
@@ -285,5 +286,38 @@ func TestMarkdownLinkPromptOffsetAndHostBoundary(t *testing.T) {
 	drainAnimation(t, m, cmd)
 	if count != 1 || !strings.Contains(m.note, "browser unavailable") {
 		t.Fatalf("prompt/open failure: %d %q", count, m.note)
+	}
+}
+
+// Quitting turns mouse reporting off and waits before giving the terminal
+// back, dropping what the pointer still reports, so no report is left for
+// the shell to show at its prompt.
+func TestQuittingSettlesTheMouse(t *testing.T) {
+	m := New(Options{Files: []string{"doc.md"}, Typeset: true, Render: "glyph"})
+	defer m.Close()
+	m.width, m.height = 40, 12
+	m.kind = "markdown"
+	m.typeset = &document.Markdown{}
+	m.typesetWidth = m.typesetMeasure()
+	v := m.typesetViewport()
+	v.Height = max(1, v.Height>>v.Zoom)
+	m.typesetShown, m.typesetTheme = &v, m.theme
+	m.source = image.NewRGBA(image.Rect(0, 0, 320, 160))
+	m.typesetLinks = []document.TypesetLink{{Rect: image.Rect(40, 16, 80, 48), URL: "https://example.org/"}}
+	if _, cmd := m.Update(press("q")); cmd == nil {
+		t.Fatal("q did not quit")
+	}
+	if mode := m.View().MouseMode; mode != tea.MouseModeNone {
+		t.Fatalf("mouse mode %v while quitting", mode)
+	}
+	if _, cmd := m.Update(tea.MouseMotionMsg{X: 6, Y: 1, Button: tea.MouseNone}); cmd != nil || m.typesetHover != nil {
+		t.Fatal("a report after quitting was acted on")
+	}
+	if _, cmd := m.Update(press("q")); cmd != nil {
+		t.Fatal("a second q quit again")
+	}
+	start := time.Now()
+	if settleMouse() != nil || time.Since(start) < mouseSettle {
+		t.Fatal("the settle did not wait")
 	}
 }

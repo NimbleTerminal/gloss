@@ -152,6 +152,7 @@ type Request struct {
 	TypesetView   *TypesetViewport
 	TypesetSelect *TypesetSelection // Text to highlight, and to return as TypesetSelected.
 	TypesetFocus  []image.Rectangle // Page rectangles to outline: the item Tab is on.
+	TypesetMarks  []TypesetMark     // Text to tint behind its glyphs: the link under the pointer.
 	Path, Type    string
 	MarkdownMode  string
 	Typeset       bool
@@ -197,6 +198,7 @@ type Result struct {
 	TypesetItems     []TypesetItem     // Every item laid so far, in reading order; Markdown only.
 	TypesetItemsAll  bool              // TypesetItems are all the document has, though the page may go on.
 	TypesetFocus     []image.Rectangle // The focus outlined, as the request asked.
+	TypesetMarks     []TypesetMark     // The text tinted, as the request asked.
 	Animated         []TypesetRegion
 	AnimationBase    image.Image
 	Playback         *animation.Composite

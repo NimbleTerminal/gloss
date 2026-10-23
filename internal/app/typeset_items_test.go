@@ -5,6 +5,7 @@ import (
 	"errors"
 	"image"
 	"image/png"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -269,5 +270,38 @@ func TestTypesetRightClickBareAddress(t *testing.T) {
 	}
 	if got := strings.Join(entryLabels(m.actions.entries), ", "); got != "Copy address" {
 		t.Fatalf("entries %s", got)
+	}
+}
+
+// The pointer over a typeset link tints all of it; off it, or at a key, the
+// tint goes.
+func TestTypesetHoverTintsLink(t *testing.T) {
+	m := typesetItemsModel(t, "Words before [a link whose label is long enough to wrap onto another line of the page](https://e.org/) and after.\n", 8, 4, Options{})
+	var link document.TypesetItem
+	for _, it := range m.typesetItems {
+		if it.Kind == document.TypesetLinkItem {
+			link = it
+		}
+	}
+	if len(link.Marks) < 2 || len(link.Marks) != len(link.Rects) {
+		t.Fatalf("link marks %+v for rects %v", link.Marks, link.Rects)
+	}
+	plain := m.source
+	at := itemCell(m, link)
+	send(m, tea.MouseMotionMsg{X: at.X, Y: at.Y})
+	if !slices.Equal(m.typesetHover, link.Marks) || !slices.Equal(m.typesetHoverShown, link.Marks) {
+		t.Fatalf("hover %+v, shown %+v", m.typesetHover, m.typesetHoverShown)
+	}
+	if m.source == plain {
+		t.Fatal("the page was not drawn again")
+	}
+	send(m, tea.MouseMotionMsg{X: 0, Y: 0})
+	if m.typesetHover != nil || m.typesetHoverShown != nil {
+		t.Fatalf("the tint stayed off the link: %+v", m.typesetHoverShown)
+	}
+	send(m, tea.MouseMotionMsg{X: at.X, Y: at.Y})
+	send(m, tea.KeyPressMsg{Code: tea.KeyDown})
+	if m.typesetHover != nil || m.typesetHoverShown != nil {
+		t.Fatal("the tint stayed after a key")
 	}
 }

@@ -58,8 +58,9 @@ still works. Opening a link does not download it into gloss and does not require
 `--fetch`. Dragging does not activate links. Relative file links, heading anchors,
 and other URL schemes are not handled by this click action.
 
-Hover over a typeset link to preview its URL in the status bar. Moving away,
-scrolling, or pressing a key restores the usual status. This requires a terminal
+Hover over a typeset link to tint it, every line of it, and preview its URL in
+the status bar. Moving away, scrolling, or pressing a key takes the tint away
+and restores the usual status. This requires a terminal
 that reports mouse movement without a held button; normal text keeps the
 terminal's own OSC 8 hover behavior.
 
@@ -327,7 +328,9 @@ use an explicit path to load a same-named user file. For example:
 
 `base` must be `light` or `dark`. Missing colors inherit from that base.
 Optional colors are `background`, `foreground`, `muted`, `border`, `code`,
-`header`, `accent`, and `selection`; each must be `#RRGGBB`. `syntax` names a
+`header`, `accent`, `selection`, and `hover`; each must be `#RRGGBB`.
+`hover` tints the link under the pointer on a typeset page; without it, the
+tint is `selection` halfway to `background`. `syntax` names a
 bundled Chroma style and defaults to GitHub light/dark. Unknown fields and
 invalid values are errors. Names use lowercase letters, digits, and hyphens
 (up to 64 characters). Files are limited to 64 KiB; the chooser reads at most

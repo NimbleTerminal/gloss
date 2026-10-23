@@ -34,7 +34,7 @@ require (
 	nimbleterminal.dev/ntpicture v0.1.1
 	nimbleterminal.dev/ntqrcode v0.3.1
 	nimbleterminal.dev/ntsvg v0.5.1
-	nimbleterminal.dev/nttypeset v0.1.2
+	nimbleterminal.dev/nttypeset v0.1.3
 	nimbleterminal.dev/ntvideo v0.3.0
 )
 

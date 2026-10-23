@@ -45,6 +45,9 @@ func (m *Model) View() tea.View {
 	palette := m.palette()
 	hint = lipgloss.NewStyle().Foreground(palette.Muted).Background(palette.Background).Width(w).Render(hint)
 	content := body + "\n" + bar + "\n" + hint
+	if m.exiting {
+		mouse = tea.MouseModeNone // See mouseSettle.
+	}
 	if m.quitting {
 		// Keys no longer answer. The frame keeps its height, or Bubble Tea
 		// draws it below the last one; and it ends on an empty row, because

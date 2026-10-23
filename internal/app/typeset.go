@@ -5,6 +5,7 @@ import (
 
 	"context"
 	"math"
+	"slices"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -94,7 +95,7 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 // for; typesetViewMatches, only that it shows the same part of the page,
 // which is what mapping a cell onto the page needs.
 func (m *Model) typesetMatches() bool {
-	return m.typesetViewMatches() && selectionsEqual(m.typesetSelect, m.typesetSelectShown) && rectsEqual(m.typesetFocus, m.typesetFocusShown)
+	return m.typesetViewMatches() && selectionsEqual(m.typesetSelect, m.typesetSelectShown) && rectsEqual(m.typesetFocus, m.typesetFocusShown) && slices.Equal(m.typesetHover, m.typesetHoverShown)
 }
 func (m *Model) typesetViewMatches() bool {
 	return m.typesetFont == document.FontKey(m.opts.Font, m.opts.Mono) && m.viewportAsked(m.typesetShown, m.typesetWidth, m.typesetTheme)
@@ -177,7 +178,7 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 // picture stays still; otherwise the composite page animates as a whole.
 func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	m.typesetLinks = v.Links
-	m.typesetItems, m.typesetFocusShown = v.TypesetItems, v.TypesetFocus
+	m.typesetItems, m.typesetFocusShown, m.typesetHoverShown = v.TypesetItems, v.TypesetFocus, v.TypesetMarks
 	m.typesetSelectShown, m.typesetSelected = v.TypesetSelection, v.TypesetSelected
 	// When the result answers the selection as it is now, that becomes the
 	// placed one, both ends in the text, or nothing when the text has no

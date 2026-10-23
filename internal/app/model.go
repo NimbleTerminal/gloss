@@ -160,6 +160,8 @@ type textState struct {
 	typesetFocus            []image.Rectangle      // The item Tab is on, as page rectangles; nil for none.
 	typesetFocusIndex       int                    // Its place in typesetItems, to find it again after a reflow.
 	typesetFocusShown       []image.Rectangle      // The focus the shown picture outlines.
+	typesetHover            []document.TypesetMark // The text of the link under the pointer, tinted; nil for none.
+	typesetHoverShown       []document.TypesetMark // The text the shown picture tints.
 	typesetTabPending       int                    // A Tab step to take again on the next page view, which lays more.
 	typesetAhead            bool                   // Ask the next page view to lay on to the next item.
 	chopLines               bool                   // Cut long lines at the right edge instead of wrapping them.
@@ -324,6 +326,17 @@ func (m *Model) Close() error {
 
 func (m *Model) Err() error { return m.err }
 
+// mouseSettle is how long quitting waits, with mouse reporting turned off,
+// before giving the terminal back. Bubble Tea stops reading before it turns
+// reporting off, so a report sent as the user quit, the pointer still moving,
+// would be left for the shell, typed at its prompt; read here, it is dropped.
+const mouseSettle = 50 * time.Millisecond
+
+func settleMouse() tea.Msg {
+	time.Sleep(mouseSettle)
+	return nil
+}
+
 // quit gives the terminal back. Graphics are taken down with the alternate
 // screen. On the main screen the document is left as it was last seen.
 func (m *Model) quit() tea.Cmd {
@@ -335,7 +348,7 @@ func (m *Model) quit() tea.Cmd {
 	stopped := m.stopAnimation()
 	qrCleanup := tea.Batch(stopped, m.clearQR(), m.clearFontPicker())
 	if !m.opts.KeepScreen {
-		return tea.Sequence(tea.Batch(qrCleanup, m.clearGraphics(), m.disposePreview()), tea.Quit)
+		return tea.Sequence(tea.Batch(qrCleanup, m.clearGraphics(), m.disposePreview()), settleMouse, tea.Quit)
 	}
 	m.quitting, m.help = true, false
 	if m.browsing() {
@@ -353,7 +366,7 @@ func (m *Model) quit() tea.Cmd {
 		m.video.Pause()
 		keepMesh = tea.Batch(keepMesh, m.video.Keep())
 	}
-	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture(), keepMesh), tea.Quit)
+	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture(), keepMesh), settleMouse, tea.Quit)
 }
 
 // IsStdin says whether path is the file standard input was read into.
@@ -385,7 +398,7 @@ func (m *Model) request(reload bool) document.Request {
 			sel := *m.typesetSelect
 			q.TypesetSelect = &sel
 		}
-		q.TypesetFocus = m.typesetFocus
+		q.TypesetFocus, q.TypesetMarks = m.typesetFocus, m.typesetHover
 	}
 	if m.opts.IsStdin(q.Path) {
 		q.BaseDir = m.opts.MarkdownBase
@@ -496,6 +509,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.typesetLinks = nil
 	m.clearTypesetFocus()
 	m.typesetItems, m.typesetDone, m.typesetFocusShown = nil, false, nil
+	m.typesetHover, m.typesetHoverShown = nil, nil
 	m.clearTypesetSelection()
 	m.typesetSelectShown = nil
 	m.pressedLink = ""
@@ -553,6 +567,12 @@ func (m *Model) movePage(page int) tea.Cmd {
 // Update hands the message to the screen it is for, then lets every picture
 // consumer see it: they must, even when a dialog took the message.
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.exiting {
+		switch msg.(type) {
+		case tea.KeyPressMsg, tea.MouseMsg, tea.PasteMsg:
+			return m, nil // Quit has begun: what is still typed or pointed at is dropped.
+		}
+	}
 	terminalCmd := m.terminal.Update(msg)
 	if m.autoKitty {
 		m.kitty = m.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported
@@ -623,9 +643,13 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 	if click, ok := msg.(tea.MouseClickMsg); ok && click.Button == tea.MouseRight && m.itemsHere() {
 		return m.openItemActions(image.Pt(click.X, click.Y), true)
 	}
+	hoverCmd := m.typesetHoverMouse(msg)
 	selectCmd, selecting := m.typesetSelectMouse(msg)
 	if cmd, handled := m.linkMouse(msg); handled || selecting {
-		return tea.Batch(cmd, selectCmd)
+		return tea.Batch(cmd, selectCmd, hoverCmd)
+	}
+	if hoverCmd != nil {
+		return hoverCmd
 	}
 	if mouse, ok := msg.(tea.MouseMsg); ok && m.listing() {
 		if m.help {
@@ -837,8 +861,14 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 	case tea.KeyPressMsg:
-		if cmd, handled := m.key(v); handled {
-			return cmd
+		// A key may move the page under the pointer: the tint goes until it
+		// moves again.
+		var unhover tea.Cmd
+		if m.typesetHover != nil {
+			m.typesetHover, unhover = nil, m.queueTypesetReflow()
+		}
+		if cmd, handled := m.key(v); handled || unhover != nil {
+			return tea.Batch(unhover, cmd)
 		}
 	}
 	var cmds []tea.Cmd

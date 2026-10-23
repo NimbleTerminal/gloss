@@ -38,6 +38,7 @@ type Definition struct {
 	Header     string `json:"header,omitempty"`
 	Accent     string `json:"accent,omitempty"`
 	Selection  string `json:"selection,omitempty"`
+	Hover      string `json:"hover,omitempty"`
 }
 type Choice struct{ Name, Ref string }
 type snapshot struct {
@@ -85,7 +86,7 @@ func decode(data []byte) (snapshot, error) {
 	for _, field := range []struct {
 		value string
 		dst   *color.RGBA
-	}{{d.Background, &p.Background}, {d.Foreground, &p.Foreground}, {d.Muted, &p.Muted}, {d.Border, &p.Border}, {d.Code, &p.Code}, {d.Header, &p.Header}, {d.Accent, &p.Accent}, {d.Selection, &p.Selection}} {
+	}{{d.Background, &p.Background}, {d.Foreground, &p.Foreground}, {d.Muted, &p.Muted}, {d.Border, &p.Border}, {d.Code, &p.Code}, {d.Header, &p.Header}, {d.Accent, &p.Accent}, {d.Selection, &p.Selection}, {d.Hover, &p.Hover}} {
 		if field.value == "" {
 			continue
 		}
@@ -131,7 +132,7 @@ func Syntax(ref string) string {
 // Typeset is the theme's colors and syntax style for typeset pages.
 func Typeset(ref string) nttypeset.Palette {
 	p := Get(ref)
-	return nttypeset.Palette{Background: p.Background, Foreground: p.Foreground, Muted: p.Muted, Border: p.Border, Code: p.Code, Header: p.Header, Accent: p.Accent, Selection: p.Selection, Syntax: styles.Get(Syntax(ref))}
+	return nttypeset.Palette{Background: p.Background, Foreground: p.Foreground, Muted: p.Muted, Border: p.Border, Code: p.Code, Header: p.Header, Accent: p.Accent, Selection: p.Selection, Mark: p.Hover, Syntax: styles.Get(Syntax(ref))}
 }
 
 func Ink(ref string, token chroma.TokenType) color.RGBA {
@@ -240,7 +241,11 @@ func saveChoice(dir, ref string) error {
 	if s, ok := catalog.Load(ref); ok && strings.HasPrefix(ref, "theme:") {
 		p := s.(snapshot)
 		hex := func(c color.RGBA) string { return fmt.Sprintf("#%02x%02x%02x", c.R, c.G, c.B) }
-		data, err = json.Marshal(Definition{p.name, p.base, p.syntax, hex(p.palette.Background), hex(p.palette.Foreground), hex(p.palette.Muted), hex(p.palette.Border), hex(p.palette.Code), hex(p.palette.Header), hex(p.palette.Accent), hex(p.palette.Selection)})
+		hover := "" // Left out, the hover tint stays a blend.
+		if p.palette.Hover != (color.RGBA{}) {
+			hover = hex(p.palette.Hover)
+		}
+		data, err = json.Marshal(Definition{p.name, p.base, p.syntax, hex(p.palette.Background), hex(p.palette.Foreground), hex(p.palette.Muted), hex(p.palette.Border), hex(p.palette.Code), hex(p.palette.Header), hex(p.palette.Accent), hex(p.palette.Selection), hover})
 		if err != nil {
 			return err
 		}

@@ -4023,7 +4023,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nttypeset v0.1.2
+## nimbleterminal.dev/nttypeset v0.1.3
 
 ```
 MIT License

@@ -194,7 +194,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   in the default browser on click, preserving wheel scrolling. The host supplies
   `Options.OpenLink`; browser/serve hosts leave it nil. Normal text retains OSC 8.
   Typeset links preview their URL in the status bar on hover using all-motion
-  mouse reporting; normal text retains the terminal's own hover behavior.
+  mouse reporting, and are tinted behind their text (`typesetHover`, the link
+  item's `Marks` as `Request.TypesetMarks`, nttypeset's `RasterOptions.Marks`); normal text retains the terminal's own hover behavior.
   Safe README HTML `img` tags (including linked images in `p`/`div`) normalize
   to the shared image AST. Relative assets resolve beside the Markdown file;
   numeric width/height bounds and left/center/right alignment are supported.

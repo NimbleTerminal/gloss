@@ -1,6 +1,7 @@
 package theme
 
 import (
+	"image/color"
 	"os"
 	"path/filepath"
 	"strings"
@@ -87,5 +88,40 @@ func TestSavedCustomThemeSnapshot(t *testing.T) {
 	s, err := decode(data)
 	if err != nil || s.palette != Get(ref) {
 		t.Fatal("saved custom palette", err)
+	}
+}
+
+// A theme's hover color is the typeset link tint and survives being saved;
+// without one the tint is left to nttypeset's blend.
+func TestHoverColor(t *testing.T) {
+	dir := t.TempDir()
+	for _, c := range []struct {
+		json  string
+		hover color.RGBA
+	}{
+		{`{"name":"hover-set","base":"dark","hover":"#123456"}`, rgb(0x123456)},
+		{`{"name":"hover-unset","base":"dark"}`, color.RGBA{}},
+	} {
+		path := filepath.Join(dir, "custom.json")
+		if err := os.WriteFile(path, []byte(c.json), 0600); err != nil {
+			t.Fatal(err)
+		}
+		ref, err := Load(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := Typeset(ref).Mark; got != c.hover {
+			t.Fatalf("%s: mark %v, want %v", c.json, got, c.hover)
+		}
+		if err = saveChoice(dir, ref); err != nil {
+			t.Fatal(err)
+		}
+		data, err := os.ReadFile(filepath.Join(dir, "theme"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if s, err := decode(data); err != nil || s.palette.Hover != c.hover {
+			t.Fatalf("saved %s: %v %v", data, s.palette.Hover, err)
+		}
 	}
 }

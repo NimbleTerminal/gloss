@@ -23,6 +23,9 @@ type TypesetRegion struct {
 // TypesetLink is a web or document-local link hit area in rendered-image pixels.
 type TypesetLink = nttypeset.Link
 
+// TypesetMark is a stretch of a paragraph's text to tint, as a link's line.
+type TypesetMark = nttypeset.Mark
+
 // TypesetPlace is one end of a selection: a page point in layout pixels, or a
 // rune of a paragraph of a block once placed.
 type TypesetPlace = nttypeset.Place
@@ -215,7 +218,8 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			}
 		}
 	}
-	opts := nttypeset.RasterOptions{Palette: q.Theme.Palette, OmitAnimated: len(out.Animated) > 0}
+	opts := nttypeset.RasterOptions{Palette: q.Theme.Palette, OmitAnimated: len(out.Animated) > 0, Marks: q.TypesetMarks}
+	out.TypesetMarks = append([]TypesetMark(nil), q.TypesetMarks...)
 	if q.TypesetSelect != nil {
 		asked := *q.TypesetSelect
 		out.TypesetAsked = &asked
