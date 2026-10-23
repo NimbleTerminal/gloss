@@ -148,4 +148,4 @@ This `gloss` project is released under the [MIT License](https://en.wikipedia.or
 Copyright (c) 2026 [Neomantra Corp](https://www.neomantra.com).
 
 ----
-Made with :heart: and :fire: by the team behind [Nimble.Markets](https://nimble.markets).
+Made with :heart: and :fire: by the team behind [Nimble Terminal](https://nimbleterminal.com).

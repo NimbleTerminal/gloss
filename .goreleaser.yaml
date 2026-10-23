@@ -160,7 +160,7 @@ homebrew_casks:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: goreleaserbot
-      email: goreleaserbot@nimble.markets
+      email: goreleaserbot@nimbleterminal.com
     homepage: https://nimbleterminal.github.io/gloss/
     description: Visual pager for the terminal, like less with pictures
     license: MIT
