@@ -632,67 +632,7 @@ func (m *Model) itemEntries(it pageItem) []menuEntry {
 	case itemLink:
 		return linkEntries(m, it.url, "Open")
 	case itemTable:
-		cells := it.cells
-		return []menuEntry{
-			{"Copy as TSV", func(m *Model) tea.Cmd {
-				m.note = "Table copied"
-				return tea.SetClipboard(tableTSV(cells))
-			}},
-			{"Copy as Markdown", func(m *Model) tea.Cmd {
-				m.note = "Table copied"
-				return tea.SetClipboard(tableMarkdown(cells))
-			}},
-		}
+		return m.tableEntries(it.cells)
 	}
 	return nil
-}
-
-// oneLine keeps a cell on one line of a copied table.
-func oneLine(cell string) string {
-	return strings.Join(strings.Fields(strings.ReplaceAll(cell, "\t", " ")), " ")
-}
-
-// tableTSV is the table as tab-separated rows, for spreadsheets.
-func tableTSV(cells [][]string) string {
-	var b strings.Builder
-	for _, row := range cells {
-		for i, cell := range row {
-			if i > 0 {
-				b.WriteByte('\t')
-			}
-			b.WriteString(oneLine(cell))
-		}
-		b.WriteByte('\n')
-	}
-	return b.String()
-}
-
-// tableMarkdown is the table as a Markdown pipe table, the first row its
-// header; pipes in cells are escaped.
-func tableMarkdown(cells [][]string) string {
-	cols := 0
-	for _, row := range cells {
-		cols = max(cols, len(row))
-	}
-	if cols == 0 {
-		return ""
-	}
-	var b strings.Builder
-	line := func(row []string) {
-		b.WriteString("|")
-		for i := range cols {
-			cell := ""
-			if i < len(row) {
-				cell = strings.ReplaceAll(oneLine(row[i]), "|", `\|`)
-			}
-			b.WriteString(" " + cell + " |")
-		}
-		b.WriteByte('\n')
-	}
-	line(cells[0])
-	b.WriteString("|" + strings.Repeat(" --- |", cols) + "\n")
-	for _, row := range cells[1:] {
-		line(row)
-	}
-	return b.String()
 }

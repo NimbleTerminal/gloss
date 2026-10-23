@@ -168,6 +168,7 @@ type textState struct {
 	savedMarkdown           *markdownView
 	sheet                   *sheetView
 	savedSheet              *sheetView // The cell to return to when a fetched file closes.
+	savedFocus              int        // 1 + the Markdown item to focus again when the document comes back; 0 for none.
 }
 
 // browserState is what the file browser remembers between visits.
@@ -455,13 +456,21 @@ func (m *Model) switchFile(delta int) tea.Cmd {
 }
 
 // show loads the file at i afresh: its page, zoom, and camera start over.
-func (m *Model) show(i int) tea.Cmd {
+func (m *Model) show(i int) tea.Cmd { return m.showRestoring(i, nil) }
+
+// showRestoring is show, with restore run after the old file's state is
+// cleared and before the new one is asked for, to set what it starts from.
+func (m *Model) showRestoring(i int, restore func()) tea.Cmd {
 	m.clearSearch()
 	m.index, m.page, m.pages, m.kind = i, 1, 1, ""
 	m.source, m.zoom, m.panX, m.panY = nil, 0, 0, 0
-	m.savedCamera, m.savedMarkdown, m.fields = nil, nil, nil
+	m.savedCamera, m.savedMarkdown, m.savedFocus, m.fields = nil, nil, 0, nil
 	m.partsShown = nil // A choice of parts is for one file.
-	return tea.Sequence(m.clearGraphics(), m.load(false))
+	cleared := m.clearGraphics()
+	if restore != nil {
+		restore()
+	}
+	return tea.Sequence(cleared, m.load(false))
 }
 
 // Close releases renderer resources; Kitty images must also be explicitly
@@ -751,6 +760,8 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return m.imageCopied(v)
 	case shownSaved:
 		return m.shownSaved(v)
+	case tableSaved:
+		return m.tableSaved(v)
 	case openResult:
 		return m.opened(v)
 	case findResult:
@@ -878,6 +889,12 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	m.sheet = nil
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
 	overlays := m.acceptTypesetView(v)
+	if m.typeset != nil && m.savedFocus > 0 {
+		if i := m.savedFocus - 1; i < len(m.typesetItems) {
+			m.typesetFocus, m.typesetFocusIndex = m.typesetItems[i].Rects, i
+		}
+		m.savedFocus = 0
+	}
 	m.kind, m.page, m.pages = v.Kind, v.Page, v.Pages
 	if v.Sheet != nil {
 		m.source, m.sheet = nil, newSheetView(v.Sheet)
@@ -897,7 +914,14 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 			m.markdown.raw, m.markdown.offset, m.markdown.left = m.savedMarkdown.raw, m.savedMarkdown.offset, m.savedMarkdown.left
 			m.savedMarkdown = nil
 		}
-		return tea.Sequence(cleanup, tea.Batch(m.markdown.setKitty(m.kitty), m.layoutMarkdown()))
+		laid := tea.Batch(m.markdown.setKitty(m.kitty), m.layoutMarkdown())
+		if m.savedFocus > 0 {
+			if items := m.markdown.items(); m.savedFocus <= len(items) {
+				m.markdown.focus = &items[m.savedFocus-1]
+			}
+			m.savedFocus = 0
+		}
+		return tea.Sequence(cleanup, laid)
 	}
 	if v.Mesh != nil {
 		return m.showMesh(v, cleanup)

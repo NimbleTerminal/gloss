@@ -15,9 +15,12 @@ type fetchResult struct {
 
 // A file fetched from a cell, which Escape closes, returning to that cell.
 type fetchedDoc struct {
-	path  string
-	from  int        // The sheet's place in the file list.
-	sheet *sheetView // The sheet as it was, cursor included.
+	path       string
+	from       int           // The document's place in the file list.
+	sheet      *sheetView    // The sheet as it was, cursor included.
+	markdown   *markdownView // The Markdown text view as it was: source or rendered, scrolled.
+	typesetTop int           // The typeset page's top, when it was one.
+	focus      int           // 1 + the item focused on a Markdown page; 0 for none.
 }
 
 // Fetched lists the files fetched from the web this session, for the
@@ -91,5 +94,7 @@ func (m *Model) closeFetched() (tea.Cmd, bool) {
 	os.Remove(f.path)
 	m.savedSheet = f.sheet
 	m.note = "closed " + safe(filepath.Base(f.path))
-	return m.show(max(0, min(f.from, len(m.opts.Files)-1))), true
+	return m.showRestoring(max(0, min(f.from, len(m.opts.Files)-1)), func() {
+		m.savedMarkdown, m.savedFocus, m.typesetTop = f.markdown, f.focus, f.typesetTop
+	}), true
 }

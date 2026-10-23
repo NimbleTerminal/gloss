@@ -9,6 +9,7 @@ import (
 	"nimbleterminal.dev/ntopenwith"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -22,6 +23,7 @@ type openWithPicker struct {
 	busy       bool
 	operation  int
 	generation uint64
+	table      bool // The file is a table's CSV: gloss opens it too, and its path is not worth copying.
 }
 
 // openWithLoaded lists the chooser's rows for verb. choose opens the chooser
@@ -59,6 +61,19 @@ func verbTitle(v openwith.Verb) string {
 		return "Edit with"
 	}
 	return "Open with"
+}
+
+// listed is the host's rows as the chooser shows them: for a table's CSV,
+// gloss first and no Copy path.
+func (p *openWithPicker) listed(choices []openwith.Choice) []openwith.Choice {
+	if !p.table {
+		return choices
+	}
+	choices = slices.DeleteFunc(slices.Clone(choices), func(c openwith.Choice) bool { return c.ID == "copy" })
+	if p.verb == openwith.Open {
+		choices = slices.Insert(choices, 0, openwith.Choice{ID: "gloss", Name: "gloss", Available: true})
+	}
+	return choices
 }
 
 // openWithChoices are the chooser's rows: the host's, and Copy path for a
@@ -150,7 +165,8 @@ func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 	if v.choose {
 		m.layer = layerOpenWith
 	}
-	p.verb, p.target, p.choices, p.busy, p.cursor = v.verb, v.target, v.choices, false, 0
+	p.verb, p.target, p.busy, p.cursor = v.verb, v.target, false, 0
+	p.choices = p.listed(v.choices)
 	for i, c := range p.choices {
 		if c.Default {
 			p.cursor = i
@@ -259,7 +275,7 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 			return nil
 		}
 		save := msg.String() == "d"
-		if save && (c.ID == "copy" || c.ID == "reveal" || p.target.Kind == "") {
+		if save && (c.ID == "copy" || c.ID == "reveal" || c.ID == "gloss" || p.target.Kind == "") {
 			m.note = "This action cannot be a default"
 			return nil
 		}
@@ -268,6 +284,11 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 			m.closeOpenWith()
 			m.note = "Path copied"
 			return tea.SetClipboard(target)
+		}
+		if c.ID == "gloss" {
+			path := p.target.Path
+			m.closeOpenWith()
+			return m.openTableInGloss(path)
 		}
 		return m.openWithLaunch(c.ID, save)
 	}
@@ -447,7 +468,7 @@ func (m *Model) openWithAppsLoaded(v openWithAppsLoaded) tea.Cmd {
 	if v.managing {
 		p.apps = v.apps
 	} else if v.err == nil {
-		p.choices = v.choices
+		p.choices = p.listed(v.choices)
 	}
 	return nil
 }
