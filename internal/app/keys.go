@@ -37,6 +37,9 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if m.lineInput != nil {
 		return m.lineInputKey(msg), true
 	}
+	if m.placeInput != nil {
+		return m.placeKey(msg), true
+	}
 	// Keys over any screen but the browser, whose filter takes letters.
 	switch k {
 	case "q", "ctrl+c":

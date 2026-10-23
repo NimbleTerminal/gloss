@@ -520,7 +520,10 @@ the code. The code is only as useful as the address: a `localhost` or
   interactive option for addresses inside documents (Enter on a cell's
   address, or drop/paste one URL); the headless modes never need it. With
   `GLOSS_NO_FETCH` set and not empty, an address argument fails and `--fetch`
-  is refused, for wrappers that pass names they do not control. A URL
+  is refused, for wrappers that pass names they do not control. Maps never
+  fetch in headless modes: `GLOSS_MAP_TILES` and `GLOSS_GEOCODER` (a
+  user-named map provider) apply only to the interactive viewer with
+  `--fetch`. Do not set them to OpenStreetMap's servers for automated use. A URL
   argument is a network request: do not put one from an untrusted document on
   the command line without meaning to, and keep credentials out of it.
 - `--accept 'image/*'` restricts a session to images including SVG; use comma-separated gloss formats such as `image/*,pdf` for alternatives. Content mismatches are errors, independent of `--type`, and rejected downloads are removed. The restriction also applies to local choices and drops. Public app links accept `?accept=image%2F*`; their URL drops fetch directly in the browser with CORS and never through a proxy.

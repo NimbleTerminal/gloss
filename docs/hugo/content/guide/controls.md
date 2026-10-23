@@ -54,6 +54,7 @@ bookToC: false
 | Click, in the `C` / `B` picker | Click a tab, swatch, or slider bar; a swatch applies at once and a second click on it chooses it and closes; drag along a slider |
 | Drag / Shift-drag / wheel | Mesh (STL, 3MF, OBJ, PLY) orbit / pan / zoom |
 | Arrows or `hjkl`, `+`/`-`, drag, wheel | Map (GeoJSON, GPX, PMTiles): pan, zoom; `f` or `0` frames the whole file again |
+| `/` | Map: find a place by name and center on it, with `--fetch` and a provider named in `GLOSS_GEOCODER` (see [Online maps](../formats/#online-maps)) |
 | Drag, then `y` | Typeset text: select, then copy to the clipboard; `Esc` clears |
 | Drop files, or paste their paths | Add files to the list; one opens at once, several open the menu |
 

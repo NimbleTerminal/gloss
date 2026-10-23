@@ -154,6 +154,36 @@ bookToC: false
   is described and refused. Each read is bounded: a directory or the metadata
   at most 16 MiB, a tile at most 8 MiB and 4096 pixels a side. The archive's
   attribution is drawn along the map's foot.
+
+### Online maps
+
+gloss has no map service of its own: it never asks one for anything unless
+you name it. In the viewer, with `--fetch`, these settings in the environment
+add one:
+
+- `GLOSS_MAP_TILES`: an `http(s)` tile address with `{z}`, `{x}` and `{y}` in
+  it, such as a provider gives for its "XYZ" or "slippy map" tiles. Its tiles
+  are drawn under GeoJSON and GPX files; a PMTiles archive keeps its own.
+- `GLOSS_MAP_ATTRIBUTION`: the credit the provider's terms ask for, drawn
+  along the map's foot. Without it, the foot names the tile server's host.
+- `GLOSS_GEOCODER`: the search address of a Nominatim-compatible place
+  lookup. `/` on a map then asks for a place by name, and Enter centers the
+  map on it.
+
+Tiles are fetched only for what is on screen, never ahead of it, and kept in
+memory for the session; nothing is saved to disk. A place is looked up only
+when you press Enter, at most one lookup a second, and each name once a
+session: asking again is answered from memory. Every request sends gloss's
+User-Agent (see [Using gloss](../using/)). None of this applies to the
+headless modes, `--serve`, or the browser: there maps are always drawn
+offline, and so are exports, `e` included.
+
+Choose a provider whose terms allow your use. OpenStreetMap's own servers
+are run by volunteers for editing and light use, and gloss is often run by
+programs: read the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/)
+and the [Nominatim usage policy](https://operations.osmfoundation.org/policies/nominatim/)
+before pointing gloss at them, and prefer a commercial or self-hosted
+service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
 - Plain text (`.txt`, `.text`, `.log`, and any file that is not binary):
   shown as it is, in the document view, so that no line of it is read as a
   heading, a list, or emphasis. Returns and a byte order mark are dropped,

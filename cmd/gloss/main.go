@@ -117,7 +117,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	cols := f.String("cols", "", "show only these columns of a table, by header or letter: name,name")
 	coln := f.String("coln", "", "show only these columns of a table, counted from 1: 2,4-6")
 	f.StringArrayVar(&opts.Globs, "glob", nil, "search the folders named, or the current one, for files: a glob, an extension, or a kind such as images (repeatable)")
-	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
+	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter, and the map provider named in GLOSS_MAP_TILES and GLOSS_GEOCODER; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
 	f.StringVar(&opts.UserAgent, "user-agent", "", "what downloads send as their User-Agent; else $GLOSS_USER_AGENT, else gloss and its version")
 	f.BoolVar(&opts.Apps, "apps", false, "list the apps for each file kind, to open and to edit it, without opening a file; --json for scripts")
 	f.StringVar(&opts.QR, "qr", "", "show this text, such as a URL, as a QR code instead of a file, to scan with a phone or tablet; with --serve, on a web page; nothing is fetched")
@@ -615,6 +615,11 @@ func run(args []string) (err error) {
 	if opts.FetchAllowed {
 		opts.Fetch = func(address string) (string, error) {
 			return downloads.fetch(context.Background(), address, opts.Accept)
+		}
+		if !opts.Serve {
+			if opts.Maps, err = mapProvider(os.Getenv, opts.UserAgent); err != nil {
+				return err
+			}
 		}
 	}
 	if opts.Serve {

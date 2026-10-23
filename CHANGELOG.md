@@ -13,6 +13,12 @@
   any size opens; `i` gives its name, zooms, bounds and credit. Vector
   archives are described but not drawn. `--type pmtiles`; `--accept maps`
   includes them.
+- With `--fetch`, a map service you name draws its tiles under GeoJSON and GPX
+  maps (`GLOSS_MAP_TILES`, an XYZ tile address, credited by
+  `GLOSS_MAP_ATTRIBUTION`), and `/` on a map finds a place by name through a
+  Nominatim-compatible lookup (`GLOSS_GEOCODER`). gloss names no service of
+  its own; tiles are fetched only for the screen and kept in memory, each place
+  is asked once a session, and headless modes stay offline.
 
 ## `v0.5.0` (2026-10-23)
 

@@ -425,6 +425,9 @@ func (m *Model) hints() string {
 	if m.lineInput != nil {
 		return m.lineInput.status(m.width)
 	}
+	if m.placeInput != nil {
+		return m.placeInput.status(m.width)
+	}
 	if len(m.opts.Files) == 0 {
 		keys := " q quit · ? help · i info"
 		if m.canBrowse() {
@@ -494,6 +497,9 @@ func (m *Model) hints() string {
 		}
 	case m.mapView != nil:
 		keys = " q quit · arrows pan · +/- zoom · f fit · ? help · m files · [/] files · e export · i info"
+		if m.opts.Maps != nil && m.opts.Maps.Geocoder != nil {
+			keys = strings.Replace(keys, " · ? help", " · / find a place · ? help", 1)
+		}
 	case m.chart != nil && m.mesh != nil:
 		keys = " q quit · ? help · m files · [/] files · e export · i info · C color · B bg-color"
 		if m.hasParts() {

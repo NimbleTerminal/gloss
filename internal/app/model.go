@@ -72,6 +72,10 @@ type Options struct {
 	// Fetch downloads a web address to a file and returns its path. Nil
 	// leaves the network alone, which is the default.
 	Fetch func(address string) (string, error)
+	// Maps is the online map provider the user named, for tiles under maps
+	// and place lookup. Nil, the default, keeps maps offline; it is nil in
+	// the browser, --serve and every headless mode.
+	Maps *MapProvider
 	// Columns picks the columns of every sheet to show; the rest are hidden.
 	Columns document.ColumnFilter
 	// Parts picks the parts of every 3MF to show; the rest are left out.
@@ -101,6 +105,7 @@ type meshState struct {
 	videoInfo   *document.Video // The file it plays, as the loader found it.
 	mapView     *ntmaps.Model   // A GeoJSON or GPX file's map.
 	mapFile     *document.Map   // What it shows, as the loader read it.
+	placeInput  *placeInput     // The find-a-place prompt, while it is open.
 	triangles   int
 	points      int             // A point cloud's, which has no triangles.
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
@@ -722,6 +727,8 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return m.themeRequest()
 	case searchResult:
 		return m.searched(v)
+	case placeFound:
+		return m.showPlace(v)
 	case previewResult:
 		if m.preview != nil && v.owner == m.preview.ownerID {
 			_, cmd := m.preview.Update(v.result)

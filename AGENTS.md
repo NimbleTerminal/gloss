@@ -197,7 +197,16 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Previews, thumbnails, `--output`, `e` (at the viewer's center and zoom,
   `Map.View`) and `--print` use `ntmaps.Render`. gloss ships no online map
   provider: OpenStreetMap's servers are never contacted unless a user names
-  a provider (not built yet). Raster PMTiles (`internal/document/pmtiles.go`;
+  a provider: `app.MapProvider` (`Options.Maps`, from `mapProvider` in
+  `cmd/gloss/maps.go`, only with `--fetch` in the native viewer, never
+  `--serve`/headless) is `GLOSS_MAP_TILES` (XYZ template, a `tile.Provider`
+  with gloss's User-Agent, credit `GLOSS_MAP_ATTRIBUTION` or "Tiles: host")
+  under GeoJSON/GPX, and `GLOSS_GEOCODER` (`geocode.Nominatim`, 1 s pacing,
+  `rememberPlaces` caches 256 answers). `/` on a map opens `placeInput`;
+  Enter runs `findPlace` and `showPlace` centers (`SetLatLng`, zoom 12) or
+  notes why not, server text through `plainNote`; ntmaps' `SetLocation` is
+  not used (it blanks the map on errors). No prefetch, no disk cache.
+  Exports stay offline. Raster PMTiles (`internal/document/pmtiles.go`;
   `.pmtiles` or the `PMTiles` magic, `isPMTilesFile`) are never read whole,
   like video: `loadPMTiles` opens a `pmtiles.Archive` (bytes in memory for
   `l.Files`) and the Loader keeps it, as a PDF, until `closePDF`; `Map.Tiles`
