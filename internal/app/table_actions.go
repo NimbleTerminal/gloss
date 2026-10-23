@@ -146,7 +146,7 @@ func tableTSV(cells [][]string) string {
 }
 
 // tableMarkdown is the table as a Markdown pipe table, the first row its
-// header; pipes in cells are escaped.
+// header; backslashes and pipes in cells are escaped.
 func tableMarkdown(cells [][]string) string {
 	cols := 0
 	for _, row := range cells {
@@ -161,7 +161,7 @@ func tableMarkdown(cells [][]string) string {
 		for i := range cols {
 			cell := ""
 			if i < len(row) {
-				cell = strings.ReplaceAll(oneLine(row[i]), "|", `\|`)
+				cell = strings.NewReplacer(`\`, `\\`, "|", `\|`).Replace(oneLine(row[i]))
 			}
 			b.WriteString(" " + cell + " |")
 		}

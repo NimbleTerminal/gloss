@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"image"
 	"strings"
 	"testing"
@@ -45,22 +46,26 @@ func TestCellEntriesCopyWhatIsShown(t *testing.T) {
 	m := addressSheet(t)
 	m.sheet.hide(0)
 	m.sheet.at = [2]int{0, 1} // Now C1, "three\tx".
-	run := func(label string) string {
+	// run gives the entry's note and what it puts on the clipboard.
+	run := func(label string) (string, string) {
 		for _, e := range m.cellEntries() {
 			if e.label == label {
 				m.note = ""
-				e.do(m)
-				return m.note
+				cmd := e.do(m)
+				if cmd == nil {
+					t.Fatalf("%q copies nothing", label)
+				}
+				return m.note, fmt.Sprint(cmd())
 			}
 		}
 		t.Fatalf("no %q entry", label)
-		return ""
+		return "", ""
 	}
-	if got := run("Copy value"); got != "Value copied" {
-		t.Fatalf("note: %q", got)
+	if note, copied := run("Copy value"); note != "Value copied" || copied != "three\tx" {
+		t.Fatalf("note %q, copied %q", note, copied)
 	}
-	if got := run("Copy row"); got != "Row copied" {
-		t.Fatalf("note: %q", got)
+	if note, copied := run("Copy row"); note != "Row copied" || copied != "https://e.org/\tthree x" {
+		t.Fatalf("note %q, copied %q", note, copied)
 	}
 	if got := m.sheet.rowText(); got != "https://e.org/\tthree x" {
 		t.Fatalf("a row is the shown columns on one line: %q", got)

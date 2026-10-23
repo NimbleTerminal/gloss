@@ -3,6 +3,7 @@ package app
 import (
 	"image"
 	"image/draw"
+	"math"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -90,6 +91,10 @@ func linkRuns(text string) []linkRun {
 	return runs
 }
 
+// onlyIndent reports whether text is blank but for the marks Glamour draws
+// at the start of a row: quote bars.
+func onlyIndent(text string) bool { return strings.Trim(text, " │") == "" }
+
 // lastCell is the column after a row's last drawn cell.
 func lastCell(text string) int { return ansi.StringWidth(strings.TrimRight(ansi.Strip(text), " ")) }
 
@@ -146,7 +151,9 @@ func (v *markdownView) items() []pageItem {
 		open, openURL = -1, ""
 		for k, r := range linkRuns(line.text) {
 			_, note := document.FootnotePeer(r.url)
-			goesOn := k == 0 && aboveURL == r.url
+			// A link goes on from the row above only from the start of
+			// this one, after its indent.
+			goesOn := k == 0 && aboveURL == r.url && onlyIndent(ansi.Strip(ansi.Cut(line.text, 0, r.cols[0])))
 			at := -1
 			switch {
 			case goesOn && above >= 0:
@@ -191,8 +198,13 @@ func (v *markdownView) pictureAt(index, first, last int) pageItem {
 		}
 		return v.doc.Images[index].Image
 	}}
-	inset := v.lines[first].inset
-	return pageItem{kind: itemPicture, picture: p, rows: [2]int{top, last}, cols: [2]int{inset, inset + pictureColumns(asset, v.width, v.cw)}}
+	// A picture held to fewer rows than its width would take is drawn
+	// narrower, in the middle of its columns.
+	inset, columns := v.lines[first].inset, pictureColumns(asset, v.width, v.cw)
+	b := asset.Image.Bounds()
+	drawn := min(columns, max(1, int(math.Round(float64((last-first+1)*v.ch*b.Dx())/float64(max(1, b.Dy()*v.cw))))))
+	inset += (columns - drawn) / 2
+	return pageItem{kind: itemPicture, picture: p, rows: [2]int{top, last}, cols: [2]int{inset, inset + drawn}}
 }
 
 // sameItem reports whether two items are the one thing in the same place.
@@ -310,8 +322,13 @@ func (v *markdownView) itemAt(x, y int) (pageItem, bool) {
 				return it, true
 			}
 		case itemLink:
-			for _, r := range linkRuns(line.text) {
-				if r.url == it.url && col >= r.cols[0] && col < r.cols[1] {
+			// On its first row a link is the run where it starts; below,
+			// the run that carries it on, at the start of the row.
+			for k, r := range linkRuns(line.text) {
+				if r.url != it.url || col < r.cols[0] || col >= r.cols[1] {
+					continue
+				}
+				if row == it.rows[0] && r.cols == it.cols || row > it.rows[0] && k == 0 {
 					return it, true
 				}
 			}
@@ -485,8 +502,12 @@ func (m *Model) moveTypesetFocus(step int) tea.Cmd {
 		return m.queueTypesetReflow()
 	}
 	if len(items) == 0 {
-		m.clearTypesetFocus()
 		m.note = noItemsNote
+		if m.typesetFocus == nil {
+			m.typesetTabPending, m.typesetAhead = 0, false
+			return nil // Nothing outlined: the page need not be drawn again.
+		}
+		m.clearTypesetFocus()
 		return m.queueTypesetReflow()
 	}
 	at = (at%len(items) + len(items)) % len(items)
@@ -618,6 +639,10 @@ func (m *Model) typesetItemActions(at image.Point, pointer bool) tea.Cmd {
 			}
 		}
 		if i < 0 {
+			m.note = noItemsNote
+			if len(m.typesetItems) > 0 || !m.typesetDone {
+				m.note = "No picture, link or table on screen · Tab finds the next"
+			}
 			return nil
 		}
 		at = m.typesetCellAt(m.typesetRaster(m.typesetItems[i].Rects[0]).Min)

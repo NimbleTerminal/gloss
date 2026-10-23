@@ -221,6 +221,10 @@ func TestTableCopies(t *testing.T) {
 	if got := tableMarkdown([][]string{{"a|b"}}); !strings.Contains(got, `a\|b`) {
 		t.Fatalf("Markdown %q", got)
 	}
+	// A backslash before a pipe would otherwise escape the escape.
+	if got := tableMarkdown([][]string{{`a\|b`}}); !strings.Contains(got, `a\\\|b`) {
+		t.Fatalf("Markdown %q", got)
+	}
 }
 
 func TestRawViewHasNoItems(t *testing.T) {
@@ -272,5 +276,58 @@ func TestPictureAndTableMenus(t *testing.T) {
 	header := items[1].rows[0]
 	if len(m.markdown.focusRanges(header)) == 0 || len(m.markdown.focusRanges(items[1].rows[1])) != 0 {
 		t.Fatal("the highlight is not on the header row alone")
+	}
+}
+
+// A link to an address the row above also links to is its own item when
+// text comes before it; two links to one address on a row are two items,
+// each hit where it is drawn.
+func TestSameAddressLinksStayApart(t *testing.T) {
+	m := renderedDocument(t, "[first](https://e.org/)\nthen [again](https://e.org/) and [more](https://e.org/)")
+	var links []pageItem
+	for _, it := range m.markdown.items() {
+		if it.kind == itemLink {
+			links = append(links, it)
+		}
+	}
+	if len(links) < 3 {
+		t.Fatalf("links merged: %+v", links)
+	}
+	last := links[len(links)-1]
+	got, ok := m.markdown.itemAt(last.cols[0]-m.markdown.left+m.markdown.gutter, last.rows[0]-m.markdown.offset)
+	if !ok || !sameItem(got, last) {
+		t.Fatalf("hit %+v, want %+v", got, last)
+	}
+}
+
+// A tall picture held to fewer rows is narrower than its columns, and a
+// right-click beside it is on nothing.
+func TestTallPictureHitsOnlyWhereDrawn(t *testing.T) {
+	m, dir := besideFiles(t, "![tall](tall.png)\n")
+	f, err := os.Create(filepath.Join(dir, "tall.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := png.Encode(f, image.NewRGBA(image.Rect(0, 0, 40, 400))); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	_, cmd := m.Update(m.loader.Load(m.request(true)))
+	drainAnimation(t, m, cmd)
+	var pic pageItem
+	for _, it := range m.markdown.items() {
+		if it.kind == itemPicture {
+			pic = it
+		}
+	}
+	if pic.kind != itemPicture || pic.cols[1]-pic.cols[0] >= m.width/2 {
+		t.Fatalf("picture %+v at width %d", pic, m.width)
+	}
+	row := pic.rows[1] - m.markdown.offset
+	if _, ok := m.markdown.itemAt(0, row); ok && pic.cols[0] > 0 {
+		t.Fatal("the margin beside the picture is part of it")
+	}
+	if got, ok := m.markdown.itemAt(pic.cols[0], row); !ok || got.kind != itemPicture {
+		t.Fatal("the picture itself is not hit")
 	}
 }

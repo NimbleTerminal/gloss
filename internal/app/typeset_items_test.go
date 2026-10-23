@@ -186,3 +186,31 @@ func TestTypesetFailureForgetsTheGoal(t *testing.T) {
 		t.Fatalf("go top %d, pending %d", m.typesetGoTop, m.typesetTabPending)
 	}
 }
+
+// The wheel gives up a Tab waiting for more of the page, as a key does.
+func TestTypesetWheelGivesUpATab(t *testing.T) {
+	source := strings.Repeat("A paragraph of words to fill the page.\n\n", 1500) + "[far](https://e.org/)\n"
+	m := typesetItemsModel(t, source, 8, 4, Options{})
+	_, tabbed := m.Update(tab)
+	_, wheeled := m.Update(tea.MouseWheelMsg{Button: tea.MouseWheelDown})
+	drainAnimation(t, m, tea.Batch(tabbed, wheeled))
+	if m.typesetTabPending != 0 || m.typesetFocus != nil {
+		t.Fatalf("the Tab went on: pending %d focus %v", m.typesetTabPending, m.typesetFocus)
+	}
+}
+
+// On a page with nothing to act on, Tab says so and draws nothing again;
+// a when nothing is on screen says why no menu opens.
+func TestTypesetNothingToActOn(t *testing.T) {
+	m := typesetItemsModel(t, "just words", 8, 4, Options{})
+	before := m.generation
+	pressDrain(t, m, tab)
+	if m.note != noItemsNote || m.generation != before {
+		t.Fatalf("note %q, %d pages drawn", m.note, m.generation-before)
+	}
+	m.note = ""
+	pressDrain(t, m, press("a"))
+	if m.layer == layerActions || m.note != noItemsNote {
+		t.Fatalf("layer %v, note %q", m.layer, m.note)
+	}
+}

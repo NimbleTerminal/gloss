@@ -789,6 +789,9 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		}
 	case tea.MouseWheelMsg:
 		if m.typeset != nil && m.markdown == nil && !m.help && m.screen == screenDocument {
+			// Scrolling gives up a Tab still waiting for more of the page,
+			// as a key does.
+			m.typesetTabPending, m.typesetAhead = 0, false
 			if v.Button == tea.MouseWheelUp {
 				cmd, _ := m.typesetKey("up")
 				return cmd
