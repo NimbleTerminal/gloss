@@ -83,6 +83,7 @@ func (m *Model) export() tea.Cmd {
 		camera := m.chart.Camera()
 		view.Camera = &camera
 	}
+	at := m.mapExportView()
 	if m.typeset != nil && m.markdown == nil {
 		frame = m.typesetExportFrame()
 	}
@@ -101,6 +102,9 @@ func (m *Model) export() tea.Cmd {
 			r = loader.Load(q)
 		}
 		r.Camera, r.CPU = view.Camera, view.CPU
+		if r.Map != nil && at != nil {
+			r.Map.View = at
+		}
 		img, err := document.ExportImage(r, edge)
 		if err != nil {
 			return exportResult{err: err}

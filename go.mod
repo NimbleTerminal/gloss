@@ -29,6 +29,7 @@ require (
 	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
+	nimbleterminal.dev/ntmaps v0.5.0
 	nimbleterminal.dev/ntopenwith v0.1.1
 	nimbleterminal.dev/ntpdf v0.5.1
 	nimbleterminal.dev/ntpicture v0.1.1
@@ -43,6 +44,7 @@ require (
 	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/charmbracelet/harmonica v0.2.0 // indirect
 	github.com/charmbracelet/x/conpty v0.2.0 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect

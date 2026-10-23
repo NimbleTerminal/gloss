@@ -3,14 +3,14 @@ package examples
 
 import "embed"
 
-//go:embed motion.gif motion.webp recording.mp4 landscape.png landscape.heic landscape.jxl shapes.svg handoff.mmd field-guide.pdf gloss.stl lantern.3mf cottage.obj cottage.mtl cottage-roof.png dunes.ply readme.md field-notes.html notes.txt batch.jsonl analysis.ipynb field-notes.docx sales.xlsx notes.grist sales.csv
+//go:embed motion.gif motion.webp recording.mp4 landscape.png landscape.heic landscape.jxl shapes.svg handoff.mmd field-guide.pdf gloss.stl lantern.3mf cottage.obj cottage.mtl cottage-roof.png dunes.ply walk.gpx readme.md field-notes.html notes.txt batch.jsonl analysis.ipynb field-notes.docx sales.xlsx notes.grist sales.csv
 var Files embed.FS
 
 // Names lists the samples in the order the gallery shows them: one of
 // each kind gloss opens.
 var Names = []string{
 	"landscape.png", "landscape.heic", "landscape.jxl", "motion.gif", "motion.webp", "recording.mp4", "shapes.svg", "handoff.mmd", "field-guide.pdf",
-	"gloss.stl", "lantern.3mf", "cottage.obj", "dunes.ply",
+	"gloss.stl", "lantern.3mf", "cottage.obj", "dunes.ply", "walk.gpx",
 	"readme.md", "field-notes.html", "notes.txt", "batch.jsonl", "analysis.ipynb",
 	"field-notes.docx", "sales.xlsx", "notes.grist", "sales.csv",
 }

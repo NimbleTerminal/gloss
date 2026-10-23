@@ -95,7 +95,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVarP(&opts.LineNumbers, "line-numbers", "N", false, "number the lines of plain text, source code, JSON and Markdown source (# toggles, : goes to a line)")
 	f.BoolVarP(&opts.ChopLines, "chop-long-lines", "S", false, "cut long lines at the right edge instead of wrapping them, as less -S does (S toggles, arrows scroll sideways)")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
-	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown (or md), mermaid, video")
+	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown (or md), mermaid, video, geojson, gpx")
 	accept := f.String("accept", "", "require these content formats for this session, comma-separated: image/*, pdf, svg, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown, mermaid, video (or video/*)")
 	page := f.StringP("page", "p", "1", "PDF page or workbook sheet, from 1; for an export or text into a folder, a range such as 2-5, or all")
 	f.BoolVar(&opts.Text, "text", false, "take the text out: Markdown of a Word document, page, or notebook, text of a PDF page, CSV of a sheet, text and JSON as they are")
@@ -260,8 +260,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	case "jsonl", "ndjson":
 		opts.Type = "json"
 	}
-	if !slices.Contains([]string{"", "image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid", "video"}, opts.Type) {
-		return opts, false, fmt.Errorf("--type must be image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid, or video")
+	if !slices.Contains([]string{"", "image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid", "video", "geojson", "gpx"}, opts.Type) {
+		return opts, false, fmt.Errorf("--type must be image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid, video, geojson, or gpx")
 	}
 	if f.Changed("grep") {
 		if *grep == "" {

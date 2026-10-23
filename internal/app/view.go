@@ -98,6 +98,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body = "Cannot open file\n\n" + safe(m.err.Error()) + "\n\nR retry · ] next file · q quit"
 	case m.video != nil:
 		body, mouse, plain = m.video.View(), tea.MouseModeCellMotion, false
+	case m.mapView != nil:
+		// Drags pan it and the wheel zooms.
+		body, mouse, plain = m.mapView.View().Content, tea.MouseModeCellMotion, false
 	case m.chart != nil:
 		v := m.chart.View()
 		body, mouse, plain = m.meshFrame(v.Content, w), v.MouseMode, false
@@ -355,6 +358,8 @@ func (m *Model) detail(w, h int) string {
 	switch {
 	case m.video != nil:
 		detail = m.videoDetail()
+	case m.mapFile != nil:
+		detail = fmt.Sprintf("%s · %s · zoom %d", strings.ToUpper(m.kind), plural(len(m.mapFile.Data.Features), "feature"), m.mapView.Zoom())
 	case m.chart != nil:
 		detail = fmt.Sprintf("%s · %s", strings.ToUpper(m.kind), plural(m.triangles, "triangle"))
 		if m.triangles == 0 && m.points > 0 {
@@ -485,6 +490,8 @@ func (m *Model) hints() string {
 		if len(m.video.Status().CaptionTracks) > 0 {
 			keys = " q quit · Space play/pause · ←/→ seek · c subtitles · ? help · m files · [/] files · e export · i info"
 		}
+	case m.mapView != nil:
+		keys = " q quit · arrows pan · +/- zoom · f fit · ? help · m files · [/] files · e export · i info"
 	case m.chart != nil && m.mesh != nil:
 		keys = " q quit · ? help · m files · [/] files · e export · i info · C color · B bg-color"
 		if m.hasParts() {

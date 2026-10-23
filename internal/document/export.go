@@ -30,6 +30,10 @@ func ExportImage(r Result, maxEdge int) (image.Image, error) {
 	if r.Mesh != nil {
 		return exportMesh(r, maxEdge)
 	}
+	if r.Map != nil {
+		// Drawn at the size asked for, as a vector document is.
+		return r.Map.picture(maxEdge)
+	}
 	if len(r.Frames) > 1 {
 		return frameSheet(r.Frames, maxEdge)
 	}

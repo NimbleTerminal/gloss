@@ -37,7 +37,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".geojson", ".gpx", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -46,11 +46,12 @@ var Formats = []string{
 	"Doc:    SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter",
 	"Text:   Markdown, HTML, JSON, CSV, plain text and source",
 	"3D:     STL, 3MF, OBJ and PLY meshes",
+	"Maps:   GeoJSON and GPX",
 }
 
-const FormatsShort = "Images, SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter, Markdown, HTML, text, JSON, CSV, meshes"
+const FormatsShort = "Images, SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter, Markdown, HTML, text, JSON, CSV, 3D, maps"
 
-var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, Mermaid, PDF, a mesh, Markdown, HTML, JSON, a notebook, Word, Excel, Grist, CSV, or text")
+var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, Mermaid, PDF, a mesh, a map, Markdown, HTML, JSON, a notebook, Word, Excel, Grist, CSV, or text")
 var ErrNotRegular = errors.New("not a regular file")
 var ErrDirectory = errors.New("is a directory")
 var ErrTooLarge = errors.New("file exceeds 128 MiB")
@@ -213,6 +214,7 @@ type Result struct {
 	Animation        *animation.Player
 	Mesh             *Mesh
 	Video            *Video                      // A video, played from its file; Image is its first frame.
+	Map              *Map                        // Places, lines and areas from GeoJSON or GPX; Image draws them framed.
 	Frames           []Frame                     // The frames of a video asked for by Times or FrameCount; Image is the first.
 	Cues             []ntvideo.CaptionCue        // A video's subtitles, when its text was asked for; Text is them written out.
 	Parts            []Part                      // What a 3MF build places, for choosing among.
@@ -451,6 +453,12 @@ func (l *Loader) Load(q Request) (out Result) {
 	case "ply":
 		out.Mesh, out.Err = ParsePLY(data, upAxis(q.Up, "y"))
 		details = func() []Field { return meshFields(data, out.Mesh) }
+	case "geojson", "gpx":
+		out.Map, out.Err = readMap(kind, data)
+		details = func() []Field { return mapFields(kind, out.Map) }
+		if out.Err == nil && !q.Describe && !q.TextOnly {
+			out.Image, out.Err = out.Map.picture(q.MaxEdge)
+		}
 	case "csv":
 		out.Sheet, out.Err = ReadCSV(q.Path, data)
 		if out.Sheet != nil {
@@ -776,6 +784,8 @@ func Detect(path string, data []byte, forced string) (string, error) {
 		return "markdown", nil
 	case ".mmd", ".mermaid":
 		return "mermaid", nil
+	case ".geojson":
+		return "geojson", nil // By name: any JSON could be read as GeoJSON.
 	}
 	if bytes.HasPrefix(bytes.TrimSpace(data), []byte("%PDF-")) {
 		return "pdf", nil
@@ -813,6 +823,9 @@ func Detect(path string, data []byte, forced string) (string, error) {
 			if root.Name.Local == "svg" {
 				return "svg", nil
 			}
+			if root.Name.Local == "gpx" {
+				return "gpx", nil
+			}
 			break
 		}
 	}
@@ -840,6 +853,8 @@ func Detect(path string, data []byte, forced string) (string, error) {
 		return "obj", nil
 	case ".ply":
 		return "ply", nil
+	case ".gpx":
+		return "gpx", nil
 	case ".xlsx", ".xlsm":
 		return "xlsx", nil
 	case ".grist":

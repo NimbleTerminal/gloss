@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
+  as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
+  zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`
+  lists what it holds. Maps are drawn on a plain background and nothing is
+  fetched. `--output`, `e`, `--print` and previews draw them too;
+  `--type geojson|gpx` and `--accept maps` name them. ntmaps v0.5.0.
+
 ## `v0.5.0` (2026-10-23)
 
 - Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV,

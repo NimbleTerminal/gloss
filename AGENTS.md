@@ -186,6 +186,18 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   and PLY (y); 3MF stays Z-up. PLY point clouds
   (500,000 points) draw as world-unit discs sized to their spacing
   (`cloudRadius`, scaled in `SetScene`); export outlines skip them.
+- **Maps** (`internal/document/maps.go`, `internal/app/maps.go`): GeoJSON
+  (`.geojson`, by name only) and GPX (`.gpx` or a `<gpx>` root), read by
+  `nimbleterminal.dev/ntmaps/geodata` within the 128 MiB cap and its limits
+  (a million positions, 100,000 features, nesting 64). The viewer is an
+  `ntmaps.Model` with no tile source, so nothing is fetched, sharing the
+  pager's session and `ntpicture.NextImageID`; framed with `SetBounds`
+  (`Map.Frame`), arrows/hjkl/+/-/mouse are the map's, `f`/`0` reframe, `g`
+  switches glyph/Kitty, `Dispose`/`Keep`/`Close` on leaving or quitting.
+  Previews, thumbnails, `--output`, `e` (at the viewer's center and zoom,
+  `Map.View`) and `--print` use `ntmaps.Render`. gloss ships no online map
+  provider: OpenStreetMap's servers are never contacted unless a user names
+  a provider (not built yet).
 - **3MF**: core-spec meshes, components, build transforms, base-material and
   color-group colors, Bambu-Studio-style filament colors from slicer settings;
   part listing/selection (`c` key, `--parts`, `--partn`); too-large projects

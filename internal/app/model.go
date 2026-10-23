@@ -18,6 +18,7 @@ import (
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/nt3d"
 	widget "nimbleterminal.dev/nt3d/widget"
+	"nimbleterminal.dev/ntmaps"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	svg "nimbleterminal.dev/ntsvg"
 	"nimbleterminal.dev/ntvideo"
@@ -98,6 +99,8 @@ type meshState struct {
 	chart       *widget.Model
 	video       *ntvideo.Model  // A video being played; its first frame stands in elsewhere.
 	videoInfo   *document.Video // The file it plays, as the loader found it.
+	mapView     *ntmaps.Model   // A GeoJSON or GPX file's map.
+	mapFile     *document.Map   // What it shows, as the loader read it.
 	triangles   int
 	points      int             // A point cloud's, which has no triangles.
 	parts       []document.Part // What a 3MF build places, when a mesh is made of parts.
@@ -366,6 +369,9 @@ func (m *Model) quit() tea.Cmd {
 		m.video.Pause()
 		keepMesh = tea.Batch(keepMesh, m.video.Keep())
 	}
+	if m.mapView != nil {
+		keepMesh = tea.Batch(keepMesh, m.mapView.Keep())
+	}
 	return tea.Sequence(tea.Batch(qrCleanup, markdownCleanup, m.keepAnimationPicture(), keepMesh), settleMouse, tea.Quit)
 }
 
@@ -523,7 +529,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 		// A new file, a reload or a drop leaves no menu holding the mouse.
 		m.closeLayer()
 	}
-	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearVideo(), m.clearMarkdown())
+	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearVideo(), m.clearMap(), m.clearMarkdown())
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -755,6 +761,9 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		if m.chart != nil {
 			return tea.Batch(cmd, m.chart.SetSize(m.width, m.meshHeight()), m.refit())
 		}
+		if m.mapView != nil {
+			return tea.Batch(cmd, m.mapView.SetSize(m.width, m.bodyHeight()))
+		}
 		return tea.Batch(cmd, m.layoutVideo())
 	case tea.PasteMsg:
 		if m.search != nil && m.search.editing {
@@ -915,6 +924,9 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 			}
 		}
 	}
+	if m.mapView != nil && !((m.help || m.listing()) && mouseMessage) {
+		cmds = append(cmds, m.updateMap(msg))
+	}
 	if m.preview != nil && !mouseMessage {
 		_, cmd := m.preview.Update(msg)
 		cmds = append(cmds, cmd)
@@ -937,7 +949,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 		animationCleanup = tea.Batch(animationCleanup, m.clearStill())
 	}
 
-	cleanup := tea.Batch(animationCleanup, m.clearQR(), m.clearMarkdown(), m.clearChart())
+	cleanup := tea.Batch(animationCleanup, m.clearQR(), m.clearMarkdown(), m.clearChart(), m.clearMap())
 	m.sheet = nil
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
 	overlays := m.acceptTypesetView(v)
@@ -980,6 +992,9 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 	}
 	if v.Video != nil && !m.isPreview {
 		return m.showVideo(v, cleanup)
+	}
+	if v.Map != nil && !m.isPreview {
+		return m.showMap(v, cleanup)
 	}
 	m.source = v.Image
 	if v.Animation != nil && !m.isPreview {

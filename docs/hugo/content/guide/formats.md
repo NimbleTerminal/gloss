@@ -136,6 +136,15 @@ bookToC: false
   written the other way: `--up z` reads an OBJ or PLY as Z-up, and `--up y`
   stands up a Y-up STL. `i` says which axis was taken. 3MF is Z-up by its
   specification.
+- GeoJSON (`.geojson`) and GPX (`.gpx`, or any file whose root element is
+  `<gpx>`): what the file holds is drawn on a plain background, framed to fit,
+  and nothing is fetched. Points and GPX waypoints are pins, lines, routes and
+  track segments are lines (one per segment), and polygons are drawn as
+  thinner outlines, holes included. GeoJSON is known only by its name, so a
+  `.json` file stays JSON; `--type geojson` reads one as a map. A file may
+  hold up to a million positions and 100,000 features, nested at most 64
+  deep; elevation, times and other properties are not read. A file with no
+  positions in it is an error.
 - Plain text (`.txt`, `.text`, `.log`, and any file that is not binary):
   shown as it is, in the document view, so that no line of it is read as a
   heading, a list, or emphasis. Returns and a byte order mark are dropped,

@@ -53,6 +53,7 @@ bookToC: false
 | `B` | Pick the background color behind a mesh, with the same picker as `C`: `r` restores the default, `Enter` chooses the swatch you have moved to and closes, `Esc` undoes |
 | Click, in the `C` / `B` picker | Click a tab, swatch, or slider bar; a swatch applies at once and a second click on it chooses it and closes; drag along a slider |
 | Drag / Shift-drag / wheel | Mesh (STL, 3MF, OBJ, PLY) orbit / pan / zoom |
+| Arrows or `hjkl`, `+`/`-`, drag, wheel | Map (GeoJSON, GPX): pan, zoom; `f` or `0` frames the whole file again |
 | Drag, then `y` | Typeset text: select, then copy to the clipboard; `Esc` clears |
 | Drop files, or paste their paths | Add files to the list; one opens at once, several open the menu |
 
@@ -347,6 +348,7 @@ and modification time, followed by:
 | PDF | Version, page count, size of the current page, title, author, subject, keywords, creator, producer, dates |
 | STL | Encoding, name, triangle count, extent, surface area (STL records no unit) |
 | OBJ, PLY | Object, triangle, textured part, point and line counts, extent, surface area, and what was left out, such as a texture too large |
+| GeoJSON, GPX | Features, places, lines, areas, positions, the box around them, and the first feature names |
 | 3MF | Title, designer, description, application, dates, license, object and triangle counts, the parts by name, extent and surface area in the file's unit, thumbnail size |
 | Markdown | Title, lines, words, headings, links, images |
 | Word | Title, author, dates, application, pages and words as Word counts them, headings, tables, images, links |

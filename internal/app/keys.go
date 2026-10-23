@@ -278,6 +278,11 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			return cmd, true
 		}
 	}
+	if m.mapView != nil && m.layer == layerNone {
+		if cmd, ok := m.mapKey(k); ok {
+			return cmd, true
+		}
+	}
 	switch k {
 	case "m":
 		return m.openMenu(m.index), true
@@ -351,8 +356,8 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		m.zoom, m.panX, m.panY = 0, 0, 0
 		return m.refreshImage(), true
 	}
-	if m.chart != nil {
-		return nil, false // Orbit, rotate, and the rest are the mesh's.
+	if m.chart != nil || m.mapView != nil {
+		return nil, false // Orbit, pan, zoom and the rest are the widget's.
 	}
 	return m.pictureKey(k), true
 }

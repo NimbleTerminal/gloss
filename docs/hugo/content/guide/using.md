@@ -149,7 +149,7 @@ cannot be named on the command line; there are none.
 
 Options use `pflag` GNU syntax and may appear before or after filenames. Both
 `--page=3` and `-p3` work; boolean short flags can be grouped (`-mP`). Use `--` to
-end option parsing. `--type image|svg|pdf|stl|3mf|obj|ply|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid` (`jsonl` and `ndjson` mean `json`, `md` means `markdown`) overrides detection for all
+end option parsing. `--type image|svg|pdf|stl|3mf|obj|ply|geojson|gpx|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid|video` (`jsonl` and `ndjson` mean `json`, `md` means `markdown`) overrides detection for all
 inputs. Content detection supports extensionless files. A `-` reads stdin once
 into a temporary file, removed on exit; keyboard input comes from the controlling
 terminal. Interactive output must be a terminal; image export works in scripts.
@@ -180,7 +180,7 @@ gloss photo.png drawing.svg model.stl -mP
   `#` shows line numbers, `:` goes to a line, and `S` toggles long-line wrapping.
 - Pause a standalone GIF or animated WebP with Space, change speed with `<`/`>`, and scrub or
   step frames. Play a video (MP4, MOV, WebM, MKV, OGV, AVI and more) with Space,
-  seek with ←/→ or the bar; see [Formats](../formats/) for what it needs. Orbit STL, 3MF, OBJ and PLY meshes and select 3MF parts with `c`.
+  seek with ←/→ or the bar; see [Formats](../formats/) for what it needs. Orbit STL, 3MF, OBJ and PLY meshes and select 3MF parts with `c`. Pan and zoom a GeoJSON or GPX map, drawn offline.
 - Press `e` to export the current image or typeset viewport. Scripts use
   `--output` without a terminal; meshes can export several views in one sheet.
 - Show a table URL as a QR with `u`, or use `--pick-web` for phone uploads and

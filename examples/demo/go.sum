@@ -30,6 +30,8 @@ github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuP
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/charmbracelet/colorprofile v0.4.3 h1:QPa1IWkYI+AOB+fE+mg/5/4HRMZcaXex9t5KX76i20Q=
 github.com/charmbracelet/colorprofile v0.4.3/go.mod h1:/zT4BhpD5aGFpqQQqw7a+VtHCzu+zrQtt1zhMt9mR4Q=
+github.com/charmbracelet/harmonica v0.2.0 h1:8NxJWRWg/bzKqqEaaeFNipOu77YR5t8aSwG4pgaUBiQ=
+github.com/charmbracelet/harmonica v0.2.0/go.mod h1:KSri/1RMQOZLbw7AHqgcBycp8pgJnQMYYT8QZRqZ1Ao=
 github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 h1:hISLzUbwcvJbGoNR6A3L/TpguRRnACBmZOee8LcHLJw=
 github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4/go.mod h1:aJDVk+WOVM1K04rdc/71PMPoUGfjxjhvXfP3Pjz1Zio=
 github.com/charmbracelet/x/ansi v0.11.9 h1:kIrqLBxtTVbLyyHO2Evoi93EjQo1mylWmpNEsfPxXAM=
@@ -193,6 +195,8 @@ nimbleterminal.dev/ntfonts v0.1.0 h1:D8PxpASojALkYPV381GQBidooRJarueUfKQoC4srgYk
 nimbleterminal.dev/ntfonts v0.1.0/go.mod h1:G8a7vDkY3uYxrydtdTlJ7KbZpxtL4MTimyMhkwdPr2Q=
 nimbleterminal.dev/ntgpuimage v0.3.0 h1:x3/wbnS6xHFsMbKg+vXTbbEv2pDfnJTbGpKiUoSnAjM=
 nimbleterminal.dev/ntgpuimage v0.3.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=
+nimbleterminal.dev/ntmaps v0.5.0 h1:FUS1CXkJHtUf6XhMa2Wo4t/kTaZqaKi21NkB/6qdBsI=
+nimbleterminal.dev/ntmaps v0.5.0/go.mod h1:SwFZsi7TpuqwFM3CnuV2lHuJlUn1a6i2CC6RayD/urM=
 nimbleterminal.dev/ntopenwith v0.1.1 h1:BX/bZGeQQvKjbDM22FTMpsPeck2LsmE3sBH+0nuX5ZU=
 nimbleterminal.dev/ntopenwith v0.1.1/go.mod h1:MvWxw+kwx733Q23dTDoW2BHwSU3C29G2jxKQ/mS/DxE=
 nimbleterminal.dev/ntpdf v0.5.1 h1:IerC2cA2YU72twl4XSESp13DiLtUfOreRyd47ZRBWsM=

@@ -20,6 +20,7 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
+	github.com/charmbracelet/harmonica v0.2.0 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
 	github.com/charmbracelet/x/ansi v0.11.9 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
@@ -73,6 +74,7 @@ require (
 	nimbleterminal.dev/ntfilepicker v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/ntmaps v0.5.0 // indirect
 	nimbleterminal.dev/ntopenwith v0.1.1 // indirect
 	nimbleterminal.dev/ntpdf v0.5.1 // indirect
 	nimbleterminal.dev/ntpicture v0.1.1 // indirect

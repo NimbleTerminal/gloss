@@ -32,7 +32,7 @@ var orderNames = []string{"name", "date", "kind"}
 var kindMarks = map[string]string{
 	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".bmp": "📷", ".tif": "📷", ".tiff": "📷", ".heic": "📷", ".heif": "📷", ".hif": "📷", ".jxl": "📷",
 	".mp4": "🎬", ".m4v": "🎬", ".mov": "🎬", ".webm": "🎬", ".mkv": "🎬", ".ogv": "🎬", ".avi": "🎬", ".mpg": "🎬", ".mpeg": "🎬", ".wmv": "🎬", ".flv": "🎬",
-	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊", ".obj": "🧊", ".ply": "🧊",
+	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊", ".obj": "🧊", ".ply": "🧊", ".geojson": "📍", ".gpx": "📍",
 	".md": "📝", ".markdown": "📝", ".mdown": "📝", ".html": "📝", ".htm": "📝", ".txt": "📝", ".text": "📝", ".log": "📝",
 	".json": "🧾", ".jsonl": "🧾", ".ndjson": "🧾", ".ipynb": "📓",
 	".docx": "📄", ".docm": "📄", ".xlsx": "📊", ".xlsm": "📊", ".csv": "📊", ".tsv": "📊", ".grist": "📊",
@@ -50,6 +50,7 @@ var typeFilters = []typeFilter{
 	{"Drawings (SVG, Mermaid)", []string{"🎨", "🧜"}},
 	{"PDF", []string{"📕"}},
 	{"Meshes (STL, 3MF, OBJ, PLY)", []string{"🧊"}},
+	{"Maps (GeoJSON, GPX)", []string{"📍"}},
 	{"Markdown, HTML, text", []string{"📝", "📃"}},
 	{"JSON", []string{"🧾"}},
 	{"Notebooks", []string{"📓"}},
@@ -123,8 +124,8 @@ func ordering(by int) func(a, b fs.DirEntry) int {
 }
 
 // The kinds in the order they are listed: pictures, drawings, documents,
-// meshes, text, data, notebooks, Word, and tables; the unmarked last.
-var kindRanks = []string{"📷", "🎨", "📕", "🧊", "📝", "📃", "🧾", "📓", "📄", "📊"}
+// meshes, maps, text, data, notebooks, Word, and tables; the unmarked last.
+var kindRanks = []string{"📷", "🎨", "📕", "🧊", "📍", "📝", "📃", "🧾", "📓", "📄", "📊"}
 
 // kindOrder groups files by kind, then extension.
 func kindOrder(e fs.DirEntry) string {

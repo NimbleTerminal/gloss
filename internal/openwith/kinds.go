@@ -1,7 +1,7 @@
 package openwith
 
 // Kinds are the canonical preference keys, in listing order.
-var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid"}
+var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid", "geojson", "gpx"}
 
 // Kind maps loader image kinds to their shared preference key.
 func Kind(kind string) string {
@@ -15,7 +15,7 @@ func Kind(kind string) string {
 // Editable reports formats whose original file is text, not a converted view.
 func Editable(kind string) bool {
 	switch kind {
-	case "text", "markdown", "json", "html", "svg", "mermaid", "obj", "csv", "ipynb":
+	case "text", "markdown", "json", "html", "svg", "mermaid", "obj", "csv", "ipynb", "geojson", "gpx":
 		return true
 	}
 	return false
@@ -33,7 +33,7 @@ func ExtOf(kind string) string {
 		return ".md"
 	case "mermaid":
 		return ".mmd"
-	case "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html":
+	case "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "geojson", "gpx":
 		return "." + kind
 	}
 	return ""

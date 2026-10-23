@@ -3,6 +3,7 @@ package document
 import (
 	"fmt"
 	"io/fs"
+	"path/filepath"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ func ParseAccept(value string) (AcceptFilter, error) {
 	}
 	for _, item := range strings.Split(value, ",") {
 		switch strings.TrimSpace(item) {
-		case "image", "images", "image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "video/*":
+		case "image", "images", "image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "video/*", "geojson", "gpx", "map", "maps":
 		default:
 			return "", fmt.Errorf("--accept: unknown format %q; use gloss format names, or image/*", item)
 		}
@@ -38,10 +39,14 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 	if kind == "text" {
 		if hinted, e := Detect(name, data, ""); e == nil {
 			switch hinted {
-			case "text", "markdown", "csv", "json", "ipynb", "html", "mermaid", "obj":
+			case "text", "markdown", "csv", "json", "ipynb", "html", "mermaid", "obj", "geojson":
 				kind = hinted
 			}
 		}
+	}
+	// GeoJSON is JSON known by its name.
+	if kind == "json" && strings.EqualFold(filepath.Ext(name), ".geojson") {
+		kind = "geojson"
 	}
 	for _, item := range strings.Split(string(a), ",") {
 		item = strings.TrimSpace(item)
@@ -53,6 +58,10 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 			}
 		case "video/*":
 			item = "video"
+		case "map", "maps":
+			if kind == "geojson" || kind == "gpx" {
+				return nil
+			}
 		case "md":
 			item = "markdown"
 		case "jsonl", "ndjson":
