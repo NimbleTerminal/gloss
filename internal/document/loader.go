@@ -151,6 +151,7 @@ type Request struct {
 	Context       context.Context
 	TypesetView   *TypesetViewport
 	TypesetSelect *TypesetSelection // Text to highlight, and to return as TypesetSelected.
+	TypesetFocus  []image.Rectangle // Page rectangles to outline: the item Tab is on.
 	Path, Type    string
 	MarkdownMode  string
 	Typeset       bool
@@ -193,6 +194,8 @@ type Result struct {
 	TypesetAsked     *TypesetSelection // The selection as the request asked for it.
 	TypesetSelection *TypesetSelection // The same with both ends placed in the text; nil when a place is not in it.
 	TypesetSelected  string            // Its text.
+	TypesetItems     []TypesetItem     // Every item laid so far, in reading order; Markdown only.
+	TypesetFocus     []image.Rectangle // The focus outlined, as the request asked.
 	Animated         []TypesetRegion
 	AnimationBase    image.Image
 	Playback         *animation.Composite
@@ -262,6 +265,7 @@ type Loader struct {
 	// image destination. The layout knows only which images are animated.
 	typesetImages     map[string]image.Image
 	typesetAnimations map[string]*animation.Player
+	typesetPaths      map[string]string // The files they were read from, as MarkdownImage.Path.
 }
 
 // book is a file of several sheets: a workbook's, or the tables of a Grist
@@ -284,7 +288,7 @@ func (l *Loader) closePDF() error {
 	l.typeset, l.typesetBase = nil, ""
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
 	l.direct, l.directOptions, l.typesetDocument, l.typesetEngine = nil, nttypeset.LayoutOptions{}, nil, nil
-	l.typesetImages, l.typesetAnimations = nil, nil
+	l.typesetImages, l.typesetAnimations, l.typesetPaths = nil, nil, nil
 	l.pdfReader.close()
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
 	if l.pdf == nil {
@@ -378,7 +382,7 @@ func (l *Loader) Load(q Request) (out Result) {
 	case "markdown":
 		if q.MarkdownMode == "typeset" {
 
-			source, root, images, players, err := prepareTypeset(q, data, l.Files)
+			source, root, images, players, paths, err := prepareTypeset(q, data, l.Files)
 			if err != nil {
 				out.Err = err
 				return out
@@ -397,7 +401,7 @@ func (l *Loader) Load(q Request) (out Result) {
 				out.Err = err
 				return out
 			}
-			l.typesetImages, l.typesetAnimations = images, players
+			l.typesetImages, l.typesetAnimations, l.typesetPaths = images, players, paths
 			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, doc)
 		}
 		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview, q.Theme.Dark)

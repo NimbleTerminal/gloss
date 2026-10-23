@@ -78,6 +78,9 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
 	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}
 	v.Link = m.typesetGoLink
+	if m.typesetGoTop >= 0 {
+		v.Top = m.typesetGoTop
+	}
 	if m.kitty {
 		// The picture fills the body's cell area; a raster of exactly that
 		// size is shown as it is instead of being resampled.
@@ -90,7 +93,7 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 // for; typesetViewMatches, only that it shows the same part of the page,
 // which is what mapping a cell onto the page needs.
 func (m *Model) typesetMatches() bool {
-	return m.typesetViewMatches() && selectionsEqual(m.typesetSelect, m.typesetSelectShown)
+	return m.typesetViewMatches() && selectionsEqual(m.typesetSelect, m.typesetSelectShown) && rectsEqual(m.typesetFocus, m.typesetFocusShown)
 }
 func (m *Model) typesetViewMatches() bool {
 	return m.typesetFont == document.FontKey(m.opts.Font, m.opts.Mono) && m.viewportAsked(m.typesetShown, m.typesetWidth, m.typesetTheme)
@@ -151,6 +154,7 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 	}
 	if v.Err != nil {
 		m.note = "typeset: " + safe(v.Err.Error())
+		m.typesetTabPending = 0
 		return nil
 	}
 	m.note = ""
@@ -172,6 +176,7 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 // picture stays still; otherwise the composite page animates as a whole.
 func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	m.typesetLinks = v.Links
+	m.typesetItems, m.typesetFocusShown = v.TypesetItems, v.TypesetFocus
 	m.typesetSelectShown, m.typesetSelected = v.TypesetSelection, v.TypesetSelected
 	// When the result answers the selection as it is now, that becomes the
 	// placed one, both ends in the text, or nothing when the text has no
@@ -209,7 +214,9 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	if v.TypesetView != nil {
 		m.typesetTop, m.typesetLeft = v.TypesetView.Top, v.TypesetView.Left
 		m.typesetEnd, m.typesetGoLine = false, 0
-		m.typesetGoLink = ""
+		m.typesetGoLink, m.typesetGoTop = "", -1
+		m.typesetDone = v.TypesetDone
+		overlays = tea.Batch(overlays, m.followTypesetFocus())
 	}
 	return overlays
 }

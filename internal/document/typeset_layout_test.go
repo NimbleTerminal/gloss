@@ -104,7 +104,7 @@ func prepareForTest(path string) (*nttypeset.Document, map[string]image.Image, e
 	if err != nil {
 		return nil, nil, err
 	}
-	_, root, images, _, err := prepareTypeset(Request{Path: path}, data, nil)
+	_, root, images, _, _, err := prepareTypeset(Request{Path: path}, data, nil)
 	if err != nil {
 		return nil, nil, err
 	}

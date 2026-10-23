@@ -150,11 +150,18 @@ type textState struct {
 	documentCancel          context.CancelFunc
 	typesetTop, typesetLeft int
 	typesetEnd              bool
-	lineNumbers             bool       // Show file line numbers, where the view's rows are file lines.
-	lineInput               *lineInput // The go-to-line prompt, while it is open.
-	typesetGoLine           int        // A line the typeset page is asked to put at the top, until it answers.
-	typesetGoLink           string     // A document-local footnote target awaiting layout.
-	chopLines               bool       // Cut long lines at the right edge instead of wrapping them.
+	lineNumbers             bool                   // Show file line numbers, where the view's rows are file lines.
+	lineInput               *lineInput             // The go-to-line prompt, while it is open.
+	typesetGoLine           int                    // A line the typeset page is asked to put at the top, until it answers.
+	typesetGoLink           string                 // A document-local footnote target awaiting layout.
+	typesetGoTop            int                    // A page top to reveal the focused item at, until it answers; -1 for none.
+	typesetItems            []document.TypesetItem // The typeset Markdown page's pictures, links and tables laid so far.
+	typesetDone             bool                   // The whole page is laid, so typesetItems are all there are.
+	typesetFocus            []image.Rectangle      // The item Tab is on, as page rectangles; nil for none.
+	typesetFocusIndex       int                    // Its place in typesetItems, to find it again after a reflow.
+	typesetFocusShown       []image.Rectangle      // The focus the shown picture outlines.
+	typesetTabPending       int                    // A Tab step to take again on the next page view, which lays more.
+	chopLines               bool                   // Cut long lines at the right edge instead of wrapping them.
 	typesetShown            *document.TypesetViewport
 	typesetTheme            string
 	typesetFont             string
@@ -261,6 +268,7 @@ func New(opts Options) *Model {
 		m.screen = screenList
 	}
 	m.lastCellW, m.lastCellH = m.cellPixelSize()
+	m.typesetGoTop = -1
 	return m
 }
 
@@ -375,6 +383,7 @@ func (m *Model) request(reload bool) document.Request {
 			sel := *m.typesetSelect
 			q.TypesetSelect = &sel
 		}
+		q.TypesetFocus = m.typesetFocus
 	}
 	if m.opts.IsStdin(q.Path) {
 		q.BaseDir = m.opts.MarkdownBase
@@ -472,9 +481,11 @@ func (m *Model) clearGraphics() tea.Cmd {
 	m.stopTypeset()
 	m.typesetTop, m.typesetLeft, m.typesetEnd, m.typesetShown = 0, 0, false, nil
 	m.typesetGoLine, m.lineInput = 0, nil
-	m.typesetGoLink = ""
+	m.typesetGoLink, m.typesetGoTop = "", -1
 	m.typeset = nil
 	m.typesetLinks = nil
+	m.clearTypesetFocus()
+	m.typesetItems, m.typesetDone, m.typesetFocusShown = nil, false, nil
 	m.clearTypesetSelection()
 	m.typesetSelectShown = nil
 	m.pressedLink = ""

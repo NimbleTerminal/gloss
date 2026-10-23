@@ -32,17 +32,12 @@ func (m *Model) clearTypesetSelection() {
 func (m *Model) typesetPixel(x, y int, clamp bool) (image.Point, bool) {
 	cw, ch := m.typesetCell()
 	tw, th := m.width*cw, m.bodyHeight()*ch
-	b := m.source.Bounds()
-	sw, sh := b.Dx(), b.Dy()
-	if tw <= 0 || th <= 0 || sw <= 0 || sh <= 0 {
+	iw, ih, ok := m.typesetFitted()
+	if !ok {
 		return image.Point{}, false
 	}
-	iw, ih := tw, sh*tw/sw
-	if sw*th < sh*tw {
-		ih = th
-		iw = sw * th / sh
-	}
-	iw, ih = max(1, iw), max(1, ih)
+	b := m.source.Bounds()
+	sw, sh := b.Dx(), b.Dy()
 	px, py := x*cw+cw/2-(tw-iw)/2, y*ch+ch/2-(th-ih)/2
 	if clamp {
 		px, py = max(0, min(iw-1, px)), max(0, min(ih-1, py))
@@ -51,6 +46,39 @@ func (m *Model) typesetPixel(x, y int, clamp bool) (image.Point, bool) {
 		return image.Point{}, false
 	}
 	return image.Pt(b.Min.X+px*sw/iw, b.Min.Y+py*sh/ih), true
+}
+
+// typesetFitted is the size the page picture is drawn at in the body, in
+// the pixels of typesetCell.
+func (m *Model) typesetFitted() (iw, ih int, ok bool) {
+	cw, ch := m.typesetCell()
+	tw, th := m.width*cw, m.bodyHeight()*ch
+	b := m.source.Bounds()
+	sw, sh := b.Dx(), b.Dy()
+	if tw <= 0 || th <= 0 || sw <= 0 || sh <= 0 {
+		return 0, 0, false
+	}
+	iw, ih = tw, sh*tw/sw
+	if sw*th < sh*tw {
+		ih = th
+		iw = sw * th / sh
+	}
+	return max(1, iw), max(1, ih), true
+}
+
+// typesetCellAt is the body cell a pixel of the shown page picture is drawn
+// in, the inverse of typesetPixel, kept within the body.
+func (m *Model) typesetCellAt(p image.Point) image.Point {
+	cw, ch := m.typesetCell()
+	tw, th := m.width*cw, m.bodyHeight()*ch
+	iw, ih, ok := m.typesetFitted()
+	if !ok {
+		return image.Point{}
+	}
+	b := m.source.Bounds()
+	px := (p.X-b.Min.X)*iw/b.Dx() + (tw-iw)/2
+	py := (p.Y-b.Min.Y)*ih/b.Dy() + (th-ih)/2
+	return image.Pt(max(0, min(m.width-1, px/cw)), max(0, min(m.bodyHeight()-1, py/ch)))
 }
 
 // typesetPagePoint is the page point under a body cell, while the picture

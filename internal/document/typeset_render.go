@@ -216,6 +216,13 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	if err != nil {
 		return fail(err)
 	}
+	// The focus is drawn into the page before the animations' frames go in:
+	// it lies outside them, so none covers it, and it shows in glyphs and
+	// under Kitty alike.
+	if len(q.TypesetFocus) > 0 {
+		out.TypesetFocus = append([]image.Rectangle(nil), q.TypesetFocus...)
+		outlineFocus(picture, view, q.TypesetFocus, q.Theme.Palette)
+	}
 	if len(out.Animated) > 0 {
 		// The page is drawn once, without its animated images: the composite
 		// puts their current frames in. Drawing them here too would be a second
@@ -250,6 +257,9 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		out.Image = out.Playback.Image()
 	}
 	out.Links = lay.Links(view)
+	if q.TypesetView != nil && l.typesetKind == "markdown" {
+		out.TypesetItems = l.typesetItems(lay)
+	}
 	out.Info = append(append([]Field(nil), l.file...), l.typesetInfo...)
 	out.Info = append(out.Info, fontFields(l.typesetEngine)...)
 	return

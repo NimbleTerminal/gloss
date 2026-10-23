@@ -38,7 +38,7 @@ func TestMarkdownMermaidBecomesImage(t *testing.T) {
 }
 
 func TestTypesetMermaidFallsBackToSource(t *testing.T) {
-	_, root, images, _, err := prepareTypeset(Request{Path: "diagram.md", BaseDir: t.TempDir()}, []byte(mermaidMarkdown), nil)
+	_, root, images, _, _, err := prepareTypeset(Request{Path: "diagram.md", BaseDir: t.TempDir()}, []byte(mermaidMarkdown), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

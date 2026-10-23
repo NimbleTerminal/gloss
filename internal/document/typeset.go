@@ -32,25 +32,27 @@ type typesetAsset struct {
 	gif       bool
 	ready     bool        // Drawn during preflight, as a Mermaid diagram is.
 	layout    ImageLayout // A drawn diagram's reading size.
+	path      string      // The file it was read from, when it is one of the host's.
 }
 
 // prepareTypeset finishes validation before constructing a layout. In particular,
 // budgets count references (including duplicates) and decoded, not resized pixels.
-// It returns the decoded images and the animation players by destination; an
-// unavailable or non-local image is in neither, and gets a placeholder.
-func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, map[string]image.Image, map[string]*animation.Player, error) {
+// It returns the decoded images, the animation players and the files read by
+// destination; an unavailable or non-local image is in none, and gets a
+// placeholder. Files are only those of the host, as MarkdownImage.Path.
+func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, map[string]image.Image, map[string]*animation.Player, map[string]string, error) {
 	if len(data) > MaxMarkdownBytes {
-		return nil, nil, nil, nil, fmt.Errorf("Markdown exceeds 2 MiB")
+		return nil, nil, nil, nil, nil, fmt.Errorf("Markdown exceeds 2 MiB")
 	}
 	if !utf8.Valid(data) {
-		return nil, nil, nil, nil, fmt.Errorf("Markdown must be UTF-8")
+		return nil, nil, nil, nil, nil, fmt.Errorf("Markdown must be UTF-8")
 	}
 	if err := checkMarkdownNesting(string(data)); err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	root, err := readMarkdownTree(data)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	base := q.BaseDir
 	if base == "" {
@@ -58,7 +60,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 		if q.Stdin {
 			base, err = os.Getwd()
 			if err != nil {
-				return nil, nil, nil, nil, err
+				return nil, nil, nil, nil, nil, err
 			}
 		}
 	}
@@ -138,6 +140,9 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 			return ast.WalkContinue, nil
 		}
 		a := &typesetAsset{data: b, svg: kind == "svg", gif: kind == "gif"}
+		if files == nil {
+			a.path, _ = filepath.Abs(name)
+		}
 		count := 1600 * 1600 // SVG rasterization is bounded by this box.
 		if !a.svg {
 			cfg, _, e := image.DecodeConfig(bytes.NewReader(b))
@@ -157,7 +162,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 		return ast.WalkContinue, nil
 	})
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	for _, im := range undrawn {
 		restoreMermaidSource(im)
@@ -167,7 +172,7 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 		a := assets[dest]
 		if q.Context != nil {
 			if err := q.Context.Err(); err != nil {
-				return nil, nil, nil, nil, err
+				return nil, nil, nil, nil, nil, err
 			}
 		}
 		if a == nil || a.ready {
@@ -187,14 +192,17 @@ func prepareTypeset(q Request, data []byte, files fs.FS) (*Markdown, ast.Node, m
 	}
 	md := &Markdown{Source: []byte(cleanMarkdownSource(data)), Diagrams: diagrams}
 	animations.apply(md)
-	images, players := map[string]image.Image{}, map[string]*animation.Player{}
+	images, players, paths := map[string]image.Image{}, map[string]*animation.Player{}, map[string]string{}
 	for name, a := range assets {
 		if a != nil {
 			images[name] = a.image
 			if a.animation != nil {
 				players[name] = a.animation
 			}
+			if a.path != "" {
+				paths[name] = a.path
+			}
 		}
 	}
-	return md, root, images, players, nil
+	return md, root, images, players, paths, nil
 }

@@ -2,12 +2,15 @@ package app
 
 import (
 	"image"
+	"image/draw"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/nttypeset"
 )
 
 type itemKind int
@@ -321,10 +324,16 @@ func (v *markdownView) itemAt(x, y int) (pageItem, bool) {
 }
 
 // tabItems reports whether Tab moves between the page's items rather than
-// files: rendered Markdown in the text view, on the document screen.
+// files: rendered Markdown, in the text view or typeset, on the document
+// screen. Typeset text, source and JSON keep Tab for files.
 func (m *Model) tabItems() bool {
-	v := m.markdown
-	return v != nil && !v.raw && !v.fenced && m.screen == screenDocument && !m.isPreview
+	if m.screen != screenDocument || m.isPreview {
+		return false
+	}
+	if v := m.markdown; v != nil {
+		return !v.raw && !v.fenced
+	}
+	return m.typeset != nil && m.kind == "markdown"
 }
 
 // moveFocus moves the highlight step items on, wrapping, and scrolls the
@@ -333,6 +342,9 @@ func (m *Model) tabItems() bool {
 func (m *Model) moveFocus(step int) tea.Cmd {
 	v := m.markdown
 	if v == nil {
+		if m.typeset != nil {
+			return m.moveTypesetFocus(step)
+		}
 		return nil
 	}
 	items := v.items()
@@ -380,6 +392,9 @@ func (m *Model) moveFocus(step int) tea.Cmd {
 // the focused one from the keyboard, focusing the first when none is.
 func (m *Model) markdownItemActions(at image.Point, pointer bool) tea.Cmd {
 	v := m.markdown
+	if v == nil {
+		return m.typesetItemActions(at, pointer)
+	}
 	if pointer {
 		it, ok := v.itemAt(at.X, at.Y)
 		if !ok {
@@ -395,15 +410,218 @@ func (m *Model) markdownItemActions(at image.Point, pointer bool) tea.Cmd {
 		}
 		at = image.Pt(max(0, v.focus.cols[0]-v.left), v.focus.rows[0]-v.offset)
 	}
-	it := *v.focus
-	title := "Table"
+	return m.openActions(itemTitle(*v.focus), m.itemEntries(*v.focus), at)
+}
+
+// itemTitle heads an item's menu.
+func itemTitle(it pageItem) string {
 	switch it.kind {
 	case itemPicture:
-		title = it.picture.name
+		return it.picture.name
 	case itemLink:
-		title = it.url
+		return it.url
 	}
-	return m.openActions(title, m.itemEntries(it), at)
+	return "Table"
+}
+
+// rectsEqual says two lists of rectangles are the same, as a focus.
+func rectsEqual(a, b []image.Rectangle) bool {
+	return slices.Equal(a, b)
+}
+
+func (m *Model) clearTypesetFocus() {
+	m.typesetFocus, m.typesetFocusIndex, m.typesetTabPending = nil, 0, 0
+}
+
+// typesetFocused is the index of the focused item on the typeset page; -1
+// for none.
+func (m *Model) typesetFocused() int {
+	if m.typesetFocus == nil {
+		return -1
+	}
+	for i, it := range m.typesetItems {
+		if rectsEqual(it.Rects, m.typesetFocus) {
+			return i
+		}
+	}
+	return -1
+}
+
+// moveTypesetFocus is moveFocus on the typeset page. Its items are those
+// laid so far: when the next one is further down than that, the page goes a
+// screen down and the step is taken again on the view that comes back.
+func (m *Model) moveTypesetFocus(step int) tea.Cmd {
+	shown := m.typesetShown
+	if shown == nil {
+		return nil
+	}
+	items := m.typesetItems
+	top, bottom := shown.Top, shown.Top+shown.Height
+	at := m.typesetFocused()
+	switch {
+	case at >= 0:
+		at += step
+	case step > 0:
+		at = len(items)
+		for i, it := range items {
+			if it.Rects[len(it.Rects)-1].Max.Y > top {
+				at = i
+				break
+			}
+		}
+	default:
+		at = len(items) - 1
+		for i := len(items) - 1; i >= 0; i-- {
+			if items[i].Rects[0].Min.Y < bottom {
+				at = i
+				break
+			}
+		}
+	}
+	if (len(items) == 0 || at >= len(items)) && !m.typesetDone {
+		m.typesetTabPending = step
+		m.typesetGoTop = -1
+		m.typesetTop += max(1, m.typesetViewport().Height>>m.zoom)
+		return m.queueTypesetReflow()
+	}
+	if len(items) == 0 {
+		m.clearTypesetFocus()
+		m.note = noItemsNote
+		return m.queueTypesetReflow()
+	}
+	at = (at%len(items) + len(items)) % len(items)
+	m.typesetFocus, m.typesetFocusIndex = items[at].Rects, at
+	if r := items[at].Rects[0]; r.Min.Y < top || r.Max.Y > bottom {
+		m.typesetGoTop = max(0, r.Min.Y-20)
+	}
+	return m.queueTypesetReflow()
+}
+
+// followTypesetFocus takes a Tab that waited for more of the page, and keeps
+// the focus on its item when the page is laid out anew, as at another width.
+func (m *Model) followTypesetFocus() tea.Cmd {
+	if step := m.typesetTabPending; step != 0 {
+		m.typesetTabPending = 0
+		return m.moveFocus(step)
+	}
+	if m.typesetFocus == nil {
+		return nil
+	}
+	i := m.typesetFocusIndex
+	switch {
+	case i < len(m.typesetItems) && rectsEqual(m.typesetItems[i].Rects, m.typesetFocus):
+		return nil
+	case i < len(m.typesetItems):
+		m.typesetFocus = m.typesetItems[i].Rects
+	default:
+		m.clearTypesetFocus()
+	}
+	return m.queueTypesetReflow()
+}
+
+// typesetRaster maps page rectangles into the shown page picture's pixels.
+func (m *Model) typesetRaster(r image.Rectangle) image.Rectangle {
+	shown, b := m.typesetShown, m.source.Bounds()
+	view := nttypeset.View{Top: shown.Top, Left: shown.Left, Scale: float64(b.Dx()) / float64(shown.Width)}
+	return view.Project(r).Add(b.Min)
+}
+
+// typesetItemIndex is the index of the item under body cell x, y of the
+// typeset page, -1 for none; a link in a table goes before the table.
+func (m *Model) typesetItemIndex(x, y int) int {
+	if m.typeset == nil || m.source == nil || m.typesetShown == nil || m.typesetShown.Width <= 0 || !m.typesetViewMatches() {
+		return -1
+	}
+	at, ok := m.typesetPixel(x, y, false)
+	if !ok {
+		return -1
+	}
+	table := -1
+	for i, it := range m.typesetItems {
+		for _, r := range it.Rects {
+			if !at.In(m.typesetRaster(r)) {
+				continue
+			}
+			if it.Kind != document.TypesetTable {
+				return i
+			}
+			table = i
+		}
+	}
+	return table
+}
+
+// typesetItemAt is the item under body cell x, y of the typeset page.
+func (m *Model) typesetItemAt(x, y int) (pageItem, bool) {
+	if i := m.typesetItemIndex(x, y); i >= 0 {
+		return m.typesetPageItem(m.typesetItems[i]), true
+	}
+	return pageItem{}, false
+}
+
+// typesetPageItem is a typeset item as the menus take it.
+func (m *Model) typesetPageItem(it document.TypesetItem) pageItem {
+	switch it.Kind {
+	case document.TypesetPicture:
+		name := "picture"
+		if it.Path != "" {
+			name = filepath.Base(it.Path)
+		}
+		p := pictureItem{name: name, path: it.Path, link: it.URL, shown: func() image.Image { return m.typesetPictureShown(it) }}
+		return pageItem{kind: itemPicture, picture: p, rects: it.Rects}
+	case document.TypesetLinkItem:
+		return pageItem{kind: itemLink, url: it.URL, rects: it.Rects}
+	}
+	return pageItem{kind: itemTable, cells: it.Cells, rects: it.Rects}
+}
+
+// typesetPictureShown is a picture on the typeset page as it is on screen,
+// cut from the page picture, playing frame and all; its still when it is
+// not all on screen.
+func (m *Model) typesetPictureShown(it document.TypesetItem) image.Image {
+	frame := m.typesetExportFrame()
+	if frame == nil || m.source == nil || m.typesetShown == nil || m.typesetShown.Width <= 0 || frame.Bounds() != m.source.Bounds() {
+		return it.Image
+	}
+	r := m.typesetRaster(it.Rects[0])
+	if r.Empty() || !r.In(frame.Bounds()) {
+		return it.Image
+	}
+	out := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
+	draw.Draw(out, out.Bounds(), frame, r.Min, draw.Src)
+	return out
+}
+
+// typesetItemActions is markdownItemActions on the typeset page. The item
+// the menu is for takes the focus.
+func (m *Model) typesetItemActions(at image.Point, pointer bool) tea.Cmd {
+	var i int
+	if pointer {
+		if i = m.typesetItemIndex(at.X, at.Y); i < 0 {
+			return nil
+		}
+	} else {
+		if m.source == nil || m.typesetShown == nil || m.typesetShown.Width <= 0 {
+			return nil
+		}
+		if i = m.typesetFocused(); i < 0 {
+			// The first item on screen, if there is one: a menu from the
+			// keyboard does not scroll.
+			for k, item := range m.typesetItems {
+				if m.typesetRaster(item.Rects[0]).Overlaps(m.source.Bounds()) {
+					i = k
+					break
+				}
+			}
+		}
+		if i < 0 {
+			return nil
+		}
+		at = m.typesetCellAt(m.typesetRaster(m.typesetItems[i].Rects[0]).Min)
+	}
+	it := m.typesetPageItem(m.typesetItems[i])
+	m.typesetFocus, m.typesetFocusIndex = it.rects, i
+	return tea.Batch(m.queueTypesetReflow(), m.openActions(itemTitle(it), m.itemEntries(it), at))
 }
 
 // itemEntries lists what can be done with an item in this host.
