@@ -279,7 +279,9 @@ func (m *Model) openItemActions(at image.Point, pointer bool) tea.Cmd {
 			return nil
 		}
 		if !pointer {
-			at = image.Pt(0, 0)
+			// The picture fills the view: the menu opens in its middle.
+			area := m.pictureArea()
+			at = image.Pt(area.Min.X+area.Dx()/2, area.Min.Y+area.Dy()/2)
 		}
 		return m.openActions(p.name, m.pictureEntries(p), at)
 	}

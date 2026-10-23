@@ -195,6 +195,7 @@ type Result struct {
 	TypesetSelection *TypesetSelection // The same with both ends placed in the text; nil when a place is not in it.
 	TypesetSelected  string            // Its text.
 	TypesetItems     []TypesetItem     // Every item laid so far, in reading order; Markdown only.
+	TypesetItemsAll  bool              // TypesetItems are all the document has, though the page may go on.
 	TypesetFocus     []image.Rectangle // The focus outlined, as the request asked.
 	Animated         []TypesetRegion
 	AnimationBase    image.Image
@@ -266,6 +267,7 @@ type Loader struct {
 	typesetImages     map[string]image.Image
 	typesetAnimations map[string]*animation.Player
 	typesetPaths      map[string]string // The files they were read from, as MarkdownImage.Path.
+	typesetAlts       map[string]string // Their alt text, the first given for each.
 }
 
 // book is a file of several sheets: a workbook's, or the tables of a Grist
@@ -288,7 +290,7 @@ func (l *Loader) closePDF() error {
 	l.typeset, l.typesetBase = nil, ""
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
 	l.direct, l.directOptions, l.typesetDocument, l.typesetEngine = nil, nttypeset.LayoutOptions{}, nil, nil
-	l.typesetImages, l.typesetAnimations, l.typesetPaths = nil, nil, nil
+	l.typesetImages, l.typesetAnimations, l.typesetPaths, l.typesetAlts = nil, nil, nil, nil
 	l.pdfReader.close()
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
 	if l.pdf == nil {
@@ -402,6 +404,7 @@ func (l *Loader) Load(q Request) (out Result) {
 				return out
 			}
 			l.typesetImages, l.typesetAnimations, l.typesetPaths = images, players, paths
+			l.typesetAlts = pictureAlts(root, data)
 			return l.startTypeset(q, data, file, kind, source, "", markdownFields(source), eng, doc)
 		}
 		out.Markdown, out.Err = loadMarkdownContext(q.Context, q.Path, data, q.BaseDir, l.Files, q.Animate && !q.Preview, q.Theme.Dark)

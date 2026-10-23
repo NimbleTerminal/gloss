@@ -156,7 +156,7 @@ type textState struct {
 	typesetGoLink           string                 // A document-local footnote target awaiting layout.
 	typesetGoTop            int                    // A page top to reveal the focused item at, until it answers; -1 for none.
 	typesetItems            []document.TypesetItem // The typeset Markdown page's pictures, links and tables laid so far.
-	typesetDone             bool                   // The whole page is laid, so typesetItems are all there are.
+	typesetDone             bool                   // typesetItems are all there are: the page is laid, or as far as its last item.
 	typesetFocus            []image.Rectangle      // The item Tab is on, as page rectangles; nil for none.
 	typesetFocusIndex       int                    // Its place in typesetItems, to find it again after a reflow.
 	typesetFocusShown       []image.Rectangle      // The focus the shown picture outlines.

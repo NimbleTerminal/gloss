@@ -497,7 +497,9 @@ func (m *Model) moveTypesetFocus(step int) tea.Cmd {
 			}
 		}
 	}
-	if (len(items) == 0 || at >= len(items)) && !m.typesetDone {
+	// A step past the items laid so far, either way, waits for the layout
+	// to reach the next item, or the last.
+	if (len(items) == 0 || at >= len(items) || at < 0) && !m.typesetDone {
 		m.typesetTabPending, m.typesetAhead = step, true
 		return m.queueTypesetReflow()
 	}
@@ -584,9 +586,13 @@ func (m *Model) typesetItemAt(x, y int) (pageItem, bool) {
 func (m *Model) typesetPageItem(it document.TypesetItem) pageItem {
 	switch it.Kind {
 	case document.TypesetPicture:
-		name := "picture"
-		if it.Path != "" {
+		// Named as in the text view: its file, else its alt text.
+		name := it.Alt
+		switch {
+		case it.Path != "":
 			name = filepath.Base(it.Path)
+		case name == "":
+			name = "picture"
 		}
 		p := pictureItem{name: name, path: it.Path, link: it.URL, shown: func() image.Image { return m.typesetPictureShown(it) }}
 		return pageItem{kind: itemPicture, picture: p, rects: it.Rects}

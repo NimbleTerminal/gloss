@@ -42,6 +42,9 @@ type TypesetViewport struct {
 	// picture, a link or a table in it, or to the end, without moving the
 	// view: the next item is then among the result's TypesetItems.
 	Ahead bool
+	// Last asks the layout to go on to the last block with an item in it,
+	// for a step back from the first item round to the last.
+	Last bool
 	// Line asks for a file line at the top, where the first line sits at the
 	// top of the page, for a document whose blocks are its lines; a result
 	// says which line is at the top. Lines is how many the document has, on
@@ -140,6 +143,11 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		}
 		if v.Ahead {
 			if err := lay.EnsureBlock(ctx, nextItemBlock(doc.Blocks, lay.Laid())); err != nil {
+				return fail(err)
+			}
+		}
+		if last := lastItemBlock(doc.Blocks); v.Last && last >= 0 {
+			if err := lay.EnsureBlock(ctx, last); err != nil {
 				return fail(err)
 			}
 		}
@@ -268,6 +276,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	out.Links = lay.Links(view)
 	if q.TypesetView != nil && l.typesetKind == "markdown" {
 		out.TypesetItems = l.typesetItems(lay)
+		out.TypesetItemsAll = lay.Laid() > lastItemBlock(doc.Blocks)
 	}
 	out.Info = append(append([]Field(nil), l.file...), l.typesetInfo...)
 	out.Info = append(out.Info, fontFields(l.typesetEngine)...)

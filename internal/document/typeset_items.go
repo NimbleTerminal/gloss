@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/yuin/goldmark/ast"
 	"nimbleterminal.dev/nttypeset"
 )
 
@@ -27,6 +28,7 @@ type TypesetItem struct {
 	URL         string            // A link, or the link around a picture.
 	Destination string            // A picture's key.
 	Path        string            // A picture's own file, as MarkdownImage.Path.
+	Alt         string            // A picture's alt text.
 	Image       image.Image       // A picture's still.
 	Animated    bool              // A picture that plays: what is on screen is its frame.
 	Cells       [][]string        // A table's plain text, header first.
@@ -38,7 +40,7 @@ func (l *Loader) typesetItems(lay *nttypeset.Layout) []TypesetItem {
 	page := nttypeset.View{Top: 0, Height: lay.Extent(), Width: lay.Width(), Scale: 1}
 	var items []TypesetItem
 	for _, im := range lay.Images(page) {
-		items = append(items, TypesetItem{Kind: TypesetPicture, Rects: []image.Rectangle{im.Rect}, Destination: im.Key, Path: l.typesetPaths[im.Key], Image: l.typesetImages[im.Key], Animated: l.typesetAnimations[im.Key] != nil})
+		items = append(items, TypesetItem{Kind: TypesetPicture, Rects: []image.Rectangle{im.Rect}, Destination: im.Key, Path: l.typesetPaths[im.Key], Alt: l.typesetAlts[im.Key], Image: l.typesetImages[im.Key], Animated: l.typesetAnimations[im.Key] != nil})
 	}
 	pictures := len(items)
 	last := -1 // The link item the previous link rect went to.
@@ -107,20 +109,53 @@ links:
 // a picture, a table, or a link that is not a footnote's; the last block
 // when none does.
 func nextItemBlock(blocks []nttypeset.Block, from int) int {
-	linked := func(spans []nttypeset.Span) bool {
-		for _, s := range spans {
-			if _, note := FootnotePeer(s.Href); s.Href != "" && !note {
-				return true
-			}
-		}
-		return false
-	}
 	for i := from; i < len(blocks); i++ {
-		if b := blocks[i]; b.Kind == nttypeset.KindImage || b.Kind == nttypeset.KindTable || linked(b.Spans) {
+		if holdsItem(blocks[i]) {
 			return i
 		}
 	}
 	return len(blocks) - 1
+}
+
+// holdsItem reports whether a block has an item in it: it is a picture or a
+// table, or it links somewhere other than a footnote.
+func holdsItem(b nttypeset.Block) bool {
+	if b.Kind == nttypeset.KindImage || b.Kind == nttypeset.KindTable {
+		return true
+	}
+	for _, s := range b.Spans {
+		if _, note := FootnotePeer(s.Href); s.Href != "" && !note {
+			return true
+		}
+	}
+	return false
+}
+
+// pictureAlts is the alt text of each picture a Markdown tree shows, by
+// destination: the first that has any.
+func pictureAlts(root ast.Node, source []byte) map[string]string {
+	alts := map[string]string{}
+	_ = ast.Walk(root, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if im, ok := n.(*ast.Image); ok && entering {
+			if dest := string(im.Destination); alts[dest] == "" {
+				alts[dest] = inlineText(im, source)
+			}
+			return ast.WalkSkipChildren, nil
+		}
+		return ast.WalkContinue, nil
+	})
+	return alts
+}
+
+// lastItemBlock is the last block that holds an item, as nextItemBlock
+// finds them; -1 when none does.
+func lastItemBlock(blocks []nttypeset.Block) int {
+	for i := len(blocks) - 1; i >= 0; i-- {
+		if holdsItem(blocks[i]) {
+			return i
+		}
+	}
+	return -1
 }
 
 // outlineFocus draws the focus rectangles, given in page pixels, onto the

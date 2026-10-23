@@ -77,7 +77,8 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	width := float64(m.typesetMeasure()) * 150 / 72
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
 	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}
-	v.Link, v.Ahead = m.typesetGoLink, m.typesetAhead
+	// A Tab lays on to the next item; a Shift-Tab, round to the last.
+	v.Link, v.Ahead, v.Last = m.typesetGoLink, m.typesetAhead && m.typesetTabPending > 0, m.typesetAhead && m.typesetTabPending < 0
 	if m.typesetGoTop >= 0 {
 		v.Top = m.typesetGoTop
 	}
@@ -103,7 +104,7 @@ func (m *Model) typesetViewMatches() bool {
 // theme, is the one the viewer's state asks for now.
 func (m *Model) viewportAsked(shown *document.TypesetViewport, width int, theme string) bool {
 	v := m.typesetViewport()
-	return shown != nil && theme == m.theme && !v.End && !v.Ahead && v.Line == 0 && v.Link == "" && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+	return shown != nil && theme == m.theme && !v.End && !v.Ahead && !v.Last && v.Line == 0 && v.Link == "" && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
 }
 
 // queueTypesetReflow asks for the page as the viewer's state now wants it,
@@ -215,7 +216,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 		m.typesetTop, m.typesetLeft = v.TypesetView.Top, v.TypesetView.Left
 		m.typesetEnd, m.typesetGoLine = false, 0
 		m.typesetGoLink, m.typesetGoTop, m.typesetAhead = "", -1, false
-		m.typesetDone = v.TypesetDone
+		m.typesetDone = v.TypesetDone || v.TypesetItemsAll
 		overlays = tea.Batch(overlays, m.followTypesetFocus())
 	}
 	return overlays

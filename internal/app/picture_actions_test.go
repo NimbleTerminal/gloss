@@ -376,3 +376,15 @@ func TestActionsHintOnlyWithEntries(t *testing.T) {
 		t.Fatalf("hints offer an empty menu: %s", m.hints())
 	}
 }
+
+// From the keyboard, the menu of a picture filling the view opens in its
+// middle, not in a corner.
+func TestPictureMenuFromKeysOpensMidPicture(t *testing.T) {
+	m := loaded(t, "photos/landscape.png")
+	pictureHosts(m, t.TempDir())
+	send(m, press("a"))
+	area := m.pictureArea()
+	if want := image.Pt(area.Min.X+area.Dx()/2, area.Min.Y+area.Dy()/2); m.layer != layerActions || m.actions.at != want {
+		t.Fatalf("layer %v, at %v, want %v", m.layer, m.actions, want)
+	}
+}

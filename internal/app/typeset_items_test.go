@@ -214,3 +214,37 @@ func TestTypesetNothingToActOn(t *testing.T) {
 		t.Fatalf("layer %v, note %q", m.layer, m.note)
 	}
 }
+
+// Shift-Tab from the first item goes round to the document's last, though
+// the page is not laid that far yet, and without drawing every screen.
+func TestTypesetShiftTabWrapsToTheLast(t *testing.T) {
+	filler := strings.Repeat("A paragraph of words to fill the page.\n\n", 1500)
+	source := "[first](https://a.org/)\n\n" + filler + "[last](https://e.org/)\n\n" + filler
+	m := typesetItemsModel(t, source, 8, 4, Options{})
+	pressDrain(t, m, tab)
+	if focused(m) != 0 || m.typesetItems[0].URL != "https://a.org/" {
+		t.Fatalf("Tab: focus %d", focused(m))
+	}
+	before := m.generation
+	pressDrain(t, m, tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
+	at := focused(m)
+	if at < 0 || m.typesetItems[at].URL != "https://e.org/" {
+		t.Fatalf("Shift-Tab: focus %d of %+v", at, m.typesetItems)
+	}
+	if renders := m.generation - before; renders > 3 {
+		t.Fatalf("%d pages drawn to reach the last link", renders)
+	}
+}
+
+// A typeset picture without a file of its own is named by its alt text.
+func TestTypesetPictureNamedByAlt(t *testing.T) {
+	m := typesetItemsModel(t, "![a red square](x.png)\n", 8, 4, Options{CopyImage: func([]byte) error { return nil }})
+	if len(m.typesetItems) == 0 || m.typesetItems[0].Alt != "a red square" {
+		t.Fatalf("items %+v", m.typesetItems)
+	}
+	pressDrain(t, m, tab)
+	pressDrain(t, m, press("a"))
+	if m.layer != layerActions || m.actions.title != "a red square" {
+		t.Fatalf("layer %v, menu %+v", m.layer, m.actions)
+	}
+}
