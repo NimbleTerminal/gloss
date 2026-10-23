@@ -2,47 +2,50 @@
 
 ## Unreleased
 
-- The Open with and Edit with choices open in a box over the screen, which stays
-  in view, rather than in place of it.
-- Right-click a web address written out in text, source, JSON or Markdown, text or typeset, to open it or copy it, as a link.
-- On a typeset page, two links to one address are two stops for Tab, and a table's outline is where it is drawn.
-- With `--fetch`, a link's or an address cell's menu also opens it in gloss or
-  saves the linked file in the current folder, never over another file.
-- Right-click a picture, video, link, Markdown table or spreadsheet cell (or `a`,
-  or Shift-F10) for a menu: open or edit a picture with another app, copy an
-  image to the clipboard, copy a path, address, value, row or table, open a table
-  as a sheet in gloss or another app, show a cell's address as a QR code.
-- In rendered Markdown, Tab and Shift-Tab move between pictures, links and
-  tables, highlighted, instead of switching files; `]` and `[` switch files
-  everywhere, and Tab does elsewhere.
-- Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV, through ntvideo and mpv's library
-  (`brew install mpv`). They open paused on the first frame; Space plays,
-  ←/→ seek, and the bottom row is a scrub bar. With FFmpeg installed, `i` and
-  `--info` describe them, and previews, thumbnails, `--output` and `--print`
-  use a frame. `--type video` and `--accept video/*` name them. In the browser
-  demo and app, videos play in the browser's own player, with the same keys;
-  the demo has a sample.
+## `v0.5.0` (2026-10-23)
 
-- Click a file in the file menu to select it, and again to open it; the wheel
-  moves the selection. This works in the browser demo too.
+- Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV,
+  through ntvideo and mpv's library (`brew install mpv`). They open paused on
+  the first frame; Space plays, ←/→ seek, and the bottom row is a scrub bar.
+  With FFmpeg installed, `i` and `--info` describe them, and previews,
+  thumbnails, `--output` and `--print` use a frame. `--type video` and
+  `--accept video/*` name them. In the browser demo and app, videos play in the
+  browser's own player, with the same keys; the demo has a sample.
 - Show a video's subtitles: files beside it named after it (`clip.srt`,
   `clip.en.srt`, `.vtt`, `.ass`) and its own tracks; `c` changes track or
-  turns them off. `i` names the files. ntvideo v0.2.0.
+  turns them off, and `i` names the files. Drawn with glyphs, they are terminal
+  text over the picture; `g` switches a video between glyphs and Kitty graphics.
 - Export frames of a video at chosen times: `--at 1:23,2:05`, or `--frames 9`
   spread through it, as one sheet with each frame's time, or a file each with
   `--output-dir`. With `--json` each frame carries its time and the subtitle
-  shown then. `--at` alone starts the viewer there.
-- `--text` on a video prints its subtitles with their times, from a file
-  beside it or its own text subtitles; `--info` lists its subtitle streams.
-- Subtitles drawn with glyphs are terminal text over the picture, readable
-  where mpv's would not be; `g` switches a video between glyphs and Kitty
-  graphics. ntvideo v0.3.0.
-- Click a cell in a spreadsheet (CSV, Excel, Grist) to select it; a second click
-  on a cell with an address opens it, as Enter does with `--fetch`.
+  shown then. `--at` alone starts the viewer there. `--text` prints a video's
+  subtitles with their times; `--info` lists its subtitle streams.
+- Right-click a picture, video, link, Markdown table or spreadsheet cell, or
+  press `a` or Shift-F10, for a menu of what to do with it:
+  - pictures and videos: open or edit with another app, copy the image to the
+    clipboard, copy the path, and save a video's frame;
+  - links, and web addresses written out in any text, typeset too: open or
+    copy the address;
+  - Markdown tables: open as a sheet in gloss or in another app, or copy as
+    TSV or Markdown;
+  - spreadsheet cells: copy the value or row, open the address, show its QR.
+
+  With `--fetch`, a link's or an address cell's menu also opens it in gloss or
+  saves the linked file in the current folder, never over another file.
+- In rendered Markdown, text or typeset, Tab and Shift-Tab move between
+  pictures, links and tables, highlighted, instead of switching files. `]` and
+  `[` switch files everywhere, and Tab still does elsewhere.
+- The Open with and Edit with choices open in a box over the screen, which
+  stays in view, rather than in place of it.
+- Click a file in the file menu to select it, and again to open it; the wheel
+  moves the selection. Click a spreadsheet cell to select it; a second click on
+  one with an address opens it, as Enter does with `--fetch`. Both work in the
+  browser demo too.
 - The status bar of a text screen says how to select text: Shift-drag, or
   ⌥-drag in iTerm2, since gloss takes plain drags for the wheel and clicks.
-- Selecting text on a typeset page drawn with glyphs starts and ends under
-  the pointer, as hovering a link does; the page fills the screen.
+- Fixes: selecting text on a typeset page drawn with glyphs starts and ends
+  under the pointer, as hovering a link does, and the page fills the screen.
+- Internals: video comes from ntvideo v0.3.0; nttypeset v0.1.2.
 
 ## `v0.4.0` (2026-10-21)
 
