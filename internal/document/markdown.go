@@ -33,6 +33,14 @@ type Markdown struct {
 	Diagrams int
 }
 
+// pack marks the pictures as inside the file: none is a file of its own.
+func (md *Markdown) pack() {
+	md.Packaged = true
+	for i := range md.Images {
+		md.Images[i].Path = ""
+	}
+}
+
 // Picture is one picture of packaged Markdown, as a file beside its text
 // would hold it.
 type Picture struct {
@@ -78,9 +86,12 @@ func (md *Markdown) Relink(to map[string]string) []byte {
 type MarkdownImage struct {
 	Layout           ImageLayout
 	Destination, Alt string
-	Image            image.Image
-	Animation        *animation.Player
-	Err              error
+	// The file it was read from, when it is one beside the document; empty
+	// for packaged, embedded or drawn pictures.
+	Path      string
+	Image     image.Image
+	Animation *animation.Player
+	Err       error
 }
 
 // MarkdownTree uses the same dialect for asset discovery and Glamour layout.
@@ -165,6 +176,9 @@ func loadMarkdownContext(ctx context.Context, path string, data []byte, baseDir 
 			asset.Destination = dest
 			resolved, err := localMarkdownPathFrom(baseDir, dest, files)
 			asset.Err = err
+			if err == nil && files == nil {
+				asset.Path, _ = filepath.Abs(resolved)
+			}
 			if err == nil && pixels >= maxMarkdownImagePixels {
 				asset.Err = fmt.Errorf("document image budget reached")
 			}

@@ -61,3 +61,35 @@ func TestMarkdownLimitsAndControls(t *testing.T) {
 		t.Fatalf("extension detection: %s, %v", kind, err)
 	}
 }
+
+// A picture beside the document keeps the file it was read from; a drawn
+// diagram and a notebook's own picture have none.
+func TestMarkdownImagePath(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "x.png"), pngBytes(t), 0600); err != nil {
+		t.Fatal(err)
+	}
+	doc := filepath.Join(dir, "doc.md")
+	md, err := loadMarkdown(doc, []byte("![a](x.png)\n\n```mermaid\nflowchart LR\n  A --> B\n```\n"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(md.Images) != 2 || md.Images[0].Err != nil || md.Images[1].Err != nil {
+		t.Fatalf("images: %+v", md.Images)
+	}
+	if want := filepath.Join(dir, "x.png"); md.Images[0].Path != want {
+		t.Fatalf("path %q, want %q", md.Images[0].Path, want)
+	}
+	if md.Images[1].Path != "" {
+		t.Fatalf("diagram path %q", md.Images[1].Path)
+	}
+	l := &Loader{}
+	defer l.Close()
+	r := l.Load(Request{Path: write(t, "nb.ipynb", notebook(t)), Page: 1, DPI: 72, Generation: 1})
+	if r.Err != nil || r.Markdown == nil || len(r.Markdown.Images) != 1 || r.Markdown.Images[0].Image == nil {
+		t.Fatalf("notebook: err=%v %+v", r.Err, r.Markdown)
+	}
+	if p := r.Markdown.Images[0].Path; p != "" {
+		t.Fatalf("notebook picture path %q", p)
+	}
+}

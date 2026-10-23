@@ -467,7 +467,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		// The outputs' pictures are kept beside the Markdown, in memory.
 		out.Markdown, out.Err = loadMarkdownContext(context.Background(), "notebook.md", nb.Markdown, ".", nb.Files, false, q.Theme.Dark)
 		if out.Markdown != nil {
-			out.Markdown.Packaged = true
+			out.Markdown.pack()
 		}
 		details = nb.fields
 	case "text":
@@ -500,7 +500,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		// Pictures are in the package, beside the document.
 		out.Markdown, out.Err = loadMarkdownContext(context.Background(), "word/document.md", doc.Markdown, "word", doc.pkg.archive, false, q.Theme.Dark)
 		if out.Markdown != nil {
-			out.Markdown.Packaged = true
+			out.Markdown.pack()
 		}
 		details = doc.fields
 	case "xlsx":

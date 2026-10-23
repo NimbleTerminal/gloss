@@ -72,6 +72,9 @@ func (m *Model) pictureEntries(p pictureItem) []menuEntry {
 	}
 	// A picture inside a link also gets the link's entries (the linked
 	// figures of Markdown); a whole-view picture has none.
+	if p.link != "" {
+		entries = append(entries, linkEntries(m, p.link, "Open link")...)
+	}
 	return entries
 }
 
@@ -240,7 +243,7 @@ func (m *Model) itemsHere() bool {
 		return false
 	}
 	_, ok := m.viewPicture()
-	return ok
+	return ok || m.tabItems()
 }
 
 // openItemActions opens the menu of what is at the pointer, or, from the
@@ -257,6 +260,9 @@ func (m *Model) openItemActions(at image.Point, pointer bool) tea.Cmd {
 			at = image.Pt(0, 0)
 		}
 		return m.openActions(p.name, m.pictureEntries(p), at)
+	}
+	if m.tabItems() {
+		return m.markdownItemActions(at, pointer)
 	}
 	return nil
 }

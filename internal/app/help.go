@@ -22,7 +22,7 @@ var helpLeft = []helpSection{
 	{"Everywhere", []helpRow{
 		{"q  Q", "quit · quit, keep the view"},
 		{"?  Esc", "help · back to the files"},
-		{"]  [  Tab", "next / previous file"},
+		{"]  [", "next / previous file"},
 		{"m  o", "file menu · browse folders"},
 		{"w  W  E", "open · choose app · edit"},
 		{"", "Tab in the app chooser: open / edit"},
@@ -32,8 +32,8 @@ var helpLeft = []helpSection{
 		{"", "Drop files or paste paths to open"},
 	}},
 	{"Text", []helpRow{
-		{"t  s", "typeset / text · source"},
-		{"f", "typeset font pairs"},
+		{"t  s  f", "typeset / text · source · fonts"},
+		{"Tab", "next picture, link or table"},
 		{"#  :  S", "line numbers · go to · chop"},
 		{"drag + y", "select + copy typeset text"},
 		{"Shift-drag", "select in text views"},

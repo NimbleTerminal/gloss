@@ -24,6 +24,7 @@ type markdownLine struct {
 	inset int
 	row   int
 	line  int // The file line the row shows, when the view knows it; 0 otherwise.
+	table int // The table the row belongs to, counted from 1; 0 for none.
 }
 
 type markdownView struct {
@@ -39,12 +40,13 @@ type markdownView struct {
 	cw, ch                            int
 	raw                               bool
 	theme                             string
-	numbers                           bool // Show file line numbers in a gutter, where rows are file lines.
-	fenced                            bool // The document is a file shown as one fenced code block: its rows are the file's lines.
-	gutter                            int  // Columns the gutter takes, including its separating space; 0 for none.
-	lastLine                          int  // The last file line the rows show; 0 when rows are not file lines.
-	chop                              bool // Cut long lines at the right edge instead of wrapping them.
-	left, widest                      int  // The columns scrolled off the left edge, and the widest row, when chopping.
+	numbers                           bool      // Show file line numbers in a gutter, where rows are file lines.
+	fenced                            bool      // The document is a file shown as one fenced code block: its rows are the file's lines.
+	gutter                            int       // Columns the gutter takes, including its separating space; 0 for none.
+	lastLine                          int       // The last file line the rows show; 0 when rows are not file lines.
+	chop                              bool      // Cut long lines at the right edge instead of wrapping them.
+	left, widest                      int       // The columns scrolled off the left edge, and the widest row, when chopping.
+	focus                             *pageItem // The item Tab is on, highlighted; nil for none.
 }
 
 // Both still pictures and playback controllers own their presentation lifecycle.
@@ -108,6 +110,10 @@ func (m *markdownView) setKitty(kitty bool) tea.Cmd {
 func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 	m.width, m.height = max(1, width), max(1, height)
 	m.cw, m.ch = max(1, cw), max(1, ch)
+	// The rows are about to change: keep which item was focused, by kind
+	// and ordinal, to find it again in the new ones.
+	focusKind, focusOrdinal := m.focusOrdinal()
+	m.focus = nil
 	m.lines = nil
 	m.layoutVersion++
 	m.highlights = nil
@@ -135,9 +141,11 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 		wrap = 1 << 20
 	}
 	var cmds []tea.Cmd
+	tables := 0
 	for _, block := range m.content.blocks {
 		switch {
 		case block.table != nil:
+			tables++
 			prefix := block.prefix
 			if ansi.StringWidth(prefix) >= m.width {
 				prefix = ""
@@ -147,6 +155,7 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 				for i := range line.spans {
 					line.spans[i].offset += len(prefix)
 				}
+				line.table = tables
 				m.lines = append(m.lines, line)
 			}
 		case block.image >= 0:
@@ -156,11 +165,7 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 				continue
 			}
 			b := asset.Image.Bounds()
-			iw, _ := asset.Layout.Fit(b.Dx(), b.Dy())
-			columns := m.width
-			if asset.Layout.Width > 0 || asset.Layout.Height > 0 {
-				columns = min(columns, max(1, iw/max(1, cw)))
-			}
+			columns := pictureColumns(asset, m.width, cw)
 			inset := asset.Layout.Offset(m.width, columns)
 			rows := int(math.Ceil(float64(b.Dy()) * float64(columns*max(1, cw)) / float64(b.Dx()*max(1, ch))))
 			rows = max(1, min(rows, max(3, min(20, m.height-2))))
@@ -198,7 +203,20 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 	}
 	m.scroll(0)
 	m.scrollX(0)
+	m.refocus(focusKind, focusOrdinal)
 	return tea.Batch(cmds...)
+}
+
+// pictureColumns is how many cells wide a picture is drawn in a view width
+// cells wide, with cells cw pixels wide.
+func pictureColumns(asset document.MarkdownImage, width, cw int) int {
+	b := asset.Image.Bounds()
+	iw, _ := asset.Layout.Fit(b.Dx(), b.Dy())
+	columns := width
+	if asset.Layout.Width > 0 || asset.Layout.Height > 0 {
+		columns = min(columns, max(1, iw/max(1, cw)))
+	}
+	return columns
 }
 
 // scrollX moves the chopped rows sideways, no further than the end of the
@@ -362,6 +380,7 @@ func (m *markdownView) view() string {
 			p := theme.Get(m.theme)
 			style := lipgloss.NewStyle().Foreground(p.Foreground).Background(p.Background).Width(m.width)
 			text := highlightRanges(line.text, m.highlights[i])
+			text = markRanges(text, m.focusRanges(i), "\x1b[7m")
 			if m.chop {
 				text = ansi.Cut(text, m.left, m.left+max(1, m.width-m.gutter))
 			}

@@ -499,10 +499,15 @@ func (m *markdownView) projectMatches(matches []textMatch) {
 }
 
 func highlightRanges(text string, hits [][2]int) string {
+	return markRanges(text, hits, "\x1b[30;103m")
+}
+
+// markRanges draws the byte ranges hits of text's plain text with the SGR
+// mark, keeping it on across the styles text sets within them.
+func markRanges(text string, hits [][2]int, mark string) string {
 	if len(hits) == 0 {
 		return text
 	}
-	const mark = "\x1b[30;103m"
 	var out, style strings.Builder
 	state, pos, at := byte(0), 0, 0
 	marked := false

@@ -483,6 +483,8 @@ func (m *Model) hints() string {
 	}
 	if _, ok := m.viewPicture(); ok {
 		keys += " · a actions"
+	} else if m.tabItems() {
+		keys += " · Tab items · a actions"
 	}
 	if m.isFetched() {
 		keys = " Esc close ·" + strings.TrimPrefix(keys, " q quit ·")

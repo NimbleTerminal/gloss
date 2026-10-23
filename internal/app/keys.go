@@ -158,6 +158,13 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			return cmd, true
 		}
 	}
+	if (k == "tab" || k == "shift+tab") && m.tabItems() {
+		step := 1
+		if k == "shift+tab" {
+			step = -1
+		}
+		return m.moveFocus(step), true
+	}
 	if k == "esc" && m.typeset != nil && m.markdown == nil {
 		// A selection on the page goes before the page does.
 		if cmd, ok := m.typesetSelectKey(k); ok {
@@ -258,7 +265,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		}
 		if k == "s" {
 			m.markdown.raw = !m.markdown.raw
-			m.markdown.offset = 0
+			m.markdown.offset, m.markdown.focus = 0, nil
 			return m.layoutMarkdown(), true
 		}
 	}

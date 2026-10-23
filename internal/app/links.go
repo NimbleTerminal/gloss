@@ -139,6 +139,23 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 	return nil, false
 }
 
+// linkEntries lists what can be done with a link: open it in the browser,
+// called label, when it is a web address and the host has one, and copy
+// its address.
+func linkEntries(m *Model, url string, label string) []menuEntry {
+	var entries []menuEntry
+	if webLink(url) != "" && m.opts.OpenLink != nil {
+		entries = append(entries, menuEntry{label, func(m *Model) tea.Cmd {
+			open, generation := m.opts.OpenLink, m.generation
+			return func() tea.Msg { return linkOpened{generation, open(url)} }
+		}})
+	}
+	return append(entries, menuEntry{"Copy address", func(m *Model) tea.Cmd {
+		m.note = "Address copied"
+		return tea.SetClipboard(url)
+	}})
+}
+
 func (m *Model) jumpFootnote(target string) tea.Cmd {
 	if md := m.markdown; md != nil {
 		for row, line := range md.lines {
