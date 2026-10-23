@@ -8,6 +8,11 @@
   lists what it holds. Maps are drawn on a plain background and nothing is
   fetched. `--output`, `e`, `--print` and previews draw them too;
   `--type geojson|gpx` and `--accept maps` name them. ntmaps v0.5.0.
+- Open raster PMTiles archives (`.pmtiles`, or by their first bytes) as maps
+  of their tiles, read from the file as the map needs them, so an archive of
+  any size opens; `i` gives its name, zooms, bounds and credit. Vector
+  archives are described but not drawn. `--type pmtiles`; `--accept maps`
+  includes them.
 
 ## `v0.5.0` (2026-10-23)
 

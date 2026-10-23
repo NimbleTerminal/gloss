@@ -49,7 +49,7 @@ var kindGlobs = map[string][]string{
 	"text":      {"*.txt", "*.text", "*.log"},
 	"json":      {"*.json", "*.jsonl", "*.ndjson"},
 	"notebooks": {"*.ipynb"},
-	"maps":      {"*.geojson", "*.gpx"},
+	"maps":      {"*.geojson", "*.gpx", "*.pmtiles"},
 }
 
 // globs turns what was asked for into globs: a kind by name, a known

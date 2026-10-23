@@ -32,7 +32,7 @@ var orderNames = []string{"name", "date", "kind"}
 var kindMarks = map[string]string{
 	".png": "📷", ".jpg": "📷", ".jpeg": "📷", ".gif": "📷", ".webp": "📷", ".bmp": "📷", ".tif": "📷", ".tiff": "📷", ".heic": "📷", ".heif": "📷", ".hif": "📷", ".jxl": "📷",
 	".mp4": "🎬", ".m4v": "🎬", ".mov": "🎬", ".webm": "🎬", ".mkv": "🎬", ".ogv": "🎬", ".avi": "🎬", ".mpg": "🎬", ".mpeg": "🎬", ".wmv": "🎬", ".flv": "🎬",
-	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊", ".obj": "🧊", ".ply": "🧊", ".geojson": "📍", ".gpx": "📍",
+	".svg": "🎨", ".mmd": "🧜", ".mermaid": "🧜", ".pdf": "📕", ".stl": "🧊", ".3mf": "🧊", ".obj": "🧊", ".ply": "🧊", ".geojson": "📍", ".gpx": "📍", ".pmtiles": "📍",
 	".md": "📝", ".markdown": "📝", ".mdown": "📝", ".html": "📝", ".htm": "📝", ".txt": "📝", ".text": "📝", ".log": "📝",
 	".json": "🧾", ".jsonl": "🧾", ".ndjson": "🧾", ".ipynb": "📓",
 	".docx": "📄", ".docm": "📄", ".xlsx": "📊", ".xlsm": "📊", ".csv": "📊", ".tsv": "📊", ".grist": "📊",
@@ -50,7 +50,7 @@ var typeFilters = []typeFilter{
 	{"Drawings (SVG, Mermaid)", []string{"🎨", "🧜"}},
 	{"PDF", []string{"📕"}},
 	{"Meshes (STL, 3MF, OBJ, PLY)", []string{"🧊"}},
-	{"Maps (GeoJSON, GPX)", []string{"📍"}},
+	{"Maps (GeoJSON, GPX, PMTiles)", []string{"📍"}},
 	{"Markdown, HTML, text", []string{"📝", "📃"}},
 	{"JSON", []string{"🧾"}},
 	{"Notebooks", []string{"📓"}},

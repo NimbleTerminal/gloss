@@ -8,18 +8,30 @@ import (
 	"image"
 	"strconv"
 	"strings"
+	"time"
 
 	"nimbleterminal.dev/ntmaps"
 	"nimbleterminal.dev/ntmaps/geodata"
 	"nimbleterminal.dev/ntmaps/tile"
+	"nimbleterminal.dev/ntmaps/tile/pmtiles"
 )
 
 // Map is a file of things on a map, GeoJSON or GPX: its places, lines and
-// areas, as ntmaps' geodata reads them. The viewer draws them over no tiles,
-// so nothing is fetched.
+// areas, as ntmaps' geodata reads them; or a PMTiles archive of map tiles.
+// Nothing is fetched: GeoJSON and GPX are drawn over no tiles, and an
+// archive's tiles are read from the file.
 type Map struct {
-	Data geodata.Data
-	View *MapView // Where an export is centered, as the viewer has it; nil frames the whole file.
+	Data  geodata.Data
+	Tiles *pmtiles.Archive // A PMTiles archive, kept open by the Loader while it is the loaded file; nil for GeoJSON and GPX.
+	View  *MapView         // Where an export is centered, as the viewer has it; nil frames the whole file.
+}
+
+// Source is what the map's tiles come from: its archive, or nil for none.
+func (m *Map) Source() tile.Source {
+	if m.Tiles == nil {
+		return nil
+	}
+	return m.Tiles
 }
 
 // MapView is a map's center and zoom.
@@ -60,6 +72,9 @@ func readMap(kind string, data []byte) (*Map, error) {
 // kept within the Mercator latitudes and given a little height when it has
 // none, as for one place or a line due east.
 func (m *Map) Frame() ntmaps.Bounds {
+	if m.Tiles != nil {
+		return archiveFrame(m.Tiles)
+	}
 	b := m.Data.Bounds
 	b.South = max(-tile.MaxLatitude, min(tile.MaxLatitude, b.South))
 	b.North = max(-tile.MaxLatitude, min(tile.MaxLatitude, b.North))
@@ -73,25 +88,39 @@ func (m *Map) Frame() ntmaps.Bounds {
 // maxEdge (mapEdge when zero) along its longer side: what an export, a
 // preview, a thumbnail and --print show.
 func (m *Map) picture(maxEdge int) (image.Image, error) {
-	if m.Data.Points == 0 {
+	if m.Data.Points == 0 && m.Tiles == nil {
 		return nil, errEmptyMap
 	}
 	edge := mapEdge
 	if maxEdge > 0 {
 		edge = maxEdge
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), mapDeadline)
+	defer cancel()
 	o := ntmaps.RenderOptions{
+		Source: m.Source(), Loader: tile.NewLoader(tile.Options{}),
 		Width: edge, Height: max(1, edge*2/3),
 		Markers: m.Data.Markers(), Paths: m.Data.Paths(),
 	}
 	if m.View != nil {
 		o.Lat, o.Lng, o.Zoom = m.View.Lat, m.View.Lng, m.View.Zoom
-	} else {
-		frame := m.Frame()
-		o.Bounds = &frame
+		return ntmaps.Render(ctx, o)
 	}
-	return ntmaps.Render(context.Background(), o)
+	frame := m.Frame()
+	o.Bounds = &frame
+	img, err := ntmaps.Render(ctx, o)
+	if err != nil && m.Tiles != nil && ctx.Err() == nil {
+		// Framed below the archive's least zoom, no tile is there: draw its
+		// middle at that zoom instead.
+		o.Bounds = nil
+		o.Lat, o.Lng, o.Zoom = (frame.South+frame.North)/2, (frame.West+frame.East)/2, int(m.Tiles.Header().MinZoom)
+		img, err = ntmaps.Render(ctx, o)
+	}
+	return img, err
 }
+
+// mapDeadline bounds drawing one picture of a map.
+const mapDeadline = 15 * time.Second
 
 // mapFields describes the file for the info panel.
 func mapFields(kind string, m *Map) []Field {
@@ -109,7 +138,7 @@ func mapFields(kind string, m *Map) []Field {
 		lines += len(f.Lines)
 		areas += len(f.Areas)
 		if f.Name != "" && len(names) < mapNames {
-			names = append(names, f.Name)
+			names = append(names, strings.Map(printable, f.Name))
 		}
 	}
 	count := func(n int) string {

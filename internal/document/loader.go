@@ -23,6 +23,7 @@ import (
 	"github.com/gen2brain/h265/heic"
 	"github.com/gen2brain/jxl"
 	"nimbleterminal.dev/nt3d"
+	"nimbleterminal.dev/ntmaps/tile/pmtiles"
 	"nimbleterminal.dev/ntpdf"
 	"nimbleterminal.dev/ntpdf/pdfdoc"
 	"nimbleterminal.dev/ntpicture/animation"
@@ -37,7 +38,7 @@ const MaxPixels = 32 << 20
 
 // Extensions are the file extensions Detect accepts on their own. Content is
 // examined first, so a supported file need not carry one of them.
-var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".geojson", ".gpx", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
+var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".geojson", ".gpx", ".pmtiles", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
 
 // Formats says, for people, what gloss opens: labelled lines, and a short
 // line for when there is no room for them.
@@ -46,7 +47,7 @@ var Formats = []string{
 	"Doc:    SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter",
 	"Text:   Markdown, HTML, JSON, CSV, plain text and source",
 	"3D:     STL, 3MF, OBJ and PLY meshes",
-	"Maps:   GeoJSON and GPX",
+	"Maps:   GeoJSON, GPX, and raster PMTiles",
 }
 
 const FormatsShort = "Images, SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter, Markdown, HTML, text, JSON, CSV, 3D, maps"
@@ -263,8 +264,10 @@ type Loader struct {
 	pdfVersion      string
 	file            []Field
 	pages           int
-	book            book   // Kept, like the PDF, for turning between sheets.
-	bookKind        string // xlsx or grist.
+	book            book             // Kept, like the PDF, for turning between sheets.
+	bookKind        string           // xlsx or grist.
+	archive         *pmtiles.Archive // A PMTiles archive, kept open while its map is shown.
+	archiveInfo     []Field
 
 	// The typeset document's decoded images, and its animation players, by
 	// image destination. The layout knows only which images are animated.
@@ -297,6 +300,10 @@ func (l *Loader) closePDF() error {
 	l.typesetImages, l.typesetAnimations, l.typesetPaths, l.typesetAlts = nil, nil, nil, nil
 	l.pdfReader.close()
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil
+	if l.archive != nil {
+		_ = l.archive.Close()
+		l.archive, l.archiveInfo = nil, nil
+	}
 	if l.pdf == nil {
 		return nil
 	}
@@ -360,6 +367,9 @@ func (l *Loader) Load(q Request) (out Result) {
 	}
 	if isVideoFile(l.Files, q.Path, q.Type) {
 		return l.loadVideo(q)
+	}
+	if isPMTilesFile(l.Files, q.Path, q.Type) {
+		return l.loadPMTiles(q)
 	}
 	data, err := readFileFrom(l.Files, q.Path)
 	if err != nil {
@@ -792,6 +802,9 @@ func Detect(path string, data []byte, forced string) (string, error) {
 	}
 	if sniffVideo(data) {
 		return "video", nil
+	}
+	if sniffPMTiles(data) {
+		return "pmtiles", nil
 	}
 	if bytes.HasPrefix(data, []byte("ply\n")) || bytes.HasPrefix(data, []byte("ply\r\n")) {
 		return "ply", nil

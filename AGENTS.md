@@ -197,7 +197,14 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Previews, thumbnails, `--output`, `e` (at the viewer's center and zoom,
   `Map.View`) and `--print` use `ntmaps.Render`. gloss ships no online map
   provider: OpenStreetMap's servers are never contacted unless a user names
-  a provider (not built yet).
+  a provider (not built yet). Raster PMTiles (`internal/document/pmtiles.go`;
+  `.pmtiles` or the `PMTiles` magic, `isPMTilesFile`) are never read whole,
+  like video: `loadPMTiles` opens a `pmtiles.Archive` (bytes in memory for
+  `l.Files`) and the Loader keeps it, as a PDF, until `closePDF`; `Map.Tiles`
+  is the viewer's `Config.Source` and `Render`'s, framed on the header's
+  bounds (`archiveFrame`), retried at its least zoom. ntmaps bounds each read
+  (16 MiB directories, 8 MiB and 4096 px tiles) and makes the attribution
+  plain text; vector (MVT) archives are described and refused.
 - **3MF**: core-spec meshes, components, build transforms, base-material and
   color-group colors, Bambu-Studio-style filament colors from slicer settings;
   part listing/selection (`c` key, `--parts`, `--partn`); too-large projects

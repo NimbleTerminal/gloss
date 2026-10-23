@@ -76,3 +76,16 @@ func TestMapInPreviewIsAPicture(t *testing.T) {
 		t.Fatal("a preview shows the framed picture, not a live map")
 	}
 }
+
+func TestPMTilesViewer(t *testing.T) {
+	opts := Options{Files: []string{samples + "islands.pmtiles"}}
+	m := viewing(t, opts, "")
+	var l document.Loader
+	m.Update(l.Load(document.Request{Path: opts.Files[0], Generation: 1}))
+	if m.mapView == nil || m.mapView.TileSource() == nil {
+		t.Fatal("the archive's tiles are not the map's")
+	}
+	if status := ansi.Strip(m.View().Content); !strings.Contains(status, "PMTiles · zoom") {
+		t.Fatalf("status:\n%s", status)
+	}
+}

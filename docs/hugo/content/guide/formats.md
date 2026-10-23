@@ -145,6 +145,15 @@ bookToC: false
   hold up to a million positions and 100,000 features, nested at most 64
   deep; elevation, times and other properties are not read. A file with no
   positions in it is an error.
+- PMTiles (`.pmtiles`, or a file that begins as one): an archive of map tiles,
+  shown as a map you can pan and zoom, framed on the bounds it declares. It
+  is not read whole, as other files are: its tiles are read from the file as
+  the map needs them, so the 128 MiB limit does not apply (except to a
+  downloaded or piped archive). Only raster archives, of PNG or JPEG tiles,
+  with uncompressed or gzip directories, can be drawn; a vector (MVT) archive
+  is described and refused. Each read is bounded: a directory or the metadata
+  at most 16 MiB, a tile at most 8 MiB and 4096 pixels a side. The archive's
+  attribution is drawn along the map's foot.
 - Plain text (`.txt`, `.text`, `.log`, and any file that is not binary):
   shown as it is, in the document view, so that no line of it is read as a
   heading, a list, or emphasis. Returns and a byte order mark are dropped,

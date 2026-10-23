@@ -54,7 +54,7 @@ func main() {
 	}
 	write("examples/cottage-roof.png", func(b *bytes.Buffer) error { return png.Encode(b, shingles()) })
 	obj, mtl := cottage()
-	for name, data := range map[string][]byte{"examples/cottage.obj": obj, "examples/cottage.mtl": mtl, "examples/dunes.ply": dunes()} {
+	for name, data := range map[string][]byte{"examples/cottage.obj": obj, "examples/cottage.mtl": mtl, "examples/dunes.ply": dunes(), "examples/islands.pmtiles": islands()} {
 		if err := os.WriteFile(name, data, 0644); err != nil {
 			panic(err)
 		}

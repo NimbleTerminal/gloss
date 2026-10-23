@@ -358,6 +358,8 @@ func (m *Model) detail(w, h int) string {
 	switch {
 	case m.video != nil:
 		detail = m.videoDetail()
+	case m.mapFile != nil && m.mapFile.Tiles != nil:
+		detail = fmt.Sprintf("PMTiles · zoom %d", m.mapView.Zoom())
 	case m.mapFile != nil:
 		detail = fmt.Sprintf("%s · %s · zoom %d", strings.ToUpper(m.kind), plural(len(m.mapFile.Data.Features), "feature"), m.mapView.Zoom())
 	case m.chart != nil:

@@ -1,7 +1,7 @@
 package openwith
 
 // Kinds are the canonical preference keys, in listing order.
-var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid", "geojson", "gpx"}
+var Kinds = []string{"image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid", "geojson", "gpx", "pmtiles"}
 
 // Kind maps loader image kinds to their shared preference key.
 func Kind(kind string) string {
@@ -33,7 +33,7 @@ func ExtOf(kind string) string {
 		return ".md"
 	case "mermaid":
 		return ".mmd"
-	case "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "geojson", "gpx":
+	case "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "geojson", "gpx", "pmtiles":
 		return "." + kind
 	}
 	return ""

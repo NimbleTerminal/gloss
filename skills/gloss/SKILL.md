@@ -50,7 +50,7 @@ machine look for skills. A file named `skill`, `view` or `help` is opened as
 `gloss view skill`.
 
 It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL, SVG, Mermaid diagrams
-(`.mmd`), PDF, STL, 3MF, OBJ, PLY (meshes and point clouds), GeoJSON and GPX (maps, drawn without fetching anything), Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
+(`.mmd`), PDF, STL, 3MF, OBJ, PLY (meshes and point clouds), GeoJSON, GPX and raster PMTiles (maps, drawn without fetching anything), Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
 documents, CSV, and videos (MP4, MOV, M4V, WebM, MKV, OGV, AVI, MPEG, WMV, FLV). One binary, no external
 converters, except for video. Inputs are limited to 128 MiB, except videos.
 
@@ -178,8 +178,10 @@ cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
   Prefer the manifest over parsing stderr.
 - SVG and PDF are rasterized at the requested size. A GeoJSON or GPX map is
   drawn framed to fit, on a plain background: nothing is fetched. `--info`
-  gives its features, positions, bounds and names.
-- `--type image|svg|pdf|stl|3mf|obj|ply|geojson|gpx|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid|video` (`jsonl`/`ndjson` mean `json`)
+  gives its features, positions, bounds and names. A raster PMTiles archive
+  is drawn from its own tiles, framed on its declared bounds; `--info` gives
+  its zooms, bounds and attribution, and a vector archive is an error.
+- `--type image|svg|pdf|stl|3mf|obj|ply|geojson|gpx|pmtiles|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid|video` (`jsonl`/`ndjson` mean `json`)
   forces the format for extensionless files or stdin.
 - Normal terminal text and tables (Excel, Grist, CSV) cannot be exported as PNG.
   Use `--typeset` for a visual Markdown/text/source/JSON export; otherwise

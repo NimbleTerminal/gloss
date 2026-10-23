@@ -8,14 +8,15 @@ import (
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
-// showMap puts a loaded map in the body through ntmaps: the file's places,
-// lines and areas over no tiles, so nothing is fetched, framed to fit. Its
-// picture shares the pager's terminal session and image IDs; the arrows,
-// hjkl, +/- and the mouse move it.
+// showMap puts a loaded map in the body through ntmaps, framed to fit: a
+// file's places, lines and areas over no tiles, or a PMTiles archive's
+// tiles, read from the file; nothing is fetched. Its picture shares the
+// pager's terminal session and image IDs; the arrows, hjkl, +/- and the
+// mouse move it.
 func (m *Model) showMap(v document.Result, cleanup tea.Cmd) tea.Cmd {
 	m.source = nil
 	view := ntmaps.NewWithConfig(ntmaps.Config{
-		Cols: m.width, Rows: m.bodyHeight(),
+		Source: v.Map.Source(), Cols: m.width, Rows: m.bodyHeight(),
 		Session: m.terminal, NextImageID: ntpicture.NextImageID,
 		KittyMedium: ntpicture.KittyMediumSharedMemory,
 		PreferKitty: m.autoKitty || m.kitty, DisableDiskCache: true,

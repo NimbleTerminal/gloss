@@ -1,7 +1,7 @@
 # gloss
 
 A visual pager for the terminal: like `less`, for images, videos, SVGs, PDFs, STL, 3MF, OBJ and PLY
-meshes, GeoJSON and GPX maps, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks,
+meshes, GeoJSON, GPX and PMTiles maps, Markdown, Mermaid diagrams, HTML, plain text, JSON, Jupyter notebooks,
 Word, Excel, Grist, and CSV files.
 
 [**Try gloss in your browser →**](https://nimbleterminal.github.io/gloss/) — starts with a sample image, including on phone-width screens.
