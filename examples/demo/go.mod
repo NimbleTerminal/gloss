@@ -74,7 +74,7 @@ require (
 	nimbleterminal.dev/ntfilepicker v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
-	nimbleterminal.dev/ntmaps v0.5.0 // indirect
+	nimbleterminal.dev/ntmaps v0.5.1 // indirect
 	nimbleterminal.dev/ntopenwith v0.1.1 // indirect
 	nimbleterminal.dev/ntpdf v0.5.1 // indirect
 	nimbleterminal.dev/ntpicture v0.1.1 // indirect

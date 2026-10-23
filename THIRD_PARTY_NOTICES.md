@@ -3866,7 +3866,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntmaps v0.5.0
+## nimbleterminal.dev/ntmaps v0.5.1
 
 ```
 MIT License
