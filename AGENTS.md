@@ -232,7 +232,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `a`, Shift-F10 or a right-click opens `layerActions` (`actions.go`): a menu of
   `menuEntry`s per item (`picture_actions.go`, `table_actions.go`,
   `sheet_actions.go`); entries that cannot work in the host are absent. A web
-  address written out in any text view (`bareLinkAt`, `links.go`) gets a link's
+  address written out in any text view (`bareLinkAt`, `links.go`), or on a
+  typeset page (`Loader.TypesetTextAt`, nttypeset's `TextAt`), gets a link's
   menu on a right-click. A
   whole-view picture with entries takes the mouse (`pictureMouse`), and the
   wheel then acts as the up/down keys.

@@ -102,3 +102,49 @@ func TestTypesetFocusOutline(t *testing.T) {
 		t.Fatal("no outline drawn")
 	}
 }
+
+// Two links to one address are two items; one wrapped over lines is one.
+// A table's rectangle is the one the layout drew; TypesetTextAt finds the
+// paragraph under a point.
+func TestTypesetLinksTablesAndText(t *testing.T) {
+	dir := t.TempDir()
+	doc := filepath.Join(dir, "doc.md")
+	source := "[one](https://e.org/) and [two](https://e.org/)\n\n" +
+		"[a link with a label long enough to wrap over two lines or more](https://w.org/)\n\n" +
+		"|h|i|\n|-|-|\n|1|2|\n\nafter\n"
+	if err := os.WriteFile(doc, []byte(source), 0600); err != nil {
+		t.Fatal(err)
+	}
+	l := &Loader{}
+	t.Cleanup(func() { _ = l.Close() })
+	r := l.Load(Request{Theme: testTheme("light"), Path: doc, Typeset: true, TypesetWidth: 384, TypesetView: &TypesetViewport{Height: 1500}})
+	if r.Err != nil {
+		t.Fatal(r.Err)
+	}
+	var same, wrapped, tables []TypesetItem
+	for _, it := range r.TypesetItems {
+		switch {
+		case it.URL == "https://e.org/":
+			same = append(same, it)
+		case it.URL == "https://w.org/":
+			wrapped = append(wrapped, it)
+		case it.Kind == TypesetTable:
+			tables = append(tables, it)
+		}
+	}
+	if len(same) != 2 || len(wrapped) != 1 || len(wrapped[0].Rects) < 2 || len(tables) != 1 {
+		t.Fatalf("same %d, wrapped %+v, tables %d", len(same), wrapped, len(tables))
+	}
+	table := tables[0].Rects[0]
+	if table.Dy() <= 0 || table.Min.Y <= wrapped[0].Rects[len(wrapped[0].Rects)-1].Max.Y {
+		t.Fatalf("table %v", table)
+	}
+	link := same[1].Rects[0]
+	text, rune, ok := l.TypesetTextAt(image.Pt((link.Min.X+link.Max.X)/2, (link.Min.Y+link.Max.Y)/2))
+	if !ok || text != "one and two" || rune < 8 {
+		t.Fatalf("text %q rune %d %v", text, rune, ok)
+	}
+	if _, _, ok := l.TypesetTextAt(image.Pt(1, 1)); ok {
+		t.Fatal("text in the margin")
+	}
+}

@@ -93,7 +93,7 @@ What a menu offers:
 | --- | --- |
 | A picture or video (an image in a document, an image file, a PDF page, an SVG, a diagram, a GIF) | **Open with…**, **Edit with…**, **Copy image**, **Copy path**; a video has no **Edit with…** and adds **Save frame as PNG** |
 | A link | **Open** (the default browser, as a click does) and **Copy address**. With `--fetch`, a web link also offers **Open in gloss**, which downloads it and shows it after the document (`Esc` closes it), and **Save linked file**, which downloads it into the current folder, numbering the name rather than replacing a file. Links that are not web addresses, such as a relative file, offer **Copy address** only. A picture that is also a link has the picture's entries, then these, with **Open** reading **Open link**. Footnote references keep their click jumps |
-| A web address written out in text | The same as a link, whole even where it wraps: in plain text, source, JSON and Markdown, on a right-click. It is no Tab stop |
+| A web address written out in text | The same as a link, whole even where it wraps: in plain text, source, JSON and Markdown, text or typeset, on a right-click. It is no Tab stop |
 | A Markdown table | **Open table with…** (gloss first, then the apps that open CSV), **Copy as TSV**, **Copy as Markdown** |
 | A spreadsheet cell | **Copy value**, **Copy row** (TSV); on a cell with an address also **Open in gloss** and **Save linked file** (with `--fetch`), **Open in browser**, and **Show QR** |
 

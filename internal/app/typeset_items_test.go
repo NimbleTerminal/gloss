@@ -248,3 +248,26 @@ func TestTypesetPictureNamedByAlt(t *testing.T) {
 		t.Fatalf("layer %v, menu %+v", m.layer, m.actions)
 	}
 }
+
+// A web address written out in typeset text takes a right-click as a link
+// does; the margin takes none.
+func TestTypesetRightClickBareAddress(t *testing.T) {
+	const address = "https://example.org/a/path"
+	m := typesetItemsModel(t, "Read "+address+" today.\n", 8, 4, Options{})
+	send(m, tea.MouseClickMsg{X: 0, Y: 0, Button: tea.MouseRight})
+	if m.layer == layerActions {
+		t.Fatal("the margin opened a menu")
+	}
+	for y := 0; y < m.bodyHeight() && m.layer != layerActions; y++ {
+		for x := 0; x < m.width && m.layer != layerActions; x++ {
+			_, cmd := m.Update(tea.MouseClickMsg{X: x, Y: y, Button: tea.MouseRight})
+			drainAnimation(t, m, cmd)
+		}
+	}
+	if m.layer != layerActions || m.actions.title != address {
+		t.Fatalf("layer %v, menu %+v", m.layer, m.actions)
+	}
+	if got := strings.Join(entryLabels(m.actions.entries), ", "); got != "Copy address" {
+		t.Fatalf("entries %s", got)
+	}
+}

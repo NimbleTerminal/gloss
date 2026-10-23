@@ -770,6 +770,8 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 			m.opener.find.answered(v)
 		}
 		return nil
+	case typesetAddress:
+		return m.typesetAddressFound(v)
 	case linkSaved:
 		m.linkSavedNote(v)
 		return nil

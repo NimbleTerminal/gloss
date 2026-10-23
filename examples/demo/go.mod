@@ -79,7 +79,7 @@ require (
 	nimbleterminal.dev/ntqrcode v0.3.1 // indirect
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
 	nimbleterminal.dev/ntsvg v0.5.1 // indirect
-	nimbleterminal.dev/nttypeset v0.1.1 // indirect
+	nimbleterminal.dev/nttypeset v0.1.2 // indirect
 	nimbleterminal.dev/ntvideo v0.3.0 // indirect
 )
 

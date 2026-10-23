@@ -44,6 +44,7 @@ func (l *Loader) typesetItems(lay *nttypeset.Layout) []TypesetItem {
 	}
 	pictures := len(items)
 	last := -1 // The link item the previous link rect went to.
+	var prev nttypeset.Link
 links:
 	for _, link := range lay.Links(page) {
 		if _, note := FootnotePeer(link.URL); note {
@@ -56,28 +57,20 @@ links:
 				continue links
 			}
 		}
-		if last >= 0 && items[last].URL == link.URL {
-			items[last].Rects = append(items[last].Rects, link.Rect)
+		// The lines of one wrapped link meet in its paragraph's runes; two
+		// links to one URL do not.
+		if last >= 0 && items[last].URL == link.URL && prev.Block == link.Block && prev.Para == link.Para && prev.Runes[1] >= link.Runes[0] {
+			items[last].Rects, prev = append(items[last].Rects, link.Rect), link
 			continue
 		}
 		items = append(items, TypesetItem{Kind: TypesetLinkItem, Rects: []image.Rectangle{link.Rect}, URL: link.URL})
-		last = len(items) - 1
+		last, prev = len(items)-1, link
 	}
-	starts, blocks := lay.Starts(), l.typesetDocument.Blocks
-	for i, top := range starts {
+	// A table is where the layout drew it.
+	bounds, blocks := lay.Bounds(), l.typesetDocument.Blocks
+	for i, rect := range bounds {
 		b := blocks[i]
-		if b.Kind != nttypeset.KindTable || len(b.Rows) == 0 {
-			continue
-		}
-		// As the layout places a table: from the block's indent to the right
-		// margin, with a gap of 20 below it.
-		bottom := lay.Extent() - nttypeset.Margin - 20
-		if i+1 < len(starts) {
-			bottom = starts[i+1] - 20
-		}
-		x := nttypeset.Margin + b.Indent
-		rect := image.Rect(x, top, max(x+32, lay.Width()-nttypeset.Margin), bottom)
-		if rect.Empty() {
+		if b.Kind != nttypeset.KindTable || len(b.Rows) == 0 || rect.Empty() {
 			continue
 		}
 		var cells [][]string
@@ -129,6 +122,19 @@ func holdsItem(b nttypeset.Block) bool {
 		}
 	}
 	return false
+}
+
+// TypesetTextAt is the text of the typeset page under page point p: its
+// whole paragraph, and the rune of it there; false off the text, or with no
+// page laid.
+func (l *Loader) TypesetTextAt(p image.Point) (string, int, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.direct == nil {
+		return "", 0, false
+	}
+	hit, ok := l.direct.TextAt(p)
+	return hit.Text, hit.Rune, ok
 }
 
 // pictureAlts is the alt text of each picture a Markdown tree shows, by

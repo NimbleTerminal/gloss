@@ -582,6 +582,41 @@ func (m *Model) typesetItemAt(x, y int) (pageItem, bool) {
 	return pageItem{}, false
 }
 
+// typesetAddress is the web address written out in the typeset text under
+// a right-click, looked up off the event loop; empty when there is none.
+type typesetAddress struct {
+	generation uint64
+	at         image.Point
+	address    string
+}
+
+// typesetAddressAt asks the layout for the text under cell at, for a web
+// address written out there.
+func (m *Model) typesetAddressAt(at image.Point) tea.Cmd {
+	p, ok := m.typesetPagePoint(at.X, at.Y, false)
+	if !ok {
+		return nil
+	}
+	loader, generation := m.loader, m.generation
+	return func() tea.Msg {
+		text, r, ok := loader.TypesetTextAt(p)
+		if !ok {
+			return typesetAddress{generation: generation}
+		}
+		runes := []rune(text)
+		return typesetAddress{generation, at, bareURLAt(text, len(string(runes[:min(r, len(runes))])))}
+	}
+}
+
+// typesetAddressFound opens the link menu of an address found under a
+// right-click, if the page is still the one clicked.
+func (m *Model) typesetAddressFound(v typesetAddress) tea.Cmd {
+	if v.address == "" || v.generation != m.generation || !m.itemsHere() {
+		return nil
+	}
+	return m.openActions(v.address, linkEntries(m, v.address, "Open"), v.at)
+}
+
 // typesetPageItem is a typeset item as the menus take it.
 func (m *Model) typesetPageItem(it document.TypesetItem) pageItem {
 	switch it.Kind {
@@ -628,7 +663,7 @@ func (m *Model) typesetItemActions(at image.Point, pointer bool) tea.Cmd {
 	var i int
 	if pointer {
 		if i = m.typesetItemIndex(at.X, at.Y); i < 0 {
-			return nil
+			return m.typesetAddressAt(at)
 		}
 	} else {
 		if m.source == nil || m.typesetShown == nil || m.typesetShown.Width <= 0 {

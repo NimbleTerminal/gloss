@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Right-click a web address written out in text, source, JSON or Markdown to open it or copy it, as a link.
+- Right-click a web address written out in text, source, JSON or Markdown, text or typeset, to open it or copy it, as a link.
+- On a typeset page, two links to one address are two stops for Tab, and a table's outline is where it is drawn.
 - With `--fetch`, a link's or an address cell's menu also opens it in gloss or
   saves the linked file in the current folder, never over another file.
 - Right-click a picture, video, link, Markdown table or spreadsheet cell (or `a`,
