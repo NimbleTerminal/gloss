@@ -28,6 +28,7 @@ type TypesetItem struct {
 	Destination string            // A picture's key.
 	Path        string            // A picture's own file, as MarkdownImage.Path.
 	Image       image.Image       // A picture's still.
+	Animated    bool              // A picture that plays: what is on screen is its frame.
 	Cells       [][]string        // A table's plain text, header first.
 }
 
@@ -37,7 +38,7 @@ func (l *Loader) typesetItems(lay *nttypeset.Layout) []TypesetItem {
 	page := nttypeset.View{Top: 0, Height: lay.Extent(), Width: lay.Width(), Scale: 1}
 	var items []TypesetItem
 	for _, im := range lay.Images(page) {
-		items = append(items, TypesetItem{Kind: TypesetPicture, Rects: []image.Rectangle{im.Rect}, Destination: im.Key, Path: l.typesetPaths[im.Key], Image: l.typesetImages[im.Key]})
+		items = append(items, TypesetItem{Kind: TypesetPicture, Rects: []image.Rectangle{im.Rect}, Destination: im.Key, Path: l.typesetPaths[im.Key], Image: l.typesetImages[im.Key], Animated: l.typesetAnimations[im.Key] != nil})
 	}
 	pictures := len(items)
 	last := -1 // The link item the previous link rect went to.
@@ -100,6 +101,26 @@ links:
 		return a.X < b.X
 	})
 	return items
+}
+
+// nextItemBlock is the first block from index from on that holds an item:
+// a picture, a table, or a link that is not a footnote's; the last block
+// when none does.
+func nextItemBlock(blocks []nttypeset.Block, from int) int {
+	linked := func(spans []nttypeset.Span) bool {
+		for _, s := range spans {
+			if _, note := FootnotePeer(s.Href); s.Href != "" && !note {
+				return true
+			}
+		}
+		return false
+	}
+	for i := from; i < len(blocks); i++ {
+		if b := blocks[i]; b.Kind == nttypeset.KindImage || b.Kind == nttypeset.KindTable || linked(b.Spans) {
+			return i
+		}
+	}
+	return len(blocks) - 1
 }
 
 // outlineFocus draws the focus rectangles, given in page pixels, onto the

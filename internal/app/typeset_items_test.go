@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"image"
 	"image/png"
 	"strings"
@@ -126,7 +127,7 @@ func itemCell(m *Model, it document.TypesetItem) image.Point {
 }
 
 func TestTypesetRightClickPicture(t *testing.T) {
-	files := fstest.MapFS{"doc.md": {Data: []byte("Some words.\n\n![a](x.png)\n\nMore words.")}, "x.png": {Data: pngOf(t, 400, 200)}}
+	files := fstest.MapFS{"doc.md": {Data: []byte("Some words.\n\n![a](x.png)\n\nMore words.")}, "x.png": {Data: pngOf(t, 2000, 1000)}}
 	m := New(Options{Files: []string{"doc.md"}, FilesFS: files, MarkdownMode: "typeset", Render: "glyph", DPI: 150, Page: 1, CopyImage: func([]byte) error { return nil }})
 	t.Cleanup(func() { _ = m.Close() })
 	m.Update(tea.WindowSizeMsg{Width: 120, Height: 40})
@@ -140,8 +141,9 @@ func TestTypesetRightClickPicture(t *testing.T) {
 	if m.layer != layerActions || len(m.actions.entries) == 0 || m.actions.entries[0].label != "Copy image" {
 		t.Fatalf("picture menu at %v: layer %v %+v", at, m.layer, m.actions)
 	}
-	// What it copies is the picture as shown: its part of the page.
-	if p, ok := m.typesetItemAt(at.X, at.Y); !ok || p.picture.shown == nil || p.picture.shown().Bounds().Empty() {
+	// What it copies is the picture itself, at its own size, not the
+	// screen's cut of it.
+	if p, ok := m.typesetItemAt(at.X, at.Y); !ok || p.picture.shown == nil || p.picture.shown().Bounds().Size() != image.Pt(2000, 1000) {
 		t.Fatalf("picture item %+v %v", p, ok)
 	}
 	m.Update(tea.KeyPressMsg{Code: tea.KeyEscape})
@@ -149,5 +151,38 @@ func TestTypesetRightClickPicture(t *testing.T) {
 	m.Update(tea.MouseClickMsg{X: 0, Y: 0, Button: tea.MouseRight})
 	if m.layer == layerActions || m.note != "" {
 		t.Fatalf("right-click on the margin: layer %v note %q", m.layer, m.note)
+	}
+}
+
+// On a long page, Tab past what is laid lays on to the next item without
+// drawing every screen on the way; any other key gives the Tab up.
+func TestTypesetTabLaysAheadOnALongPage(t *testing.T) {
+	source := strings.Repeat("A paragraph of words to fill the page.\n\n", 1500) + "[far](https://e.org/)\n"
+	m := typesetItemsModel(t, source, 8, 4, Options{})
+	before := m.generation
+	pressDrain(t, m, tab)
+	if focused(m) != 0 || m.typesetItems[0].URL != "https://e.org/" {
+		t.Fatalf("focus %d on %+v", focused(m), m.typesetItems)
+	}
+	if renders := m.generation - before; renders > 3 {
+		t.Fatalf("%d pages drawn to reach the link", renders)
+	}
+
+	m = typesetItemsModel(t, source, 8, 4, Options{})
+	_, tabbed := m.Update(tab)
+	_, moved := m.Update(tea.KeyPressMsg{Code: tea.KeyDown})
+	drainAnimation(t, m, tea.Batch(tabbed, moved))
+	if m.typesetTabPending != 0 || m.typesetFocus != nil || m.typesetShown.Top > 1000 {
+		t.Fatalf("the Tab went on: pending %d focus %v top %d", m.typesetTabPending, m.typesetFocus, m.typesetShown.Top)
+	}
+}
+
+// A failed page view gives up the place it was going to.
+func TestTypesetFailureForgetsTheGoal(t *testing.T) {
+	m := typesetItemsModel(t, "words", 8, 4, Options{})
+	m.typesetGoTop, m.typesetTabPending = 500, 1
+	m.typesetReflowed(typesetReflowResult{m.ownerID, m.typesetRevision, document.Result{Generation: m.generation, Err: errors.New("boom")}})
+	if m.typesetGoTop != -1 || m.typesetTabPending != 0 {
+		t.Fatalf("go top %d, pending %d", m.typesetGoTop, m.typesetTabPending)
 	}
 }

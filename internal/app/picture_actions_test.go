@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
@@ -71,7 +72,10 @@ func TestPictureEntriesByHost(t *testing.T) {
 		}, pictureItem{name: "page", shown: shown}, []string{"Open with…"}},
 		{"a video", func(o *Options) {
 			o.OpenWith = &fakeOpenHost{}
-		}, pictureItem{name: "v.mp4", path: "v.mp4", shown: shown, video: true}, []string{"Open with…", "Edit with…", "Copy path", "Save frame as PNG"}},
+		}, pictureItem{name: "v.mp4", path: "v.mp4", shown: shown, video: true}, []string{"Copy path", "Save frame as PNG"}},
+		{"a video's frame", func(o *Options) {
+			o.OpenWith, o.Scratch = &fakeOpenHost{}, scratch
+		}, pictureItem{name: "v.mp4", path: "v.mp4", shown: shown, video: true}, []string{"Open with…", "Copy path", "Save frame as PNG"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -259,5 +263,116 @@ func TestNoPictureMenuForMeshesOrText(t *testing.T) {
 	send(m, press("a"), tea.MouseClickMsg{X: 5, Y: 5, Button: tea.MouseRight})
 	if m.layer != layerNone {
 		t.Fatalf("a menu opened: layer=%v", m.layer)
+	}
+}
+
+// A picture with a menu takes the mouse, so a right-click reaches it: a
+// still, an SVG, a PDF page and a Mermaid file. Where there is nothing to
+// offer, the terminal keeps the mouse.
+func TestPictureTakesTheMouse(t *testing.T) {
+	for _, kind := range []string{"png", "svg", "pdf", "mermaid"} {
+		m := loaded(t, "photos/landscape.png")
+		pictureHosts(m, t.TempDir())
+		send(m, document.Result{Generation: m.generation, Kind: kind, Page: 1, Pages: 1, Image: m.source})
+		if got := m.View().MouseMode; got != tea.MouseModeCellMotion {
+			t.Fatalf("%s: mouse mode %v", kind, got)
+		}
+	}
+	m := loaded(t, "photos/landscape.png")
+	m.source = nil
+	if got := m.View().MouseMode; got != tea.MouseModeNone {
+		t.Fatalf("no picture: mouse mode %v", got)
+	}
+	// In the browser with no clipboard and no apps, a picture has no entries.
+	m = loaded(t, "photos/landscape.png")
+	m.opts.FilesFS = fstest.MapFS{}
+	if got := m.View().MouseMode; got != tea.MouseModeNone {
+		t.Fatalf("nothing to offer: mouse mode %v", got)
+	}
+}
+
+// With the mouse taken, the wheel does what the arrow keys did when the
+// terminal turned it into them.
+func TestPictureWheelIsTheArrowKeys(t *testing.T) {
+	keyed, wheeled := loaded(t, "photos/landscape.png"), loaded(t, "photos/landscape.png")
+	pictureHosts(keyed, t.TempDir())
+	pictureHosts(wheeled, t.TempDir())
+	keyed.zoom, wheeled.zoom = 2, 2
+	send(keyed, tea.KeyPressMsg{Code: tea.KeyDown}, tea.KeyPressMsg{Code: tea.KeyDown}, tea.KeyPressMsg{Code: tea.KeyUp})
+	send(wheeled, tea.MouseWheelMsg{X: 5, Y: 5, Button: tea.MouseWheelDown}, tea.MouseWheelMsg{X: 5, Y: 5, Button: tea.MouseWheelDown}, tea.MouseWheelMsg{X: 5, Y: 5, Button: tea.MouseWheelUp})
+	if keyed.panY == 0 || wheeled.panY != keyed.panY {
+		t.Fatalf("wheel panned to %v, keys to %v", wheeled.panY, keyed.panY)
+	}
+}
+
+// A video opens a PNG of the frame on screen, never the video, and is not
+// edited; Copy path is the video's.
+func TestVideoOpensItsFrame(t *testing.T) {
+	dir := t.TempDir()
+	m := loaded(t, "photos/landscape.png")
+	host, _ := pictureHosts(m, dir)
+	p := pictureItem{name: "v.mp4", path: "clips/v.mp4", video: true, shown: func() image.Image { return m.source }}
+	entries := m.pictureEntries(p)
+	if got := labels(entries); !reflect.DeepEqual(got, []string{"Open with…", "Copy image", "Copy path", "Save frame as PNG"}) {
+		t.Fatalf("entries = %q", got)
+	}
+	m.openActions(p.name, entries, image.Pt(1, 1))
+	send(m, tea.KeyPressMsg{Code: tea.KeyEnter})
+	frame := filepath.Join(dir, "v.png")
+	if _, err := os.Stat(frame); err != nil {
+		t.Fatalf("no frame written: %v", err)
+	}
+	send(m, tea.KeyPressMsg{Code: tea.KeyEnter})
+	if len(host.launched) != 1 || host.launched[0].Path != frame {
+		t.Fatalf("launched %+v, want the frame", host.launched)
+	}
+}
+
+// A whole-view picture in the browser has no path worth copying.
+func TestNoCopyPathInTheBrowser(t *testing.T) {
+	m := loaded(t, "photos/landscape.png")
+	m.opts.FilesFS = fstest.MapFS{}
+	m.opts.CopyImage = func([]byte) error { return nil }
+	p, ok := m.viewPicture()
+	if !ok {
+		t.Fatal("no picture")
+	}
+	if got := labels(m.pictureEntries(p)); !reflect.DeepEqual(got, []string{"Copy image"}) {
+		t.Fatalf("entries = %q", got)
+	}
+}
+
+// Nothing is offered while a prompt takes the keys, or while loading.
+func TestNoItemsUnderPrompts(t *testing.T) {
+	right := tea.MouseClickMsg{X: 5, Y: 5, Button: tea.MouseRight}
+	for name, set := range map[string]func(*Model){
+		"go to line": func(m *Model) { m.lineInput = &lineInput{} },
+		"search":     func(m *Model) { m.search = &textSearch{editing: true} },
+		"loading":    func(m *Model) { m.loading = true },
+	} {
+		m := loaded(t, "photos/landscape.png")
+		pictureHosts(m, t.TempDir())
+		set(m)
+		if m.itemsHere() {
+			t.Fatalf("%s: items here", name)
+		}
+		send(m, right)
+		if m.layer == layerActions {
+			t.Fatalf("%s: a menu opened", name)
+		}
+	}
+}
+
+// The keys line says a only where a menu would have entries.
+func TestActionsHintOnlyWithEntries(t *testing.T) {
+	m := loaded(t, "photos/landscape.png")
+	pictureHosts(m, t.TempDir())
+	if !strings.Contains(m.hints(), "a actions") {
+		t.Fatalf("hints lack a actions: %s", m.hints())
+	}
+	m = loaded(t, "photos/landscape.png")
+	m.opts.FilesFS = fstest.MapFS{}
+	if strings.Contains(m.hints(), "a actions") {
+		t.Fatalf("hints offer an empty menu: %s", m.hints())
 	}
 }

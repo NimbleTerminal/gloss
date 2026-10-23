@@ -5,6 +5,7 @@ package clipimage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -119,5 +120,29 @@ func TestCopyImageRemovesTemporaryFile(t *testing.T) {
 	}
 	if _, err := os.Stat(file); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("temporary file left behind: %v", err)
+	}
+}
+
+// A tool that fails says why in the error: the first line of what it wrote.
+func TestCopyImageSaysWhyTheToolFailed(t *testing.T) {
+	switch runtime.GOOS {
+	case "darwin":
+		fakeTools(t, "osascript")
+	case "windows":
+		fakeTools(t, "powershell")
+	default:
+		t.Setenv("WAYLAND_DISPLAY", "")
+		fakeTools(t, "xclip")
+	}
+	run = func(cmd *exec.Cmd) error {
+		if cmd.Stderr == nil {
+			t.Fatal("the tool's errors go nowhere")
+		}
+		fmt.Fprint(cmd.Stderr, "Error: Can't open display: (null)\nsecond line\n")
+		return errors.New("exit status 1")
+	}
+	err := Copy(context.Background(), []byte("bytes"))
+	if err == nil || !strings.Contains(err.Error(), "Can't open display") || strings.Contains(err.Error(), "second line") {
+		t.Fatalf("err = %v", err)
 	}
 }

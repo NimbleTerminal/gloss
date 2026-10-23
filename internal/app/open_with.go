@@ -168,7 +168,8 @@ func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 	p.verb, p.target, p.busy, p.cursor = v.verb, v.target, false, 0
 	p.choices = p.listed(v.choices)
 	for i, c := range p.choices {
-		if c.Default {
+		// A table's CSV is the viewer's own: gloss goes first.
+		if (p.table && c.ID == "gloss") || (!p.table && c.Default) {
 			p.cursor = i
 			break
 		}

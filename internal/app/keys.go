@@ -125,6 +125,10 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 		}
 		return nil, true
 	}
+	if k != "tab" && k != "shift+tab" {
+		// A Tab still waiting for more of the page is given up.
+		m.typesetTabPending, m.typesetAhead = 0, false
+	}
 	if cmd, handled := m.layerKey(k); handled {
 		return cmd, true
 	}

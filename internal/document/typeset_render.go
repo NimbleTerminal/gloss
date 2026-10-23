@@ -38,6 +38,10 @@ type TypesetViewport struct {
 	Link                    string
 	Top, Height, Left, Zoom int
 	End                     bool
+	// Ahead asks the layout to go on past the view to the next block with a
+	// picture, a link or a table in it, or to the end, without moving the
+	// view: the next item is then among the result's TypesetItems.
+	Ahead bool
 	// Line asks for a file line at the top, where the first line sits at the
 	// top of the page, for a document whose blocks are its lines; a result
 	// says which line is at the top. Lines is how many the document has, on
@@ -133,6 +137,11 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 				return fail(err)
 			}
 			top = max(0, lay.Extent()-max(1, height>>zoom))
+		}
+		if v.Ahead {
+			if err := lay.EnsureBlock(ctx, nextItemBlock(doc.Blocks, lay.Laid())); err != nil {
+				return fail(err)
+			}
 		}
 		if _, ok := FootnotePeer(v.Link); ok {
 			r, found, err := lay.Find(ctx, v.Link)

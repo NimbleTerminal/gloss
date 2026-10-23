@@ -1,10 +1,12 @@
 package app
 
 import (
+	"image"
 	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 )
 
@@ -74,7 +76,7 @@ func TestRightClickSelectsCell(t *testing.T) {
 		x += s.widths[c] + 1
 	}
 	send(m, tea.MouseClickMsg{X: x, Y: 2, Button: tea.MouseRight}) // The third column, second row.
-	if s.at != [2]int{1, 2} || m.layer != layerActions || m.actions.title != "C2" {
+	if s.at != [2]int{1, 2} || m.layer != layerActions || m.actions.title != "C2 · six" {
 		t.Fatalf("at=%v layer=%v actions=%+v", s.at, m.layer, m.actions)
 	}
 	if m.actions.at.X != x || m.actions.at.Y != 2 {
@@ -102,8 +104,10 @@ func TestRightClickSelectsCell(t *testing.T) {
 func TestSheetKeysOpenTheMenu(t *testing.T) {
 	m := addressSheet(t)
 	send(m, press("a"))
-	if m.layer != layerActions || m.actions.title != "B1" || m.actions.at.X != 0 {
-		t.Fatalf("a: layer=%v actions=%+v", m.layer, m.actions)
+	s := m.sheet
+	// Beside the cursor's cell, B1: past the row numbers and column A.
+	if want := image.Pt(s.gutter()+1+s.widths[s.cols[0]], 1); m.layer != layerActions || m.actions.title != "B1 · https://e.org/" || m.actions.at != want {
+		t.Fatalf("a: layer=%v actions=%+v, want at %v", m.layer, m.actions, want)
 	}
 	m.closeLayer()
 	send(m, tea.KeyPressMsg{Code: tea.KeyF10, Mod: tea.ModShift})
@@ -122,5 +126,24 @@ func TestSheetTabStillSwitchesFiles(t *testing.T) {
 	send(m, tea.KeyPressMsg{Code: tea.KeyTab})
 	if m.index != 1 || m.layer != layerNone {
 		t.Fatalf("Tab: index=%d layer=%v", m.index, m.layer)
+	}
+}
+
+// A cell's value heads its menu on one line, safe, and cut short.
+func TestCellMenuTitle(t *testing.T) {
+	sheet := &document.Sheet{Name: "Data", Columns: 2, Rows: [][]string{
+		{"two\nlines\x1b]2;x\a", strings.Repeat("long ", 20)},
+	}}
+	m := tabulated(t, sheet, 1, 1)
+	m.sheet.at = [2]int{0, 0}
+	send(m, press("a"))
+	if title := m.actions.title; strings.ContainsAny(title, "\n\x1b\a") || !strings.HasPrefix(title, "A1 · two lines") {
+		t.Fatalf("title %q", title)
+	}
+	m.closeLayer()
+	m.sheet.at = [2]int{0, 1}
+	send(m, press("a"))
+	if title := m.actions.title; !strings.HasSuffix(title, "…") || ansi.StringWidth(title) > actionsMaxW-4 {
+		t.Fatalf("title %q", title)
 	}
 }

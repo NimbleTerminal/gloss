@@ -70,7 +70,7 @@ func (m *Model) actionsLayout(w, h int) string {
 		inner = max(inner, 2+ansi.StringWidth(safe(e.label)))
 	}
 	title := safe(a.title)
-	inner = min(actionsMaxW-4, max(inner, ansi.StringWidth(title)))
+	inner = min(actionsMaxW-4, w-4, max(inner, ansi.StringWidth(title)))
 	first, count := a.window(h)
 
 	text := m.boxText()

@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
@@ -40,15 +41,17 @@ func (m *Model) pictureEntries(p pictureItem) []menuEntry {
 	var entries []menuEntry
 	temporary := p.path == "" || m.opts.IsStdin(p.path) || (m.opts.IsTemporary != nil && m.opts.IsTemporary(p.path))
 	if m.opts.OpenWith != nil {
+		// A video opens as the frame on screen, a PNG, as a picture with
+		// no file of its own does.
 		switch {
-		case p.path != "":
+		case p.path != "" && !p.video:
 			entries = append(entries, menuEntry{"Open with…", func(m *Model) tea.Cmd {
 				return m.requestOpenWith(p.path, "", false, true, openwith.Open)
 			}})
 		case m.opts.Scratch != nil && p.shown != nil:
 			entries = append(entries, menuEntry{"Open with…", func(m *Model) tea.Cmd { return m.openShown(p) }})
 		}
-		if !temporary {
+		if !temporary && !p.video {
 			entries = append(entries, menuEntry{"Edit with…", func(m *Model) tea.Cmd {
 				return m.requestOpenWith(p.path, "", false, true, openwith.Edit)
 			}})
@@ -161,6 +164,9 @@ func (m *Model) openShown(p pictureItem) tea.Cmd {
 		return nil
 	}
 	name, shown, generation := safe(p.name), p.shown(), m.generation
+	if p.video {
+		name = exportName(name, "", 0, false)
+	}
 	if !strings.HasSuffix(strings.ToLower(name), ".png") {
 		name += ".png"
 	}
@@ -202,6 +208,9 @@ func (m *Model) viewPicture() (pictureItem, bool) {
 	case m.kind == "pdf":
 		p.name, p.path = exportName(file, m.kind, m.page, false), ""
 	}
+	if m.opts.FilesFS != nil {
+		p.path = "" // The browser's files have no path worth copying.
+	}
 	switch {
 	case m.video != nil:
 		p.video = true
@@ -242,8 +251,21 @@ func (m *Model) itemsHere() bool {
 	if m.help || m.layer != layerNone || m.openWithPicker != nil || m.screen != screenDocument || m.isPreview || m.suspended {
 		return false
 	}
+	if m.loading || m.lineInput != nil || (m.search != nil && m.search.editing) {
+		return false // A prompt has the keys, or the view is not here yet.
+	}
 	_, ok := m.viewPicture()
 	return ok || m.tabItems() || (m.sheet != nil && m.sheet.rows() > 0)
+}
+
+// pictureMouse says the view is a picture with a menu, which takes the
+// mouse for right-clicks. A video and a typeset page take it anyway.
+func (m *Model) pictureMouse() bool {
+	if m.video != nil || m.typeset != nil || !m.itemsHere() {
+		return false
+	}
+	p, ok := m.viewPicture()
+	return ok && len(m.pictureEntries(p)) > 0
 }
 
 // openItemActions opens the menu of what is at the pointer, or, from the
@@ -274,9 +296,13 @@ func (m *Model) openItemActions(at image.Point, pointer bool) tea.Cmd {
 			}
 			v.click(at.X, at.Y, m.width, m.bodyHeight())
 		} else {
-			at = image.Pt(0, 0)
+			at = v.cursorCell()
 		}
-		return m.openActions(v.ref(), m.cellEntries(), at)
+		title := v.ref()
+		if value := oneLine(v.value()); value != "" {
+			title += " · " + ansi.Truncate(safe(value), actionsMaxW-4-ansi.StringWidth(title)-3, "…")
+		}
+		return m.openActions(title, m.cellEntries(), at)
 	}
 	return nil
 }

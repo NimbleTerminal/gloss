@@ -153,3 +153,18 @@ func TestActionMenuKeepsTheMouseOn(t *testing.T) {
 		t.Fatalf("mouse mode with the menu open = %v", mode)
 	}
 }
+
+// On a screen narrower than the widest box, the box narrows with it.
+func TestActionMenuFitsANarrowScreen(t *testing.T) {
+	m, _ := menuWith(t, image.Pt(3, 3))
+	m.actions.title = strings.Repeat("A long title for a picture ", 3)
+	m.Update(tea.WindowSizeMsg{Width: 28, Height: 20})
+	for i, row := range rows(m) {
+		if w := ansi.StringWidth(row); w > 28 {
+			t.Fatalf("row %d is %d cells: %q", i, w, row)
+		}
+	}
+	if box := m.actions.box; box.Empty() || box.Max.X > 28 {
+		t.Fatalf("box %v", box)
+	}
+}

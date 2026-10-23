@@ -430,7 +430,8 @@ func rectsEqual(a, b []image.Rectangle) bool {
 }
 
 func (m *Model) clearTypesetFocus() {
-	m.typesetFocus, m.typesetFocusIndex, m.typesetTabPending = nil, 0, 0
+	m.typesetFocus, m.typesetFocusIndex = nil, 0
+	m.typesetTabPending, m.typesetAhead = 0, false
 }
 
 // typesetFocused is the index of the focused item on the typeset page; -1
@@ -448,8 +449,9 @@ func (m *Model) typesetFocused() int {
 }
 
 // moveTypesetFocus is moveFocus on the typeset page. Its items are those
-// laid so far: when the next one is further down than that, the page goes a
-// screen down and the step is taken again on the view that comes back.
+// laid so far: when the next one is further down than that, the layout goes
+// on to it, the view staying, and the step is taken again on the view that
+// comes back.
 func (m *Model) moveTypesetFocus(step int) tea.Cmd {
 	shown := m.typesetShown
 	if shown == nil {
@@ -479,9 +481,7 @@ func (m *Model) moveTypesetFocus(step int) tea.Cmd {
 		}
 	}
 	if (len(items) == 0 || at >= len(items)) && !m.typesetDone {
-		m.typesetTabPending = step
-		m.typesetGoTop = -1
-		m.typesetTop += max(1, m.typesetViewport().Height>>m.zoom)
+		m.typesetTabPending, m.typesetAhead = step, true
 		return m.queueTypesetReflow()
 	}
 	if len(items) == 0 {
@@ -575,10 +575,13 @@ func (m *Model) typesetPageItem(it document.TypesetItem) pageItem {
 	return pageItem{kind: itemTable, cells: it.Cells, rects: it.Rects}
 }
 
-// typesetPictureShown is a picture on the typeset page as it is on screen,
-// cut from the page picture, playing frame and all; its still when it is
-// not all on screen.
+// typesetPictureShown is a picture on the typeset page: a still at its own
+// size, and one that plays as it is on screen, cut from the page picture
+// at its frame; its still when it is not all on screen.
 func (m *Model) typesetPictureShown(it document.TypesetItem) image.Image {
+	if !it.Animated {
+		return it.Image
+	}
 	frame := m.typesetExportFrame()
 	if frame == nil || m.source == nil || m.typesetShown == nil || m.typesetShown.Width <= 0 || frame.Bounds() != m.source.Bounds() {
 		return it.Image

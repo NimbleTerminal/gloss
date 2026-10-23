@@ -105,9 +105,9 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	default:
 		body, plain = m.pictureView(), false
 		exact = !m.quitting && m.pictureExact(w, h)
-		if m.typeset != nil {
+		if m.typeset != nil || m.pictureMouse() {
 			mouse = tea.MouseModeCellMotion
-			if len(m.typesetLinks) > 0 && !m.isPreview && m.layer == layerNone {
+			if m.typeset != nil && len(m.typesetLinks) > 0 && !m.isPreview && m.layer == layerNone {
 				mouse = tea.MouseModeAllMotion
 			}
 		}
@@ -464,6 +464,9 @@ func (m *Model) hints() string {
 		case !m.booked():
 			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p files · c columns · i info · a actions"
 		}
+		if m.sheet.rows() == 0 {
+			keys = strings.TrimSuffix(keys, " · a actions") // An empty sheet has no cell to act on.
+		}
 		if m.sheet.url() != "" && m.opts.Fetch != nil {
 			keys = " Enter open address ·" + strings.TrimPrefix(keys, " q quit ·")
 		}
@@ -481,8 +484,10 @@ func (m *Model) hints() string {
 			keys += " · c parts"
 		}
 	}
-	if _, ok := m.viewPicture(); ok {
-		keys += " · a actions"
+	if p, ok := m.viewPicture(); ok {
+		if len(m.pictureEntries(p)) > 0 {
+			keys += " · a actions"
+		}
 	} else if m.tabItems() {
 		keys += " · Tab items · a actions"
 	}

@@ -96,9 +96,11 @@ func TestOpenTableWithListsGlossFirst(t *testing.T) {
 			t.Fatalf("Copy path is listed: %q", names)
 		}
 	}
-	// The cursor starts on the host's default; gloss is above it. d on
-	// gloss is no default; Enter opens the sheet.
-	m.Update(press("k"))
+	// The cursor starts on gloss, whatever the host's default. d on gloss
+	// is no default; Enter opens the sheet.
+	if p.cursor != 0 {
+		t.Fatalf("cursor on %q", names[p.cursor])
+	}
 	m.Update(press("d"))
 	if m.note != "This action cannot be a default" {
 		t.Fatalf("note %q", m.note)

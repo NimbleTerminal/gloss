@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"image"
 	"slices"
 	"strconv"
 	"strings"
@@ -219,6 +220,16 @@ func (v *sheetView) rowText() string {
 
 // url is the web address under the cursor, if any.
 func (v *sheetView) url() string { return v.sheet.URL(v.at[0], v.column()) }
+
+// cursorCell is where the cursor's cell is drawn, as cellAt measures it:
+// the space before its column, on its row.
+func (v *sheetView) cursorCell() image.Point {
+	x := v.gutter()
+	for p := v.col; p < v.at[1] && p < len(v.cols); p++ {
+		x += 1 + v.widths[v.cols[p]]
+	}
+	return image.Pt(x, v.at[0]-v.row+1)
+}
 
 // cellAt is the cell drawn at x, y of a grid w cells wide, as view draws it:
 // the header of column letters on the first row, then the rows under the

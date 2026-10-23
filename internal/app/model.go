@@ -161,6 +161,7 @@ type textState struct {
 	typesetFocusIndex       int                    // Its place in typesetItems, to find it again after a reflow.
 	typesetFocusShown       []image.Rectangle      // The focus the shown picture outlines.
 	typesetTabPending       int                    // A Tab step to take again on the next page view, which lays more.
+	typesetAhead            bool                   // Ask the next page view to lay on to the next item.
 	chopLines               bool                   // Cut long lines at the right edge instead of wrapping them.
 	typesetShown            *document.TypesetViewport
 	typesetTheme            string
@@ -803,6 +804,19 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 				m.markdown.scroll(-3)
 			} else if v.Button == tea.MouseWheelDown {
 				m.markdown.scroll(3)
+			}
+			return nil
+		}
+		if m.pictureMouse() {
+			// What the terminal sent for the wheel before the picture took
+			// the mouse.
+			switch v.Button {
+			case tea.MouseWheelUp:
+				cmd, _ := m.key(tea.KeyPressMsg{Code: tea.KeyUp})
+				return cmd
+			case tea.MouseWheelDown:
+				cmd, _ := m.key(tea.KeyPressMsg{Code: tea.KeyDown})
+				return cmd
 			}
 			return nil
 		}

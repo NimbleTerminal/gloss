@@ -12,8 +12,9 @@ import (
 
 const supported = true
 
-// command prefers wl-copy under Wayland, else xclip. Both leave a process
-// behind to serve the clipboard, so neither is waited for beyond its start.
+// command prefers wl-copy under Wayland, else xclip. Both fork a process
+// to serve the clipboard and exit, so waiting for the tool is waiting for
+// that fork.
 func command(ctx context.Context, file string) (*exec.Cmd, error) {
 	if os.Getenv("WAYLAND_DISPLAY") != "" {
 		if wlcopy, err := lookPath("wl-copy"); err == nil {
