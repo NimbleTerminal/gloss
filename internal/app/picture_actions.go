@@ -243,7 +243,7 @@ func (m *Model) itemsHere() bool {
 		return false
 	}
 	_, ok := m.viewPicture()
-	return ok || m.tabItems()
+	return ok || m.tabItems() || (m.sheet != nil && m.sheet.rows() > 0)
 }
 
 // openItemActions opens the menu of what is at the pointer, or, from the
@@ -263,6 +263,20 @@ func (m *Model) openItemActions(at image.Point, pointer bool) tea.Cmd {
 	}
 	if m.tabItems() {
 		return m.markdownItemActions(at, pointer)
+	}
+	if v := m.sheet; v != nil {
+		if pointer {
+			// A right-click selects the cell first; the header, the row
+			// numbers and what is past the cells are not cells.
+			row, place, ok := v.cellAt(at.X, at.Y, m.width, m.bodyHeight())
+			if !ok || row < 0 || place < 0 {
+				return nil
+			}
+			v.click(at.X, at.Y, m.width, m.bodyHeight())
+		} else {
+			at = image.Pt(0, 0)
+		}
+		return m.openActions(v.ref(), m.cellEntries(), at)
 	}
 	return nil
 }

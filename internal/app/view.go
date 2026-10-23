@@ -457,12 +457,12 @@ func (m *Model) hints() string {
 		}
 		keys += " · S " + map[bool]string{false: "chop", true: "wrap"}[m.markdown.chop] + " · " + selectHint()
 	case m.sheet != nil:
-		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info"
+		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info · a actions"
 		switch {
 		case m.kind == "grist":
-			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p tables · c columns · i info"
+			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p tables · c columns · i info · a actions"
 		case !m.booked():
-			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p files · c columns · i info"
+			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p files · c columns · i info · a actions"
 		}
 		if m.sheet.url() != "" && m.opts.Fetch != nil {
 			keys = " Enter open address ·" + strings.TrimPrefix(keys, " q quit ·")

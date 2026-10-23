@@ -191,6 +191,32 @@ func (v *sheetView) key(k string, w, h int) bool {
 	return true
 }
 
+// ref names the cell under the cursor as the sheet does: B3.
+func (v *sheetView) ref() string {
+	return document.ColumnName(v.column()) + strconv.Itoa(v.at[0]+1)
+}
+
+// value is the text of the cell under the cursor.
+func (v *sheetView) value() string {
+	row := v.sheet.Rows[v.at[0]]
+	if c := v.column(); c < len(row) {
+		return row[c]
+	}
+	return ""
+}
+
+// rowText is the shown cells of the cursor's row, one line, tab-joined.
+func (v *sheetView) rowText() string {
+	row := v.sheet.Rows[v.at[0]]
+	cells := make([]string, len(v.cols))
+	for p, c := range v.cols {
+		if c < len(row) {
+			cells[p] = oneLine(row[c])
+		}
+	}
+	return strings.Join(cells, "\t")
+}
+
 // url is the web address under the cursor, if any.
 func (v *sheetView) url() string { return v.sheet.URL(v.at[0], v.column()) }
 
@@ -320,7 +346,7 @@ func (v *sheetView) status(w, h int) string {
 	if n == 1 {
 		cols = fmt.Sprintf("col %s/%s", document.ColumnName(v.cols[v.col]), end)
 	}
-	out := fmt.Sprintf("cell %s%d · %s · %s", document.ColumnName(v.column()), v.at[0]+1, rows, cols)
+	out := fmt.Sprintf("cell %s · %s · %s", v.ref(), rows, cols)
 	if v.hiding() > 0 {
 		out += fmt.Sprintf(" · cols %d/%d", len(v.cols), len(v.hidden))
 	}
