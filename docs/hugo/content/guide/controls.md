@@ -19,7 +19,8 @@ bookToC: false
 | `o`, `O` | Browse folders for a file to open |
 | `?` with an empty browser filter, or `F1` | Show file-browser help; Esc/F1 returns to the same filter and selection |
 | `w`, `W`, `E`; Alt+Enter in the browser | Open with the default app / choose an app / edit with the default editor; Alt+Enter opens the chooser on **Open with**. In the chooser Tab switches **Open with** and **Edit with**, `d` saves the default for that kind and verb, `m` manages apps (Space toggles, Enter/Esc returns) |
-| `]`, `Tab` / `[`, `Shift-Tab` | Next / previous file |
+| `]` / `[` | Next / previous file. `Tab` / `Shift-Tab` do the same, except in rendered Markdown, where they move between pictures, links and tables |
+| `a`, `Shift-F10`; right-click | [Actions](#actions) for the picture, video, link, table or spreadsheet cell under the pointer or highlighted |
 | `n`, `Space`, `PageDown` / `p`, `b`, `PageUp` | Next / previous PDF page, sheet, or Grist table; next / previous file for other formats |
 | `/` | Search text in the current document; `Enter` submits, `Esc` cancels editing |
 | `n` / `N`, while searching | Next / previous result, wrapping at the ends; `Esc` clears the search |
@@ -36,7 +37,7 @@ bookToC: false
 | `c` | List the columns, to show and hide them: `Space` toggles, `a` all, `n` none |
 | `Enter` | With `--fetch`, open the web address under the cursor |
 | `u` | Show a QR code for the selected table URL; `Esc` or `u` closes it, `g` switches graphics, `e` exports the QR |
-| `Esc` | Close a fetched file and return to its cell |
+| `Esc` | Close a fetched file, or a table opened in gloss, and return to where you were |
 | `+`, `-` | Zoom in / out |
 | Arrows, `h j k l` | Pan zoomed images; orbit meshes |
 | `f`, `0` | Fit image / reset camera |
@@ -67,6 +68,56 @@ In the file browser use Alt+Enter. In the chooser, arrows select, Enter opens,
 Tab switches between **Open with** and **Edit with**, `d` saves the default for
 that kind and verb, and Esc closes.
 See [Open in another app](../using/#open-in-another-app).
+
+## Actions
+
+Right-click a picture, a video, a link, a Markdown table or a spreadsheet cell
+and a small menu opens beside the pointer. The arrows choose, `Enter` acts, a
+click on an entry acts, and `Esc` or a click elsewhere closes it. A right-click on
+anything else does nothing. From the keyboard, `a` or `Shift-F10` opens the menu
+for the highlighted item (below), or for the selected cell, or for the picture
+or video that fills the screen.
+
+In rendered Markdown, in the text and typeset views, and in the documents shown
+as Markdown (Word, HTML, notebooks), `Tab` and `Shift-Tab` move between the
+pictures, links and tables, highlighting each one: reverse video in text, an
+outline in typeset. A far one scrolls into view, and the outline is in an
+`e` export of the viewport. With none, a note says `No pictures, links or tables
+here`. A table is one stop, not one per cell. Everywhere else (plain text,
+source, JSON, the source view of Markdown, pictures, PDFs, sheets, meshes,
+videos) `Tab` still switches files. `]` and `[` switch files everywhere.
+
+What a menu offers:
+
+| On | Entries |
+| --- | --- |
+| A picture or video (an image in a document, an image file, a PDF page, an SVG, a diagram, a GIF) | **Open with…**, **Edit with…**, **Copy image**, **Copy path**; a video adds **Save frame as PNG** |
+| A link | **Open link** (the default browser, as a click does) and **Copy address**. Links that are not web addresses, such as a relative file, offer **Copy address** only. A picture that is also a link has the picture's entries, then these. Footnote references keep their click jumps |
+| A Markdown table | **Open table with…** (gloss first, then the apps that open CSV), **Copy as TSV**, **Copy as Markdown** |
+| A spreadsheet cell | **Copy value**, **Copy row** (TSV); on a cell with an address also **Open in gloss** (with `--fetch`), **Open in browser**, and **Show QR** |
+
+**Open with…** works on the picture's own file, not the document it is in. A
+picture with no file of its own (in a Word file or notebook, a PDF page, an SVG
+or a diagram, a video frame) is written first as a temporary PNG. **Edit with…**
+is left out for any temporary, including standard input, downloads and `--qr`,
+because nothing would save the edits. **Copy path** is left out when the picture
+has no file. Texts are copied with OSC 52, so they work over SSH.
+
+**Copy image** puts what is shown on the system clipboard, as a PNG (a GIF's
+current frame, a page as drawn), to paste into another app. It uses `osascript`
+on macOS, `wl-copy` or `xclip` on Linux and BSD, and PowerShell on Windows; when
+none is there, a note says what to install. Over SSH it copies on the remote
+machine.
+
+**Open table with…** and **Open table in gloss** show the table as a sheet, with
+its cells, columns and search; `Esc` returns to the same place in the document.
+Other apps get a temporary CSV. These files live in a scratch folder that gloss
+removes when it exits.
+
+An entry that cannot work in the host is absent, not greyed out. In the browser
+demo and app and on `--serve` pages there is no **Open with…**, **Edit with…**,
+**Copy image** or table opening, and links offer **Copy address** only, because
+there is no browser opener to call. Previews and the file menu have no actions.
 
 ## Line numbers, going to a line, and long lines
 

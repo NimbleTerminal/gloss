@@ -221,6 +221,14 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   and typesetting, including searchable note bodies. Click a footnote reference
   to jump to its note and a back link to return to that occurrence; these are
   document-local jumps, independent of the host's browser opener.
+  Rendered Markdown (text, typeset, and Word/HTML/notebooks shown as Markdown)
+  has page items (`internal/app/items.go`: pictures, links, tables, each with
+  its rows or typeset rectangles). Tab and Shift-Tab move between them, drawn in
+  reverse video or as an outline in the typeset raster (and in `e` exports); with
+  none, a note. Everywhere else Tab still switches files; `]`/`[` always do.
+  `a`, Shift-F10 or a right-click opens `layerActions` (`actions.go`): a menu of
+  `menuEntry`s per item (`picture_actions.go`, `table_actions.go`,
+  `sheet_actions.go`); entries that cannot work in the host are absent.
   `--typeset` uses nttypeset (go-text, Chroma) and ntfonts' embedded OFL font subsets,
   without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
   width after a 30 ms debounce, cancels stale jobs and keeps the old image
@@ -363,6 +371,13 @@ only lists choices, one row per kind and verb (`verb`, `terminal`; `available`
 is always true; `default` is `system` (open rows only), an app ID such as `mac:…`/`xdg:…`, a bare terminal-app ID such as `vim`, or empty when there is no default: `E` opens the chooser, or nothing can edit it; `apps` can also hold `reveal` on open rows and `terminal-editor` or terminal apps on edit rows of text kinds);
 its result is included in `gloss skill schema`. Temporary files retain their
 original lifetime. No headless launch option.
+Tables in Markdown open through the same chooser as a temporary CSV with gloss
+first, or in gloss itself as a sheet (`table_actions.go`, like a fetched file;
+Esc returns to the same place). `Options.Scratch` (`cmd/gloss/scratch.go`) writes
+these and pictures with no file (never overwriting) into a folder removed at
+exit; it and `Options.CopyImage` (`internal/clipimage`: osascript, wl-copy or
+xclip, PowerShell) are nil in browser, serve and headless hosts. Edit with is
+never offered for a temporary.
 
 Program status (OSC 7501): the pager and handoff screen set
 `View.ProgramStatus` on gloss's root record, `app=gloss`
@@ -384,7 +399,8 @@ preview pane (`--preview` or `v`), file browser (`o`), drag-and-drop and
 bracketed-paste path input, zoom/pan, per-format info box (`i`), PNG export of
 the current view (`e`), mesh orbit/pan/zoom, ortho/perspective toggle, mesh
 color picker (`C`, `--color`), background color picker (`B`), reload (`R`;
-`r` for non-mesh documents), and mesh auto-rotation (`r`).
+`r` for non-mesh documents), and mesh auto-rotation (`r`). `a` (or Shift-F10, or right-click) opens the actions
+menu for the picture, video, link, table or sheet cell at hand.
 
 `/` starts literal, case-insensitive document search; `Enter` submits, `n`/`N`
 visit text occurrences, visible-column cells in the current sheet, or

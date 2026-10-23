@@ -33,7 +33,7 @@ var helpLeft = []helpSection{
 	}},
 	{"Text", []helpRow{
 		{"t  s  f", "typeset / text · source · fonts"},
-		{"Tab", "next picture, link or table"},
+		{"Tab", "next item in Markdown · else file"},
 		{"#  :  S", "line numbers · go to · chop"},
 		{"drag + y", "select + copy typeset text"},
 		{"Shift-drag", "select in text views"},

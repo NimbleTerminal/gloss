@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Right-click a picture, video, link, Markdown table or spreadsheet cell (or `a`,
+  or Shift-F10) for a menu: open or edit a picture with another app, copy an
+  image to the clipboard, copy a path, address, value, row or table, open a table
+  as a sheet in gloss or another app, show a cell's address as a QR code.
+- In rendered Markdown, Tab and Shift-Tab move between pictures, links and
+  tables, highlighted, instead of switching files; `]` and `[` switch files
+  everywhere, and Tab does elsewhere.
 - Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV, through ntvideo and mpv's library
   (`brew install mpv`). They open paused on the first frame; Space plays,
   ←/→ seek, and the bottom row is a scrub bar. With FFmpeg installed, `i` and
