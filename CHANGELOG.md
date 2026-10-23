@@ -2,13 +2,6 @@
 
 ## Unreleased
 
-- Hovering a link on a typeset page tints it, every line of it, as well as
-  showing its address in the status bar. A theme's `hover` color sets the
-  tint; without one it is the selection color halfway to the page.
-  nttypeset v0.1.3.
-- Quitting with the mouse moving no longer leaves mouse reports, such as
-  `35;61;18M`, typed at the shell prompt.
-
 ## `v0.5.0` (2026-10-23)
 
 - Play videos: MP4, M4V, MOV, WebM, MKV, Ogg (Theora), AVI, MPEG, WMV and FLV,
@@ -42,6 +35,9 @@
 - In rendered Markdown, text or typeset, Tab and Shift-Tab move between
   pictures, links and tables, highlighted, instead of switching files. `]` and
   `[` switch files everywhere, and Tab still does elsewhere.
+- Hovering a link on a typeset page tints it, every line of it, as well as
+  showing its address in the status bar. A theme's `hover` color sets the
+  tint; without one it is the selection color halfway to the page.
 - The Open with and Edit with choices open in a box over the screen, which
   stays in view, rather than in place of it.
 - Click a file in the file menu to select it, and again to open it; the wheel
@@ -52,7 +48,9 @@
   ⌥-drag in iTerm2, since gloss takes plain drags for the wheel and clicks.
 - Fixes: selecting text on a typeset page drawn with glyphs starts and ends
   under the pointer, as hovering a link does, and the page fills the screen.
-- Internals: video comes from ntvideo v0.3.0; nttypeset v0.1.2.
+  Quitting with the mouse moving no longer leaves mouse reports, such as
+  `35;61;18M`, typed at the shell prompt.
+- Internals: video comes from ntvideo v0.3.0; nttypeset v0.1.3.
 
 ## `v0.4.0` (2026-10-21)
 
