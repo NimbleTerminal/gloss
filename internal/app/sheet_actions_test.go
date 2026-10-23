@@ -27,7 +27,7 @@ func TestCellEntries(t *testing.T) {
 	m := addressSheet(t)
 	m.opts.Fetch = func(string) (string, error) { return "", nil }
 	m.opts.OpenLink = func(string) error { return nil }
-	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Open in gloss, Open in browser, Show QR" {
+	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Open in gloss, Save linked file, Open in browser, Show QR" {
 		t.Fatalf("all hosts: %s", got)
 	}
 

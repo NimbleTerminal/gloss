@@ -255,7 +255,7 @@ func (m *Model) itemsHere() bool {
 		return false // A prompt has the keys, or the view is not here yet.
 	}
 	_, ok := m.viewPicture()
-	return ok || m.tabItems() || (m.sheet != nil && m.sheet.rows() > 0)
+	return ok || m.tabItems() || m.markdown != nil || (m.sheet != nil && m.sheet.rows() > 0)
 }
 
 // pictureMouse says the view is a picture with a menu, which takes the
@@ -287,6 +287,9 @@ func (m *Model) openItemActions(at image.Point, pointer bool) tea.Cmd {
 	}
 	if m.tabItems() {
 		return m.markdownItemActions(at, pointer)
+	}
+	if m.markdown != nil && pointer {
+		return m.bareLinkActions(at) // Text, source and JSON have no items but addresses.
 	}
 	if v := m.sheet; v != nil {
 		if pointer {

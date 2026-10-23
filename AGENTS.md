@@ -231,7 +231,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Everywhere else Tab still switches files; `]`/`[` always do.
   `a`, Shift-F10 or a right-click opens `layerActions` (`actions.go`): a menu of
   `menuEntry`s per item (`picture_actions.go`, `table_actions.go`,
-  `sheet_actions.go`); entries that cannot work in the host are absent. A
+  `sheet_actions.go`); entries that cannot work in the host are absent. A web
+  address written out in any text view (`bareLinkAt`, `links.go`) gets a link's
+  menu on a right-click. A
   whole-view picture with entries takes the mouse (`pictureMouse`), and the
   wheel then acts as the up/down keys.
   `--typeset` uses nttypeset (go-text, Chroma) and ntfonts' embedded OFL font subsets,
@@ -305,7 +307,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `cmd/gloss/fetch.go`, resolved in `parse`). `GLOSS_NO_FETCH`, set and not empty,
   refuses address arguments and `--fetch`. With `--fetch`, `Enter` on a
   table cell holding an http(s) address, or dropping/pasting one URL,
-  downloads and opens it.
+  downloads and opens it; so do a link's or an address cell's **Open in gloss**,
+  and **Save linked file** (`saveLink`) keeps the download in the working
+  folder as an export is kept (`Options.Save`, numbered), removing the fetched copy.
   Table addresses are marked 🔗 and drawn as terminal hyperlinks (OSC 8), so
   the terminal opens them in a browser when clicked. URL drops on `--serve`
   pages also require `--fetch`. The public landing demo and app enable URL

@@ -25,9 +25,7 @@ func (m *Model) cellEntries() []menuEntry {
 	if address == "" {
 		return entries
 	}
-	if m.opts.Fetch != nil {
-		entries = append(entries, menuEntry{"Open in gloss", func(m *Model) tea.Cmd { return m.open(address) }})
-	}
+	entries = append(entries, fetchEntries(m, address)...)
 	if m.opts.OpenLink != nil && webLink(address) != "" {
 		entries = append(entries, menuEntry{"Open in browser", func(m *Model) tea.Cmd {
 			open, generation := m.opts.OpenLink, m.generation

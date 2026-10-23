@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/charmbracelet/x/ansi"
 	"image"
 	"image/png"
 	"os"
@@ -329,5 +330,116 @@ func TestTallPictureHitsOnlyWhereDrawn(t *testing.T) {
 	}
 	if got, ok := m.markdown.itemAt(pic.cols[0], row); !ok || got.kind != itemPicture {
 		t.Fatal("the picture itself is not hit")
+	}
+}
+
+func TestBareURLAt(t *testing.T) {
+	for _, c := range []struct {
+		text string
+		at   int
+		want string
+	}{
+		{"see https://e.org/x.", 6, "https://e.org/x"},
+		{"see https://e.org/x.", 19, ""}, // The full stop.
+		{"(https://e.org/a_(b))", 3, "https://e.org/a_(b)"},
+		{"(https://e.org/)", 3, "https://e.org/"},
+		{"ftp://e.org/", 3, ""},
+		{"no address here", 3, ""},
+	} {
+		if got := bareURLAt(c.text, c.at); got != c.want {
+			t.Errorf("%q at %d: %q, want %q", c.text, c.at, got, c.want)
+		}
+	}
+}
+
+// cellOf finds where a string is drawn in the view, as x, y.
+func cellOf(t *testing.T, m *Model, s string) (int, int) {
+	t.Helper()
+	for y, line := range rows(m) {
+		if i := strings.Index(line, s); i >= 0 {
+			return ansi.StringWidth(line[:i]), y
+		}
+	}
+	t.Fatalf("%q is not on screen:\n%s", s, strings.Join(rows(m), "\n"))
+	return 0, 0
+}
+
+// A web address written out in text, not a link, takes a right-click too:
+// whole, though it wraps, in the source view as in rendered Markdown.
+func TestRightClickBareAddress(t *testing.T) {
+	const address = "https://example.org/a/long/path/that/wraps/onto/the/next/row"
+	m := searchDocument(t, "Read "+address+" today.")
+	m.Update(tea.WindowSizeMsg{Width: 40, Height: 20})
+	x, y := cellOf(t, m, "onto")
+	send(m, tea.MouseClickMsg{X: x, Y: y, Button: tea.MouseRight})
+	if m.layer != layerActions || m.actions.title != address {
+		t.Fatalf("source view: layer %v, menu %+v", m.layer, m.actions)
+	}
+	if got := strings.Join(entryLabels(m.actions.entries), ", "); got != "Copy address" {
+		t.Fatalf("entries without a browser: %s", got)
+	}
+
+	m = renderedDocument(t, "Read "+address+" today.")
+	m.opts.OpenLink = func(string) error { return nil }
+	x, y = cellOf(t, m, "example.org")
+	send(m, tea.MouseClickMsg{X: x, Y: y, Button: tea.MouseRight})
+	if m.layer != layerActions || m.actions.title != address {
+		t.Fatalf("rendered: layer %v, menu %+v", m.layer, m.actions)
+	}
+	if got := strings.Join(entryLabels(m.actions.entries), ", "); got != "Open, Copy address" {
+		t.Fatalf("entries with a browser: %s", got)
+	}
+
+	m = renderedDocument(t, "Read "+address+" today.")
+	x, y = cellOf(t, m, "Read")
+	send(m, tea.MouseClickMsg{X: x, Y: y, Button: tea.MouseRight})
+	if m.layer != layerNone || m.note != "" {
+		t.Fatalf("a right-click on words: layer %v, note %q", m.layer, m.note)
+	}
+}
+
+// With --fetch, a web link can be opened in gloss or saved; saving keeps
+// the download in the working folder, numbered beside a file of that name,
+// and leaves no download behind.
+func TestSaveLinkedFile(t *testing.T) {
+	const address = "https://e.org/notes.txt"
+	m := renderedDocument(t, "[notes]("+address+")")
+	if got := strings.Join(entryLabels(linkEntries(m, address, "Open")), ", "); got != "Copy address" {
+		t.Fatalf("without --fetch: %s", got)
+	}
+	downloads, kept := t.TempDir(), t.TempDir()
+	var fetched string
+	m.opts.Fetch = func(a string) (string, error) {
+		fetched = filepath.Join(downloads, "notes.txt")
+		return fetched, os.WriteFile(fetched, []byte("hello"), 0600)
+	}
+	if err := os.WriteFile(filepath.Join(kept, "notes.txt"), []byte("mine"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	m.opts.Save = func(name string, data []byte) (string, error) { return saveFile(kept, name, data) }
+	entries := linkEntries(m, address, "Open")
+	if got := strings.Join(entryLabels(entries), ", "); got != "Open in gloss, Save linked file, Copy address" {
+		t.Fatalf("with --fetch: %s", got)
+	}
+	if got := entryLabels(linkEntries(m, "mailto:a@e.org", "Open")); len(got) != 1 {
+		t.Fatalf("a mail address is fetched: %v", got)
+	}
+	drainAnimation(t, m, entries[1].do(m))
+	if !strings.HasPrefix(m.note, "saved notes") || m.note == "saved notes.txt" {
+		t.Fatalf("note %q", m.note)
+	}
+	mine, err := os.ReadFile(filepath.Join(kept, "notes.txt"))
+	if err != nil || string(mine) != "mine" {
+		t.Fatalf("the file there was overwritten: %q %v", mine, err)
+	}
+	saved, err := os.ReadFile(filepath.Join(kept, strings.TrimPrefix(m.note, "saved ")))
+	if err != nil || string(saved) != "hello" {
+		t.Fatalf("saved %q, %v", saved, err)
+	}
+	if _, err := os.Stat(fetched); !os.IsNotExist(err) {
+		t.Fatal("the download was left behind")
+	}
+	if m.fetching {
+		t.Fatal("still fetching")
 	}
 }

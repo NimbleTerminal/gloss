@@ -3,6 +3,7 @@ package app
 import (
 	"image"
 	"net/url"
+	"regexp"
 	"strings"
 	"unicode"
 
@@ -142,6 +143,87 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 // linkEntries lists what can be done with a link: open it in the browser,
 // called label, when it is a web address and the host has one, and copy
 // its address.
+// fetchEntries are what --fetch allows with a web address: downloading it
+// to show in gloss, or to keep.
+func fetchEntries(m *Model, address string) []menuEntry {
+	if m.opts.Fetch == nil || webLink(address) == "" {
+		return nil
+	}
+	return []menuEntry{
+		{"Open in gloss", func(m *Model) tea.Cmd { return m.open(address) }},
+		{"Save linked file", func(m *Model) tea.Cmd { return m.saveLink(address) }},
+	}
+}
+
+// bareURL is a web address written out in text, not made a link.
+var bareURL = regexp.MustCompile(`https?://[^\s<>"'` + "`" + `]+`)
+
+// bareURLAt is the web address written in text that covers byte at, without
+// the punctuation a sentence puts after it; empty when there is none.
+func bareURLAt(text string, at int) string {
+	for _, span := range bareURL.FindAllStringIndex(text, -1) {
+		if at < span[0] || at >= span[1] {
+			continue
+		}
+		address := trimAddress(text[span[0]:span[1]])
+		if at >= span[0]+len(address) {
+			return "" // On the punctuation after it.
+		}
+		return webLink(address)
+	}
+	return ""
+}
+
+// trimAddress drops what a sentence puts after an address: its
+// punctuation, and a closing bracket the address did not open.
+func trimAddress(address string) string {
+	for {
+		before := address
+		address = strings.TrimRight(address, ".,;:!?")
+		if i := strings.IndexAny(")]}", address[len(address)-1:]); len(address) > 0 && i >= 0 {
+			if strings.Count(address, "([{"[i:i+1]) < strings.Count(address, ")]}"[i:i+1]) {
+				address = address[:len(address)-1]
+			}
+		}
+		if address == before {
+			return address
+		}
+	}
+}
+
+// bareLinkAt is the web address written out in the text at cell x, y of
+// the view, found in the logical line, so that one wrapped across rows is
+// whole.
+func (v *markdownView) bareLinkAt(x, y int) string {
+	row := v.offset + y
+	if x < 0 || y < 0 || y >= v.height || row >= len(v.lines) || v.lines[row].image >= 0 {
+		return ""
+	}
+	line := v.lines[row]
+	plain := ansi.Strip(line.text)
+	col := x - v.gutter + v.left
+	if col < 0 || col >= ansi.StringWidth(plain) {
+		return ""
+	}
+	at := len(ansi.Cut(plain, 0, col))
+	for _, span := range line.spans {
+		if at >= span.offset && at < span.offset+span.end-span.start {
+			return bareURLAt(v.content.units[span.unit].plain, span.start+at-span.offset)
+		}
+	}
+	return ""
+}
+
+// bareLinkActions opens the menu of a web address written out in text at
+// the pointer: Open and Copy address, as a link's.
+func (m *Model) bareLinkActions(at image.Point) tea.Cmd {
+	address := m.markdown.bareLinkAt(at.X, at.Y)
+	if address == "" {
+		return nil
+	}
+	return m.openActions(address, linkEntries(m, address, "Open"), at)
+}
+
 func linkEntries(m *Model, url string, label string) []menuEntry {
 	var entries []menuEntry
 	if webLink(url) != "" && m.opts.OpenLink != nil {
@@ -150,6 +232,7 @@ func linkEntries(m *Model, url string, label string) []menuEntry {
 			return func() tea.Msg { return linkOpened{generation, open(url)} }
 		}})
 	}
+	entries = append(entries, fetchEntries(m, url)...)
 	return append(entries, menuEntry{"Copy address", func(m *Model) tea.Cmd {
 		m.note = "Address copied"
 		return tea.SetClipboard(url)

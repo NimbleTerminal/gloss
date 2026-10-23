@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Right-click a web address written out in text, source, JSON or Markdown to open it or copy it, as a link.
+- With `--fetch`, a link's or an address cell's menu also opens it in gloss or
+  saves the linked file in the current folder, never over another file.
 - Right-click a picture, video, link, Markdown table or spreadsheet cell (or `a`,
   or Shift-F10) for a menu: open or edit a picture with another app, copy an
   image to the clipboard, copy a path, address, value, row or table, open a table

@@ -770,6 +770,9 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 			m.opener.find.answered(v)
 		}
 		return nil
+	case linkSaved:
+		m.linkSavedNote(v)
+		return nil
 	case fetchResult:
 		return m.fetchedFile(v)
 	case partsResult:

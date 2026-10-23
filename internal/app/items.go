@@ -415,7 +415,7 @@ func (m *Model) markdownItemActions(at image.Point, pointer bool) tea.Cmd {
 	if pointer {
 		it, ok := v.itemAt(at.X, at.Y)
 		if !ok {
-			return nil
+			return m.bareLinkActions(at)
 		}
 		v.focus = &it
 	} else {

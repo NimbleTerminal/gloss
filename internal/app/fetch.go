@@ -1,6 +1,7 @@
 package app
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -71,6 +72,65 @@ func (m *Model) fetchedFile(r fetchResult) tea.Cmd {
 	m.fetched = append(m.fetched, fetchedDoc{path: r.path, from: m.index, sheet: m.sheet})
 	m.note = "fetched " + safe(filepath.Base(r.path))
 	return m.addDropped(dropResult{files: []string{r.path}})
+}
+
+// linkSaved is a linked file downloaded and kept, under the name given.
+type linkSaved struct {
+	address, name string
+	err           error
+}
+
+// saveLink downloads what address names and keeps it as an export is kept:
+// in the working directory, numbered rather than over another file.
+// Nothing is fetched unless --fetch allowed it.
+func (m *Model) saveLink(address string) tea.Cmd {
+	if m.opts.Fetch == nil {
+		m.note = "run with --fetch to save linked files"
+		return nil
+	}
+	if m.fetching {
+		m.note = "a document is already being fetched"
+		return nil
+	}
+	m.fetching = true
+	fetch, accept, files, save := m.opts.Fetch, m.opts.Accept, m.opts.FilesFS, m.opts.Save
+	if save == nil {
+		save = func(name string, data []byte) (string, error) { return saveFile(".", name, data) }
+	}
+	m.note = "downloading " + safe(address)
+	return func() tea.Msg {
+		path, err := fetch(address)
+		if err != nil {
+			return linkSaved{address: address, err: err}
+		}
+		// The download is only on its way to the copy kept.
+		if files == nil {
+			defer os.Remove(path)
+		}
+		if err := accept.CheckFile(files, path); err != nil {
+			return linkSaved{address: address, err: err}
+		}
+		var data []byte
+		if files != nil {
+			data, err = fs.ReadFile(files, path)
+		} else {
+			data, err = os.ReadFile(path)
+		}
+		if err != nil {
+			return linkSaved{address: address, err: err}
+		}
+		name, err := save(filepath.Base(path), data)
+		return linkSaved{address: address, name: name, err: err}
+	}
+}
+
+func (m *Model) linkSavedNote(r linkSaved) {
+	m.fetching = false
+	if r.err != nil {
+		m.note = "save failed: " + safe(r.err.Error())
+		return
+	}
+	m.note = "saved " + safe(r.name)
 }
 
 // isFetched says whether the file on screen came from a cell.
