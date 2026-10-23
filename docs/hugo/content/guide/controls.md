@@ -91,17 +91,19 @@ What a menu offers:
 
 | On | Entries |
 | --- | --- |
-| A picture or video (an image in a document, an image file, a PDF page, an SVG, a diagram, a GIF) | **Open with…**, **Edit with…**, **Copy image**, **Copy path**; a video adds **Save frame as PNG** |
+| A picture or video (an image in a document, an image file, a PDF page, an SVG, a diagram, a GIF) | **Open with…**, **Edit with…**, **Copy image**, **Copy path**; a video has no **Edit with…** and adds **Save frame as PNG** |
 | A link | **Open** (the default browser, as a click does) and **Copy address**. Links that are not web addresses, such as a relative file, offer **Copy address** only. A picture that is also a link has the picture's entries, then these, with **Open** reading **Open link**. Footnote references keep their click jumps |
 | A Markdown table | **Open table with…** (gloss first, then the apps that open CSV), **Copy as TSV**, **Copy as Markdown** |
 | A spreadsheet cell | **Copy value**, **Copy row** (TSV); on a cell with an address also **Open in gloss** (with `--fetch`), **Open in browser**, and **Show QR** |
 
-**Open with…** works on the picture's own file, not the document it is in. A
-picture with no file of its own (in a Word file or notebook, a PDF page,
-a diagram, a video frame) is written first as a temporary PNG. **Edit with…**
-is left out for any temporary, including standard input, downloads and `--qr`,
-because nothing would save the edits. **Copy path** is left out when the picture
-has no file. Texts are copied with OSC 52, so they work over SSH.
+**Open with…** works on the picture's own file, not the document it is in; an
+SVG or Mermaid file opens as its source. A PDF page, a picture inside a Word
+file or notebook, a diagram inside a document, and a video frame are written
+first as a temporary PNG, and that is what opens. **Edit with…** is left out
+for a video and for any temporary, including standard input, downloads and
+`--qr`, because nothing would save the edits. **Copy path** is the video's own
+file for a video, and is left out when the picture has no file, and in the
+browser. Texts are copied with OSC 52, so they work over SSH.
 
 **Copy image** puts what is shown on the system clipboard, as a PNG (a GIF's
 current frame, a page as drawn), to paste into another app. It uses `osascript`

@@ -223,12 +223,17 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   document-local jumps, independent of the host's browser opener.
   Rendered Markdown (text, typeset, and Word/HTML/notebooks shown as Markdown)
   has page items (`internal/app/items.go`: pictures, links, tables, each with
-  its rows or typeset rectangles). Tab and Shift-Tab move between them, drawn in
-  reverse video in text, or an outline in the typeset raster (only the outline reaches `e` exports); with
-  none, a note. Everywhere else Tab still switches files; `]`/`[` always do.
+  its rows or typeset rectangles). Tab and Shift-Tab move between them, drawn
+  in reverse video in text, or an outline in the typeset raster (only the
+  outline reaches `e` exports); with none, a note. A Tab past the typeset
+  items laid so far asks for `TypesetViewport.Ahead`, which lays on to the
+  next item's block without moving the view; any other key gives it up.
+  Everywhere else Tab still switches files; `]`/`[` always do.
   `a`, Shift-F10 or a right-click opens `layerActions` (`actions.go`): a menu of
   `menuEntry`s per item (`picture_actions.go`, `table_actions.go`,
-  `sheet_actions.go`); entries that cannot work in the host are absent.
+  `sheet_actions.go`); entries that cannot work in the host are absent. A
+  whole-view picture with entries takes the mouse (`pictureMouse`), and the
+  wheel then acts as the up/down keys.
   `--typeset` uses nttypeset (go-text, Chroma) and ntfonts' embedded OFL font subsets,
   without PDF/PDFium. It scrolls continuously, reflows at a bounded viewport
   width after a 30 ms debounce, cancels stale jobs and keeps the old image
@@ -399,8 +404,9 @@ preview pane (`--preview` or `v`), file browser (`o`), drag-and-drop and
 bracketed-paste path input, zoom/pan, per-format info box (`i`), PNG export of
 the current view (`e`), mesh orbit/pan/zoom, ortho/perspective toggle, mesh
 color picker (`C`, `--color`), background color picker (`B`), reload (`R`;
-`r` for non-mesh documents), and mesh auto-rotation (`r`). `a` (or Shift-F10, or right-click) opens the actions
-menu for the picture, video, link, table or sheet cell at hand.
+`r` for non-mesh documents), and mesh auto-rotation (`r`). `a` (or
+Shift-F10, or right-click) opens the actions menu for the picture, video,
+link, table or sheet cell at hand.
 
 `/` starts literal, case-insensitive document search; `Enter` submits, `n`/`N`
 visit text occurrences, visible-column cells in the current sheet, or
