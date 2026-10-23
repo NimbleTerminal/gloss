@@ -81,7 +81,9 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	m.skipped = append(m.skipped, r.skipped...)
 	first, added := -1, 0
 	for _, path := range r.files {
-		m.handOver(path)
+		if !m.tableFile(path) {
+			m.handOver(path) // A table's CSV is the viewer's, not the user's to send.
+		}
 		i := m.fileIndex(path)
 		if i < 0 {
 			m.opts.Files = append(m.opts.Files, path)
@@ -170,6 +172,9 @@ func (m *Model) picking() string {
 		return fmt.Sprintf("%d files", len(m.added))
 	case len(m.added) == 1:
 		return safe(filepath.Base(m.added[0]))
+	}
+	if m.tableFile(m.opts.Files[m.index]) {
+		return ""
 	}
 	return safe(filepath.Base(m.opts.Files[m.index]))
 }

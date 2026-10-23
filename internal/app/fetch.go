@@ -13,9 +13,11 @@ type fetchResult struct {
 	err           error
 }
 
-// A file fetched from a cell, which Escape closes, returning to that cell.
+// A file opened from another document, a fetched address or a Markdown
+// table, which Escape closes, returning to where it was opened.
 type fetchedDoc struct {
 	path       string
+	table      bool          // A Markdown table's CSV: the viewer's own, never handed over or picked.
 	from       int           // The document's place in the file list.
 	sheet      *sheetView    // The sheet as it was, cursor included.
 	markdown   *markdownView // The Markdown text view as it was: source or rendered, scrolled.
@@ -23,8 +25,9 @@ type fetchedDoc struct {
 	focus      int           // 1 + the item focused on a Markdown page; 0 for none.
 }
 
-// Fetched lists the files fetched from the web this session, for the
-// caller to remove when gloss is done, unless they were picked.
+// Fetched lists the files opened from other documents this session
+// (downloads and tables' CSVs), for the caller to remove when gloss is done,
+// unless they were picked.
 func (m *Model) Fetched() []string {
 	paths := make([]string, len(m.fetched))
 	for i, f := range m.fetched {

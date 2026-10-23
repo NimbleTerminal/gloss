@@ -147,3 +147,28 @@ func TestOpenTableFromTypesetPage(t *testing.T) {
 		t.Fatalf("back at top %d (want %d), focus %d (want %d)", m.typesetTop, top, focused(m), at)
 	}
 }
+
+// A table's CSV is the viewer's: with --pick, Enter on its sheet sends
+// nothing, and what the user did hand over stays handed over.
+func TestPickDoesNotSendATableCSV(t *testing.T) {
+	m, dir := besideFiles(t, longTable())
+	m.opts.Pick = true
+	m.opts.Scratch = func(name string, data []byte) (string, error) {
+		path := filepath.Join(dir, "scratch-"+name)
+		return path, os.WriteFile(path, data, 0o600)
+	}
+	m.Update(tab)
+	m.Update(press("a"))
+	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
+	drainAnimation(t, m, cmd)
+	if m.sheet == nil || !m.isFetched() {
+		t.Fatalf("not the table's sheet: %v", m.err)
+	}
+	if len(m.added) != 0 || m.picking() != "" {
+		t.Fatalf("the CSV was handed over: added %q, picking %q", m.added, m.picking())
+	}
+	m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
+	if m.Picked() != nil || m.quitting {
+		t.Fatalf("picked %q", m.Picked())
+	}
+}

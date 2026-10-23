@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/csv"
+	"slices"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -76,7 +77,7 @@ func (m *Model) tableSaved(v tableSaved) tea.Cmd {
 // which Esc returns to as it is: where it was scrolled, with the table
 // focused.
 func (m *Model) openTableInGloss(path string) tea.Cmd {
-	f := fetchedDoc{path: path, from: m.index, typesetTop: m.typesetTop, focus: m.focusedItem() + 1}
+	f := fetchedDoc{path: path, table: true, from: m.index, typesetTop: m.typesetTop, focus: m.focusedItem() + 1}
 	if v := m.markdown; v != nil {
 		f.markdown = &markdownView{raw: v.raw, offset: v.offset, left: v.left}
 	}
@@ -84,6 +85,11 @@ func (m *Model) openTableInGloss(path string) tea.Cmd {
 	cmd := m.addDropped(dropResult{files: []string{path}})
 	m.note = "opened table"
 	return cmd
+}
+
+// tableFile says path is a table's CSV, made by the viewer.
+func (m *Model) tableFile(path string) bool {
+	return slices.ContainsFunc(m.fetched, func(f fetchedDoc) bool { return f.table && f.path == path })
 }
 
 // focusedItem is the place of the focused item among the page's, -1 for none.
