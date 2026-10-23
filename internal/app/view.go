@@ -25,6 +25,12 @@ func (m *Model) View() tea.View {
 		return v
 	}
 	body = m.layered(body, w, h)
+	if m.openWithPicker != nil {
+		// The chooser lies over the screen it was opened from, which keeps
+		// its pictures; the keys are the chooser's, and the mouse the
+		// terminal's.
+		body, mouse = m.overlayOpenWith(body, w, h), tea.MouseModeNone
+	}
 	bar, hint := m.statusLine(w, h)
 	if m.scrubberVisible() {
 		hint, mouse = m.scrubberView(), tea.MouseModeCellMotion
@@ -62,8 +68,6 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	plain := true  // Cut to the viewport; graphics keep their escapes whole.
 	exact := false // The body is already w×h: a frame would measure every cell to pad nothing.
 	switch {
-	case m.openWithPicker != nil:
-		body = m.openWithView(w, h)
 	case m.help:
 		body = m.helpView(w, h)
 	case m.screen == screenBrowser:

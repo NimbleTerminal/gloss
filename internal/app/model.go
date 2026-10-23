@@ -572,7 +572,7 @@ func (m *Model) graphicsTick(msg tea.Msg) tea.Cmd {
 	}
 	cmd = tea.Batch(cmd, m.updateStandalone(msg), m.updateTypesetLayers(msg), m.updateVideo(msg))
 	if m.markdown != nil {
-		cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.openWithPicker == nil && m.screen == screenDocument), m.markdown.update(msg))
+		cmd = tea.Batch(cmd, m.markdown.syncPictures(!m.loading && !m.suspended && !m.quitting && !m.help && m.screen == screenDocument), m.markdown.update(msg))
 	}
 	if p := m.fontPicker; p != nil {
 		cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())

@@ -2,6 +2,7 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"errors"
 	"fmt"
 	"github.com/charmbracelet/x/ansi"
@@ -337,20 +338,24 @@ func (m *Model) openWithLaunch(id string, save bool) tea.Cmd {
 		return openWithFinished{operation: op, generation: generation, target: target, name: launched.Name, temporary: target.Temporary, saved: save, err: err}
 	}
 }
+
+// openWithView is the chooser as a box to lay over the screen, w by h: at
+// most 60 columns of text and as many rows as fit.
 func (m *Model) openWithView(w, h int) string {
 	p := m.openWithPicker
 	title := verbTitle(p.verb)
 	if w < 24 || h < 6 {
-		return title + ": enlarge terminal"
+		return ansi.Truncate(title+": enlarge terminal", w, "")
 	}
+	inner := min(60, w-4)
 	header := title + " — " + safe(filepath.Base(p.target.Path))
-	if p.busy && len(p.choices) == 0 {
-		return title + "…"
-	}
-	if p.managing {
+	var lines []string
+	rows := max(1, h-6) // The border, the heading and the gap under it.
+	switch {
+	case p.busy && len(p.choices) == 0 && !p.managing:
+		header, lines = title+"…", nil
+	case p.managing:
 		header = "Manage apps — all formats"
-		lines := []string{ansi.Truncate(header, w, "…"), ""}
-		rows := max(1, h-4)
 		start := max(0, min(p.cursor-rows/2, len(p.apps)-rows))
 		for i := start; i < min(len(p.apps), start+rows); i++ {
 			a := p.apps[i]
@@ -361,41 +366,62 @@ func (m *Model) openWithView(w, h int) string {
 			if a.Enabled {
 				check = "[x] "
 			}
-			lines = append(lines, ansi.Truncate(mark+check+safe(a.Name), w, "…"))
+			lines = append(lines, mark+check+safe(a.Name))
 		}
 		if len(p.apps) == 0 {
-			lines = append(lines, ansi.Truncate("No installed apps to manage", w, "…"))
+			lines = append(lines, "No installed apps to manage")
 		}
-		if p.busy {
-			lines = append(lines, "Working…")
+	default:
+		start := max(0, min(p.cursor-rows/2, len(p.choices)-rows))
+		for i := start; i < min(len(p.choices), start+rows); i++ {
+			c := p.choices[i]
+			mark := "  "
+			if i == p.cursor {
+				mark = "› "
+			}
+			label := safe(c.Name)
+			if c.Default {
+				label += " (default)"
+			}
+			if c.Terminal {
+				label += " (terminal)"
+			}
+			if !c.Available {
+				label += " (unavailable)"
+			}
+			lines = append(lines, mark+label)
 		}
-		return strings.Join(lines, "\n")
 	}
-	rows := max(1, h-4)
-	start := max(0, min(p.cursor-rows/2, len(p.choices)-rows))
-	lines := []string{ansi.Truncate(header, w, "…"), ""}
-	for i := start; i < min(len(p.choices), start+rows); i++ {
-		c := p.choices[i]
-		mark := "  "
-		if i == p.cursor {
-			mark = "› "
-		}
-		label := safe(c.Name)
-		if c.Default {
-			label += " (default)"
-		}
-		if c.Terminal {
-			label += " (terminal)"
-		}
-		if !c.Available {
-			label += " (unavailable)"
-		}
-		lines = append(lines, ansi.Truncate(mark+label, w, "…"))
-	}
-	if p.busy {
+	if p.busy && (len(p.choices) > 0 || p.managing) {
 		lines = append(lines, "Working…")
 	}
-	return strings.Join(lines, "\n")
+	// As wide as the widest row, within the screen.
+	width := ansi.StringWidth(header)
+	for _, line := range lines {
+		width = max(width, ansi.StringWidth(line))
+	}
+	inner = min(inner, width)
+	text := m.boxText()
+	box := []string{text.Bold(true).Foreground(m.palette().Accent).Render(ansi.Truncate(header, inner, "…"))}
+	if len(lines) > 0 {
+		box = append(box, text.Render(""))
+	}
+	for _, line := range lines {
+		style := text
+		if strings.HasPrefix(line, "› ") {
+			style = text.Bold(true) // The row the cursor is on.
+		}
+		box = append(box, style.Render(ansi.Truncate(line, inner, "…")))
+	}
+	return themedBox(box, 1, m.palette())
+}
+
+// overlayOpenWith lays the chooser over the screen beneath, in the middle
+// across and a third of the way down.
+func (m *Model) overlayOpenWith(body string, w, h int) string {
+	box := m.openWithView(w, h)
+	bw, bh := lipgloss.Width(box), lipgloss.Height(box)
+	return overlayAt(body, box, w, max(0, (w-bw)/2), max(0, (h-bh)/3))
 }
 
 func (m *Model) openWithStatus(w int) (string, string) {

@@ -3,6 +3,7 @@
 package app
 
 import (
+	tea "charm.land/bubbletea/v2"
 	"fmt"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/openwith"
@@ -348,15 +349,17 @@ func TestOpenWithIgnoresMouseAndDoubleSubmit(t *testing.T) {
 		t.Fatal("expected single launch", h.launched)
 	}
 }
-func TestOpenWithPausesAnimationAndRestoresView(t *testing.T) {
+
+// The chooser lies over the screen: an animation beneath goes on showing.
+func TestOpenWithKeepsTheViewBehind(t *testing.T) {
 	m := animated(t, "glyph", 0)
 	m.animation.Pause(true)
 	h := &fakeOpenHost{}
 	m.opts.OpenWith = h
 	m.openWithPicker = &openWithPicker{operation: 1, generation: m.generation, busy: true}
 	m.layer = layerOpenWith
-	if m.mediaVisible() {
-		t.Fatal("animation active under chooser")
+	if !m.mediaVisible() {
+		t.Fatal("the animation is hidden behind the chooser")
 	}
 	if !strings.Contains(m.View().Content, "Open with") {
 		t.Fatal("chooser missing")
@@ -389,8 +392,7 @@ func TestOpenWithFooterFits(t *testing.T) {
 	m.openWithPicker = &openWithPicker{busy: true}
 	m.layer = layerOpenWith
 	for _, w := range []int{24, 30, 50, 80} {
-		m.width = w
-		m.height = 12
+		m.Update(tea.WindowSizeMsg{Width: w, Height: 12})
 		view := m.View().Content
 		for _, line := range strings.Split(view, "\n") {
 			if ansi.StringWidth(line) > w {
@@ -546,5 +548,39 @@ func TestManageAppsEmptyAndNarrow(t *testing.T) {
 	}
 	if m.openWithPicker == nil || !m.openWithPicker.managing {
 		t.Fatal("empty checklist exited")
+	}
+}
+
+// The chooser is a box over the picture it was opened on, not a blank
+// screen: the picture shows around it, and the box fits the screen.
+func TestOpenWithIsABoxOverThePicture(t *testing.T) {
+	m := loaded(t, "photos/landscape.png")
+	m.opts.OpenWith = &fakeOpenHost{}
+	m.layer = layerOpenWith
+	m.openWithPicker = &openWithPicker{generation: m.generation, target: openwith.Target{Path: "photos/landscape.png", Kind: "image/*"},
+		choices: []openwith.Choice{{ID: "system", Name: "System default", Available: true, Default: true}, {ID: "preview", Name: "Preview", Available: true}}}
+	got := rows(m)
+	box, picture := -1, 0
+	for i, row := range got[:m.bodyHeight()] {
+		if strings.Contains(row, "Open with — landscape.png") {
+			box = i
+		}
+		if strings.ContainsAny(row, "▀▄█") {
+			picture++
+		}
+	}
+	if box < 1 || picture == 0 {
+		t.Fatalf("box at row %d, %d picture rows:\n%s", box, picture, strings.Join(got, "\n"))
+	}
+	if !strings.Contains(strings.Join(got, "\n"), "› System default (default)") {
+		t.Fatal("choices missing")
+	}
+	for _, row := range got {
+		if ansi.StringWidth(row) > m.width {
+			t.Fatalf("row wider than the screen: %q", row)
+		}
+	}
+	if len(got) != m.height {
+		t.Fatalf("%d rows on a screen of %d", len(got), m.height)
 	}
 }

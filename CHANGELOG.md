@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The Open with and Edit with choices open in a box over the screen, which stays
+  in view, rather than in place of it.
 - Right-click a web address written out in text, source, JSON or Markdown, text or typeset, to open it or copy it, as a link.
 - On a typeset page, two links to one address are two stops for Tab, and a table's outline is where it is drawn.
 - With `--fetch`, a link's or an address cell's menu also opens it in gloss or
