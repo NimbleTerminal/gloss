@@ -26,7 +26,7 @@ require (
 	github.com/zkrebbekx/go-mermaid v0.1.6
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
-	nimbleterminal.dev/nt3d v0.2.0
+	nimbleterminal.dev/nt3d v0.3.1
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
 	nimbleterminal.dev/ntmaps v0.5.1
@@ -62,7 +62,7 @@ require (
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect
-	github.com/gogpu/naga v0.19.0 // indirect
+	github.com/gogpu/naga v0.20.3 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -90,8 +90,8 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
-	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/ntcanvas v0.1.1 // indirect
+	nimbleterminal.dev/ntgpuimage v0.4.0 // indirect
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
 )
 
