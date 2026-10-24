@@ -14,8 +14,6 @@ github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 h1:XFJZFWESIWlUEHHjzBuv8R
 github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2/go.mod h1:BHWO8lJzttJLqwuV8Rb1B3OG2OSzLbssZDI1FRg2eAA=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/NimbleMarkets/booba-shim v0.5.0 h1:LH/9GbMb/iMmhoqPp5OtY/ok/6jcovoDQp5FDo++GFM=
-github.com/NimbleMarkets/booba-shim v0.5.0/go.mod h1:+3ch4kZuCLtrwGK2s3ALo/I1Dzcz4e888PC3f2lLbgs=
 github.com/NimbleMarkets/flint-ntcharts v0.3.1 h1:uS3ZeQCWm70+7cwVA3HQuLqrxEftnzbJdOtjB95UZqI=
 github.com/NimbleMarkets/flint-ntcharts v0.3.1/go.mod h1:TsUSLncxv3JfV2lYMTqTBMKX8/hSiU5TOYE3ew3IuQg=
 github.com/NimbleMarkets/go-booba v0.10.7 h1:Zvsiq41xKQK7FuTCk8NjvKNeE/rOkUq5gWxm012L37Q=

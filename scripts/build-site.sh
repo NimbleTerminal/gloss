@@ -11,6 +11,9 @@ GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -mod=readonly -trimpath -ldflags="-s 
 wc -c < ../../web/dist/app.wasm | tr -d ' ' > ../../web/dist/app.wasm.size
 go tool booba-assets ../../web/dist
 go tool ntshim-assets ../../web/dist --shim=pdfium
+# Flint charts compile in the browser through ntshim's self-contained
+# flint-ntcharts bundle; the Go side (internal/chart/engine_js.go) calls it.
+go tool ntshim-assets ../../web/dist --shim=flintchart
 go tool ntvideo-assets ../../web/dist --force
 # PDF pages are drawn by PDFium, from the @embedpdf/pdfium npm package, which
 # the generated shim loads from a CDN: third-party code, run with the page's

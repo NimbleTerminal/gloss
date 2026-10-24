@@ -9,7 +9,6 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/BurntSushi/toml v1.6.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
-	github.com/NimbleMarkets/booba-shim v0.5.0
 	github.com/NimbleMarkets/flint-ntcharts v0.3.1
 	github.com/NimbleMarkets/go-booba v0.10.7
 	github.com/NimbleMarkets/ntcharts/spec/echarts/v2 v2.8.0
@@ -42,6 +41,7 @@ require (
 	nimbleterminal.dev/ntpdf v0.5.2
 	nimbleterminal.dev/ntpicture v0.1.3
 	nimbleterminal.dev/ntqrcode v0.3.1
+	nimbleterminal.dev/ntshim v0.6.1
 	nimbleterminal.dev/ntsvg v0.5.4
 	nimbleterminal.dev/nttypeset v0.1.6
 	nimbleterminal.dev/ntvideo v0.3.0
@@ -98,7 +98,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.2 // indirect
 	nimbleterminal.dev/ntgpuimage v0.5.0 // indirect
-	nimbleterminal.dev/ntshim v0.6.1 // indirect
 )
 
 replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2

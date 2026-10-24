@@ -16,6 +16,9 @@ require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
+	github.com/NimbleMarkets/flint-ntcharts v0.3.1 // indirect
+	github.com/NimbleMarkets/ntcharts/spec/echarts/v2 v2.8.0 // indirect
+	github.com/NimbleMarkets/ntcharts/v2 v2.8.0 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.4 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -35,6 +38,7 @@ require (
 	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/gen2brain/h265 v0.2.3 // indirect
 	github.com/gen2brain/jxl v0.2.0 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.7.2 // indirect
 	github.com/go-text/typesetting v0.3.5 // indirect
 	github.com/go-webgpu/goffi v0.6.7 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect

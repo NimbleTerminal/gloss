@@ -104,6 +104,8 @@ try {
   await import('./ntshim/pdfium/pdfium-shim.js');
   // PDF initialization is asynchronous; its Go bridge waits for readiness.
   window.ntshim.pdfium.ready.catch(error => console.error('PDF renderer:', error));
+  // Flint charts compile through this self-contained bundle; its Go bridge awaits it too.
+  await import('./ntshim/flintchart/flintchart-shim.js');
   const go = new Go();
   go.argv = config.argv;
   status.textContent = 'Connecting to download gloss…';

@@ -5,12 +5,12 @@ package chart
 import (
 	"context"
 
-	"github.com/NimbleMarkets/booba-shim/flintchart"
 	"github.com/NimbleMarkets/flint-ntcharts/envelope"
+	"nimbleterminal.dev/ntshim/flintchart"
 )
 
 // bridgeEngine compiles through the flint-ntcharts bundle the page loads
-// (booba-shim's flintchart shim), so the browser build carries no wasm
+// (ntshim's flintchart shim), so the browser build carries no wasm
 // runtime of its own. A compile failure comes back as an error envelope,
 // which the parsers turn into an error; only a broken bundle is an error
 // here.
