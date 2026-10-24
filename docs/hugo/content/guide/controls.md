@@ -37,6 +37,9 @@ bookToC: false
 | Click a cell | Select it in a spreadsheet; a row number keeps the column, a column letter the row; a second click on a cell with an address opens it, as `Enter` does |
 | `x`, `X` | Hide the column under the cursor / show every column |
 | `c` | List the columns, to show and hide them: `Space` toggles, `a` all, `n` none |
+| `C` | Chart the visible columns beside the grid, or in its place on a narrow terminal; `C` again closes the chart (see [Charts](../charts/)); also in the `a` menu |
+| `t` | While a chart is shown: the next chart type that fits the same columns |
+| `ctrl+o` | While a chart is shown: open it in the default browser as a self-contained ECharts page; under `--serve`, show the page's address |
 | `Enter` | With `--fetch`, open the web address under the cursor |
 | `u` | Show a QR code for the selected table URL; `Esc` or `u` closes it, `g` switches graphics, `e` exports the QR |
 | `Esc` | Close a fetched file, or a table opened in gloss, and return to where you were |
@@ -45,7 +48,7 @@ bookToC: false
 | `f`, `0` | Fit image / reset camera |
 | `g` | Toggle Kitty / glyph output when Kitty is supported |
 | `R` | Reload file from disk |
-| `e` | Export the current page as a PNG in the working directory (a download in a browser) |
+| `e` | Export the current page as a PNG in the working directory (a download in a browser); a chart pane as `<name>-chart.png` |
 | `i` | Show or hide a box of details about the current file and the terminal |
 | `r` | Toggle mesh auto-rotation; reload other formats |
 | `5` | Toggle mesh orthographic / perspective projection |

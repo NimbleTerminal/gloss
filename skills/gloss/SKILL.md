@@ -51,8 +51,12 @@ machine look for skills. A file named `skill`, `view` or `help` is opened as
 
 It handles PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL, SVG, Mermaid diagrams
 (`.mmd`), PDF, STL, 3MF, OBJ, PLY (meshes and point clouds), GeoJSON, GPX and raster PMTiles (maps, drawn without fetching anything), Markdown, HTML, plain text, JSON/JSONL, Jupyter notebooks, Word, Excel, Grist
-documents, CSV, and videos (MP4, MOV, M4V, WebM, MKV, OGV, AVI, MPEG, WMV, FLV). One binary, no external
+documents, CSV, Flint chart documents, and videos (MP4, MOV, M4V, WebM, MKV, OGV, AVI, MPEG, WMV, FLV). One binary, no external
 converters, except for video. Inputs are limited to 128 MiB, except videos.
+
+A JSON file holding a Flint `ChartAssemblyInput` (or an ntcharts spec) opens
+as a terminal chart, and `C` on a CSV, Excel or Grist table charts its visible
+columns. See *Charts* below for charting a table from outside.
 
 ## Static command output: `--print`
 
@@ -486,6 +490,48 @@ gloss --qr http://192.168.1.20:8000/ --output qr.png   # a PNG to attach
 The text is only encoded, never fetched; the page and pager show it above
 the code. The code is only as useful as the address: a `localhost` or
 `127.0.0.1` URL does not reach another device.
+
+## Charts
+
+A Flint `ChartAssemblyInput` (microsoft/flint-chart) is the way to ask gloss
+for a chart. Leave `data.values` empty and gloss binds the table's rows,
+typed from their text; name columns by their header. An `aggregate` on an
+encoding (sum, mean, average, count, min, max, median) folds the rows.
+
+```sh
+gloss --chart revenue.json sales.csv                       # the viewer, chart beside the grid
+gloss --chart revenue.json --output revenue.png sales.csv  # a PNG of the terminal chart
+gloss --chart revenue.json --info --json sales.csv         # type, series, rows, warnings
+```
+
+```json
+{"data":{"values":[]},
+ "semantic_types":{"revenue":{"semanticType":"Price","unit":"USD"}},
+ "chart_spec":{"chartType":"Bar Chart",
+   "encodings":{"x":{"field":"region"},"y":{"field":"revenue","aggregate":"sum"}}}}
+```
+
+Under `--serve`, push a document into the running viewer:
+
+```sh
+curl -X POST -d @revenue.json http://127.0.0.1:PORT/TOKEN/chart
+# {"type":"bar","series":1,"rows":8,"warnings":[]}
+curl http://127.0.0.1:PORT/TOKEN/chart > chart.html   # the shown chart as a self-contained ECharts page
+```
+
+A 4xx or 503 reply carries `{"error": "..."}`: 400 for a document that is
+not a chart, 413 over 16 MiB, 422 when it does not compile (a field the
+table lacks is named), 503 when the viewer is busy or silent for 20 s. The
+`GET` answers 404 in plain text while no chart is shown and 422 for a bare
+ntcharts spec the browser cannot draw (only bar and timeseries specs can
+be; every Flint document can). In the viewer, `ctrl+o` writes the same
+page into the session's temporary folder and opens it in the browser.
+Terminal templates: Bar, Stacked Bar, Lollipop, Line, Area, Scatter,
+Connected Scatter, Heatmap, Histogram, ECDF, Sparkline, Candlestick. Bars of
+several series stack. `data.url` is refused; put the rows inline or let the
+table supply them. Exports draw the terminal chart (braille lines, box axes)
+in dark on white, 40 to 120 columns wide from `--max-edge`; the browser
+page draws Flint's whole template set, grouped bars included.
 
 ## Guardrails
 

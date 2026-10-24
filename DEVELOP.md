@@ -63,6 +63,33 @@ fixtures; `task gen-assets` regenerates the PNG, HEIC, JPEG XL, PDF, the block-l
 STL, and, with `python3`, the Grist document, which is written by hand to
 Grist's layout rather than saved from Grist.
 
+Charts compile Flint documents with the `flint.wasm` module that the
+`flint-ntcharts` dependency embeds; its `compile/flint.wasm.buildinfo` records
+the Javy and flint-chart versions it was built from. The golden Flint
+documents under `internal/chart/testdata` are refreshed with
+`UPDATE_GOLDEN=1 go test ./internal/chart/ -run TestInferSales`.
+
+Chart exports do not use go-analyze: probed with gloss's own documents, it
+drew dated lines, stacked bars and candlesticks wrong. Instead
+`internal/document/chart_raster.go` draws the terminal frame itself, braille,
+box and block runes as shapes and other text in Go Mono (from
+`golang.org/x/image/font/gofont/gomono`). Aggregate encodings are folded in
+`internal/chart/aggregate.go` before the wasm compiler sees a document,
+because flint-ntcharts 0.3.1's text backend returns zeros for them.
+
+The chart page (`ctrl+o`, `GET /<token>/chart`) embeds Apache ECharts:
+`scripts/fetch-echarts.sh` fetches the npm package at the version it pins,
+checks it against the published hash, and puts `dist/echarts.min.js` and
+its license under `internal/chart/echarts`, which is committed so builds
+need no network; bump the version and the hash together and rerun it. The
+option comes from the Flint compiler's raster renderer (`chart.Option`),
+or from `github.com/NimbleMarkets/ntcharts/spec/echarts/v2` for a bare
+bar or timeseries Spec. The compiler sits behind an engine seam: wazero on
+native hosts (`internal/chart/engine_native.go`), and in the browser demo
+ntshim's `flintchart` bridge (`engine_js.go`), whose bundle
+`scripts/build-site.sh` writes with `ntshim-assets --shim=flintchart` and
+`web/runtime.js` imports, so the demo carries no wasm runtime for it.
+
 GitHub Actions runs `task ci` on Linux and macOS for pushes and pull requests. Windows is only
 cross-compiled and vetted (`task cross-windows`), not tested.
 

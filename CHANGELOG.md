@@ -18,6 +18,18 @@
   text to select and copy, in the thumbnail grid, and with `--output`,
   in slices that end between lines. Exporting one was refused before; `--typeset` still exports the
   Markdown made of it.
+- Chart a table's visible columns with `C` (or the `a` menu) on CSV, Excel
+  and Grist pages: bars, lines, scatter, heatmaps, histograms and
+  candlesticks, inferred from the columns and drawn by ntcharts; `t` cycles
+  the chart type. Flint and ntcharts chart JSON files open as charts.
+- Push charts onto tables: `--chart FILE` draws a Flint document over a sheet,
+  binding its rows; under `--serve`, `POST /<token>/chart` does the same and
+  answers JSON. `e` and `--output` export charts as PNG, drawn cell for cell
+  from the terminal chart, `--print` prints them, and `--info` describes them.
+- Charts in a browser: `ctrl+o` on a chart opens it as a self-contained
+  Apache ECharts page from the embedded ECharts build; under `--serve`,
+  `GET /<token>/chart` is the same page, linked from the viewer page. The
+  browser demo compiles Flint in the browser itself.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
   as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
   zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`

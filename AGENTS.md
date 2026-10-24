@@ -356,6 +356,26 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   writing. Other SQLite databases are refused.
 - **CSV/TSV**: separator auto-detected; shown like a sheet. Table columns can
   be hidden interactively or via `--cols`/`--coln`.
+- **Charts** (`internal/chart`, no Bubble Tea; nothing else imports
+  flint-ntcharts, ntcharts/spec or go-echarts): `Sniff` takes a JSON object
+  as a Flint input, envelope, ntcharts Spec or error envelope (`chart`
+  kind, from `textKind`; 16 MiB); `Analyze`/`Infer` type a sheet's visible
+  columns and write a Flint document; `Bind` fills an unbound one from the
+  sheet; `Compile` runs flint-ntcharts' embedded `flint.wasm` under wazero
+  natively (`engine_native.go`) and ntshim's `flintchart` bundle in the
+  browser (`engine_js.go`), 15 s deadline; `RenderText` draws the Spec;
+  `Option`/`Page` make the self-contained Apache ECharts page (embedded
+  `internal/chart/echarts`, `scripts/fetch-echarts.sh`). Viewer
+  (`internal/app/chart_pane.go`): `C` on a sheet, or "Chart these columns"
+  in `a`, toggles the pane beside the grid (120+ columns) or in its place;
+  `t` cycles templates; column changes recompile; a chart file is a page;
+  `e` exports the frame cell for cell (`document.ChartImage`, Go Mono from
+  `x/image/font/gofont`); `ctrl+o` writes the page through `Options.Scratch`
+  and opens it as HTML via Open with, or names `Options.ChartURL`.
+  `--chart FILE` (`cmd/gloss/chart.go`, `chartFor`) binds a document over
+  sheets in the viewer, `--output`, `--print` and `--info`. Under `--serve`,
+  `internal/handoff/chart_push.go`: `POST /<token>/chart` (`Options.Charts`,
+  JSON reply) and `GET` the shown chart's page (`Options.Charted`).
 - **Fetching**: an http(s) address among the command-line arguments is
   downloaded into the session's fetch folder (`cmd/gloss/fetch.go`) before
   anything else and stands in for the file, in the viewer and every headless

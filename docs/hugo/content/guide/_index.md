@@ -14,5 +14,6 @@ How to install gloss, use it, what its keys do, what it opens, and how an agent 
 - [Markdown](markdown/)
 - [For agents](agents/)
 - [Formats and limits](formats/)
+- [Charts](charts/)
 - [Development](development/)
 - [For LLMs](for-llms/)

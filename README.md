@@ -61,6 +61,7 @@ gloss -N -S main.go                    # numbered source, long lines scroll side
 | `t` on text, source, JSON or Markdown | Toggle normal text / typeset view |
 | `s` on Markdown | Toggle rendered text or typeset view / source |
 | `u` | Show a selected table URL as a QR code |
+| `C` on a table | Chart its visible columns beside the grid; `t` changes the type, `ctrl+o` opens it in a browser |
 | Space, `<` / `>` on a GIF or animated WebP | Pause / resume; slower / faster playback |
 | `,` / `.` on a GIF or animated WebP | Step frames; click or drag the bottom bar to seek |
 | Space, `←` / `→`, `c` on a video | Play / pause; seek 5 seconds; change subtitles. Click or drag the bottom bar to seek |
@@ -100,6 +101,7 @@ gloss --text report.docx                      # Markdown on stdout
 gloss --grep '(?i)total' report.pdf           # the PDF pages that match, and where
 gloss --info --json model.3mf                 # what a file says about itself
 gloss --view all --output views.png model.3mf # six views in one contact sheet
+gloss --chart revenue.json -o chart.png sales.csv # a Flint chart of a table, as a PNG
 gloss --serve report.pdf                      # show a document in a browser
 gloss --serve --pick                          # ask the user for a file in a browser
 gloss --pick-web --prompt "Send a photo and a note" # simple upload page

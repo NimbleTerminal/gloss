@@ -16,7 +16,9 @@ func ctrlO() tea.KeyPressMsg { return tea.KeyPressMsg{Code: 'o', Mod: tea.ModCtr
 func TestOpenChartPageWritesAndLaunches(t *testing.T) {
 	host := &fakeOpenHost{}
 	dir := t.TempDir()
-	scratch := func(name string, data []byte) (string, error) { return document.WriteNew(filepath.Join(dir, name), data) }
+	scratch := func(name string, data []byte) (string, error) {
+		return document.WriteNew(filepath.Join(dir, name), data)
+	}
 	m := viewing(t, Options{Files: []string{"book.xlsx"}, OpenWith: host, Scratch: scratch, IsTemporary: func(string) bool { return true }}, "")
 	m.Update(tea.WindowSizeMsg{Width: 140, Height: 30})
 	_, cmd := m.Update(document.Result{Generation: m.generation, Kind: "xlsx", Page: 1, Pages: 1, Sheet: salesSheet()})
@@ -75,7 +77,9 @@ func TestOpenChartPageReportsTerminalOnlySpecs(t *testing.T) {
 	}
 	host := &fakeOpenHost{}
 	dir := t.TempDir()
-	m := viewing(t, Options{Files: []string{"heat.json"}, OpenWith: host, Scratch: func(name string, data []byte) (string, error) { return document.WriteNew(filepath.Join(dir, name), data) }}, "")
+	m := viewing(t, Options{Files: []string{"heat.json"}, OpenWith: host, Scratch: func(name string, data []byte) (string, error) {
+		return document.WriteNew(filepath.Join(dir, name), data)
+	}}, "")
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
 	_, cmd := m.Update(document.Result{Generation: m.generation, Kind: "chart", Page: 1, Pages: 1, Chart: &doc})
 	settle(t, m, cmd)
