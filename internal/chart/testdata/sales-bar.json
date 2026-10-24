@@ -1,0 +1,38 @@
+{
+  "data": {
+    "values": [
+      {
+        "region": "North",
+        "revenue": 48.5
+      },
+      {
+        "region": "South",
+        "revenue": 39.9
+      },
+      {
+        "region": "North",
+        "revenue": 52
+      },
+      {
+        "region": "South",
+        "revenue": 41.7
+      }
+    ]
+  },
+  "semantic_types": {
+    "region": "Category",
+    "revenue": "Quantity"
+  },
+  "chart_spec": {
+    "chartType": "Bar Chart",
+    "encodings": {
+      "x": {
+        "field": "region"
+      },
+      "y": {
+        "field": "revenue",
+        "aggregate": "sum"
+      }
+    }
+  }
+}

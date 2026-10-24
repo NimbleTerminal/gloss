@@ -1,0 +1,73 @@
+{
+  "data": {
+    "values": [
+      {
+        "quarter": "Q1",
+        "region": "North",
+        "series": "units",
+        "value": 120
+      },
+      {
+        "quarter": "Q1",
+        "region": "North",
+        "series": "revenue",
+        "value": 48.5
+      },
+      {
+        "quarter": "Q1",
+        "region": "South",
+        "series": "units",
+        "value": 95
+      },
+      {
+        "quarter": "Q1",
+        "region": "South",
+        "series": "revenue",
+        "value": 39.9
+      },
+      {
+        "quarter": "Q2",
+        "region": "North",
+        "series": "units",
+        "value": 131
+      },
+      {
+        "quarter": "Q2",
+        "region": "North",
+        "series": "revenue",
+        "value": 52
+      },
+      {
+        "quarter": "Q2",
+        "region": "South",
+        "series": "units",
+        "value": 102
+      },
+      {
+        "quarter": "Q2",
+        "region": "South",
+        "series": "revenue",
+        "value": 41.7
+      }
+    ]
+  },
+  "semantic_types": {
+    "region": "Category",
+    "series": "Category",
+    "value": "Count"
+  },
+  "chart_spec": {
+    "chartType": "Stacked Bar Chart",
+    "encodings": {
+      "color": {
+        "field": "series"
+      },
+      "x": {
+        "field": "region"
+      },
+      "y": {
+        "field": "value"
+      }
+    }
+  }
+}

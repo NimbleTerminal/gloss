@@ -23,6 +23,7 @@ tasks:
       - cmd/**/*.go
       - internal/**/*.go
       - internal/i18n/locales/*.toml
+      - internal/chart/echarts/*
       - internal/theme/themes/*.json
       - skills/*.go
       - skills/gloss/SKILL.md

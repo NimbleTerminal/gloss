@@ -1,0 +1,73 @@
+{
+  "data": {
+    "values": [
+      {
+        "booked": "2026-03-31",
+        "region": "North",
+        "series": "units",
+        "value": 120
+      },
+      {
+        "booked": "2026-03-31",
+        "region": "North",
+        "series": "revenue",
+        "value": 48.5
+      },
+      {
+        "booked": "2026-03-31",
+        "region": "South",
+        "series": "units",
+        "value": 95
+      },
+      {
+        "booked": "2026-03-31",
+        "region": "South",
+        "series": "revenue",
+        "value": 39.9
+      },
+      {
+        "booked": "2026-06-30",
+        "region": "North",
+        "series": "units",
+        "value": 131
+      },
+      {
+        "booked": "2026-06-30",
+        "region": "North",
+        "series": "revenue",
+        "value": 52
+      },
+      {
+        "booked": "2026-06-30",
+        "region": "South",
+        "series": "units",
+        "value": 102
+      },
+      {
+        "booked": "2026-06-30",
+        "region": "South",
+        "series": "revenue",
+        "value": 41.7
+      }
+    ]
+  },
+  "semantic_types": {
+    "booked": "Date",
+    "series": "Category",
+    "value": "Count"
+  },
+  "chart_spec": {
+    "chartType": "Line Chart",
+    "encodings": {
+      "color": {
+        "field": "series"
+      },
+      "x": {
+        "field": "booked"
+      },
+      "y": {
+        "field": "value"
+      }
+    }
+  }
+}

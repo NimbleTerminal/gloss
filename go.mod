@@ -9,7 +9,11 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/BurntSushi/toml v1.6.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
+	github.com/NimbleMarkets/booba-shim v0.5.0
+	github.com/NimbleMarkets/flint-ntcharts v0.3.1
 	github.com/NimbleMarkets/go-booba v0.10.7
+	github.com/NimbleMarkets/ntcharts/spec/echarts/v2 v2.8.0
+	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f
@@ -61,6 +65,7 @@ require (
 	github.com/dunglas/httpsfv v1.1.2 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/ebitengine/purego v0.11.2 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.7.2 // indirect
 	github.com/go-webgpu/goffi v0.6.7 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect

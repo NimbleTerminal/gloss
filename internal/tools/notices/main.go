@@ -92,6 +92,11 @@ NTCharts3d software renderer, whose license is among those below.
 	}
 	section(&b, "The Go runtime and standard library", "https://go.dev", text)
 	section(&b, "PDFium", "compiled to WebAssembly by github.com/klippa-app/go-pdfium and embedded in the native binary; the browser app serves @embedpdf/pdfium, which builds it, from the site itself (web/dist/vendor/embedpdf-pdfium, pinned and checked against its published hash)", []byte(pdfiumLicense))
+	if text, err := os.ReadFile(filepath.Join("internal", "chart", "echarts", "LICENSE")); err == nil {
+		section(&b, "Apache ECharts", "dist/echarts.min.js from the npm package, pinned and checked against its published hash by scripts/fetch-echarts.sh, embedded in the native binary for the chart page", text)
+	} else {
+		return fmt.Errorf("internal/chart/echarts/LICENSE: %w", err)
+	}
 	for _, l := range ntfonts.Licenses() {
 		lines := strings.Split(l.Text, "\n")
 		for i := range lines {
