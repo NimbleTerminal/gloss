@@ -19,7 +19,7 @@ func (m *Model) infoBox(w, h int) string {
 	if inner < 16 || rows < 2 {
 		return ""
 	}
-	fields := append(append([]document.Field(nil), m.fields...), m.terminalFields()...)
+	fields := append(append(append([]document.Field(nil), m.fields...), m.chartFields()...), m.terminalFields()...)
 	labels := 0
 	for _, f := range fields {
 		if f.Value != "" {

@@ -69,6 +69,31 @@ func (m *Model) export() tea.Cmd {
 		}
 		return nil
 	}
+	if p := m.chartPane; p != nil && p.view != "" {
+		// The chart as it stands, cell for cell, at export size.
+		q := m.exportRequest()
+		name := strings.TrimSuffix(exportName(q.Path, m.kind, m.page, q.Stdin), ".png")
+		if p.doc == nil {
+			name += "-chart"
+		}
+		name += ".png"
+		save := m.opts.Save
+		if save == nil {
+			save = func(name string, data []byte) (string, error) { return saveFile(".", name, data) }
+		}
+		frame, cols, rows := p.view, p.width, p.height
+		pal := m.palette()
+		m.note = "exporting…"
+		return func() tea.Msg {
+			img := document.ChartImage(frame, cols, rows, document.ChartCellWidth, document.ChartCellHeight, pal.Foreground, pal.Background)
+			var data bytes.Buffer
+			if err := png.Encode(&data, img); err != nil {
+				return exportResult{err: err}
+			}
+			name, err := save(name, data.Bytes())
+			return exportResult{name: name, size: img.Bounds().Size(), err: err}
+		}
+	}
 	if m.sheet != nil {
 		m.note = i18n.T("app.export.sheet", "spreadsheets cannot be exported as PNG")
 		return nil

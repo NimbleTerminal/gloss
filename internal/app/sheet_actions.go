@@ -23,6 +23,7 @@ func (m *Model) cellEntries() []menuEntry {
 			return tea.SetClipboard(row)
 		}},
 	}
+	entries = append(entries, m.chartEntries()...)
 	if address == "" {
 		return entries
 	}
@@ -34,4 +35,18 @@ func (m *Model) cellEntries() []menuEntry {
 		}})
 	}
 	return append(entries, menuEntry{"show-qr", i18n.T("app.actions.showQR", "Show QR"), func(m *Model) tea.Cmd { return m.openQR(address) }})
+}
+
+// chartEntries offer the chart of the sheet's visible columns: showing or
+// hiding it, and, once drawn, opening it in a browser where the host can.
+func (m *Model) chartEntries() []menuEntry {
+	id, label := "chart", i18n.T("app.actions.chart", "Chart these columns")
+	if m.chartPane != nil {
+		id, label = "hide-chart", i18n.T("app.actions.hideChart", "Hide the chart")
+	}
+	entries := []menuEntry{{id, label, func(m *Model) tea.Cmd { return m.toggleChartPane() }}}
+	if p := m.chartPane; p != nil && p.view != "" && m.opts.OpenWith != nil && m.opts.Scratch != nil {
+		entries = append(entries, menuEntry{"chart-browser", i18n.T("app.actions.chartBrowser", "Open chart in browser"), func(m *Model) tea.Cmd { return m.openChartPage() }})
+	}
+	return entries
 }

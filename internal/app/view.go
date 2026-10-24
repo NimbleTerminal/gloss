@@ -111,8 +111,20 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		exact = h >= 3 && m.meshKitty()
 	case m.markdown != nil:
 		body, mouse, plain = m.markdown.view(), tea.MouseModeCellMotion, false
+	case m.chartPane != nil && m.chartPane.doc != nil:
+		body, plain = m.chartPaneView(w, h), true
 	case m.sheet != nil:
-		body, mouse, plain = m.sheet.view(w, h), tea.MouseModeCellMotion, false
+		grid, pane := m.chartSplit()
+		switch {
+		case pane == 0:
+			body = m.sheet.view(w, h)
+		case grid == 0:
+			body = m.chartPaneView(pane, h)
+		default:
+			divider := lipgloss.NewStyle().Foreground(m.palette().Muted).Render(strings.TrimSuffix(strings.Repeat("│\n", h), "\n"))
+			body = lipgloss.JoinHorizontal(lipgloss.Top, lipgloss.NewStyle().Width(grid).Height(h).Render(m.sheet.view(grid, h)), divider, m.chartPaneView(pane, h))
+		}
+		mouse, plain = tea.MouseModeCellMotion, false
 	default:
 		body, plain = m.pictureView(), false
 		exact = !m.quitting && m.pictureExact(w, h)
@@ -431,13 +443,19 @@ func (m *Model) detail(w, h int) string {
 			}
 		}
 		detail = fmt.Sprintf("%s · %s · %s", format, mode, m.markdown.lineDetail())
+	case m.chartPane != nil && m.chartPane.doc != nil:
+		detail = m.chartStatus()
 	case m.sheet != nil:
-		detail = fmt.Sprintf("%s · %s", m.kind, m.sheet.status(w, h))
+		grid := m.sheetWidth()
+		detail = fmt.Sprintf("%s · %s", m.kind, m.sheet.status(grid, h))
 		switch m.kind {
 		case "xlsx":
-			detail = "xlsx · " + i18n.Tf("app.status.sheet", "sheet %d/%d", m.page, m.pages) + " · " + safe(m.sheet.sheet.Name) + " · " + m.sheet.status(w, h)
+			detail = "xlsx · " + i18n.Tf("app.status.sheet", "sheet %d/%d", m.page, m.pages) + " · " + safe(m.sheet.sheet.Name) + " · " + m.sheet.status(grid, h)
 		case "grist":
-			detail = "grist · " + i18n.Tf("app.status.table", "table %d/%d", m.page, m.pages) + " · " + safe(m.sheet.sheet.Name) + " · " + m.sheet.status(w, h)
+			detail = "grist · " + i18n.Tf("app.status.table", "table %d/%d", m.page, m.pages) + " · " + safe(m.sheet.sheet.Name) + " · " + m.sheet.status(grid, h)
+		}
+		if s := m.chartStatus(); s != "" {
+			detail += " · " + s
 		}
 	case m.kind == "3mf":
 		// Too large to draw, or a preview: the picture the file carries.
@@ -557,6 +575,8 @@ func (m *Model) hints() string {
 			keys = append(keys, i18n.T("app.keys.line", ": line"), i18n.T("app.keys.numbers", "# numbers"))
 		}
 		keys = append(keys, chopKey(m.markdown.chop), selectHint())
+	case m.chartPane != nil && m.chartPane.doc != nil:
+		keys = keyRow{quitKey(), menuKey(), filesKey(), infoKey(), i18n.T("app.keys.reload", "R reload"), exportKey(), i18n.T("app.keys.browser", "^o browser")}
 	case m.sheet != nil:
 		turn := i18n.T("app.keys.sheets", "n/p sheets")
 		switch {
@@ -574,6 +594,13 @@ func (m *Model) hints() string {
 		}
 		if m.sheet.url() != "" {
 			keys = keys.instead(i18n.T("app.keys.qrAddress", "u QR of address"))
+		}
+		keys = append(keys, i18n.T("app.keys.chart", "C chart"))
+		if m.chartPane != nil && m.chartPane.source == nil && len(m.chartPane.templates) > 1 {
+			keys = append(keys, i18n.T("app.keys.chartType", "t chart type"))
+		}
+		if m.chartPane != nil && m.chartPane.view != "" {
+			keys = append(keys, i18n.T("app.keys.browser", "^o browser"))
 		}
 	case m.video != nil:
 		keys = keyRow{quitKey(), i18n.T("app.keys.play", "Space play/pause"), i18n.T("app.keys.seek", "←/→ seek")}

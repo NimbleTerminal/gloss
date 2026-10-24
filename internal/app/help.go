@@ -54,7 +54,7 @@ func helpRight() []helpSection {
 			{"n p Space", i18n.T("app.help.pictures.pages", "next / prev page or file")},
 			{"Home  End", i18n.T("app.help.pictures.ends", "first / last PDF page")},
 			{"g", i18n.T("app.help.pictures.graphics", "Kitty / glyph graphics")},
-			{"u", i18n.T("app.help.pictures.qr", "QR code of a table URL")},
+			{"u C t ^o", i18n.T("app.help.pictures.chart", "URL QR · chart · type · browser")},
 		}},
 		{i18n.T("app.help.meshes.title", "Meshes"), []helpRow{
 			{"drag", i18n.T("app.help.meshes.orbit", "orbit (Shift-drag pans)")},

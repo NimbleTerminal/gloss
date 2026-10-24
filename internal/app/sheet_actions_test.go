@@ -27,17 +27,17 @@ func TestCellEntries(t *testing.T) {
 	m := addressSheet(t)
 	m.opts.Fetch = func(string) (string, error) { return "", nil }
 	m.opts.OpenLink = func(string) error { return nil }
-	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Open in gloss, Save linked file, Open in browser, Show QR" {
+	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Chart these columns, Open in gloss, Save linked file, Open in browser, Show QR" {
 		t.Fatalf("all hosts: %s", got)
 	}
 
 	m.opts.Fetch, m.opts.OpenLink = nil, nil
-	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Show QR" {
+	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Chart these columns, Show QR" {
 		t.Fatalf("no hosts: %s", got)
 	}
 
 	m.sheet.at = [2]int{1, 1}
-	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row" {
+	if got := strings.Join(labels(m.cellEntries()), ", "); got != "Copy value, Copy row, Chart these columns" {
 		t.Fatalf("a plain cell: %s", got)
 	}
 }

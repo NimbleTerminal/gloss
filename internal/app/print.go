@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/chart"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/ntpicture"
@@ -27,6 +29,26 @@ func PrintView(ctx context.Context, r document.Result, opts Options, width, heig
 	}
 	var view string
 	switch {
+	case r.Chart != nil:
+		chartWidth := width
+		if r.Sheet != nil && width >= chartSplitWidth {
+			chartWidth = width - width/2 - 1
+		}
+		if chartWidth < 10 || height < 4 {
+			return "", fmt.Errorf("a chart needs at least 10 columns and 4 rows")
+		}
+		res, err := chart.Default.Compile(ctx, *r.Chart, chartWidth, height)
+		if err != nil {
+			return "", err
+		}
+		view, err = chart.RenderText(res.Spec)
+		if err != nil {
+			return "", err
+		}
+		if chartWidth != width {
+			grid := printSheet(r.Sheet, opts, width/2, height)
+			view = lipgloss.JoinHorizontal(lipgloss.Top, lipgloss.NewStyle().Width(width/2).Height(height).Render(grid), strings.TrimSuffix(strings.Repeat("│\n", height), "\n"), view)
+		}
 	case r.Sheet != nil:
 		view = printSheet(r.Sheet, opts, width, height)
 	case r.Markdown != nil:

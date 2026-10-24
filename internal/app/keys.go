@@ -232,17 +232,26 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 			return m.showParts(nil, false), true
 		}
 	}
+	if k == "ctrl+o" && (m.sheet != nil || m.chartPane != nil) {
+		return m.openChartPage(), true
+	}
 	if m.sheet != nil {
 		if k == "u" && m.sheet.url() != "" {
 			return m.openQR(m.sheet.url()), true
+		}
+		if k == "C" {
+			return m.toggleChartPane(), true
 		}
 		if k == "c" {
 			m.sheet.picker = &columnPicker{at: m.sheet.column()}
 			m.layer = layerColumns
 			return nil, true
 		}
-		if m.sheet.key(k, m.width, m.bodyHeight()-1) {
-			return nil, true
+		if k == "t" && m.chartPane != nil && m.chartPane.source == nil {
+			return m.nextChartTemplate(), true
+		}
+		if m.sheet.key(k, m.sheetWidth(), m.bodyHeight()-1) {
+			return m.syncChartPane(), true
 		}
 		if k == "enter" && m.sheet.url() != "" {
 			return m.open(m.sheet.url()), true
@@ -404,10 +413,10 @@ func (m *Model) layerKey(k string) (tea.Cmd, bool) {
 			return nil, false
 		}
 		if k == "esc" || k == "enter" || k == "c" {
-			return m.closeLayer(), true
+			return tea.Batch(m.closeLayer(), m.syncChartPane()), true
 		}
 		if m.sheet.picker != nil && m.sheet.picker.key(m.sheet, k) {
-			return nil, true
+			return m.syncChartPane(), true
 		}
 		return nil, true
 	case layerParts:

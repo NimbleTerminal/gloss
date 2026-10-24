@@ -13,6 +13,7 @@ import (
 	"nimbleterminal.dev/ntpicture/playback"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/chart"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
@@ -84,6 +85,20 @@ type Options struct {
 	Maps *MapProvider
 	// Columns picks the columns of every sheet to show; the rest are hidden.
 	Columns document.ColumnFilter
+	// Chart is a chart document to draw over every sheet, bound to its rows
+	// when the document has none; ChartPath is where it was read from, for R
+	// to read again.
+	Chart     *chart.Document
+	ChartPath string
+	// Charts delivers chart documents pushed from outside, as the page
+	// serving the viewer does with POST /chart; each carries a reply channel.
+	Charts <-chan ChartPush
+	// Charted tells the host the document the chart pane drew last, nil
+	// once no chart is shown, so the host can serve it elsewhere.
+	Charted func(*chart.Document)
+	// ChartURL is where the host serves the chart page, named by ctrl+o
+	// when there is no opener to launch it with.
+	ChartURL string
 	// Parts picks the parts of every 3MF to show; the rest are left out.
 	Parts document.PartFilter
 	// Up is the axis STL, OBJ and PLY files treat as up, "y" or "z"; empty
@@ -185,6 +200,8 @@ type textState struct {
 	savedMarkdown           *markdownView
 	sheet                   *sheetView
 	savedSheet              *sheetView // The cell to return to when a fetched file closes.
+	chartPane               *chartPane // A chart of the sheet, or the chart document on show.
+	chartWanted             bool       // The pane stays on across sheets and files.
 	savedFocus              int        // 1 + the Markdown item to focus again when the document comes back; 0 for none.
 }
 
@@ -301,9 +318,9 @@ func (m *Model) Init() tea.Cmd {
 	}
 	if m.screen == screenList {
 		m.suspended = true
-		return tea.Batch(m.themeRequest(), m.terminal.Init(), m.updatePreview(), browse, m.awaitDrops())
+		return tea.Batch(m.themeRequest(), m.terminal.Init(), m.updatePreview(), browse, m.awaitDrops(), m.awaitCharts())
 	}
-	return tea.Batch(m.themeRequest(), m.terminal.Init(), m.load(false), browse, m.awaitDrops())
+	return tea.Batch(m.themeRequest(), m.terminal.Init(), m.load(false), browse, m.awaitDrops(), m.awaitCharts())
 }
 
 func (m *Model) Close() error {
@@ -430,6 +447,7 @@ func (m *Model) request(reload bool) document.Request {
 func (m *Model) load(reload bool) tea.Cmd {
 	if reload {
 		m.clearSearch()
+		m.rereadChart()
 	}
 	if len(m.opts.Files) == 0 {
 		return nil
@@ -770,7 +788,7 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 				}
 			}
 		}
-		cmd := tea.Batch(resize, m.resizeStill(), m.resizePreview(), m.layoutMarkdown(), m.layoutGrid())
+		cmd := tea.Batch(resize, m.resizeStill(), m.resizePreview(), m.layoutMarkdown(), m.layoutGrid(), m.layoutChartPane())
 		if m.typesetWaitSize && !m.suspended {
 			cmd = tea.Batch(cmd, m.load(false))
 		}
@@ -807,6 +825,13 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return m.probeDrop(v.Paths)
 	case outsideDrop:
 		return tea.Batch(m.probeDrop(v.paths), m.awaitDrops())
+	case chartPushMsg:
+		return tea.Batch(m.pushed(v), m.awaitCharts())
+	case chartResult:
+		m.chartCompiled(v)
+		return nil
+	case chartPageSaved:
+		return m.chartPageWritten(v)
 	case dropResult:
 		return m.addDropped(v)
 	case exportResult:
@@ -885,9 +910,9 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		}
 		if m.sheet != nil && !m.help && m.screen == screenDocument {
 			if v.Button == tea.MouseWheelUp {
-				m.sheet.scroll(-3, m.width, m.bodyHeight()-1)
+				m.sheet.scroll(-3, m.sheetWidth(), m.bodyHeight()-1)
 			} else if v.Button == tea.MouseWheelDown {
-				m.sheet.scroll(3, m.width, m.bodyHeight()-1)
+				m.sheet.scroll(3, m.sheetWidth(), m.bodyHeight()-1)
 			}
 			return nil
 		}
@@ -973,6 +998,7 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 
 	cleanup := tea.Batch(animationCleanup, m.clearQR(), m.clearMarkdown(), m.clearChart(), m.clearMap())
 	m.sheet = nil
+	m.closeChartPane()
 	m.typeset, m.typesetWidth = v.Typeset, v.TypesetWidth
 	overlays := m.acceptTypesetView(v)
 	if m.typeset != nil && m.savedFocus > 0 {
@@ -988,10 +1014,22 @@ func (m *Model) loaded(v document.Result) tea.Cmd {
 		if m.savedSheet != nil {
 			m.sheet.setHidden(m.savedSheet.hidden)
 			m.sheet.row, m.sheet.col, m.sheet.at = m.savedSheet.row, m.savedSheet.col, m.savedSheet.at
-			m.sheet.settle(m.width, m.bodyHeight()-1)
+			m.sheet.settle(m.sheetWidth(), m.bodyHeight()-1)
 			m.savedSheet = nil
 		}
+		if m.chartWanted || m.opts.Chart != nil {
+			// A batch, not a sequence: the compile stays reachable to callers
+			// that run the commands themselves.
+			m.chartWanted = true
+			m.chartPane = &chartPane{source: m.opts.Chart}
+			return tea.Batch(cleanup, m.layoutChartPane())
+		}
 		return cleanup
+	}
+	if v.Chart != nil {
+		m.source = nil
+		m.chartPane = &chartPane{doc: v.Chart}
+		return tea.Batch(cleanup, m.layoutChartPane())
 	}
 	if v.Markdown != nil {
 		m.source = nil
