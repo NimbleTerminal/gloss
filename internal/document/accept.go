@@ -17,7 +17,7 @@ func ParseAccept(value string) (AcceptFilter, error) {
 	}
 	for _, item := range strings.Split(value, ",") {
 		switch strings.TrimSpace(item) {
-		case "image", "images", "image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "video/*", "geojson", "gpx", "pmtiles", "map", "maps":
+		case "image", "images", "image/*", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "chart", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "video/*", "geojson", "gpx", "pmtiles", "map", "maps":
 		default:
 			return "", fmt.Errorf("--accept: unknown format %q; use gloss format names, or image/*", item)
 		}
@@ -67,7 +67,8 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 		case "jsonl", "ndjson":
 			item = "json"
 		}
-		if item == kind {
+		// A chart document is JSON too.
+		if item == kind || (item == "json" && kind == "chart") {
 			return nil
 		}
 	}

@@ -32,6 +32,8 @@ import (
 	svg "nimbleterminal.dev/ntsvg"
 	"nimbleterminal.dev/nttypeset"
 	"nimbleterminal.dev/ntvideo"
+
+	"nimbleterminal.dev/gloss/internal/chart"
 )
 
 const MaxFileBytes = 128 << 20
@@ -60,7 +62,7 @@ var FormatGroups = []FormatGroup{
 	{"Maps", []string{"GeoJSON", "GPX", "PMTiles"}},
 }
 
-var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, Mermaid, PDF, a mesh, a map, Markdown, HTML, JSON, a notebook, Word, Excel, Grist, CSV, or text")
+var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, Mermaid, PDF, a mesh, a map, Markdown, HTML, JSON, a chart, a notebook, Word, Excel, Grist, CSV, or text")
 var ErrNotRegular = errors.New("not a regular file")
 var ErrDirectory = errors.New("is a directory")
 var ErrTooLarge = errors.New("file exceeds 128 MiB")
@@ -235,14 +237,15 @@ type Result struct {
 	Assemble         func([]bool) (*Mesh, error) // The mesh of the parts marked, for a 3MF.
 	Markdown         *Markdown
 	TypesetWidth     int
-	Typeset          *Markdown    // Terminal text/source representation of a typeset image.
-	Text             string       // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
-	Sheet            *Sheet       // One sheet of a workbook; Page and Pages count sheets.
-	Layer            *TextLayer   // How much of a PDF page its text is, when the text was asked for.
-	Camera           *nt3d.Camera // Export view of a mesh, as the viewer has it; nil uses Views.
-	Views            []View       // Export views of a mesh: several make a sheet. None uses the default camera.
-	CPU              bool         // Export a mesh without trying the GPU.
-	Info             []Field      // What the file says about itself, for the info panel.
+	Typeset          *Markdown       // Terminal text/source representation of a typeset image.
+	Text             string          // Plain text, or pretty JSON, as a reader wants it, without the viewer's fences.
+	Sheet            *Sheet          // One sheet of a workbook; Page and Pages count sheets.
+	Chart            *chart.Document // A Flint or ntcharts chart, drawn by the viewer.
+	Layer            *TextLayer      // How much of a PDF page its text is, when the text was asked for.
+	Camera           *nt3d.Camera    // Export view of a mesh, as the viewer has it; nil uses Views.
+	Views            []View          // Export views of a mesh: several make a sheet. None uses the default camera.
+	CPU              bool            // Export a mesh without trying the GPU.
+	Info             []Field         // What the file says about itself, for the info panel.
 	// What Image is when it stands in for the document, as a 3MF's
 	// thumbnail does for a mesh too large to show: empty otherwise.
 	Standin string
@@ -494,6 +497,14 @@ func (l *Loader) Load(q Request) (out Result) {
 		if out.Sheet != nil {
 			details = func() []Field { return out.Sheet.csvFields(q.Locale) }
 		}
+	case "chart":
+		doc, err := chart.Sniff(data)
+		if err != nil {
+			out.Err = err
+			return out
+		}
+		out.Chart = &doc
+		details = func() []Field { return chartFields(doc) }
 	case "json":
 		details = func() []Field { return Section("JSON", Field{"Format", "JSON"}) }
 		doc, err := ReadJSON(q.Path, data)

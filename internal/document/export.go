@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"fmt"
 	"image"
 	"image/color"
@@ -29,6 +30,16 @@ func ExportImage(r Result, maxEdge int) (image.Image, error) {
 	}
 	if r.Mesh != nil {
 		return exportMesh(r, maxEdge)
+	}
+	if r.Chart != nil && r.Image == nil {
+		// The terminal chart, drawn at a grid the edge allows; the scaling
+		// below never enlarges it.
+		cols, rows, cellW, cellH := ChartGrid(maxEdge)
+		img, _, err := RenderChart(context.Background(), *r.Chart, cols, rows, cellW, cellH)
+		if err != nil {
+			return nil, err
+		}
+		r.Image = img
 	}
 	if r.Map != nil {
 		// Drawn at the size asked for, as a vector document is.

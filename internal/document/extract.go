@@ -73,6 +73,8 @@ func Text(r Result) (text []byte, ext string, err error) {
 		return []byte(r.Text), ".txt", nil
 	case r.Sheet != nil:
 		return r.Sheet.CSV(), ".csv", nil
+	case r.Chart != nil:
+		return r.Chart.Raw, ".json", nil
 	case r.Markdown != nil:
 		return r.Markdown.Source, ".md", nil
 	}

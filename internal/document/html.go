@@ -14,6 +14,8 @@ import (
 	"github.com/JohannesKaufmann/html-to-markdown/v2/plugin/strikethrough"
 	"github.com/JohannesKaufmann/html-to-markdown/v2/plugin/table"
 	"golang.org/x/net/html"
+
+	"nimbleterminal.dev/gloss/internal/chart"
 )
 
 // MaxHTMLBytes bounds a page: its Markdown must fit the document limit, and
@@ -106,6 +108,11 @@ func textKind(path string, data []byte) string {
 		}
 		if json.Unmarshal(data, &nb) == nil && nb.Format > 0 && len(nb.Cells) > 0 {
 			return "ipynb"
+		}
+	}
+	if head[0] == '{' {
+		if _, err := chart.Sniff(data); err == nil {
+			return "chart"
 		}
 	}
 	if json.Valid(data) || jsonLines(data) {
