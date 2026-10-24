@@ -521,7 +521,8 @@ curl http://127.0.0.1:PORT/TOKEN/chart > chart.html   # the shown chart as a sel
 
 A 4xx or 503 reply carries `{"error": "..."}`: 400 for a document that is
 not a chart, 413 over 16 MiB, 422 when it does not compile (a field the
-table lacks is named), 503 when the viewer is busy or silent for 20 s. The
+table lacks is named), 503 when the viewer is busy or silent for 20 s; a
+503 chart was not drawn and is never shown later, so retry it. The
 `GET` answers 404 in plain text while no chart is shown and 422 for a bare
 ntcharts spec the browser cannot draw (only bar and timeseries specs can
 be; every Flint document can). In the viewer, `ctrl+o` writes the same

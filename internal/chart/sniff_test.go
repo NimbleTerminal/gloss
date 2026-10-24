@@ -40,12 +40,13 @@ func TestSniffUnboundFlint(t *testing.T) {
 func TestSniffRejectsPlainJSON(t *testing.T) {
 	for _, raw := range []string{
 		`{"type":"FeatureCollection","features":[]}`, // GeoJSON: a type, but not a chart.
-		`{"type":"bar"}`,                           // No data.
-		`{"spec":"not a chart"}`,                   // An envelope holds an object.
-		`{"spec":{"type":"ClusterIP","ports":[]}}`, // A Kubernetes manifest: a type, but no chart.
-		`{"error":"not found","status":404}`,       // A saved API error: not a compiler's.
-		`{"error":{"code":7}}`,                     // A compiler's error carries a message.
-		`{"chart_spec":"x"}`, `{"chart_spec":{}}`,  // Flint names a chartType.
+		`{"type":"bar"}`,                                 // No data.
+		`{"spec":"not a chart"}`,                         // An envelope holds an object.
+		`{"spec":{"type":"ClusterIP","ports":[]}}`,       // A Kubernetes manifest: a type, but no chart.
+		`{"error":"not found","status":404}`,             // A saved API error: not a compiler's.
+		`{"error":{"code":7}}`,                           // A compiler's error carries a message.
+		`{"error":{"message":"not found"},"status":404}`, // An API's error body, not a compiler's.
+		`{"chart_spec":"x"}`, `{"chart_spec":{}}`,        // Flint names a chartType.
 		`[1,2,3]`, `"x"`, `{not json`, `{}`,
 		`{"data":{"url":"https://example.test/a.csv"},"chart_spec":{"chartType":"Bar Chart","encodings":{}}}`, // Remote data.
 	} {

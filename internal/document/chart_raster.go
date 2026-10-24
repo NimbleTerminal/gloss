@@ -9,6 +9,8 @@ import (
 	"sync"
 	"unicode/utf8"
 
+	"github.com/charmbracelet/x/ansi"
+
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gomono"
 	"golang.org/x/image/font/opentype"
@@ -193,15 +195,21 @@ func ChartImage(frame string, cols, rows, cellW, cellH int, fg, bg color.RGBA) *
 				paper = run.bg
 			}
 			for _, r := range run.runes {
-				if x >= cols {
+				// Advance as the terminal does: a wide rune takes two
+				// cells and a combining one none, so labels stay in step.
+				span := ansi.StringWidth(string(r))
+				if span == 0 {
+					continue
+				}
+				if x+span > cols {
 					break
 				}
-				cell := image.Rect(x*cellW, y*cellH, (x+1)*cellW, (y+1)*cellH)
+				cell := image.Rect(x*cellW, y*cellH, (x+span)*cellW, (y+1)*cellH)
 				if run.bgSet {
 					draw.Draw(img, cell, image.NewUniform(paper), image.Point{}, draw.Src)
 				}
 				drawCell(img, cell, r, ink, face)
-				x++
+				x += span
 			}
 		}
 	}

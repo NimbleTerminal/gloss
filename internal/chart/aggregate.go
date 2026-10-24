@@ -9,10 +9,10 @@ import (
 // aggregate folds a Flint document's rows for its aggregate encodings
 // (sum, mean/average, count, min, max, median), grouping by every other
 // encoded field, and drops the aggregate directives, so the compiler sees
-// plain rows. The text backend of flint-ntcharts 0.3.1 writes an aggregate
-// into the field it reads from, then reads field_op, which comes out zero;
-// folding here draws the right bars whichever backend compiles the rest. A
-// document without aggregates is returned untouched.
+// plain rows. Every Flint document is folded here before it is compiled,
+// for the terminal and the browser alike: no aggregate directive reaches
+// the compiler, so both draw the same totals. A document without
+// aggregates is returned untouched.
 func aggregate(raw []byte) ([]byte, error) {
 	var top map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &top); err != nil || top["chart_spec"] == nil {

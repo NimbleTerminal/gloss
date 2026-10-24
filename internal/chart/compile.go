@@ -56,7 +56,12 @@ func (c *Compiler) Close() {
 
 // compile runs input through the Flint compiler with opts applied first and
 // returns the raw envelope, for envelope.Parse or envelope.ParseResult.
+// The input is held to MaxDocumentBytes, as a file is: a document bound to
+// a sheet's rows can outgrow the file it came from.
 func (c *Compiler) compile(ctx context.Context, input []byte, opts ...envelope.Option) ([]byte, error) {
+	if len(input) > MaxDocumentBytes {
+		return nil, errors.New("chart data exceeds 16 MiB: show fewer columns or rows")
+	}
 	e, err := c.ready()
 	if err != nil {
 		return nil, fmt.Errorf("flint compiler: %w", err)

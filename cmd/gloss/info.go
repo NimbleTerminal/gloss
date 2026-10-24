@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/chart"
 	"nimbleterminal.dev/gloss/internal/document"
 	svg "nimbleterminal.dev/ntsvg"
 )
@@ -56,7 +57,7 @@ func describe(opts options, stdout, stderr io.Writer) error {
 				} else if doc != nil {
 					rows := 0
 					if r.Sheet != nil {
-						rows = max(0, len(r.Sheet.Rows)-1)
+						rows = min(max(0, len(r.Sheet.Rows)-1), chart.MaxRows) // As Bind keeps them.
 					}
 					if r.Chart != nil {
 						// The loader's Chart section says what the file is; add what it draws.

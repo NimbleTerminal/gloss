@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
@@ -26,6 +27,8 @@ type chartPane struct {
 	doc           *chart.Document // A chart document page; nil for an inferred chart.
 	source        *chart.Document // A document drawn over the sheet, bound to its rows; nil infers.
 	bound         []chart.Note    // What binding the source set aside.
+	boundRows     int             // The rows binding the source kept.
+	series        int             // The series the last good compile drew.
 	compiled      *chart.Document // The document the view was compiled from, for the browser page.
 	cols          []int           // The sheet columns the shape was read from.
 	revision      int
@@ -35,6 +38,7 @@ type chartPane struct {
 	err           error
 	cancel        context.CancelFunc
 	reply         chan<- ChartReply // Who pushed the source, until the first compile answers.
+	claim         *PushClaim        // The push's claim, while reply waits.
 }
 
 type chartResult struct {
@@ -53,7 +57,29 @@ type chartResult struct {
 type ChartPush struct {
 	Doc   chart.Document
 	Reply chan<- ChartReply
+	Claim *PushClaim // Nil when the pusher always waits for the reply.
 }
+
+// PushClaim settles a push once: the viewer keeps the chart when it is
+// drawn, or the pusher gives up on it first (a timeout, a request gone),
+// and then the viewer drops it, so a push reported lost is never shown.
+type PushClaim struct{ state atomic.Int32 }
+
+const (
+	claimOpen int32 = iota
+	claimKept
+	claimAbandoned
+)
+
+// Abandon gives the push up, unless the viewer has kept it; it reports
+// whether it did, and if not the reply is on its way.
+func (c *PushClaim) Abandon() bool { return c.state.CompareAndSwap(claimOpen, claimAbandoned) }
+
+func (c *PushClaim) keep() bool {
+	return c == nil || c.state.CompareAndSwap(claimOpen, claimKept)
+}
+
+func (c *PushClaim) abandoned() bool { return c != nil && c.state.Load() == claimAbandoned }
 
 // ChartReply says what the viewer drew from a push, or why it did not.
 type ChartReply struct {
@@ -84,6 +110,9 @@ func (m *Model) awaitCharts() tea.Cmd {
 // pushed draws a pushed chart and arranges to answer when it is compiled,
 // or answers at once with what stood in the way.
 func (m *Model) pushed(push chartPushMsg) tea.Cmd {
+	if push.Claim.abandoned() {
+		return nil
+	}
 	doc := push.Doc
 	cmd := m.applyChart(&doc)
 	if cmd == nil {
@@ -97,7 +126,7 @@ func (m *Model) pushed(push chartPushMsg) tea.Cmd {
 		answer(push.Reply, ChartReply{Error: reason})
 		return nil
 	}
-	m.chartPane.reply = push.Reply
+	m.chartPane.reply, m.chartPane.claim = push.Reply, push.Claim
 	return cmd
 }
 
@@ -264,7 +293,7 @@ func (m *Model) layoutChartPane() tea.Cmd {
 			m.reportChart()
 			return nil
 		}
-		doc, p.bound = bound, notes
+		doc, p.bound, p.boundRows = bound, notes, min(len(rows), chart.MaxRows)
 	case len(p.templates) == 0:
 		p.view, p.err = "", fmt.Errorf("nothing to chart: show a date or category column and a number column")
 		m.reportChart()
@@ -340,19 +369,35 @@ func (m *Model) chartCompiled(r chartResult) {
 	if p == nil || r.pane != p || r.revision != p.revision {
 		return
 	}
+	if p.reply != nil && !p.claim.keep() {
+		// The pusher gave up before this was drawn and told its caller so.
+		p.reply = nil
+		m.closeChartPane()
+		return
+	}
 	p.err, p.warnings = r.err, r.warnings
 	if r.err == nil {
-		p.view, p.compiled = r.view, r.doc
+		p.view, p.compiled, p.series = r.view, r.doc, r.series
 		m.reportChart()
 	}
 	if p.reply != nil {
-		out := ChartReply{Type: r.kind, Series: r.series, Rows: p.shape.Rows, Warnings: r.warnings}
+		out := ChartReply{Type: r.kind, Series: r.series, Rows: p.rows(), Warnings: r.warnings}
 		if r.err != nil {
 			out.Error = r.err.Error()
 		}
 		answer(p.reply, out)
-		p.reply = nil
+		p.reply, p.claim = nil, nil
 	}
+}
+
+// rows is how many of the sheet's rows the chart draws: those binding kept
+// for a document over the sheet, else those the inferred chart took, after
+// MaxRows and MaxValues.
+func (p *chartPane) rows() int {
+	if p.source != nil {
+		return p.boundRows
+	}
+	return p.shape.Rows
 }
 
 // chartTitle names what the pane draws.
@@ -402,7 +447,7 @@ func (m *Model) chartStatus() string {
 	out := m.chartTitle()
 	switch {
 	case p.source != nil:
-		out = fmt.Sprintf("%s · %d rows", out, p.shape.Rows)
+		out = fmt.Sprintf("%s · %d rows", out, p.rows())
 	case p.doc == nil && len(p.templates) > 0:
 		out = fmt.Sprintf("chart · %s · %d series · %d rows", strings.ToLower(strings.TrimSuffix(p.templates[p.template], " Chart")), max(1, len(p.shape.Measures)), p.shape.Rows)
 	}
@@ -427,7 +472,11 @@ func (m *Model) chartFields() []document.Field {
 	}
 	fields := []document.Field{{Label: "Type", Value: m.chartTitle()}}
 	if p.doc == nil {
-		fields = append(fields, document.Field{Label: "Series", Value: fmt.Sprint(max(1, len(p.shape.Measures)))}, document.Field{Label: "Rows", Value: fmt.Sprint(p.shape.Rows)})
+		series := max(1, len(p.shape.Measures))
+		if p.source != nil {
+			series = p.series
+		}
+		fields = append(fields, document.Field{Label: "Series", Value: fmt.Sprint(series)}, document.Field{Label: "Rows", Value: fmt.Sprint(p.rows())})
 	}
 	switch {
 	case p.err != nil:

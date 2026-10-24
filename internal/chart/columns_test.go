@@ -26,6 +26,14 @@ func TestColumnTypes(t *testing.T) {
 		{"region", []string{"North", "South"}, TypeCategory},
 		{"id", []string{"1001", "1002"}, TypeCategory},
 		{"zip", []string{"02134", "90210"}, TypeCategory},
+		{"user_id", []string{"1001", "1002"}, TypeCategory},
+		{"UserID", []string{"1001", "1002"}, TypeCategory},
+		{"Zip Code", []string{"02134", "90210"}, TypeCategory},
+		{"width", []string{"12", "40"}, TypeQuantity},    // Not "id".
+		{"barcode", []string{"12", "40"}, TypeQuantity},  // Not "code".
+		{"discount", []string{"12", "40"}, TypeQuantity}, // Not "count".
+		{"fiscal_year", []string{"2024", "2025"}, TypeYear},
+		{"UnitsSold", []string{"120", "95"}, TypeCount},
 		{"empty", []string{"", ""}, TypeCategory},
 	} {
 		if got := typeColumn(tc.name, tc.cells); got.Type != tc.want {

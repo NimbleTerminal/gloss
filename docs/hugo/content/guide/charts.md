@@ -61,7 +61,8 @@ curl -X POST -d @revenue.json http://127.0.0.1:PORT/TOKEN/chart
 The reply says what was drawn, `{"type":"bar","series":1,"rows":8,"warnings":[]}`,
 or carries `{"error":"…"}`: 400 for a body that is not a chart, 413 over
 16 MiB, 422 for a document that does not compile, 503 while the viewer is
-busy or when it does not answer within 20 seconds. The push renews the idle
+busy or when it does not answer within 20 seconds. A chart refused with 503
+is dropped, never drawn late, so it is safe to send again. The push renews the idle
 window of a detached viewer.
 
 ## Pictures

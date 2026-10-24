@@ -59,9 +59,22 @@ func TestChartImageColoursFromSGR(t *testing.T) {
 }
 
 func TestChartImageDrawsUnknownRunesAsBoxes(t *testing.T) {
-	img := ChartImage("\U0001F600x", 2, 1, 10, 20, ink, paper)
-	if img.RGBAAt(1, 10) != ink || img.RGBAAt(5, 10) != paper {
-		t.Fatalf("placeholder box: %v %v", img.RGBAAt(1, 10), img.RGBAAt(5, 10))
+	img := ChartImage("\U0001F600x", 3, 1, 10, 20, ink, paper)
+	if img.RGBAAt(1, 10) != ink || img.RGBAAt(10, 10) != paper {
+		t.Fatalf("placeholder box: %v %v", img.RGBAAt(1, 10), img.RGBAAt(10, 10))
+	}
+}
+
+func TestChartImageKeepsCellsInStepWithTheTerminal(t *testing.T) {
+	// A wide rune takes two cells: the block after it is in the third.
+	img := ChartImage("\U0001F600█", 3, 1, 10, 20, ink, paper)
+	if img.RGBAAt(25, 10) != ink {
+		t.Fatal("the block after a wide rune is not in the third cell")
+	}
+	// A combining mark takes none: the block is in the second cell.
+	img = ChartImage("e\u0301█", 3, 1, 10, 20, ink, paper)
+	if img.RGBAAt(15, 10) != ink || img.RGBAAt(25, 10) != paper {
+		t.Fatalf("combining mark advanced the cells: %v %v", img.RGBAAt(15, 10), img.RGBAAt(25, 10))
 	}
 }
 

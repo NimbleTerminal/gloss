@@ -373,6 +373,74 @@ func TestChartPushAppliesAndReplies(t *testing.T) {
 	}
 }
 
+func TestChartPushAbandonedIsNotShown(t *testing.T) {
+	pushes := make(chan ChartPush, 1)
+	var shown []*chart.Document
+	m := viewing(t, Options{Files: []string{"book.xlsx"}, Charts: pushes, Charted: func(d *chart.Document) { shown = append(shown, d) }}, "")
+	m.Update(tea.WindowSizeMsg{Width: 140, Height: 30})
+	m.Update(document.Result{Generation: m.generation, Kind: "xlsx", Page: 1, Pages: 1, Sheet: salesSheet()})
+	doc, _ := chart.Sniff([]byte(`{"data":{"values":[]},"chart_spec":{"chartType":"Bar Chart","encodings":{"x":{"field":"region"},"y":{"field":"revenue","aggregate":"sum"}}}}`))
+
+	// Given up while it compiled: the result is dropped, and so is the pane.
+	reply, claim := make(chan ChartReply, 1), &PushClaim{}
+	pushes <- ChartPush{Doc: doc, Reply: reply, Claim: claim}
+	cmd := m.pushed(m.awaitCharts()().(chartPushMsg))
+	if !claim.Abandon() {
+		t.Fatal("the viewer kept the push before it was drawn")
+	}
+	settle(t, m, cmd)
+	if m.chartPane != nil {
+		t.Fatal("an abandoned push stayed on screen")
+	}
+	if len(shown) == 0 || shown[len(shown)-1] != nil {
+		t.Fatalf("host still serves the abandoned chart: %v", shown)
+	}
+	select {
+	case got := <-reply:
+		t.Fatalf("replied to an abandoned push: %+v", got)
+	default:
+	}
+
+	// Given up before the viewer took it: never applied.
+	reply, claim = make(chan ChartReply, 1), &PushClaim{}
+	claim.Abandon()
+	pushes <- ChartPush{Doc: doc, Reply: reply, Claim: claim}
+	if cmd := m.pushed(m.awaitCharts()().(chartPushMsg)); cmd != nil || m.chartPane != nil {
+		t.Fatal("applied a push given up before it arrived")
+	}
+
+	// Drawn first: the viewer keeps it, and the pusher's Abandon says so.
+	reply, claim = make(chan ChartReply, 1), &PushClaim{}
+	pushes <- ChartPush{Doc: doc, Reply: reply, Claim: claim}
+	settle(t, m, m.pushed(m.awaitCharts()().(chartPushMsg)))
+	if claim.Abandon() {
+		t.Fatal("Abandon won over a drawn chart")
+	}
+	if got := <-reply; got.Error != "" || got.Rows != 4 || m.chartPane == nil || m.chartPane.view == "" {
+		t.Fatalf("kept push: %+v", got)
+	}
+}
+
+func TestChartRowsCountWhatIsBound(t *testing.T) {
+	s := &document.Sheet{Name: "wide", Columns: 4}
+	s.Rows = [][]string{{"day", "a", "b", "c"}}
+	for i := 0; i < 7000; i++ {
+		s.Rows = append(s.Rows, []string{"2026-01-01", "1", "2", "3"})
+	}
+	// Three measures over a date: the inferred chart takes MaxValues/3 rows.
+	if shape := chart.Analyze(s.Rows[0], s.Rows[1:], []int{0, 1, 2, 3}); shape.Rows >= 7000 {
+		t.Fatalf("test needs MaxValues to cut the inferred rows: %d", shape.Rows)
+	}
+	doc, _ := chart.Sniff([]byte(`{"data":{"values":[]},"chart_spec":{"chartType":"Line Chart","encodings":{"x":{"field":"day"},"y":{"field":"a"}}}}`))
+	m := viewing(t, Options{Files: []string{"book.xlsx"}, Chart: &doc}, "")
+	m.Update(tea.WindowSizeMsg{Width: 140, Height: 30})
+	_, cmd := m.Update(document.Result{Generation: m.generation, Kind: "xlsx", Page: 1, Pages: 1, Sheet: s})
+	settle(t, m, cmd)
+	if m.chartPane == nil || m.chartPane.rows() != 7000 || !strings.Contains(m.chartStatus(), "7000 rows") {
+		t.Fatalf("status %q", m.chartStatus())
+	}
+}
+
 func TestChartFromTheActionsMenu(t *testing.T) {
 	m := tabulated(t, salesSheet(), 1, 1)
 	m.opts.OpenWith, m.opts.Scratch = &fakeOpenHost{}, func(string, []byte) (string, error) { return "", nil }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // Flint semantic types gloss infers.
@@ -56,14 +57,41 @@ var (
 	monthLayouts    = []string{"2006-01", "Jan 2006", "January 2006"}
 )
 
+// headerHas reports whether one of the header's words is one of words: a
+// word is a run of letters or digits, and a capital after a small letter
+// starts one, so "user_id", "UserID" and "zip code" name labels while
+// "width", "barcode" and "discount" do not.
 func headerHas(name string, words ...string) bool {
-	name = strings.ToLower(name)
-	for _, w := range words {
-		if strings.Contains(name, w) {
-			return true
+	var parts []string
+	var word []rune
+	var prev rune
+	for _, r := range name {
+		switch {
+		case !unicode.IsLetter(r) && !unicode.IsDigit(r):
+			parts, word = appendWord(parts, word), nil
+		case unicode.IsUpper(r) && unicode.IsLower(prev):
+			parts, word = appendWord(parts, word), []rune{r}
+		default:
+			word = append(word, r)
+		}
+		prev = r
+	}
+	parts = appendWord(parts, word)
+	for _, p := range parts {
+		for _, w := range words {
+			if p == w {
+				return true
+			}
 		}
 	}
 	return false
+}
+
+func appendWord(parts []string, word []rune) []string {
+	if len(word) == 0 {
+		return parts
+	}
+	return append(parts, strings.ToLower(string(word)))
 }
 
 // typeColumn decides what a column holds from its cells, excluding empty
@@ -127,15 +155,15 @@ func typeColumn(name string, cells []string) Column {
 		c.Type = TypeYearQuarter
 	case fits(booleans):
 		c.Type = TypeBoolean
-	case fits(years) && headerHas(name, "year"):
+	case fits(years) && headerHas(name, "year", "years", "yr"):
 		c.Type = TypeYear
-	case fits(numbers) && !headerHas(name, "id", "code", "zip", "phone"):
+	case fits(numbers) && !headerHas(name, "id", "code", "zip", "zipcode", "postcode", "phone"):
 		switch {
 		case symbols > filled/2:
 			c.Type = TypePrice
 		case percents > filled/2:
 			c.Type = TypePercentage
-		case integers == numbers && headerHas(name, "count", "qty", "quantity", "units", "number"):
+		case integers == numbers && headerHas(name, "count", "counts", "qty", "quantity", "units", "number"):
 			c.Type = TypeCount
 		default:
 			c.Type = TypeQuantity

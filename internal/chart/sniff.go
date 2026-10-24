@@ -97,6 +97,13 @@ func Sniff(raw []byte) (Document, error) {
 		}
 		doc.Kind = KindEnvelope
 	case probe["error"] != nil:
+		// A compiler's error envelope holds nothing beyond the envelope's
+		// own keys; an API's error body ({"error":…,"status":404}) is JSON.
+		for k := range probe {
+			if k != "error" && k != "warnings" && k != "size" {
+				return Document{}, ErrNotChart
+			}
+		}
 		var failure struct {
 			Message string `json:"message"`
 		}

@@ -12,6 +12,9 @@ import (
 	"nimbleterminal.dev/gloss/internal/chart"
 )
 
+// chartWait is how long a POST waits for the viewer to draw its chart.
+var chartWait = 20 * time.Second
+
 // pushChart takes a chart document for the viewer and answers what it drew;
 // asked for, it gives the chart the viewer shows as a page of its own.
 func (s *Server) pushChart(w http.ResponseWriter, r *http.Request) {
@@ -50,24 +53,34 @@ func (s *Server) pushChart(w http.ResponseWriter, r *http.Request) {
 		answer(http.StatusBadRequest, app.ChartReply{Error: err.Error()})
 		return
 	}
-	reply := make(chan app.ChartReply, 1)
+	reply, claim := make(chan app.ChartReply, 1), &app.PushClaim{}
 	select {
-	case s.charts <- app.ChartPush{Doc: doc, Reply: reply}:
+	case s.charts <- app.ChartPush{Doc: doc, Reply: reply, Claim: claim}:
 	default:
 		answer(http.StatusServiceUnavailable, app.ChartReply{Error: "the viewer is busy"})
 		return
 	}
 	s.lifetime.activity(time.Now())
-	select {
-	case got := <-reply:
+	relay := func(got app.ChartReply) {
 		code := http.StatusOK
 		if got.Error != "" {
 			code = http.StatusUnprocessableEntity
 		}
 		answer(code, got)
-	case <-time.After(20 * time.Second):
-		answer(http.StatusServiceUnavailable, app.ChartReply{Error: "the viewer did not answer in time"})
+	}
+	select {
+	case got := <-reply:
+		relay(got)
+	case <-time.After(chartWait):
+		if claim.Abandon() {
+			answer(http.StatusServiceUnavailable, app.ChartReply{Error: "the viewer did not answer in time"})
+			return
+		}
+		// The viewer kept the chart as the wait ran out: its reply is coming.
+		relay(<-reply)
 	case <-r.Context().Done():
+		// No one is left to tell, so the chart must not land either.
+		claim.Abandon()
 	}
 }
 

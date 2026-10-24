@@ -133,3 +133,25 @@ func TestCompileLargeDocumentWithinDeadline(t *testing.T) {
 		t.Fatalf("took %v", d)
 	}
 }
+
+func TestCompileRefusesBoundDocumentOverCap(t *testing.T) {
+	doc := sniffed(t, `{"chart_spec":{"chartType":"Bar Chart","encodings":{"x":{"field":"name"},"y":{"field":"n"}}}}`)
+	long := strings.Repeat("x", 4<<10)
+	rows := make([][]string, 5000) // 20 MB of names, past the cap once bound.
+	for i := range rows {
+		rows[i] = []string{long, "1"}
+	}
+	bound, _, err := Bind(doc, []string{"name", "n"}, rows, []int{0, 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(bound.Raw) <= MaxDocumentBytes {
+		t.Fatalf("bound document is %d bytes; the test needs it past the cap", len(bound.Raw))
+	}
+	if _, err := Default.Compile(context.Background(), bound, 80, 20); err == nil || !strings.Contains(err.Error(), "16 MiB") {
+		t.Fatalf("got %v, want the 16 MiB refusal", err)
+	}
+	if _, err := Default.Option(context.Background(), bound); err == nil || !strings.Contains(err.Error(), "16 MiB") {
+		t.Fatalf("Option got %v, want the 16 MiB refusal", err)
+	}
+}
