@@ -31,6 +31,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	booba "github.com/NimbleMarkets/go-booba/serve"
 	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/chart"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/web"
@@ -150,6 +151,7 @@ type Server struct {
 	front         *http.Server
 	proxy         *httputil.ReverseProxy
 	drops         chan []string
+	charts        chan app.ChartPush
 	started, done chan struct{}
 	once, ended   sync.Once
 	logged        io.Writer // Where the process logger wrote before the session.
@@ -163,9 +165,11 @@ type Server struct {
 	// session keeps; langChosen says it has been chosen.
 	viewerLang string
 	langChosen bool
-	dir        string       // Where drops are kept; made when the first arrives.
-	stored     atomic.Int64 // Bytes kept so far, against maxSessionBytes.
-	uploads    atomic.Int32 // Active requests, including bytes not committed yet.
+	shown      *chart.Document // What the viewer's chart pane drew last; GET /chart draws it.
+	chartURL   string          // Where that page is, for the viewer to name.
+	dir        string          // Where drops are kept; made when the first arrives.
+	stored     atomic.Int64    // Bytes kept so far, against maxSessionBytes.
+	uploads    atomic.Int32    // Active requests, including bytes not committed yet.
 
 	// Exports, made by e in the viewer, wait here for the page to take
 	// them as downloads: the server's working directory is not the
@@ -193,7 +197,7 @@ func random() (string, error) {
 
 func serve(ctx context.Context, opts app.Options) (*Server, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	s := &Server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, lang: opts.Lang, pick: opts.Pick, drops: make(chan []string, 16), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
+	s := &Server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, lang: opts.Lang, pick: opts.Pick, drops: make(chan []string, 16), charts: make(chan app.ChartPush, 1), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
 	s.lifetime = newViewerLifetime()
 	opts.OnQuit = func() { s.lifetime.finish("closed") }
 	// The browser carries the full request as accessible page text, outside
@@ -218,6 +222,7 @@ func serve(ctx context.Context, opts app.Options) (*Server, error) {
 	config := booba.DefaultConfig()
 	config.Host, config.Port, config.HTTP3Port, config.MaxConnections = "127.0.0.1", probe.Addr().(*net.TCPAddr).Port, -1, 1
 	opts.Drops, opts.Save = s.drops, s.offer
+	opts.Charts, opts.Charted = s.charts, s.charted
 	viewer := booba.NewServer(config, booba.WithConnectMiddleware(func(next booba.ConnectHandler) booba.ConnectHandler {
 		return func(r *http.Request) error {
 			if subtle.ConstantTimeCompare([]byte(r.Header.Get("X-Gloss-Secret")), []byte(s.secret)) != 1 {
@@ -234,6 +239,9 @@ func serve(ctx context.Context, opts app.Options) (*Server, error) {
 	failed := make(chan error, 1)
 	go func() {
 		failed <- viewer.Serve(ctx, func(session booba.Session) (tea.Model, []tea.ProgramOption) {
+			s.mu.Lock()
+			opts.ChartURL = s.chartURL
+			s.mu.Unlock()
 			m := app.New(s.viewerOptions(opts))
 			s.mu.Lock()
 			first := s.model == nil
@@ -286,6 +294,9 @@ func serve(ctx context.Context, opts app.Options) (*Server, error) {
 		return nil, err
 	}
 	s.URL = "http://" + listener.Addr().String() + "/" + s.token + "/"
+	s.mu.Lock()
+	s.chartURL = s.URL + "chart"
+	s.mu.Unlock()
 	s.front = &http.Server{Handler: s, ReadHeaderTimeout: 10 * time.Second, ReadTimeout: uploadIdleTimeout, IdleTimeout: 30 * time.Second, ErrorLog: log.New(io.Discard, "", 0)}
 	go s.front.Serve(listener)
 	go func() {
@@ -413,6 +424,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(data)
 	case rest == "drop":
 		s.receive(w, r)
+	case rest == "chart":
+		s.pushChart(w, r)
 	case rest == "exports":
 		s.listExports(w, r)
 	case strings.HasPrefix(rest, "export/"):

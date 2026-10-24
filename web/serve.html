@@ -23,7 +23,8 @@ main{position:relative;flex:1;min-height:0}#terminal{height:100%;padding:4px}
   <div class="actions">{{if .Pick}}<button id="choose-files" type="button" disabled>{{t "web.serve.choose" "Choose files"}}</button>
     <p>{{t "web.serve.pickHelp" "Choose or drop files, review them below, then press Enter in the viewer to send. Press q to cancel."}}</p>
     {{else}}<button id="done-viewing" type="button" disabled>{{t "web.serve.done" "Done viewing"}}</button>
-    <details><summary>{{t "web.serve.more" "More"}}</summary><button id="choose-files" type="button" disabled>{{t "web.serve.another" "Open another file"}}</button></details>{{end}}
+    <details><summary>{{t "web.serve.more" "More"}}</summary><button id="choose-files" type="button" disabled>{{t "web.serve.another" "Open another file"}}</button>
+      <p><a id="chart-page" href="chart" target="_blank" rel="noreferrer">{{t "web.serve.chartLink" "Chart in this browser"}}</a> — {{t "web.serve.chartAbout" "the chart the viewer shows, after C on a table"}}</p></details>{{end}}
     <button id="keep-viewing" type="button" hidden>{{t "web.serve.keep" "Keep viewing"}}</button>
   </div>
   <p id="lifetime" role="status" aria-live="polite"></p>
