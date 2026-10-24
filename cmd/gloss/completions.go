@@ -41,7 +41,7 @@ func completers() map[string]completer {
 		"font":           {Words: []string{"readable", "editorial", "technical", "compact"}},
 		"mono":           {Words: []string{"jetbrains"}},
 		"markdown":       {Words: []string{"text", "typeset"}},
-		"type":           {Words: []string{"image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "geojson", "gpx", "pmtiles"}},
+		"type":           {Words: []string{"image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "jsonl", "ndjson", "chart", "ipynb", "html", "text", "markdown", "md", "mermaid", "video", "geojson", "gpx", "pmtiles"}},
 		"view":           {Words: []string{"front", "back", "left", "right", "top", "bottom", "iso", "all"}, List: true},
 		"projection":     {Words: []string{"ortho", "perspective"}},
 		"up":             {Words: []string{"y", "z"}},

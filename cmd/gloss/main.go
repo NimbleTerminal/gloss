@@ -97,7 +97,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.BoolVarP(&opts.LineNumbers, "line-numbers", "N", false, "number the lines of plain text, source code, JSON and Markdown source (# toggles, : goes to a line)")
 	f.BoolVarP(&opts.ChopLines, "chop-long-lines", "S", false, "cut long lines at the right edge instead of wrapping them, as less -S does (S toggles, arrows scroll sideways)")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")
-	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown (or md), mermaid, video, geojson, gpx, pmtiles")
+	f.StringVarP(&opts.Type, "type", "t", "", "force input type: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json (or jsonl, ndjson), chart, ipynb, html, text, markdown (or md), mermaid, video, geojson, gpx, pmtiles")
 	accept := f.String("accept", "", "require these content formats for this session, comma-separated: image/*, pdf, svg, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json (or jsonl, ndjson), ipynb, html, text, markdown, mermaid, video (or video/*)")
 	page := f.StringP("page", "p", "1", "PDF page or workbook sheet, from 1; for an export or text into a folder, a range such as 2-5, or all")
 	f.BoolVar(&opts.Text, "text", false, "take the text out: Markdown of a Word document, page, or notebook, text of a PDF page, CSV of a sheet, text and JSON as they are")
@@ -118,6 +118,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	partn := f.String("partn", "", "show only these parts of a 3MF, counted from 1: 2,4-6")
 	cols := f.String("cols", "", "show only these columns of a table, by header or letter: name,name")
 	coln := f.String("coln", "", "show only these columns of a table, counted from 1: 2,4-6")
+	chartPath := f.String("chart", "", "draw this Flint or ntcharts chart file over the table opened, binding the table's rows when the file has none; a chart file of its own needs no option")
 	f.StringArrayVar(&opts.Globs, "glob", nil, "search the folders named, or the current one, for files: a glob, an extension, or a kind such as images (repeatable)")
 	f.BoolVar(&opts.FetchAllowed, "fetch", false, "allow opening a dropped URL or a table address with Enter, and the map provider named in GLOSS_MAP_TILES and GLOSS_GEOCODER; an address named on the command line needs no option, and GLOSS_NO_FETCH forbids both")
 	f.StringVar(&opts.UserAgent, "user-agent", "", "what downloads send as their User-Agent; else $GLOSS_USER_AGENT, else gloss and its version")
@@ -269,8 +270,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	case "jsonl", "ndjson":
 		opts.Type = "json"
 	}
-	if !slices.Contains([]string{"", "image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "ipynb", "html", "text", "markdown", "mermaid", "video", "geojson", "gpx", "pmtiles"}, opts.Type) {
-		return opts, false, fmt.Errorf("--type must be image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid, video, geojson, gpx, or pmtiles")
+	if !slices.Contains([]string{"", "image", "svg", "pdf", "stl", "3mf", "obj", "ply", "docx", "xlsx", "grist", "csv", "json", "chart", "ipynb", "html", "text", "markdown", "mermaid", "video", "geojson", "gpx", "pmtiles"}, opts.Type) {
+		return opts, false, fmt.Errorf("--type must be image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, chart, ipynb, html, text, markdown, mermaid, video, geojson, gpx, or pmtiles")
 	}
 	if f.Changed("grep") {
 		if *grep == "" {
@@ -305,6 +306,12 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	opts.fileArgs = append(make([]bool, len(whole)-len(args)), fileArguments(f, args)...)
 	if opts.Columns, err = document.ParseColumns(*cols, *coln); err != nil {
 		return opts, false, err
+	}
+	if *chartPath != "" {
+		if opts.Chart, err = readChart(*chartPath); err != nil {
+			return opts, false, fmt.Errorf("--chart: %w", err)
+		}
+		opts.ChartPath = *chartPath
 	}
 	if opts.Parts, err = document.ParseParts(*parts, *partn); err != nil {
 		return opts, false, err

@@ -36,6 +36,11 @@ func printFiles(opts options, stdout io.Writer, width, height int) error {
 		if r.Err != nil {
 			return fmt.Errorf("%s: %w", path, r.Err)
 		}
+		if doc, _, err := chartFor(opts, r); err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		} else if doc != nil {
+			r.Chart = doc
+		}
 		view, err := app.PrintView(context.Background(), r, opts.Options, width, height)
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)

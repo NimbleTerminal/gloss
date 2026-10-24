@@ -33,7 +33,7 @@ func onCPU(opts app.Options) bool { return opts.Render3D != "auto" && opts.Rende
 // page of each input, with what went wrong where something did.
 type made struct {
 	Path   string `json:"path" doc:"The input, as named; stdin for -."`
-	Kind   string `json:"kind,omitempty" doc:"The format gloss read it as: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, ipynb, html, text, markdown, mermaid, video."`
+	Kind   string `json:"kind,omitempty" doc:"The format gloss read it as: image, svg, pdf, stl, 3mf, obj, ply, docx, xlsx, grist, csv, json, chart, ipynb, html, text, markdown, mermaid, video."`
 	Page   int    `json:"page,omitempty" doc:"The page, sheet, or table, from 1."`
 	Pages  int    `json:"pages,omitempty" doc:"How many the document has."`
 	Output string `json:"output,omitempty" doc:"The file written; read this, not stderr, as a taken name is numbered."`
@@ -117,6 +117,11 @@ func exportFiles(opts options, stdout, stderr io.Writer) error {
 			q := exportRequest(opts.Options, path, generation)
 			q.Page, q.Layout = page, true
 			loaded := loader.Load(q)
+			if doc, _, err := chartFor(opts, loaded); err != nil {
+				loaded.Err = err
+			} else if doc != nil {
+				loaded.Chart, loaded.Image = doc, nil
+			}
 			loaded.CPU, loaded.Views = onCPU(opts.Options), opts.Views
 			// Into a folder, a video's frames are a file each, not a sheet.
 			results := []document.Result{loaded}

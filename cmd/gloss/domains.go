@@ -48,11 +48,12 @@ var domains = []domain{
 	{
 		ID: "documents", Title: "Documents, pages and tables",
 		Summary: "Choosing the page of a PDF or the sheet of a workbook, how finely a PDF is drawn, typesetting text, and which columns of a table to show.",
-		Flags:   []string{"page", "dpi", "markdown", "typeset", "font", "mono", "line-numbers", "chop-long-lines", "cols", "coln"},
+		Flags:   []string{"page", "dpi", "markdown", "typeset", "font", "mono", "line-numbers", "chop-long-lines", "cols", "coln", "chart"},
 		Examples: []example{
 			{"The third page of a PDF", "gloss --page 3 report.pdf"},
 			{"Sharper pages", "gloss --dpi 300 report.pdf"},
 			{"Only some columns of a sheet, by header or by number", "gloss --cols name,total sales.xlsx\ngloss --coln 2,4-6 sales.csv"},
+			{"A chart of a table, from a Flint file", "gloss --chart revenue.json sales.csv"},
 		},
 	},
 	{

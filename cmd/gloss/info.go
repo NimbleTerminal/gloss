@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -49,6 +50,22 @@ func describe(opts options, stdout, stderr io.Writer) error {
 			d.Error = document.SkipReason(err)
 		} else {
 			r := loader.Load(document.Request{Path: path, Type: opts.Type, Page: opts.Page, DPI: opts.DPI, Describe: true, Locale: app.DocumentLocale(opts.Lang), Generation: uint64(i + 1), Parts: opts.Parts, Up: opts.Up, Stdin: opts.IsStdin(path)})
+			if r.Err == nil {
+				if doc, notes, err := chartFor(opts, r); err != nil {
+					r.Err = err
+				} else if doc != nil {
+					rows := 0
+					if r.Sheet != nil {
+						rows = max(0, len(r.Sheet.Rows)-1)
+					}
+					if r.Chart != nil {
+						// The loader's Chart section says what the file is; add what it draws.
+						r.Info = append(r.Info, chartFields(context.Background(), *doc, "", rows, notes)...)
+					} else {
+						r.Info = append(r.Info, document.Section("Chart", chartFields(context.Background(), *doc, opts.ChartPath, rows, notes)...)...)
+					}
+				}
+			}
 			if d.Kind, d.fields = r.Kind, r.Info; d.Kind == "" {
 				d.Kind = kind
 			}
