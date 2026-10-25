@@ -330,7 +330,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   links); fonts where an element names none, colors only when the page sets
   no text or background color at all. Exports (`Request.Layout`, `--output` and not `--typeset`/`--text`,
   `html_layout.go`) are 800 CSS px wide in slices cut at `PageBreak`, named
-  `-page-N`. The viewer's `t` (`canTypeset`, `typesetName` "page") answers
+  `-page-N`; a thumbnail is slice 1 (`loadThumb`, the kind word when it
+  fails). The viewer's `t` (`canTypeset`, `typesetName` "page") answers
   the typeset viewport protocol from a layout the Loader keeps (`l.html`,
   until `closePDF`; relaid on a new width, file, base, font or theme): CSS px are 150/96
   typeset px, painted at the device scale of `TypesetViewport.Pixels`, links

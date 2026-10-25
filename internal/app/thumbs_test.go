@@ -8,7 +8,7 @@ import (
 )
 
 func TestThumbnailsShowTheListAsAGrid(t *testing.T) {
-	m := viewing(t, Options{Files: []string{samples + "shapes.svg", samples + "readme.md", samples + "landscape.png", samples + "tetrahedron.stl"}, Render3D: "software"}, "svg")
+	m := viewing(t, Options{Files: []string{samples + "shapes.svg", samples + "readme.md", samples + "landscape.png", samples + "tetrahedron.stl", samples + "field-notes.html"}, Render3D: "software"}, "svg")
 	send(m, tea.WindowSizeMsg{Width: 100, Height: 30}, press("m"))
 	if !m.listing() || m.thumbs {
 		t.Fatalf("menu=%v thumbs=%v", m.listing(), m.thumbs)
@@ -22,7 +22,7 @@ func TestThumbnailsShowTheListAsAGrid(t *testing.T) {
 	}
 	// Thumbnails come one after another, until every file has one; here
 	// each is made in turn, however long a render takes.
-	for i := 0; i < 8 && m.grid.pending(); i++ {
+	for i := 0; i < 10 && m.grid.pending(); i++ {
 		path := m.grid.loading
 		if path == "" {
 			path = m.grid.next(m.opts.Files)
@@ -38,6 +38,7 @@ func TestThumbnailsShowTheListAsAGrid(t *testing.T) {
 		if strings.HasSuffix(path, ".md") && (tile.Image != nil || tile.Kind != "markdown") {
 			t.Errorf("markdown tile: %+v", tile)
 		}
+		// An HTML page is drawn, as its CSS lays it out.
 		if !strings.HasSuffix(path, ".md") && tile.Image == nil {
 			t.Errorf("%s has no picture: %+v", path, tile)
 		}
@@ -52,7 +53,7 @@ func TestThumbnailsShowTheListAsAGrid(t *testing.T) {
 		t.Fatalf("after l: %d", m.selection)
 	}
 	send(m, press("j"))
-	if m.selection != min(3, 1+m.grid.cols) {
+	if m.selection != min(len(m.opts.Files)-1, 1+m.grid.cols) {
 		t.Fatalf("after j: %d (cols %d)", m.selection, m.grid.cols)
 	}
 	send(m, press("h"), press("k"), press("l"), press("l"), enter)

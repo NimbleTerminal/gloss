@@ -204,8 +204,8 @@ if there is one, otherwise the declared thumbnail. The pane appears in terminals
 at least 64 columns wide and 9 rows high. `--menu` starts in the selector;
 `--preview` starts there with previews enabled. `t` in the list shows the
 files as a grid of thumbnails instead: one picture, made from each file's own
-as they are drawn in turn, with the file's kind standing in where it has
-none. Arrows move about it, `Enter` opens, a click selects and a second click
+as they are drawn in turn (an HTML page's top, as its CSS lays it out), with
+the file's kind standing in where it has none. Arrows move about it, `Enter` opens, a click selects and a second click
 opens, and `t` returns to the list. `Esc` from a document comes back to
 whichever style was last used.
 

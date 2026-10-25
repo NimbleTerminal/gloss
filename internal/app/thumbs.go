@@ -126,7 +126,14 @@ func (m *Model) loadThumb(path string) tea.Cmd {
 	g.generation++
 	loader, generation, forced, locale := g.loader, g.generation, m.opts.Type, DocumentLocale(m.opts.Lang)
 	return func() tea.Msg {
-		r := loader.Load(document.Request{Path: path, Type: forced, Page: 1, DPI: 48, MaxEdge: thumbEdge, Preview: true, Reload: true, Locale: locale, Generation: generation})
+		// An HTML page is its first slice, as its CSS lays it out; one too
+		// large for that names its kind, as other text does.
+		q := document.Request{Path: path, Type: forced, Page: 1, DPI: 48, MaxEdge: thumbEdge, Preview: true, Reload: true, Locale: locale, Generation: generation, Layout: true}
+		r := loader.Load(q)
+		if r.Err != nil && r.Kind == "html" {
+			q.Layout = false
+			r = loader.Load(q)
+		}
 		tile := document.Tile{Name: filepath.Base(path), Kind: kindWord(r.Kind)}
 		switch {
 		case r.Err != nil:
