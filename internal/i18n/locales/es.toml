@@ -165,6 +165,9 @@ other = "la vista de texto no se puede exportar como PNG"
 [app.export.typesetKey]
 other = "; pulse %s para el maquetado"
 
+[app.export.pageKey]
+other = "; pulse %s para la página"
+
 [app.export.sheet]
 other = "las hojas de cálculo no se pueden exportar como PNG"
 
@@ -720,8 +723,14 @@ other = "t texto"
 [app.keys.typeset]
 other = "t maquetado"
 
+[app.keys.pageLayout]
+other = "t página"
+
 [app.keys.typesetView]
 other = "s vista maquetada"
+
+[app.keys.pageView]
+other = "s vista de página"
 
 [app.keys.wheel]
 other = "↑/↓/rueda desplazar"
@@ -879,6 +888,9 @@ other = "%s triángulos"
 
 [app.status.typeset]
 other = "maquetado"
+
+[app.status.pageLayout]
+other = "página"
 
 [app.status.zoom]
 other = "zoom %d"
@@ -1485,6 +1497,21 @@ other = "Editar en la terminal"
 
 [app.openWith.working]
 other = "Procesando…"
+
+[app.info.label.width]
+other = "Ancho"
+
+[app.info.label.warning]
+other = "Aviso"
+
+[app.info.label.notLaidOut]
+other = "Sin maquetar"
+
+[app.info.label.layout]
+other = "Maquetación"
+
+[app.info.label.height]
+other = "Alto"
 
 [app.info.label.animated]
 other = "Animado"

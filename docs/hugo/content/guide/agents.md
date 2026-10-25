@@ -76,7 +76,9 @@ not implemented yet.
 
 `--output` accepts one input; `--output-dir` exports all supplied inputs in order,
 with numbered filenames. Each PDF exports the selected `--page` (page 1 by
-default; an out-of-range page is an error). Existing output files are never
+default; an out-of-range page is an error). An HTML page is drawn as its own
+CSS lays it out, in slices up to 1125 pixels high that end between lines,
+which `--page` selects as it does pages. Existing output files are never
 overwritten. `--output -` sends PNG bytes to redirected stdout, with diagnostics
 on stderr. Export works without a TTY and cannot be combined with menu flags.
 

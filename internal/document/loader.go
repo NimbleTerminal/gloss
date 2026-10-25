@@ -3,6 +3,7 @@ package document
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/binary"
@@ -165,10 +166,13 @@ type Request struct {
 	Path, Type    string
 	MarkdownMode  string
 	Typeset       bool
-	Theme         Theme
-	Locale        Locale // The language numbers in the details are written in; the zero Locale is English.
-	Font, Mono    string
-	TypesetWidth  int // Reading width in points; zero uses the fixed export measure.
+	// Layout asks an export for an HTML page as its HTML and CSS lay it
+	// out, in slices, rather than for the Markdown taken from it.
+	Layout       bool
+	Theme        Theme
+	Locale       Locale // The language numbers in the details are written in; the zero Locale is English.
+	Font, Mono   string
+	TypesetWidth int // Reading width in points; zero uses the fixed export measure.
 	// TypesetLineNumbers asks for a gutter of file line numbers on a document
 	// whose blocks are its lines: text, source and JSON.
 	TypesetLineNumbers bool
@@ -268,6 +272,8 @@ type Loader struct {
 	typesetInfo     []Field
 	typesetType     string
 	typesetHash     [32]byte
+	html            *htmlView // An HTML page laid out for the viewer.
+	htmlSerial      int       // Layouts of HTML pages made, to tell them apart.
 	pdfReader       *safePDF
 	pdfVersion      string
 	file            []Field
@@ -302,7 +308,7 @@ func (l *Loader) Close() error {
 
 func (l *Loader) closePDF() error {
 	l.path, l.pages = "", 0
-	l.typeset, l.typesetBase = nil, ""
+	l.typeset, l.typesetBase, l.html = nil, "", nil
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
 	l.direct, l.directOptions, l.typesetDocument, l.typesetEngine = nil, nttypeset.LayoutOptions{}, nil, nil
 	l.typesetImages, l.typesetAnimations, l.typesetPaths, l.typesetAlts = nil, nil, nil, nil
@@ -366,6 +372,12 @@ func (l *Loader) Load(q Request) (out Result) {
 	}
 	if l.typeset != nil {
 		return l.renderTypeset(q)
+	}
+	if l.html != nil {
+		if l.htmlViewCurrent(q) {
+			return l.renderHTMLView(q)
+		}
+		_ = l.closePDF()
 	}
 	if l.pdfReader != nil {
 		return l.renderPDF(q)
@@ -520,6 +532,17 @@ func (l *Loader) Load(q Request) (out Result) {
 		page, err := ReadHTML(data)
 		if err != nil {
 			out.Err = err
+			return out
+		}
+		if q.Layout && !q.Typeset && !q.TextOnly {
+			out.Err = layoutHTML(q, data, cmp.Or(q.BaseDir, filepath.Dir(q.Path)), l.Files, &out)
+			details = func() []Field { return page.fields(nil) }
+			break
+		}
+		if q.MarkdownMode == "typeset" && q.TypesetView != nil && !q.TextOnly {
+			// The viewer's graphical view of a page is the page as its CSS
+			// lays it out.
+			l.layHTMLView(q, data, page, cmp.Or(q.BaseDir, filepath.Dir(q.Path)), l.Files, file, &out)
 			return out
 		}
 		// Pictures are looked for beside the page, as a browser would.

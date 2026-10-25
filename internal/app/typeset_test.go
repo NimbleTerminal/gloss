@@ -98,9 +98,61 @@ func TestTypesetToggle(t *testing.T) {
 	if m.typeset != nil || m.markdown == nil {
 		t.Fatal("obsolete reflow restored typeset")
 	}
-	m.kind = "html"
-	if cmd, _ := m.documentKey("t"); cmd != nil || m.opts.MarkdownMode != "text" {
-		t.Fatal("converted HTML should not toggle Markdown backend")
+}
+
+// t shows an HTML page as its own CSS lays it out: a picture that scrolls,
+// with its links, and s still gives its text.
+func TestHTMLPageView(t *testing.T) {
+	page := `<html><body><h1 style="color:#c00000">Report</h1><p>See <a href="https://example.com/more">more</a>.</p>` +
+		strings.Repeat("<p>A line of the report that goes on long enough to wrap.</p>", 120) + `</body></html>`
+	m := New(Options{Files: []string{"page.html"}, FilesFS: fstest.MapFS{"page.html": &fstest.MapFile{Data: []byte(page)}}, Render: "glyph", Page: 1})
+	t.Cleanup(func() { _ = m.Close() })
+	m.width, m.height = 80, 24
+	drainAnimation(t, m, m.load(false))
+	if m.kind != "html" || m.markdown == nil || !m.canTypeset() {
+		t.Fatal("expected the page as text first")
+	}
+	cmd, _ := m.documentKey("t")
+	drainAnimation(t, m, cmd)
+	if m.typeset == nil || m.markdown != nil || m.source == nil || m.err != nil {
+		t.Fatalf("t did not show the page: %v", m.err)
+	}
+	if len(m.typesetLinks) == 0 || m.typesetLinks[0].URL != "https://example.com/more" {
+		t.Fatalf("links %v", m.typesetLinks)
+	}
+	if !strings.Contains(m.View().Content, "HTML · page") {
+		t.Fatal("status does not name the page view")
+	}
+	// A drag over the heading selects it, and y copies it.
+	drag(t, m, image.Pt(0, 1), image.Pt(m.width-1, 1))
+	if m.typesetSelected != "Report" {
+		t.Fatalf("selected %q", m.typesetSelected)
+	}
+	if cmd, _ := m.documentKey("y"); cmd == nil || !strings.Contains(m.note, "copied 6") {
+		t.Fatalf("y: %q", m.note)
+	}
+	cmd, _ = m.documentKey("esc")
+	drainAnimation(t, m, cmd)
+	if m.typesetSelected != "" || m.typesetSelect != nil {
+		t.Fatal("Esc did not clear the selection")
+	}
+	cmd, _ = m.documentKey("space")
+	drainAnimation(t, m, cmd)
+	if m.typesetTop == 0 || m.typesetShown == nil || m.typesetShown.Top != m.typesetTop {
+		t.Fatal("space did not scroll the page")
+	}
+	cmd, _ = m.documentKey("G")
+	drainAnimation(t, m, cmd)
+	end := m.typesetTop
+	cmd, _ = m.documentKey("space")
+	drainAnimation(t, m, cmd)
+	if end == 0 || m.typesetTop != end {
+		t.Fatalf("the end is %d, then %d", end, m.typesetTop)
+	}
+	cmd, _ = m.documentKey("s")
+	drainAnimation(t, m, cmd)
+	if m.markdown == nil || m.markdown.raw {
+		t.Fatal("s did not show the page's text")
 	}
 }
 

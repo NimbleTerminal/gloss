@@ -90,6 +90,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.gristDocument", "Grist document")
 	case "Headings":
 		return i18n.T("app.info.label.headings", "Headings")
+	case "Height":
+		return i18n.T("app.info.label.height", "Height")
 	case "Image":
 		return i18n.T("app.info.label.image", "Image")
 	case "Images":
@@ -106,6 +108,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.kittyGraphics", "Kitty graphics")
 	case "Language":
 		return i18n.T("app.info.label.language", "Language")
+	case "Layout":
+		return i18n.T("app.info.label.layout", "Layout")
 	case "Lens":
 		return i18n.T("app.info.label.lens", "Lens")
 	case "License":
@@ -134,6 +138,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.name", "Name")
 	case "Names":
 		return i18n.T("app.info.label.names", "Names")
+	case "Not laid out":
+		return i18n.T("app.info.label.notLaidOut", "Not laid out")
 	case "Not shown":
 		return i18n.T("app.info.label.notShown", "Not shown")
 	case "Note":
@@ -234,6 +240,10 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.video", "Video")
 	case "View box":
 		return i18n.T("app.info.label.viewBox", "View box")
+	case "Warning":
+		return i18n.T("app.info.label.warning", "Warning")
+	case "Width":
+		return i18n.T("app.info.label.width", "Width")
 	case "Words":
 		return i18n.T("app.info.label.words", "Words")
 	case "Workbook":

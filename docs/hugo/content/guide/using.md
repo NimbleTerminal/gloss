@@ -175,7 +175,8 @@ gloss photo.png drawing.svg model.stl -mP
 
 - Read Markdown as terminal text, or press `t` for a typeset page with local
   images, animated GIFs and WebPs, and highlighted code. Text, source, and JSON also
-  support `t`. Choose fonts with `f` and themes with `T`; see [Markdown](../markdown/).
+  support `t`; on an HTML page it shows the page as its own CSS lays it out.
+  Choose fonts with `f` and themes with `T`; see [Markdown](../markdown/).
 - Search document text, table cells, or PDF text with `/`. On source and text,
   `#` shows line numbers, `:` goes to a line, and `S` toggles long-line wrapping.
 - Pause a standalone GIF or animated WebP with Space, change speed with `<`/`>`, and scrub or

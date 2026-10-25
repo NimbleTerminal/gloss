@@ -199,6 +199,8 @@ nimbleterminal.dev/ntfonts v0.1.0 h1:D8PxpASojALkYPV381GQBidooRJarueUfKQoC4srgYk
 nimbleterminal.dev/ntfonts v0.1.0/go.mod h1:G8a7vDkY3uYxrydtdTlJ7KbZpxtL4MTimyMhkwdPr2Q=
 nimbleterminal.dev/ntgpuimage v0.3.0 h1:x3/wbnS6xHFsMbKg+vXTbbEv2pDfnJTbGpKiUoSnAjM=
 nimbleterminal.dev/ntgpuimage v0.3.0/go.mod h1:bTKgAsy2rTnjnaKkmd8YbHdGjifNucZN4nHZD+Idb9k=
+nimbleterminal.dev/nthtml v0.0.0-20261025203215-90ea6be536e9 h1:GvTMWx/zDX3zMaEKwzzVxm0EspLiTrfxpOhWtHcsDJM=
+nimbleterminal.dev/nthtml v0.0.0-20261025203215-90ea6be536e9/go.mod h1:w6pcvpop0kAIYeNh4txIZ7iCDT0khT3bC5B/pehTBdM=
 nimbleterminal.dev/ntmaps v0.5.1 h1:AaNoZVTPlY23rRA8nqxMNXqVF2sVYwCNSkp1fGuDEDY=
 nimbleterminal.dev/ntmaps v0.5.1/go.mod h1:SwFZsi7TpuqwFM3CnuV2lHuJlUn1a6i2CC6RayD/urM=
 nimbleterminal.dev/ntopenwith v0.1.1 h1:BX/bZGeQQvKjbDM22FTMpsPeck2LsmE3sBH+0nuX5ZU=
@@ -211,8 +213,8 @@ nimbleterminal.dev/ntqrcode v0.3.1 h1:Dp8qWEkkgMjVpRpro8kLqzceaOm/ndVRQl3sJjdMVJ
 nimbleterminal.dev/ntqrcode v0.3.1/go.mod h1:PI2hdrDho+xDQEn8ogM1GwcofAoEdO1SzXJrli7I+iQ=
 nimbleterminal.dev/ntshim v0.6.0 h1:0m7g3laU1cxwVZLz+yY/c2acHuyQKrd3Bi9cvVS6w3c=
 nimbleterminal.dev/ntshim v0.6.0/go.mod h1:df+RVCGgRjaMTM+IfmTHHe4Fd6yy1njO97P3vYc8yxE=
-nimbleterminal.dev/ntsvg v0.5.1 h1:dXbuWm72ehb4qP6u1AkcpcI2gqhZFwHnc4cjplXbDzY=
-nimbleterminal.dev/ntsvg v0.5.1/go.mod h1:QdqtZA2d9KNjC+nvRuMheo/n+0R0oKVT0wiAxRnpawY=
+nimbleterminal.dev/ntsvg v0.5.2 h1:Fy5nXi/PHAspwAzvSNzpFHh1KYLOrzVwmm8GquIYyiU=
+nimbleterminal.dev/ntsvg v0.5.2/go.mod h1:CDDvaVX2FHnsrXRPlhByxQTaeFBexaaadTR/dIuvkMo=
 nimbleterminal.dev/nttypeset v0.1.3 h1:U1wz2TVEdjyC6o+jLOmgS7+u3bCB0rnkE9D5LTfhZ8w=
 nimbleterminal.dev/nttypeset v0.1.3/go.mod h1:XKCddA7kT78PE3jWrzJdvPxkw9E0WD/L092sTjQdPMI=
 nimbleterminal.dev/ntvideo v0.3.0 h1:pbjPHXTWNV07kdCuIKWoKE63Pckatb8Y2pUN8/9tlU8=

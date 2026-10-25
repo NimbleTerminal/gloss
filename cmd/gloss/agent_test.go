@@ -77,6 +77,23 @@ func TestExportManifest(t *testing.T) {
 	}
 }
 
+// A page is exported as its HTML and CSS lay it out, a slice to a file.
+func TestExportLaysOutHTML(t *testing.T) {
+	dir := t.TempDir()
+	var stdout, stderr bytes.Buffer
+	opts := options{Options: app.Options{Files: []string{"../../examples/field-notes.html"}, OutputDir: dir, MaxEdge: 1024, Page: 1, DPI: 72}, JSON: true}
+	if err := exportFiles(opts, &stdout, &stderr); err != nil {
+		t.Fatalf("%v: %s", err, stderr.String())
+	}
+	var manifest []map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &manifest); err != nil || len(manifest) != 1 {
+		t.Fatalf("manifest: %v %s", err, stdout.String())
+	}
+	if m := manifest[0]; m["kind"] != "html" || m["pages"] != 1.0 || m["width"] != 800.0 || m["error"] != nil {
+		t.Fatalf("manifest: %v", m)
+	}
+}
+
 func TestTextTakesTheTextOut(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	text := func(file string, more ...string) string {

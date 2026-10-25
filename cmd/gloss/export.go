@@ -115,7 +115,7 @@ func exportFiles(opts options, stdout, stderr io.Writer) error {
 		for _, page := range pagesOf(loader, opts, path, &generation) {
 			generation++
 			q := exportRequest(opts.Options, path, generation)
-			q.Page = page
+			q.Page, q.Layout = page, true
 			loaded := loader.Load(q)
 			loaded.CPU, loaded.Views = onCPU(opts.Options), opts.Views
 			// Into a folder, a video's frames are a file each, not a sheet.
@@ -282,6 +282,7 @@ func pagesOf(loader *document.Loader, opts options, path string, generation *int
 	*generation++
 	q := exportRequest(opts.Options, path, *generation)
 	q.Page, q.TextOnly = 1, opts.Text
+	q.Layout = opts.Output != "" || opts.OutputDir != "" // A picture's slices.
 	if opts.Text {
 		q.MarkdownMode = ""
 		q.Typeset = false
@@ -341,7 +342,7 @@ func targetFor(opts options, i int, path string, r document.Result, ext string) 
 	}
 	suffix := ""
 	switch {
-	case (r.Kind == "pdf" || r.Typeset != nil) && r.Pages > 1:
+	case (r.Kind == "pdf" || r.Kind == "html" || r.Typeset != nil) && r.Pages > 1:
 		suffix = fmt.Sprintf("-page-%d", r.Page)
 	case r.Kind == "xlsx" && r.Pages > 1:
 		suffix = fmt.Sprintf("-sheet-%d", r.Page)

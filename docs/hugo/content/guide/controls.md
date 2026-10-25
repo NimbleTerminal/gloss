@@ -26,6 +26,7 @@ bookToC: false
 | `/` | Search text in the current document; `Enter` submits, `Esc` cancels editing |
 | `n` / `N`, while searching | Next / previous result, wrapping at the ends; `Esc` clears the search |
 | `t` on Markdown, text, source or JSON | Toggle normal text / typeset view |
+| `t` on an HTML page | Toggle its text / the page as its CSS lays it out |
 | `/` in typeset mode | Open the text/source view and search |
 | `s` in typeset mode | Toggle the typeset view and text/source |
 | `#` | Show or hide file line numbers, in text and typeset views of plain text, source, JSON and Markdown source |

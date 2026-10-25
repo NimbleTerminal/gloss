@@ -139,11 +139,17 @@ are the only thing on stdout; with a file or folder, the paths written are.
 
 ```sh
 gloss --output page.png --page 3 report.pdf      # one page of a PDF
+gloss --output-dir out --page all page.html      # an HTML page as laid out, one slice a file
 gloss --output - --max-edge 1024 drawing.svg > diagram.png
 gloss --output-dir out --max-edge 1536 photo.png drawing.svg report.pdf
 cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
 ```
 
+- An HTML page is drawn as its HTML and CSS lay it out (800 pixels wide, a
+  subset of CSS, local pictures only, nothing fetched), in slices of up to 1125
+  pixels that end between lines; `pages` in the manifest counts them. A page
+  over 1 MiB or 16,384 pixels high is an error: add `--typeset` to export its
+  Markdown, or read it with `--text`.
 - Size is a pixel budget: **pass `--max-edge`** (1–4096, default 1536) set from
   what your model accepts. Aspect ratio is preserved, transparency flattened
   to white, small sources not enlarged.

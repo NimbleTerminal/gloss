@@ -211,7 +211,20 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
   [html-to-markdown](https://github.com/JohannesKaufmann/html-to-markdown), so
   saved pages and wiki exports read as documents: headings, lists, tables,
   links, code, and pictures beside the file are kept; scripts, styles, and
-  layout are not. Nothing is fetched. A page may be 8 MiB.
+  layout are not. Nothing is fetched. A page may be 8 MiB. `t` in the viewer
+  shows the page instead as its own HTML and CSS lay it out, by
+  [nthtml](https://github.com/NimbleTerminal/nthtml), at the reading width,
+  with its local pictures and data: URLs. Its own fonts and colours are kept;
+  where it sets none, it takes the font look (`--font`, `f`) and the theme's
+  colours. It scrolls and zooms as a typeset page does, its web links open on
+  a click, and a drag selects text for `y` to copy; `s` and `/` go back to its text. Exported as a picture (`--output`), a page is drawn the
+  same way, 800 pixels wide, as a narrow browser window would show it, in
+  slices up to 1125 pixels high that end between lines (`--page` picks one,
+  `--page all` with `--output-dir` makes them all). nthtml takes a subset of
+  CSS (floats, positioning and flexbox in part; no grid) and pages up to
+  2 MiB, 40,000 nodes (elements and runs of text) and 262,144 pixels high. A larger page is shown as its
+  text, with the reason under `i`, and is an export error that points at
+  `--typeset`, which exports its Markdown instead.
 - Word (`.docx`, `.docm`): turned into Markdown and shown as such, so `s` shows
   the Markdown. Headings, lists, tables, links, pictures, and bold, italic, and
   struck text are kept; page layout, headers and footers, footnotes, comments,

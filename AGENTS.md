@@ -319,6 +319,26 @@ limits" page, `docs/hugo/content/guide/formats.md`):
 - **Jupyter notebooks** (nbformat 4): Markdown and code cells with outputs,
   including PNG/JPEG/GIF/SVG picture outputs.
 - **HTML**: converted to Markdown via html-to-markdown; nothing is fetched.
+  Laid out by its own CSS through `nimbleterminal.dev/nthtml/document` (the
+  `document` package only, no Bubble Tea): `layOutHTML` in
+  `internal/document/html_view.go` parses and lays out with
+  `Options.NoImage`, its pictures from `htmlImages` (beside the page or
+  data: URLs, Markdown's budget), and `Result.Paint` draws only what is
+  wanted. `htmlLimits` raise nthtml's input to 2 MiB and nodes to 40,000;
+  `Options.FontFamilies` takes the request's font look (body, code) and
+  `Options.Colors` its theme palette (background, foreground, accent for
+  links); fonts where an element names none, colors only when the page sets
+  no text or background color at all. Exports (`Request.Layout`, `--output` and not `--typeset`/`--text`,
+  `html_layout.go`) are 800 CSS px wide in slices cut at `PageBreak`, named
+  `-page-N`. The viewer's `t` (`canTypeset`, `typesetName` "page") answers
+  the typeset viewport protocol from a layout the Loader keeps (`l.html`,
+  until `closePDF`; relaid on a new width, file, base, font or theme): CSS px are 150/96
+  typeset px, painted at the device scale of `TypesetViewport.Pixels`, links
+  mapped to `TypesetLink`s. A drag's ends are hit to characters of nthtml's
+  `TextIndex` and come back placed as byte offsets of that layout
+  (`Place.Block` is `htmlView.serial`, `Para`/`Rune` the character's range),
+  so a relayout drops them. No items for Tab yet. The Markdown rides along as `Result.Typeset` for `s` and `/`;
+  a page over nthtml's limits is shown as that text, the reason under `i`.
 - **Word** (.docx/.docm): converted to Markdown.
 - **Excel** (.xlsx/.xlsm): sheets as scrollable grids (`n`/`p` switch sheets);
   values, formula results, styled dates.

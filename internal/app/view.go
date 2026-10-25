@@ -399,11 +399,11 @@ func (m *Model) detail(w, h int) string {
 			detail += " · " + i18n.Tf("app.status.background", "background #%02x%02x%02x", m.bg.R, m.bg.G, m.bg.B)
 		}
 	case m.typeset != nil && m.markdown == nil:
-		format := map[string]string{"markdown": "Markdown", "json": "JSON"}[m.kind]
+		format := map[string]string{"markdown": "Markdown", "json": "JSON", "html": "HTML"}[m.kind]
 		if m.kind == "text" {
 			format = i18n.T("app.status.textFormat", "Text")
 		}
-		detail = format + " · " + i18n.T("app.status.typeset", "typeset")
+		detail = format + " · " + m.typesetName()
 		if s := m.typesetShown; s != nil && s.Lines > 0 {
 			detail += " · " + i18n.Tf("app.status.line", "line %d/%d", s.Line, s.Lines)
 		}
@@ -526,6 +526,10 @@ func (m *Model) hints() string {
 	switch {
 	case m.typeset != nil && m.markdown == nil:
 		keys = keyRow{quitKey(), i18n.T("app.keys.wheel", "↑/↓/wheel scroll"), i18n.T("app.keys.screen", "Space/b screen"), zoomKey(), i18n.T("app.keys.fitWidth", "f fit width"), i18n.T("app.keys.source", "s source"), i18n.T("app.keys.text", "t text"), exportKey()}
+		if m.kind == "html" {
+			// Its source is its text: s and t both go there.
+			keys = keyRow{quitKey(), i18n.T("app.keys.wheel", "↑/↓/wheel scroll"), i18n.T("app.keys.screen", "Space/b screen"), zoomKey(), i18n.T("app.keys.fitWidth", "f fit width"), i18n.T("app.keys.text", "t text"), exportKey()}
+		}
 		if m.typesetLined() {
 			keys = append(keys, i18n.T("app.keys.line", ": line"), i18n.T("app.keys.numbers", "# numbers"), chopKey(m.typesetShown.Chop))
 		}
@@ -533,13 +537,21 @@ func (m *Model) hints() string {
 			keys = keyRow{i18n.T("app.keys.copy", "y copy selection"), i18n.T("app.keys.clear", "Esc clear"), i18n.T("app.keys.wheel", "↑/↓/wheel scroll"), zoomKey(), exportKey(), quitKey()}
 		}
 	case m.typeset != nil:
-		keys = keyRow{quitKey(), menuKey(), i18n.T("app.keys.scroll", "↑/↓ scroll"), i18n.T("app.keys.spaceScroll", "Space/b scroll"), i18n.T("app.keys.typesetView", "s typeset view"), i18n.T("app.keys.text", "t text")}
+		view := i18n.T("app.keys.typesetView", "s typeset view")
+		if m.kind == "html" {
+			view = i18n.T("app.keys.pageView", "s page view")
+		}
+		keys = keyRow{quitKey(), menuKey(), i18n.T("app.keys.scroll", "↑/↓ scroll"), i18n.T("app.keys.spaceScroll", "Space/b scroll"), view, i18n.T("app.keys.text", "t text")}
 	case m.animation != nil:
 		keys = keyRow{i18n.T("app.keys.pause", "Space pause/play"), i18n.T("app.keys.speed", "</> speed"), i18n.T("app.keys.normalSpeed", "Backspace 1×"), zoomKey(), i18n.T("app.keys.exportFrame", "e export frame"), helpKey(), quitKey()}
 	case m.markdown != nil:
 		keys = keyRow{quitKey(), menuKey(), i18n.T("app.keys.scroll", "↑/↓ scroll"), i18n.T("app.keys.page", "Space/b page"), i18n.T("app.keys.source", "s source"), i18n.T("app.keys.graphics", "g graphics")}
 		if m.canTypeset() {
-			keys = append(keys, i18n.T("app.keys.typeset", "t typeset"))
+			if m.kind == "html" {
+				keys = append(keys, i18n.T("app.keys.pageLayout", "t page"))
+			} else {
+				keys = append(keys, i18n.T("app.keys.typeset", "t typeset"))
+			}
 		}
 		if m.markdown.numbered() {
 			keys = append(keys, i18n.T("app.keys.line", ": line"), i18n.T("app.keys.numbers", "# numbers"))

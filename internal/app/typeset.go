@@ -267,6 +267,23 @@ func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
 
 func (o Options) typesetEnabled() bool { return o.Typeset || o.MarkdownMode == "typeset" }
 
+// typesetName is what the graphical view of the document is called: an
+// HTML page is shown as its own CSS lays it out, everything else typeset.
+func (m *Model) typesetName() string {
+	if m.kind == "html" {
+		return i18n.T("app.status.pageLayout", "page")
+	}
+	return i18n.T("app.status.typeset", "typeset")
+}
+
+// typesetKeyNote says which key shows the graphical view, for a note.
+func (m *Model) typesetKeyNote(key string) string {
+	if m.kind == "html" {
+		return i18n.Tf("app.export.pageKey", "; press %s for the page", key)
+	}
+	return i18n.Tf("app.export.typesetKey", "; press %s for typeset", key)
+}
+
 func (m *Model) canTypeset() bool {
-	return m.kind == "markdown" || m.kind == "text" || m.kind == "json" || m.typeset != nil
+	return m.kind == "markdown" || m.kind == "text" || m.kind == "json" || m.kind == "html" || m.typeset != nil
 }

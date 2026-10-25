@@ -12,6 +12,11 @@
   match. Scripts stay in English unless `--lang` is given; keys, options and
   exit codes never change. Drafts awaiting native review; the docs site has
   Spanish and Chinese guides.
+- See HTML pages as their own HTML and CSS lay them out (nthtml), with their
+  local pictures, in your font and theme where they set none: `t` in the viewer, scrolled and zoomed like a typeset page,
+  with links that open on a click and text to select and copy, and with `--output`,
+  in slices that end between lines. Exporting one was refused before; `--typeset` still exports the
+  Markdown made of it.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
   as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
   zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`

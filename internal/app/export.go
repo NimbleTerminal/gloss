@@ -63,9 +63,9 @@ func (m *Model) export() tea.Cmd {
 	if m.markdown != nil && frame == nil {
 		m.note = i18n.T("app.export.textView", "text view cannot be exported as PNG")
 		if m.typeset != nil {
-			m.note += i18n.Tf("app.export.typesetKey", "; press %s for typeset", "s")
+			m.note += m.typesetKeyNote("s")
 		} else if m.canTypeset() {
-			m.note += i18n.Tf("app.export.typesetKey", "; press %s for typeset", "t")
+			m.note += m.typesetKeyNote("t")
 		}
 		return nil
 	}

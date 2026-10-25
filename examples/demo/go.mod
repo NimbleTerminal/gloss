@@ -76,13 +76,14 @@ require (
 	nimbleterminal.dev/ntfilepicker v0.1.0 // indirect
 	nimbleterminal.dev/ntfonts v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
+	nimbleterminal.dev/nthtml v0.0.0-20261025203215-90ea6be536e9 // indirect
 	nimbleterminal.dev/ntmaps v0.5.1 // indirect
 	nimbleterminal.dev/ntopenwith v0.1.1 // indirect
 	nimbleterminal.dev/ntpdf v0.5.1 // indirect
 	nimbleterminal.dev/ntpicture v0.1.1 // indirect
 	nimbleterminal.dev/ntqrcode v0.3.1 // indirect
 	nimbleterminal.dev/ntshim v0.6.0 // indirect
-	nimbleterminal.dev/ntsvg v0.5.1 // indirect
+	nimbleterminal.dev/ntsvg v0.5.2 // indirect
 	nimbleterminal.dev/nttypeset v0.1.3 // indirect
 	nimbleterminal.dev/ntvideo v0.3.0 // indirect
 )

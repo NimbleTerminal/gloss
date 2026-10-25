@@ -165,6 +165,9 @@ other = "文本视图无法导出为 PNG"
 [app.export.typesetKey]
 other = "；按 %s 切换到排版"
 
+[app.export.pageKey]
+other = "；按 %s 切换到页面"
+
 [app.export.sheet]
 other = "电子表格无法导出为 PNG"
 
@@ -720,8 +723,14 @@ other = "t 文本"
 [app.keys.typeset]
 other = "t 排版"
 
+[app.keys.pageLayout]
+other = "t 页面"
+
 [app.keys.typesetView]
 other = "s 排版视图"
+
+[app.keys.pageView]
+other = "s 页面视图"
 
 [app.keys.wheel]
 other = "↑/↓/滚轮 滚动"
@@ -875,6 +884,9 @@ other = "%s 个三角形"
 
 [app.status.typeset]
 other = "排版"
+
+[app.status.pageLayout]
+other = "页面"
 
 [app.status.zoom]
 other = "缩放 %d"
@@ -1478,6 +1490,21 @@ other = "在终端中编辑"
 
 [app.openWith.working]
 other = "处理中…"
+
+[app.info.label.width]
+other = "宽度"
+
+[app.info.label.warning]
+other = "警告"
+
+[app.info.label.notLaidOut]
+other = "未排版"
+
+[app.info.label.layout]
+other = "布局"
+
+[app.info.label.height]
+other = "高度"
 
 [app.info.label.animated]
 other = "动画"
