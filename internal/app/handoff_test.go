@@ -18,6 +18,7 @@ import (
 	"github.com/charmbracelet/x/ansi/kitty"
 	"github.com/makiuchi-d/gozxing"
 	decoder "github.com/makiuchi-d/gozxing/qrcode"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
@@ -181,4 +182,24 @@ func TestHandoffPumpWaitsForSlowKittyFrame(t *testing.T) {
 		t.Fatal("slow Kitty frame was discarded as a timer")
 	}
 	collectRaw(m.qr.Close())
+}
+
+func TestHandoffScreenTranslated(t *testing.T) {
+	t.Cleanup(func() { i18n.SetLanguage("en") })
+	i18n.SetLanguage("es")
+	m := handoff(t, "glyph")
+	want := i18n.For("es").T("handoff.screen.waiting", "Waiting for Send on your device · g graphics · q/Esc cancel")
+	if content := m.View().Content; !strings.Contains(content, want) || strings.Contains(content, "Waiting for Send") {
+		lines := strings.Split(content, "\n")
+		t.Fatalf("handoff screen not in Spanish: want %q, last line %q", want, lines[len(lines)-1])
+	}
+}
+
+func TestProgramStatusStaysEnglish(t *testing.T) {
+	t.Cleanup(func() { i18n.SetLanguage("en") })
+	i18n.SetLanguage("es")
+	m := handoff(t, "glyph")
+	if got := status(t, m.View()); got.Message != "Waiting for files" {
+		t.Fatalf("program status %q, want English", got.Message)
+	}
 }

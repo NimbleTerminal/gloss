@@ -274,12 +274,19 @@ func TestCatalogNoStale(t *testing.T) {
 }
 
 var (
-	verbPattern  = regexp.MustCompile("%[-+# 0]*[0-9]*(\\.[0-9]+)?[a-zA-Z%]")
+	// The space flag is left out, so prose like "50% de" is not a verb.
+	verbPattern  = regexp.MustCompile("%[-+#0]*(\\[[0-9]+\\])?[0-9]*(\\.[0-9]+)?[a-zA-Z%]")
+	argIndex     = regexp.MustCompile(`\[[0-9]+\]`)
 	countPattern = regexp.MustCompile(`\{\{\s*\.Count\s*\}\}`)
 )
 
+// verbs returns the format verbs in s, sorted and without explicit argument
+// indexes, so a translation may reorder them (%[2]d is %d).
 func verbs(s string) string {
 	v := verbPattern.FindAllString(s, -1)
+	for i := range v {
+		v[i] = argIndex.ReplaceAllString(v[i], "")
+	}
 	sort.Strings(v)
 	return strings.Join(v, " ")
 }
@@ -415,6 +422,24 @@ func f() {
 		if idPattern.MatchString(id) != ok {
 			t.Errorf("idPattern(%q) = %v", id, !ok)
 		}
+	}
+}
+
+func TestVerbs(t *testing.T) {
+	for s, want := range map[string]string{
+		"%d of %d":            "%d %d",
+		"%[2]d de %[1]s":      "%d %s",
+		"%s: %-4d %.2f %%":    "%% %-4d %.2f %s",
+		"al 50% de la página": "",
+		"%[1]q y %[1]q":       "%q %q",
+		"%+v / %#x / %08.3f":  "%#x %+v %08.3f",
+	} {
+		if got := verbs(s); got != want {
+			t.Errorf("verbs(%q) = [%s], want [%s]", s, got, want)
+		}
+	}
+	if verbs("%[2]d de %[1]s") != verbs("%s of %d") {
+		t.Error("a reordered translation does not match its source")
 	}
 }
 

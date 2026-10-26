@@ -10,6 +10,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // View draws the screen on show: its body, a layer over it where there is
@@ -93,7 +94,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 		body, plain = m.pictureView(), false
 		exact = !m.quitting && m.pictureExact(w, h)
 	case m.loading:
-		body = "Loading " + safe(filepath.Base(m.opts.Files[m.index])) + "…"
+		body = i18n.Tf("app.loading", "Loading %s…", safe(filepath.Base(m.opts.Files[m.index])))
 	case m.err != nil:
 		body = "Cannot open file\n\n" + safe(m.err.Error()) + "\n\nR retry · ] next file · q quit"
 	case m.video != nil:

@@ -5,6 +5,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	"nimbleterminal.dev/ntqrcode/qrcode"
 )
@@ -101,23 +102,23 @@ func (m *Handoff) View() tea.View {
 	var lines []string
 	line := func(text string) string { return ansi.Truncate(safe(text), max(1, m.width), "…") }
 	if m.height <= m.textRows() {
-		lines = []string{line("Enlarge terminal to show the QR")}
+		lines = []string{line(i18n.T("handoff.screen.enlarge", "Enlarge terminal to show the QR"))}
 	} else {
-		lines = append(lines, line("Scan to send files and a message"))
+		lines = append(lines, line(i18n.T("handoff.screen.scan", "Scan to send files and a message")))
 		if m.prompt != "" {
 			lines = append(lines, line(strings.Join(strings.Fields(m.prompt), " ")))
 		}
 		if err := m.qr.Err(); err != nil {
-			lines = append(lines, line(err.Error()+"; enlarge terminal"))
+			lines = append(lines, line(err.Error()+i18n.T("handoff.screen.qrError", "; enlarge terminal")))
 		} else {
 			// Never truncate or reflow the code or its quiet zone.
 			lines = append(lines, m.qr.View())
 		}
 		lines = append(lines, line(m.address))
 		if m.closing {
-			lines = append(lines, line("Closing request…"))
+			lines = append(lines, line(i18n.T("handoff.screen.closing", "Closing request…")))
 		} else {
-			lines = append(lines, line("Waiting for Send on your device · g graphics · q/Esc cancel"))
+			lines = append(lines, line(i18n.T("handoff.screen.waiting", "Waiting for Send on your device · g graphics · q/Esc cancel")))
 		}
 	}
 	v := tea.NewView(strings.Join(lines, "\n"))

@@ -11,6 +11,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 type exportResult struct {
@@ -21,9 +22,9 @@ type exportResult struct {
 
 func (r exportResult) note() string {
 	if r.err != nil {
-		return "export failed: " + safe(r.err.Error())
+		return i18n.Tf("app.export.failed", "export failed: %s", safe(r.err.Error()))
 	}
-	return fmt.Sprintf("saved %s · %d×%d", safe(r.name), r.size.X, r.size.Y)
+	return i18n.Tf("app.export.saved", "saved %s · %d×%d", safe(r.name), r.size.X, r.size.Y)
 }
 
 // exportRequest asks the loader for the page as it is on screen: the same
@@ -60,16 +61,16 @@ func (m *Model) export() tea.Cmd {
 		frame = m.markdown.animatedFrame()
 	}
 	if m.markdown != nil && frame == nil {
-		m.note = "text view cannot be exported as PNG"
+		m.note = i18n.T("app.export.textView", "text view cannot be exported as PNG")
 		if m.typeset != nil {
-			m.note += "; press s for typeset"
+			m.note += i18n.Tf("app.export.typesetKey", "; press %s for typeset", "s")
 		} else if m.canTypeset() {
-			m.note += "; press t for typeset"
+			m.note += i18n.Tf("app.export.typesetKey", "; press %s for typeset", "t")
 		}
 		return nil
 	}
 	if m.sheet != nil {
-		m.note = "spreadsheets cannot be exported as PNG"
+		m.note = i18n.T("app.export.sheet", "spreadsheets cannot be exported as PNG")
 		return nil
 	}
 	q := m.exportRequest()
@@ -93,7 +94,7 @@ func (m *Model) export() tea.Cmd {
 		}
 	}
 	loader := m.loader
-	m.note = "exporting…"
+	m.note = i18n.T("app.export.running", "exporting…")
 	return func() tea.Msg {
 		var r document.Result
 		if frame != nil {

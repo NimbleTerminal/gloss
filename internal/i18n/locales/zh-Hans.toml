@@ -113,3 +113,60 @@ other = "速度 · 恢复 1×"
 
 [app.help.motion.seek]
 other = "定位（视频 5 秒）· 字幕"
+
+[app.loading]
+other = "正在加载 %s…"
+
+[app.search.prompt]
+other = "Enter 搜索 · Esc 取消"
+
+[app.search.running]
+other = "正在搜索… · Esc 取消"
+
+[app.search.none]
+other = "无匹配"
+
+[app.search.unit.matches]
+other = "处匹配"
+
+[app.search.unit.cells]
+other = "个单元格"
+
+[app.search.unit.pages]
+other = "页"
+
+[app.search.keys]
+other = "n/N · Esc 清除"
+
+[app.export.running]
+other = "正在导出…"
+
+[app.export.textView]
+other = "文本视图无法导出为 PNG"
+
+[app.export.typesetKey]
+other = "；按 %s 切换到排版"
+
+[app.export.sheet]
+other = "电子表格无法导出为 PNG"
+
+[app.export.saved]
+other = "已保存 %s · %d×%d"
+
+[app.export.failed]
+other = "导出失败：%s"
+
+[handoff.screen.enlarge]
+other = "请放大终端以显示二维码"
+
+[handoff.screen.scan]
+other = "扫码发送文件和留言"
+
+[handoff.screen.qrError]
+other = "；请放大终端"
+
+[handoff.screen.closing]
+other = "正在关闭请求…"
+
+[handoff.screen.waiting]
+other = "等待在设备上点击“发送” · g 图形 · q/Esc 取消"

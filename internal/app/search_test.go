@@ -11,6 +11,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 func searchDocument(t *testing.T, text string) *Model {
@@ -302,5 +303,31 @@ func TestHighlightSearchPreservesANSIAndUnicode(t *testing.T) {
 	got := highlightSearch("\x1b[31mhello world\x1b[0m", regexp.MustCompile("hello"))
 	if !strings.Contains(got, "\x1b[0m\x1b[31m world") {
 		t.Fatalf("original style not restored: %q", got)
+	}
+}
+
+func TestSearchStatusFitsInChinese(t *testing.T) {
+	t.Cleanup(func() { i18n.SetLanguage("en") })
+	i18n.SetLanguage("zh-Hans")
+	none := i18n.For("zh-Hans").T("app.search.none", "no matches")
+	m := searchDocument(t, "needle one\n\nneedle two\n")
+	for _, query := range []string{"needle", "missing"} {
+		queryDocument(t, m, query)
+		for _, width := range []int{20, 40, 80} {
+			// The view truncates the status line as this does.
+			line := ansi.Truncate(m.search.status(width), width, "…")
+			if ansi.StringWidth(line) > width {
+				t.Fatalf("%q at %d is %d cells: %q", query, width, ansi.StringWidth(line), line)
+			}
+			if query == "missing" && !strings.Contains(line, none) {
+				t.Fatalf("no %q at %d: %q", none, width, line)
+			}
+			if query == "needle" && !strings.Contains(line, "1/2") {
+				t.Fatalf("no count at %d: %q", width, line)
+			}
+		}
+	}
+	if s := m.search.status(80); strings.Contains(s, "no matches") || strings.Contains(s, "Esc clear") {
+		t.Fatalf("English left in %q", s)
 	}
 }

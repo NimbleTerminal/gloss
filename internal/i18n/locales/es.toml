@@ -113,3 +113,60 @@ other = "velocidad · volver a 1×"
 
 [app.help.motion.seek]
 other = "ir (vídeo 5 s) · subtítulos"
+
+[app.loading]
+other = "Cargando %s…"
+
+[app.search.prompt]
+other = "Enter buscar · Esc cancelar"
+
+[app.search.running]
+other = "buscando… · Esc cancelar"
+
+[app.search.none]
+other = "sin coincidencias"
+
+[app.search.unit.matches]
+other = "coincidencias"
+
+[app.search.unit.cells]
+other = "celdas"
+
+[app.search.unit.pages]
+other = "páginas"
+
+[app.search.keys]
+other = "n/N · Esc borrar"
+
+[app.export.running]
+other = "exportando…"
+
+[app.export.textView]
+other = "la vista de texto no se puede exportar como PNG"
+
+[app.export.typesetKey]
+other = "; pulse %s para el maquetado"
+
+[app.export.sheet]
+other = "las hojas de cálculo no se pueden exportar como PNG"
+
+[app.export.saved]
+other = "guardado %s · %d×%d"
+
+[app.export.failed]
+other = "error al exportar: %s"
+
+[handoff.screen.enlarge]
+other = "Agrande la terminal para ver el QR"
+
+[handoff.screen.scan]
+other = "Escanee para enviar archivos y un mensaje"
+
+[handoff.screen.qrError]
+other = "; agrande la terminal"
+
+[handoff.screen.closing]
+other = "Cerrando la solicitud…"
+
+[handoff.screen.waiting]
+other = "Esperando Enviar en su dispositivo · g gráficos · q/Esc cancelar"

@@ -16,6 +16,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 const (
@@ -393,25 +394,36 @@ func (s *textSearch) status(width int) string {
 		left := string(s.draft[:s.cursor])
 		input := left + "\x1b[7m▏\x1b[27m" + string(s.draft[s.cursor:])
 		start := max(0, ansi.StringWidth(left)-max(1, width-3))
-		return ansi.Truncate("/"+ansi.Cut(input, start, start+max(1, width-1))+"  Enter search · Esc cancel", width, "")
+		return ansi.Truncate("/"+ansi.Cut(input, start, start+max(1, width-1))+"  "+i18n.T("app.search.prompt", "Enter search · Esc cancel"), width, "")
 	}
 	prefix := "/" + ansi.Truncate(s.query, max(4, min(20, width/4)), "…") + " · "
 	if s.running {
-		return prefix + "searching… · Esc cancel"
+		return prefix + i18n.T("app.search.running", "searching… · Esc cancel")
 	}
-	count := "no matches"
+	count := i18n.T("app.search.none", "no matches")
 	if len(s.matches) > 0 {
-		count = fmt.Sprintf("%d/%d %s", s.at+1, len(s.matches), s.unit)
+		count = fmt.Sprintf("%d/%d %s", s.at+1, len(s.matches), s.unitName())
 	}
 	text := prefix + count
 	if s.note != "" {
 		text += " · " + s.note
 	}
-	text += " · n/N · Esc clear"
+	text += " · " + i18n.T("app.search.keys", "n/N · Esc clear")
 	if s.at >= 0 && s.at < len(s.matches) {
 		text += " · " + s.matches[s.at].excerpt
 	}
 	return text
+}
+
+// unitName is the word for what the search counts, in the user's language.
+func (s *textSearch) unitName() string {
+	switch s.unit {
+	case "cells":
+		return i18n.T("app.search.unit.cells", "cells")
+	case "pages":
+		return i18n.T("app.search.unit.pages", "pages")
+	}
+	return i18n.T("app.search.unit.matches", "matches")
 }
 
 func searchExcerpt(text string, start, end int) string {
