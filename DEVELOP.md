@@ -536,8 +536,8 @@ use `{{t "web.id" "English"}}` in Go templates and `msg('web.id', 'English')` in
 `web/*.mjs`; the server writes the catalog's `web.*` strings into the page as
 `#gloss-messages`, and `lang` is the language. Code with no localizer in hand
 (`internal/app`) uses the process-wide `i18n.T`, set once by
-`i18n.SetLanguage`; code that serves several languages (the handoff server)
-takes a `*i18n.Localizer` from `i18n.For(tag)`.
+`i18n.SetLanguage`; code that serves several languages (the handoff server's
+pages) takes a `*i18n.Localizer` from `i18n.For(tag)`.
 
 **Resolution.** In the viewer, `--lang` beats `GLOSS_LANG`, `LC_ALL`,
 `LC_MESSAGES`, `LANG`, then English (`language` in `cmd/gloss/lang.go`,
@@ -553,11 +553,16 @@ Rules that keep the agent contract stable:
   (they are JSON keys) and OSC 7501 program-status messages never change with
   the language.
 - Headless modes (`--output`, `--output-dir`, `--print`, `--text`, `--info`,
-  `--grep`, `--apps`, `skill`) and a detached start are English and read no
-  `GLOSS_LANG`, `LC_*` or `LANG`. Only an explicit `--lang` changes them, and
+  `--grep`, `--apps`, `skill`), a detached start and the JSON of `--status`,
+  `--resume` and `--cancel` are English and read no `GLOSS_LANG`, `LC_*` or
+  `LANG`. Only an explicit `--lang` changes them, and
   then only *values* such as a size (`7,1 KiB (7.294 bytes)`), never keys.
 - A detached handoff page follows the browser's `Accept-Language` (unless
-  `--lang`); a foreground one follows the terminal's, so `LANG=C` gives English.
+  `--lang`), each request its own; a foreground one follows the terminal's, so
+  `LANG=C` gives English. The viewer a page starts speaks gloss's one
+  process-wide language: the first viewer session sets it from its page
+  (`viewerOptions` in `internal/handoff/serve.go`), and later sessions, from
+  any browser, keep it.
 - Measure display width with `ansi.StringWidth`, never `len`; Chinese is two
   cells a character. Translations must fit the width the English did, or wrap.
 - The browser demo (`examples/demo`) stays English.
@@ -565,14 +570,15 @@ Rules that keep the agent contract stable:
 **Coverage.** `task i18n:coverage` (`internal/i18n/coverage_test.go`, part of
 `task test`) fails for an ID the source asks for that a catalog lacks, a catalog
 entry nothing asks for, translations whose format verbs differ from the
-English, and a plural form the language needs but lacks.
+English (each verb must print the same argument: `%[2]d de %[1]s` for
+`%s of %d` passes, `%d de %s` fails, and a bare `%` in a `Tf` string is a verb), and a plural form the language needs but lacks.
 
 **A language.** Add `locales/NAME.toml` (a BCP 47 tag, with the draft header
 above), a row in `i18n.Languages()`, and the language to `catalogs` in
 `locale.go`, which is what `Match` and `FromAcceptLanguage` serve; add the case
 to `Match`'s switch, and its plural forms to `need` in `TestCatalogPlurals`. For the site, add
 `[languages.NAME]` (`label`, `locale`) and a `content.NAME` mount with its
-`sites.matrix` to `docs/hugo/hugo.toml` (Hugo 0.153 or later) and translate
+`sites.matrix` to `docs/hugo/hugo.toml` (Hugo 0.167.0, the version CI pins) and translate
 `_index.md` and `guide/using.md`; `TestTranslatedGuideLinksResolve` checks that
 every link resolves and the weights match English.
 
