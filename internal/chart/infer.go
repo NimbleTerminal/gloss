@@ -233,7 +233,11 @@ func (s Shape) Document(template string) (Document, error) {
 		}
 	case long:
 		doc.SemanticTypes[s.seriesField], doc.SemanticTypes[s.valueField] = TypeCategory, s.Measures[0].Type
-		doc.ChartSpec.Encodings["y"] = encoding{Field: s.valueField}
+		y := encoding{Field: s.valueField}
+		if template != TemplateStackedBar && s.repeatsX() {
+			y.Aggregate = "sum"
+		}
+		doc.ChartSpec.Encodings["y"] = y
 		doc.ChartSpec.Encodings["color"] = encoding{Field: s.seriesField}
 	case template == TemplateHeatmap:
 		use(s.Y2)
@@ -256,7 +260,8 @@ func (s Shape) Document(template string) (Document, error) {
 	default:
 		use(&s.Measures[0])
 		y := encoding{Field: s.Measures[0].Name}
-		if (template == TemplateBar || template == TemplateLollipop) && s.repeatsX() {
+		// A repeated x sums its rows: one bar per category, one point per date.
+		if (template == TemplateBar || template == TemplateLollipop || template == TemplateLine || template == TemplateArea) && s.repeatsX() {
 			y.Aggregate = "sum"
 		}
 		doc.ChartSpec.Encodings["y"] = y

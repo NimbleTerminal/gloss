@@ -2,6 +2,7 @@ package chart
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -62,6 +63,9 @@ func TestInferSales(t *testing.T) {
 		t.Fatalf("%+v %v", doc, err)
 	}
 	golden(t, "sales-line", doc)
+	if !strings.Contains(string(doc.Raw), `"aggregate":"sum"`) {
+		t.Fatal("repeated dates are not summed")
+	}
 	// Hiding the date leaves region as x: a stacked bar of two measures.
 	s = Analyze(sales[0], sales[1:], []int{0, 1, 2, 3})
 	if got := s.Templates(); got[0] != TemplateStackedBar {
@@ -78,6 +82,37 @@ func TestInferSales(t *testing.T) {
 	golden(t, "sales-bar", doc)
 	if !strings.Contains(string(doc.Raw), `"aggregate":"sum"`) {
 		t.Fatal("repeated categories are not summed")
+	}
+}
+
+// A line through dates that repeat draws one point per date, the rows summed,
+// for one measure or several; a date seen once is left alone.
+func TestInferLinesSumRepeatedX(t *testing.T) {
+	for name, tc := range map[string]struct {
+		rows [][]string
+		cols []int
+		sum  bool
+	}{
+		"one measure":    {sales[1:], []int{2, 4}, true},
+		"two measures":   {sales[1:], []int{2, 3, 4}, true},
+		"one date only":  {sales[1:3], []int{2, 4}, true},
+		"each date once": {[][]string{sales[1], sales[3]}, []int{2, 4}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := Analyze(sales[0], tc.rows, tc.cols)
+			for _, template := range []string{TemplateLine, TemplateArea} {
+				doc, err := s.Document(template)
+				if err != nil {
+					t.Fatalf("%s: %v", template, err)
+				}
+				if got := strings.Contains(string(doc.Raw), `"aggregate":"sum"`); got != tc.sum {
+					t.Fatalf("%s summed=%v, want %v: %s", template, got, tc.sum, doc.Raw)
+				}
+				if _, err := Default.Compile(context.Background(), doc, 60, 16); err != nil {
+					t.Fatalf("%s: %v", template, err)
+				}
+			}
+		})
 	}
 }
 

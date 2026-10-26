@@ -66,7 +66,8 @@
         "field": "booked"
       },
       "y": {
-        "field": "value"
+        "field": "value",
+        "aggregate": "sum"
       }
     }
   }

@@ -122,7 +122,7 @@ func TestCompileLargeDocumentWithinDeadline(t *testing.T) {
 		if i > 0 {
 			b.WriteByte(',')
 		}
-		b.WriteString(`{"t":"2026-01-01","v":` + strings.Repeat("1", 1+i%5) + `}`)
+		b.WriteString(`{"t":"` + time.Date(2026, 1, 1+i, 0, 0, 0, 0, time.UTC).Format(time.DateOnly) + `","v":` + strings.Repeat("1", 1+i%5) + `}`)
 	}
 	b.WriteString(`]},"semantic_types":{"t":"Date","v":"Quantity"},"chart_spec":{"chartType":"Line Chart","encodings":{"x":{"field":"t"},"y":{"field":"v"}}}}`)
 	start := time.Now()
