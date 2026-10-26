@@ -7,6 +7,7 @@ require (
 	charm.land/bubbletea/v2 v2.1.0
 	charm.land/glamour/v2 v2.0.1
 	charm.land/lipgloss/v2 v2.0.6
+	github.com/BurntSushi/toml v1.6.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/NimbleMarkets/go-booba v0.10.4
 	github.com/alecthomas/chroma/v2 v2.27.0
@@ -20,12 +21,14 @@ require (
 	github.com/go-text/typesetting v0.3.5
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
+	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/spf13/pflag v1.0.10
 	github.com/yuin/goldmark v1.8.6
 	github.com/yuin/goldmark-emoji v1.0.6
 	github.com/zkrebbekx/go-mermaid v0.1.6
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.61.0
+	golang.org/x/text v0.43.0
 	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
@@ -88,7 +91,6 @@ require (
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.3.0 // indirect
