@@ -45,23 +45,23 @@ func (m *Model) pictureEntries(p pictureItem) []menuEntry {
 		// no file of its own does.
 		switch {
 		case p.path != "" && !p.video:
-			entries = append(entries, menuEntry{"Open with…", func(m *Model) tea.Cmd {
+			entries = append(entries, menuEntry{"open-with", i18n.T("app.actions.openWith", "Open with…"), func(m *Model) tea.Cmd {
 				return m.requestOpenWith(p.path, "", false, true, openwith.Open)
 			}})
 		case m.opts.Scratch != nil && p.shown != nil:
-			entries = append(entries, menuEntry{"Open with…", func(m *Model) tea.Cmd { return m.openShown(p) }})
+			entries = append(entries, menuEntry{"open-with", i18n.T("app.actions.openWith", "Open with…"), func(m *Model) tea.Cmd { return m.openShown(p) }})
 		}
 		if !temporary && !p.video {
-			entries = append(entries, menuEntry{"Edit with…", func(m *Model) tea.Cmd {
+			entries = append(entries, menuEntry{"edit-with", i18n.T("app.actions.editWith", "Edit with…"), func(m *Model) tea.Cmd {
 				return m.requestOpenWith(p.path, "", false, true, openwith.Edit)
 			}})
 		}
 	}
 	if m.opts.CopyImage != nil && p.shown != nil {
-		entries = append(entries, menuEntry{"Copy image", func(m *Model) tea.Cmd { return m.copyImage(p.shown()) }})
+		entries = append(entries, menuEntry{"copy-image", i18n.T("app.actions.copyImage", "Copy image"), func(m *Model) tea.Cmd { return m.copyImage(p.shown()) }})
 	}
 	if p.path != "" {
-		entries = append(entries, menuEntry{"Copy path", func(m *Model) tea.Cmd {
+		entries = append(entries, menuEntry{"copy-path", i18n.T("app.actions.copyPath", "Copy path"), func(m *Model) tea.Cmd {
 			path, err := filepath.Abs(p.path)
 			if err != nil {
 				path = p.path
@@ -71,12 +71,12 @@ func (m *Model) pictureEntries(p pictureItem) []menuEntry {
 		}})
 	}
 	if p.video {
-		entries = append(entries, menuEntry{"Save frame as PNG", func(m *Model) tea.Cmd { return m.export() }})
+		entries = append(entries, menuEntry{"save-frame", i18n.T("app.actions.saveFrame", "Save frame as PNG"), func(m *Model) tea.Cmd { return m.export() }})
 	}
 	// A picture inside a link also gets the link's entries (the linked
 	// figures of Markdown); a whole-view picture has none.
 	if p.link != "" {
-		entries = append(entries, linkEntries(m, p.link, "Open link")...)
+		entries = append(entries, linkEntries(m, p.link, i18n.T("app.actions.openLink", "Open link"))...)
 	}
 	return entries
 }

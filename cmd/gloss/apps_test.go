@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"nimbleterminal.dev/gloss/internal/app"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/ntopenwith"
 	"os/exec"
@@ -176,6 +177,37 @@ func TestAppsTextSanitizesOSNames(t *testing.T) {
 	for _, r := range out {
 		if r != '\n' && (r < ' ' || (r >= 0x7f && r <= 0x9f)) {
 			t.Fatalf("control %U reached the text output: %q", r, out)
+		}
+	}
+}
+
+// --apps is headless: under --lang es, even with Spanish set for the
+// viewer's words, its JSON (IDs, names, verbs) is the English one.
+func TestAppsJSONIgnoresLang(t *testing.T) {
+	t.Cleanup(func() { i18n.SetLanguage("en") })
+	list := func() string {
+		var b bytes.Buffer
+		host := openwith.NewHost(editorSource{}, ntopenwith.Preferences{}, func(ntopenwith.Preferences) error { return nil })
+		if err := writeApps(&b, host, true); err != nil {
+			t.Fatal(err)
+		}
+		return b.String()
+	}
+	english := list()
+	o, done, err := parse([]string{"--lang", "es", "--apps", "--json"}, io.Discard)
+	if err != nil || done || !o.Apps || language(o, false, func(string) string { return "" }, nil) != "es" {
+		t.Fatalf("--lang es --apps --json: %+v %v", o.Lang, err)
+	}
+	i18n.SetLanguage("es")
+	if i18n.T("app.openWith.system", "System default") == "System default" {
+		t.Fatal("the viewer's chooser has no Spanish to leak")
+	}
+	if spanish := list(); spanish != english {
+		t.Fatalf("--apps --json changed with the language:\nen: %s\nes: %s", english, spanish)
+	}
+	for _, want := range []string{`"name":"System default"`, `"id":"reveal"`, `"verb":"edit"`} {
+		if !strings.Contains(english, want) {
+			t.Errorf("listing lacks %s: %s", want, english)
 		}
 	}
 }

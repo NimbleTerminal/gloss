@@ -152,8 +152,8 @@ func fetchEntries(m *Model, address string) []menuEntry {
 		return nil
 	}
 	return []menuEntry{
-		{"Open in gloss", func(m *Model) tea.Cmd { return m.open(address) }},
-		{"Save linked file", func(m *Model) tea.Cmd { return m.saveLink(address) }},
+		{"open-gloss", i18n.T("app.actions.openGloss", "Open in gloss"), func(m *Model) tea.Cmd { return m.open(address) }},
+		{"save-link", i18n.T("app.actions.saveLink", "Save linked file"), func(m *Model) tea.Cmd { return m.saveLink(address) }},
 	}
 }
 
@@ -223,19 +223,19 @@ func (m *Model) bareLinkActions(at image.Point) tea.Cmd {
 	if address == "" {
 		return nil
 	}
-	return m.openActions(address, linkEntries(m, address, "Open"), at)
+	return m.openActions(address, linkEntries(m, address, i18n.T("app.actions.open", "Open")), at)
 }
 
 func linkEntries(m *Model, url string, label string) []menuEntry {
 	var entries []menuEntry
 	if webLink(url) != "" && m.opts.OpenLink != nil {
-		entries = append(entries, menuEntry{label, func(m *Model) tea.Cmd {
+		entries = append(entries, menuEntry{"open-link", label, func(m *Model) tea.Cmd {
 			open, generation := m.opts.OpenLink, m.generation
 			return func() tea.Msg { return linkOpened{generation, open(url)} }
 		}})
 	}
 	entries = append(entries, fetchEntries(m, url)...)
-	return append(entries, menuEntry{"Copy address", func(m *Model) tea.Cmd {
+	return append(entries, menuEntry{"copy-address", i18n.T("app.actions.copyAddress", "Copy address"), func(m *Model) tea.Cmd {
 		m.note = i18n.T("app.note.addressCopied", "Address copied")
 		return tea.SetClipboard(url)
 	}})

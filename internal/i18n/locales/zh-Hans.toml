@@ -1163,3 +1163,165 @@ other = "浏览器中不可用"
 
 [app.error.nothingToCopy]
 other = "没有可复制的内容"
+
+[app.actions.copyAddress]
+other = "复制网址"
+
+[app.actions.copyImage]
+other = "复制图片"
+
+[app.actions.copyMarkdown]
+other = "复制为 Markdown"
+
+[app.actions.copyPath]
+other = "复制路径"
+
+[app.actions.copyRow]
+other = "复制行"
+
+[app.actions.copyTSV]
+other = "复制为 TSV"
+
+[app.actions.copyValue]
+other = "复制值"
+
+[app.actions.editWith]
+other = "编辑方式…"
+
+[app.actions.open]
+other = "打开"
+
+[app.actions.openBrowser]
+other = "在浏览器中打开"
+
+[app.actions.openGloss]
+other = "在 gloss 中打开"
+
+[app.actions.openLink]
+other = "打开链接"
+
+[app.actions.openTableGloss]
+other = "在 gloss 中打开表格"
+
+[app.actions.openTableWith]
+other = "用应用打开表格…"
+
+[app.actions.openWith]
+other = "打开方式…"
+
+[app.actions.saveFrame]
+other = "将帧另存为 PNG"
+
+[app.actions.saveLink]
+other = "保存链接的文件"
+
+[app.actions.showQR]
+other = "显示二维码"
+
+[app.actions.table]
+other = "表格"
+
+[app.color.allFaces]
+other = "所有面"
+
+[app.color.backdrop]
+other = "背景色"
+
+[app.color.background]
+other = "背景"
+
+[app.color.bright]
+other = "鲜艳"
+
+[app.color.default]
+other = "默认"
+
+[app.color.filament]
+other = "耗材"
+
+[app.color.fileColors]
+other = "文件原色"
+
+[app.color.hex]
+other = "十六进制"
+
+[app.color.paint]
+other = "s  涂色 "
+
+[app.color.palette]
+other = "调色板"
+
+[app.color.plainFaces]
+other = "仅无色的面"
+
+[app.color.reset]
+other = "重置"
+
+[app.color.sliders]
+other = "滑块"
+
+[app.color.soft]
+other = "柔和"
+
+[app.color.title]
+other = "颜色"
+
+[app.color.type]
+other = "输入颜色："
+
+[app.openWith.closeKey]
+other = "Esc 关闭"
+
+[app.openWith.editKeys]
+other = "↑/↓ 选择 · Enter 编辑 · Tab 打开方式 · d 设为默认"
+
+[app.openWith.editTitle]
+other = "编辑方式"
+
+[app.openWith.enlarge]
+other = "%s：请放大终端"
+
+[app.openWith.isDefault]
+other = "（默认）"
+
+[app.openWith.isTerminal]
+other = "（终端）"
+
+[app.openWith.isUnavailable]
+other = "（不可用）"
+
+[app.openWith.manageKey]
+other = "m 管理"
+
+[app.openWith.manageKeys]
+other = "↑/↓ 选择 · Space 切换（自动保存）· Enter/Esc 返回"
+
+[app.openWith.manageTitle]
+other = "管理应用 — 所有格式"
+
+[app.openWith.noApps]
+other = "没有可管理的已安装应用"
+
+[app.openWith.openKeys]
+other = "↑/↓ 选择 · Enter 打开 · Tab 编辑方式 · d 设为默认"
+
+[app.openWith.openTitle]
+other = "打开方式"
+
+[app.openWith.revealExplorer]
+other = "在资源管理器中显示"
+
+[app.openWith.revealFinder]
+other = "在 Finder 中显示"
+
+[app.openWith.revealFolder]
+other = "打开所在文件夹"
+
+[app.openWith.system]
+other = "系统默认"
+
+[app.openWith.terminalEditor]
+other = "在终端中编辑"
+
+[app.openWith.working]
+other = "处理中…"

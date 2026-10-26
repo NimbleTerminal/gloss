@@ -441,7 +441,7 @@ func itemTitle(it pageItem) string {
 	case itemLink:
 		return it.url
 	}
-	return "Table"
+	return i18n.T("app.actions.table", "Table")
 }
 
 // rectsEqual says two lists of rectangles are the same, as a focus.
@@ -617,7 +617,7 @@ func (m *Model) typesetAddressFound(v typesetAddress) tea.Cmd {
 	if v.address == "" || v.generation != m.generation || !m.itemsHere() {
 		return nil
 	}
-	return m.openActions(v.address, linkEntries(m, v.address, "Open"), v.at)
+	return m.openActions(v.address, linkEntries(m, v.address, i18n.T("app.actions.open", "Open")), v.at)
 }
 
 // typesetPageItem is a typeset item as the menus take it.
@@ -702,7 +702,7 @@ func (m *Model) itemEntries(it pageItem) []menuEntry {
 	case itemPicture:
 		return m.pictureEntries(it.picture)
 	case itemLink:
-		return linkEntries(m, it.url, "Open")
+		return linkEntries(m, it.url, i18n.T("app.actions.open", "Open"))
 	case itemTable:
 		return m.tableEntries(it.cells)
 	}

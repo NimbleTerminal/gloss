@@ -52,7 +52,7 @@ type openWithFinished struct {
 	operation        int
 	generation       uint64
 	target           openwith.Target
-	name             string
+	id, name         string // The app launched, by its ID where it was chosen.
 	temporary, saved bool
 	err              error
 }
@@ -60,9 +60,34 @@ type openWithFinished struct {
 // verbTitle is the chooser's name for verb: "Open with" or "Edit with".
 func verbTitle(v openwith.Verb) string {
 	if v == openwith.Edit {
-		return "Edit with"
+		return i18n.T("app.openWith.editTitle", "Edit with")
 	}
-	return "Open with"
+	return i18n.T("app.openWith.openTitle", "Open with")
+}
+
+// appName is how the chooser shows an app: the rows gloss and ntopenwith
+// name themselves in the language in use, the system's apps as the system
+// names them. The ID and the English name must both match, so an app of the
+// system's that happens to share a name keeps it.
+func appName(id, name string) string {
+	switch {
+	case id == ntopenwith.SystemID && name == "System default":
+		return i18n.T("app.openWith.system", "System default")
+	case id == ntopenwith.TerminalEditorID && name == "Edit in terminal":
+		return i18n.T("app.openWith.terminalEditor", "Edit in terminal")
+	case id == "copy" && name == "Copy path":
+		return i18n.T("app.actions.copyPath", "Copy path")
+	case id == "reveal":
+		switch name {
+		case "Reveal in Finder":
+			return i18n.T("app.openWith.revealFinder", "Reveal in Finder")
+		case "Reveal in Explorer":
+			return i18n.T("app.openWith.revealExplorer", "Reveal in Explorer")
+		case "Open containing folder":
+			return i18n.T("app.openWith.revealFolder", "Open containing folder")
+		}
+	}
+	return name
 }
 
 // listed is the host's rows as the chooser shows them: for a table's CSV,
@@ -230,9 +255,9 @@ func (m *Model) openWithFinished(v openWithFinished) tea.Cmd {
 		}
 		return nil
 	}
-	m.note = i18n.Tf("app.openWith.opened", "Opened in %s", safe(v.name))
+	m.note = i18n.Tf("app.openWith.opened", "Opened in %s", safe(appName(v.id, v.name)))
 	if p.verb == openwith.Edit {
-		m.note = i18n.Tf("app.openWith.editing", "Editing in %s", safe(v.name))
+		m.note = i18n.Tf("app.openWith.editing", "Editing in %s", safe(appName(v.id, v.name)))
 	}
 	if v.temporary {
 		m.note += i18n.T("app.openWith.temporary", " — temporary file; save a copy in the app to keep it")
@@ -358,7 +383,7 @@ func (m *Model) openWithLaunch(id string, save bool) tea.Cmd {
 		if err == nil && launched.Cmd != nil {
 			return editorReady{p, launched.Cmd, target}
 		}
-		return openWithFinished{operation: op, generation: generation, target: target, name: launched.Name, temporary: target.Temporary, saved: save, err: err}
+		return openWithFinished{operation: op, generation: generation, target: target, id: id, name: launched.Name, temporary: target.Temporary, saved: save, err: err}
 	}
 }
 
@@ -368,7 +393,7 @@ func (m *Model) openWithView(w, h int) string {
 	p := m.openWithPicker
 	title := verbTitle(p.verb)
 	if w < 24 || h < 6 {
-		return ansi.Truncate(title+": enlarge terminal", w, "")
+		return ansi.Truncate(i18n.Tf("app.openWith.enlarge", "%s: enlarge terminal", title), w, "")
 	}
 	inner := min(60, w-4)
 	header := title + " — " + safe(filepath.Base(p.target.Path))
@@ -378,7 +403,7 @@ func (m *Model) openWithView(w, h int) string {
 	case p.busy && len(p.choices) == 0 && !p.managing:
 		header, lines = title+"…", nil
 	case p.managing:
-		header = "Manage apps — all formats"
+		header = i18n.T("app.openWith.manageTitle", "Manage apps — all formats")
 		start := max(0, min(p.cursor-rows/2, len(p.apps)-rows))
 		for i := start; i < min(len(p.apps), start+rows); i++ {
 			a := p.apps[i]
@@ -389,10 +414,10 @@ func (m *Model) openWithView(w, h int) string {
 			if a.Enabled {
 				check = "[x] "
 			}
-			lines = append(lines, mark+check+safe(a.Name))
+			lines = append(lines, mark+check+safe(appName(a.ID, a.Name)))
 		}
 		if len(p.apps) == 0 {
-			lines = append(lines, "No installed apps to manage")
+			lines = append(lines, i18n.T("app.openWith.noApps", "No installed apps to manage"))
 		}
 	default:
 		start := max(0, min(p.cursor-rows/2, len(p.choices)-rows))
@@ -402,21 +427,21 @@ func (m *Model) openWithView(w, h int) string {
 			if i == p.cursor {
 				mark = "› "
 			}
-			label := safe(c.Name)
+			label := safe(appName(c.ID, c.Name))
 			if c.Default {
-				label += " (default)"
+				label += i18n.T("app.openWith.isDefault", " (default)")
 			}
 			if c.Terminal {
-				label += " (terminal)"
+				label += i18n.T("app.openWith.isTerminal", " (terminal)")
 			}
 			if !c.Available {
-				label += " (unavailable)"
+				label += i18n.T("app.openWith.isUnavailable", " (unavailable)")
 			}
 			lines = append(lines, mark+label)
 		}
 	}
 	if p.busy && (len(p.choices) > 0 || p.managing) {
-		lines = append(lines, "Working…")
+		lines = append(lines, i18n.T("app.openWith.working", "Working…"))
 	}
 	// As wide as the widest row, within the screen.
 	width := ansi.StringWidth(header)
@@ -448,16 +473,16 @@ func (m *Model) overlayOpenWith(body string, w, h int) string {
 }
 
 func (m *Model) openWithStatus(w int) (string, string) {
-	hint := " ↑/↓ choose · Enter open · Tab edit with · d default"
+	hint := " " + i18n.T("app.openWith.openKeys", "↑/↓ choose · Enter open · Tab edit with · d default")
 	if m.openWithPicker != nil && m.openWithPicker.verb == openwith.Edit {
-		hint = " ↑/↓ choose · Enter edit · Tab open with · d default"
+		hint = " " + i18n.T("app.openWith.editKeys", "↑/↓ choose · Enter edit · Tab open with · d default")
 	}
 	if _, ok := m.opts.OpenWith.(openwith.Manager); ok {
-		hint += " · m manage"
+		hint += " · " + i18n.T("app.openWith.manageKey", "m manage")
 	}
-	hint += " · Esc close"
+	hint += " · " + i18n.T("app.openWith.closeKey", "Esc close")
 	if m.openWithPicker != nil && m.openWithPicker.managing {
-		hint = " ↑/↓ choose · Space toggle (saved) · Enter/Esc back"
+		hint = " " + i18n.T("app.openWith.manageKeys", "↑/↓ choose · Space toggle (saved) · Enter/Esc back")
 	}
 	return ansi.Truncate(fmt.Sprintf(" %s", m.note), w, "…"), ansi.Truncate(hint, w, "")
 }

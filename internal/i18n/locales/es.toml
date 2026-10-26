@@ -1170,3 +1170,165 @@ other = "no disponible en el navegador"
 
 [app.error.nothingToCopy]
 other = "nada que copiar"
+
+[app.actions.copyAddress]
+other = "Copiar dirección"
+
+[app.actions.copyImage]
+other = "Copiar imagen"
+
+[app.actions.copyMarkdown]
+other = "Copiar como Markdown"
+
+[app.actions.copyPath]
+other = "Copiar ruta"
+
+[app.actions.copyRow]
+other = "Copiar fila"
+
+[app.actions.copyTSV]
+other = "Copiar como TSV"
+
+[app.actions.copyValue]
+other = "Copiar valor"
+
+[app.actions.editWith]
+other = "Editar con…"
+
+[app.actions.open]
+other = "Abrir"
+
+[app.actions.openBrowser]
+other = "Abrir en el navegador"
+
+[app.actions.openGloss]
+other = "Abrir en gloss"
+
+[app.actions.openLink]
+other = "Abrir enlace"
+
+[app.actions.openTableGloss]
+other = "Abrir tabla en gloss"
+
+[app.actions.openTableWith]
+other = "Abrir tabla con…"
+
+[app.actions.openWith]
+other = "Abrir con…"
+
+[app.actions.saveFrame]
+other = "Guardar fotograma como PNG"
+
+[app.actions.saveLink]
+other = "Guardar archivo enlazado"
+
+[app.actions.showQR]
+other = "Mostrar QR"
+
+[app.actions.table]
+other = "Tabla"
+
+[app.color.allFaces]
+other = "todas las caras"
+
+[app.color.backdrop]
+other = "Fondos"
+
+[app.color.background]
+other = "Fondo"
+
+[app.color.bright]
+other = "Vivos"
+
+[app.color.default]
+other = "predeterminado"
+
+[app.color.filament]
+other = "Filamento"
+
+[app.color.fileColors]
+other = "colores del archivo"
+
+[app.color.hex]
+other = "Hex"
+
+[app.color.paint]
+other = "s  pintar "
+
+[app.color.palette]
+other = "Paleta"
+
+[app.color.plainFaces]
+other = "solo caras sin color"
+
+[app.color.reset]
+other = "Restablecer"
+
+[app.color.sliders]
+other = "Deslizadores"
+
+[app.color.soft]
+other = "Suaves"
+
+[app.color.title]
+other = "Color"
+
+[app.color.type]
+other = "Escriba un color: "
+
+[app.openWith.closeKey]
+other = "Esc cerrar"
+
+[app.openWith.editKeys]
+other = "↑/↓ elegir · Enter editar · Tab abrir · d por defecto"
+
+[app.openWith.editTitle]
+other = "Editar con"
+
+[app.openWith.enlarge]
+other = "%s: agrande la terminal"
+
+[app.openWith.isDefault]
+other = " (predeterminada)"
+
+[app.openWith.isTerminal]
+other = " (terminal)"
+
+[app.openWith.isUnavailable]
+other = " (no disponible)"
+
+[app.openWith.manageKey]
+other = "m apps"
+
+[app.openWith.manageKeys]
+other = "↑/↓ elegir · Space activar (se guarda) · Enter/Esc volver"
+
+[app.openWith.manageTitle]
+other = "Gestionar apps — todos los formatos"
+
+[app.openWith.noApps]
+other = "No hay apps instaladas que gestionar"
+
+[app.openWith.openKeys]
+other = "↑/↓ elegir · Enter abrir · Tab editar · d por defecto"
+
+[app.openWith.openTitle]
+other = "Abrir con"
+
+[app.openWith.revealExplorer]
+other = "Mostrar en el Explorador"
+
+[app.openWith.revealFinder]
+other = "Mostrar en Finder"
+
+[app.openWith.revealFolder]
+other = "Abrir la carpeta contenedora"
+
+[app.openWith.system]
+other = "Predeterminada del sistema"
+
+[app.openWith.terminalEditor]
+other = "Editar en la terminal"
+
+[app.openWith.working]
+other = "Procesando…"

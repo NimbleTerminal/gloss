@@ -9,7 +9,9 @@ import (
 )
 
 // menuEntry is one thing the action menu can do.
+// Its id names it whatever the language: the label is for people.
 type menuEntry struct {
+	id    string
 	label string
 	do    func(m *Model) tea.Cmd
 }

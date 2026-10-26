@@ -14,11 +14,11 @@ func (m *Model) cellEntries() []menuEntry {
 	}
 	value, row, address := v.value(), v.rowText(), v.url()
 	entries := []menuEntry{
-		{"Copy value", func(m *Model) tea.Cmd {
+		{"copy-value", i18n.T("app.actions.copyValue", "Copy value"), func(m *Model) tea.Cmd {
 			m.note = i18n.T("app.note.valueCopied", "Value copied")
 			return tea.SetClipboard(value)
 		}},
-		{"Copy row", func(m *Model) tea.Cmd {
+		{"copy-row", i18n.T("app.actions.copyRow", "Copy row"), func(m *Model) tea.Cmd {
 			m.note = i18n.T("app.note.rowCopied", "Row copied")
 			return tea.SetClipboard(row)
 		}},
@@ -28,10 +28,10 @@ func (m *Model) cellEntries() []menuEntry {
 	}
 	entries = append(entries, fetchEntries(m, address)...)
 	if m.opts.OpenLink != nil && webLink(address) != "" {
-		entries = append(entries, menuEntry{"Open in browser", func(m *Model) tea.Cmd {
+		entries = append(entries, menuEntry{"open-browser", i18n.T("app.actions.openBrowser", "Open in browser"), func(m *Model) tea.Cmd {
 			open, generation := m.opts.OpenLink, m.generation
 			return func() tea.Msg { return linkOpened{generation, open(address)} }
 		}})
 	}
-	return append(entries, menuEntry{"Show QR", func(m *Model) tea.Cmd { return m.openQR(address) }})
+	return append(entries, menuEntry{"show-qr", i18n.T("app.actions.showQR", "Show QR"), func(m *Model) tea.Cmd { return m.openQR(address) }})
 }

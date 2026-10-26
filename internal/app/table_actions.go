@@ -26,16 +26,16 @@ func (m *Model) tableEntries(cells [][]string) []menuEntry {
 	var entries []menuEntry
 	switch {
 	case m.opts.Scratch != nil && m.opts.OpenWith != nil:
-		entries = append(entries, menuEntry{"Open table with…", func(m *Model) tea.Cmd { return m.openTable(cells, true) }})
+		entries = append(entries, menuEntry{"open-table-with", i18n.T("app.actions.openTableWith", "Open table with…"), func(m *Model) tea.Cmd { return m.openTable(cells, true) }})
 	case m.opts.Scratch != nil:
-		entries = append(entries, menuEntry{"Open table in gloss", func(m *Model) tea.Cmd { return m.openTable(cells, false) }})
+		entries = append(entries, menuEntry{"open-table-gloss", i18n.T("app.actions.openTableGloss", "Open table in gloss"), func(m *Model) tea.Cmd { return m.openTable(cells, false) }})
 	}
 	return append(entries,
-		menuEntry{"Copy as TSV", func(m *Model) tea.Cmd {
+		menuEntry{"copy-tsv", i18n.T("app.actions.copyTSV", "Copy as TSV"), func(m *Model) tea.Cmd {
 			m.note = i18n.T("app.note.tableCopied", "Table copied")
 			return tea.SetClipboard(tableTSV(cells))
 		}},
-		menuEntry{"Copy as Markdown", func(m *Model) tea.Cmd {
+		menuEntry{"copy-markdown", i18n.T("app.actions.copyMarkdown", "Copy as Markdown"), func(m *Model) tea.Cmd {
 			m.note = i18n.T("app.note.tableCopied", "Table copied")
 			return tea.SetClipboard(tableMarkdown(cells))
 		}})

@@ -8,7 +8,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // colorPicker chooses a paint for the mesh on screen, in one of three
@@ -35,8 +37,26 @@ type colorPicker struct {
 	drag bool // A slider is being dragged.
 }
 
-// The picker's three ways to choose, in the order of its tabs.
-var pickerModes = []string{"Palette", "Sliders", "Hex"}
+// pickerModes names the picker's three ways to choose, in the order of its
+// tabs, in the language in use.
+func pickerModes() []string {
+	return []string{i18n.T("app.color.palette", "Palette"), i18n.T("app.color.sliders", "Sliders"), i18n.T("app.color.hex", "Hex")}
+}
+
+// title is a palette's name as the picker shows it.
+func (p palette) title() string {
+	switch p.name {
+	case "Filament":
+		return i18n.T("app.color.filament", "Filament")
+	case "Bright":
+		return i18n.T("app.color.bright", "Bright")
+	case "Soft":
+		return i18n.T("app.color.soft", "Soft")
+	case "Backdrop":
+		return i18n.T("app.color.backdrop", "Backdrop")
+	}
+	return p.name
+}
 
 const (
 	swatchCells = 5  // A swatch is four cells wide, with one between.
@@ -242,19 +262,19 @@ func (m *Model) colorClick(p *colorPicker, lx, ly int) tea.Cmd {
 	}
 	if ly == p.rows.tabs {
 		x := 0
-		for i, name := range pickerModes {
-			if lx >= x && lx < x+len(name)+2 {
+		for i, name := range pickerModes() {
+			if lx >= x && lx < x+ansi.StringWidth(name)+2 {
 				p.mode = i
 				break
 			}
-			x += len(name) + 3
+			x += ansi.StringWidth(name) + 3
 		}
 		return nil
 	}
 	switch p.mode {
 	case pickPalette:
 		if ly == p.rows.name {
-			n, w := len(p.palettes()), len(p.palettes()[p.palette].name)+4
+			n, w := len(p.palettes()), ansi.StringWidth(p.palettes()[p.palette].title())+4
 			switch {
 			case lx >= 0 && lx < 2:
 				p.palette, p.browsed = (p.palette+n-1)%n, true
@@ -410,14 +430,14 @@ func (m *Model) colorView(w, h int) string {
 		return ""
 	}
 	c := p.color()
-	title := "Color"
+	title := i18n.T("app.color.title", "Color")
 	if p.bg {
-		title = "Background"
+		title = i18n.T("app.color.background", "Background")
 	}
 	text, dim := m.boxText(), m.boxText().Foreground(m.palette().Muted)
 	swatch := lipgloss.NewStyle().Background(c).Foreground(contrast(c)).Padding(0, 1).Render(p.hexString())
 	tabs := make([]string, 3)
-	for i, name := range pickerModes {
+	for i, name := range pickerModes() {
 		if i == p.mode {
 			tabs[i] = text.Bold(true).Reverse(true).Render(" " + name + " ")
 		} else {
@@ -433,7 +453,7 @@ func (m *Model) colorView(w, h int) string {
 	switch p.mode {
 	case pickPalette:
 		p.rows.name, p.rows.body = len(lines), len(lines)+1
-		lines = append(lines, dim.Render("[ ")+text.Render(p.palettes()[p.palette].name)+dim.Render(" ]"))
+		lines = append(lines, dim.Render("[ ")+text.Render(p.palettes()[p.palette].title())+dim.Render(" ]"))
 		for row := 0; row < 4; row++ {
 			line := ""
 			for col := 0; col < 4; col++ {
@@ -468,25 +488,25 @@ func (m *Model) colorView(w, h int) string {
 			lines = append(lines, text.Render(mark+name+" ")+bar+text.Render(fmt.Sprintf(" %3d", v)))
 		}
 	default:
-		lines = append(lines, text.Render("Type a color: ")+text.Reverse(true).Render(p.hex+strings.Repeat(" ", 7-len(p.hex))))
+		lines = append(lines, text.Render(i18n.T("app.color.type", "Type a color: "))+text.Reverse(true).Render(p.hex+strings.Repeat(" ", 7-len(p.hex))))
 		if len(p.hex) < 7 {
 			lines = append(lines, dim.Render("#rrggbb"))
 		}
 	}
-	what := "file's colors"
+	what := i18n.T("app.color.fileColors", "file's colors")
 	if p.bg {
-		what = "default"
+		what = i18n.T("app.color.default", "default")
 	}
 	lines = append(lines, text.Render(""))
 	p.rows.reset, p.rows.scope = len(lines), -1
-	lines = append(lines, text.Bold(true).Reverse(true).Render(" Reset ")+dim.Render("  r  ")+text.Render(what))
+	lines = append(lines, text.Bold(true).Reverse(true).Render(" "+i18n.T("app.color.reset", "Reset")+" ")+dim.Render("  r  ")+text.Render(what))
 	if !p.bg && m.mesh != nil && m.mesh.HasColors() {
-		scope := "plain faces only"
+		scope := i18n.T("app.color.plainFaces", "plain faces only")
 		if p.all {
-			scope = "all faces"
+			scope = i18n.T("app.color.allFaces", "all faces")
 		}
 		p.rows.scope = len(lines)
-		lines = append(lines, dim.Render("s  paint ")+text.Render(scope))
+		lines = append(lines, dim.Render(i18n.T("app.color.paint", "s  paint "))+text.Render(scope))
 	}
 	b := themedBox(lines, 1, m.palette())
 	p.at = image.Rect(w-lipgloss.Width(b), 1, w, 1+lipgloss.Height(b))
