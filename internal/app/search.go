@@ -330,8 +330,7 @@ func (m *Model) startSearch() tea.Cmd {
 				add(result.Text, textMatch{page: page})
 			}
 			if skipped > 0 {
-				// English has always said "pages", even for one.
-				out.note += " · " + i18n.Tn("app.search.skipped", "{{.Count}} pages without text skipped", "{{.Count}} pages without text skipped", skipped)
+				out.note += " · " + i18n.Tn("app.search.skipped", "{{.Count}} page without text skipped", "{{.Count}} pages without text skipped", skipped)
 			}
 		}
 		return out

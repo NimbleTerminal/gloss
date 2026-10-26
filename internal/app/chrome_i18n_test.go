@@ -34,7 +34,7 @@ func TestLandingPageSpeaksTheLanguage(t *testing.T) {
 		tag  string
 		want []string
 	}{
-		{"es", []string{"Suelte archivos aquí para abrirlos", "pulse o para explorar", "Imágenes:", "Documentos:", "Texto:", "Mapas:", "texto plano y código fuente", "mallas STL, 3MF, OBJ y PLY", "GeoJSON, GPX y PMTiles ráster"}},
+		{"es", []string{"Suelte archivos aquí para abrirlos", "explore con la tecla o", "Imágenes:", "Documentos:", "Texto:", "Mapas:", "texto plano y código fuente", "mallas STL, 3MF, OBJ y PLY", "GeoJSON, GPX y PMTiles ráster"}},
 		{"zh-Hans", []string{"将文件拖到此处打开", "按 o 浏览", "图片：", "文档：", "文本：", "地图：", "纯文本和源代码", "STL、3MF、OBJ 和 PLY 网格", "GeoJSON、GPX 和栅格 PMTiles"}},
 	} {
 		t.Run(c.tag, func(t *testing.T) {

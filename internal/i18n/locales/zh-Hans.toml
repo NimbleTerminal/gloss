@@ -466,7 +466,7 @@ other = "隐藏灰显项"
 other = "?/F1 帮助 · Enter 打开 · ←/→ 文件夹 · / 查找 · G 前往 · Tab 补全 · Ctrl-F 类型 · Ctrl-L 布局 · Ctrl-G 位置 · Ctrl-S 排序 · Ctrl-T %s · Ctrl-X %s · Alt-Enter 打开方式 · Esc 取消"
 
 [app.browser.noText]
-other = "不显示文本"
+other = "隐藏文本文件"
 
 [app.browser.open]
 other = "打开"
@@ -478,7 +478,7 @@ other = "按%s"
 other = "显示灰显项"
 
 [app.browser.text]
-other = "显示文本"
+other = "显示文本文件"
 
 [app.enlarge]
 other = "gloss：请放大终端"
@@ -844,7 +844,7 @@ other = "播放中"
 other = "%s 个点"
 
 [app.status.rendered]
-other = "渲染"
+other = "渲染视图"
 
 [app.status.seeking]
 other = "定位到 %d"
@@ -925,7 +925,7 @@ other = "轨道 %s"
 other = "动画：%s"
 
 [app.note.added]
-other = "已添加 %d 个"
+other = "已添加 {{.Count}} 个"
 
 [app.note.skipped]
 other = "已跳过 %d 个：%s"
@@ -1154,3 +1154,12 @@ other = "已跳过 {{.Count}} 个无文本页面"
 
 [app.note.copiedChars]
 other = "已复制 {{.Count}} 个字符"
+
+[app.error.notRegular]
+other = "不是普通文件，也不是所选文件夹"
+
+[app.error.browser]
+other = "浏览器中不可用"
+
+[app.error.nothingToCopy]
+other = "没有可复制的内容"

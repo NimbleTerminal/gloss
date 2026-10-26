@@ -99,7 +99,7 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	}
 	var notes []string
 	if added > 0 {
-		notes = append(notes, i18n.Tf("app.note.added", "added %d", added))
+		notes = append(notes, i18n.Tn("app.note.added", "added {{.Count}}", "added {{.Count}}", added))
 	}
 	if len(r.skipped) > 0 {
 		notes = append(notes, i18n.Tf("app.note.skipped", "skipped %d: %s", len(r.skipped), r.skipped[0]))

@@ -2,7 +2,6 @@ package app
 
 import (
 	"bytes"
-	"errors"
 	"image"
 	"image/color"
 	"image/png"
@@ -124,7 +123,7 @@ func encodePNG(shown image.Image) ([]byte, error) {
 		shown = img
 	}
 	if shown == nil || shown.Bounds().Empty() {
-		return nil, errors.New("nothing to copy")
+		return nil, errNothingToCopy
 	}
 	var data bytes.Buffer
 	if err := png.Encode(&data, shown); err != nil {
@@ -152,7 +151,7 @@ func (m *Model) copyImage(shown image.Image) tea.Cmd {
 func (m *Model) imageCopied(v imageCopied) tea.Cmd {
 	m.note = i18n.T("app.note.imageCopied", "Image copied")
 	if v.err != nil {
-		m.note = i18n.Tf("app.note.copyImageFailed", "copy image: %s", safe(v.err.Error()))
+		m.note = i18n.Tf("app.note.copyImageFailed", "copy image: %s", noteError(v.err))
 	}
 	return nil
 }
@@ -186,7 +185,7 @@ func (m *Model) shownSaved(v shownSaved) tea.Cmd {
 		return nil
 	}
 	if v.err != nil {
-		m.note = i18n.Tf("app.note.openImageFailed", "open image: %s", safe(v.err.Error()))
+		m.note = i18n.Tf("app.note.openImageFailed", "open image: %s", noteError(v.err))
 		return nil
 	}
 	return m.requestOpenWith(v.path, "png", false, true, openwith.Open)

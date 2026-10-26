@@ -53,9 +53,14 @@ func formatLines() []string {
 		labels[i] = i18n.Tf("app.formats.label", "%s:", formatLabel(g))
 		widest = max(widest, ansi.StringWidth(labels[i]))
 	}
+	// A full-width colon carries its own space; any other label gets one.
+	gap := 1
+	if strings.HasSuffix(labels[0], "：") {
+		gap = 0
+	}
 	lines := make([]string, len(labels))
 	for i, g := range document.FormatGroups {
-		lines[i] = labels[i] + strings.Repeat(" ", widest+1-ansi.StringWidth(labels[i])) + formatNames(g)
+		lines[i] = labels[i] + strings.Repeat(" ", widest+gap-ansi.StringWidth(labels[i])) + formatNames(g)
 	}
 	return lines
 }

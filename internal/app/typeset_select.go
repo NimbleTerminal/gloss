@@ -155,8 +155,7 @@ func (m *Model) typesetSelectKey(k string) (tea.Cmd, bool) {
 		if m.typesetSelected == "" {
 			return nil, true
 		}
-		// English has always said "characters", even for one.
-		m.note = i18n.Tn("app.note.copiedChars", "copied {{.Count}} characters", "copied {{.Count}} characters", utf8.RuneCountInString(m.typesetSelected))
+		m.note = i18n.Tn("app.note.copiedChars", "copied {{.Count}} character", "copied {{.Count}} characters", utf8.RuneCountInString(m.typesetSelected))
 		return tea.SetClipboard(m.typesetSelected), true
 	case "esc":
 		if m.typesetSelect == nil && m.typesetSelectShown == nil {

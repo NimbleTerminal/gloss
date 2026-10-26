@@ -4,7 +4,6 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
-	"fmt"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/ntfilepicker"
@@ -22,7 +21,7 @@ func openWithTarget(path, kind string, directory bool) (openwith.Target, error) 
 		return openwith.Target{}, err
 	}
 	if info.IsDir() != directory || (!directory && !info.Mode().IsRegular()) {
-		return openwith.Target{}, fmt.Errorf("not a regular file or selected directory")
+		return openwith.Target{}, errNotRegular
 	}
 	if kind == "" && !directory {
 		kind, _ = document.Probe(absolute, "")

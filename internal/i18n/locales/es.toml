@@ -727,13 +727,13 @@ other = "s vista maquetada"
 other = "↑/↓/rueda desplazar"
 
 [app.keys.wrap]
-other = "S ajustar"
+other = "S ajustar líneas"
 
 [app.keys.zoom]
 other = "+/- zoom"
 
 [app.landing.browse]
-other = "Arrástrelos desde un gestor de archivos, pegue rutas o pulse o para explorar."
+other = "Arrástrelos desde un gestor de archivos, pegue rutas o explore con la tecla o."
 
 [app.landing.drop]
 other = "Suelte archivos aquí para abrirlos"
@@ -745,7 +745,7 @@ other = "Arrástrelos desde un gestor de archivos o pegue sus rutas."
 other = "Suelte un archivo aquí para enviarlo"
 
 [app.landing.sendHow]
-other = "Arrástrelo desde un gestor de archivos, pegue su ruta o pulse o para explorar."
+other = "Arrástrelo desde un gestor de archivos, pegue su ruta o explore con la tecla o."
 
 [app.landing.terminal]
 other = "Arrástrelos desde un gestor de archivos a la terminal."
@@ -797,8 +797,8 @@ other = "fondo #%02x%02x%02x"
 other = "col %d"
 
 [app.status.features]
-one = "%s elemento"
-other = "%s elementos"
+one = "%s entidad"
+other = "%s entidades"
 
 [app.status.finished]
 other = "terminado"
@@ -929,10 +929,11 @@ other = "pista %s"
 other = "animación: %s"
 
 [app.note.added]
-other = "%d añadidos"
+one = "{{.Count}} añadido"
+other = "{{.Count}} añadidos"
 
 [app.note.skipped]
-other = "%d omitidos: %s"
+other = "%d sin añadir: %s"
 
 [app.note.editorClosed]
 other = "Editor cerrado"
@@ -1037,7 +1038,7 @@ other = "%s: %s"
 other = "Ninguna app puede editar %s"
 
 [app.openWith.defaultSaved]
-other = "Predeterminada guardada para %s (%s)"
+other = "App predeterminada guardada para %s (%s)"
 
 [app.openWith.opened]
 other = "Abierto en %s"
@@ -1049,7 +1050,7 @@ other = "Editando en %s"
 other = " — archivo temporal; guarde una copia en la app para conservarlo"
 
 [app.openWith.appUnavailable]
-other = "La aplicación no está disponible"
+other = "La app no está disponible"
 
 [app.openWith.noDefault]
 other = "Esta acción no puede ser la predeterminada"
@@ -1160,3 +1161,12 @@ other = "{{.Count}} páginas sin texto omitidas"
 [app.note.copiedChars]
 one = "{{.Count}} carácter copiado"
 other = "{{.Count}} caracteres copiados"
+
+[app.error.notRegular]
+other = "no es un archivo normal ni una carpeta elegida"
+
+[app.error.browser]
+other = "no disponible en el navegador"
+
+[app.error.nothingToCopy]
+other = "nada que copiar"

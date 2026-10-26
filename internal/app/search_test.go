@@ -264,7 +264,7 @@ func TestPDFSearchReportsSkippedAndUnreadablePages(t *testing.T) {
 	}
 	fmt.Fprintf(&pdf, "trailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n", start)
 	for _, tc := range []struct{ data, want string }{
-		{pdf.String(), "1 pages without text skipped"},
+		{pdf.String(), "1 page without text skipped"},
 		{"%PDF-1.4\nbroken", "partial results: page 1:"},
 	} {
 		m := New(Options{Files: []string{"test.pdf"}, FilesFS: fstest.MapFS{"test.pdf": &fstest.MapFile{Data: []byte(tc.data)}}, Render: "glyph", Page: 1})

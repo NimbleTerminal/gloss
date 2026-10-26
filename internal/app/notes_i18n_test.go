@@ -7,6 +7,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/nt3d"
+	widget "nimbleterminal.dev/nt3d/widget"
 	ntopenwith "nimbleterminal.dev/ntopenwith"
 
 	"nimbleterminal.dev/gloss/internal/document"
@@ -119,10 +121,75 @@ func TestViewerPlaceholdersSpeakTheLanguage(t *testing.T) {
 		t.Errorf("notebook tile = %q", got)
 	}
 	speaking(t, "zh-Hans")
+	// Tiles are labelled in an ASCII bitmap face: a word it cannot draw
+	// stays English.
+	if got := kindWord("ipynb"); got != "notebook" {
+		t.Errorf("zh notebook tile = %q, want the ASCII word", got)
+	}
 	m := New(Options{Render: "glyph"})
 	t.Cleanup(func() { m.Close() })
 	m.width = 60
 	if _, cells, suffix := m.scrubberGeometry(); !strings.Contains(suffix, "逐帧") || cells != 60-4-ansi.StringWidth(suffix) {
 		t.Errorf("scrubber: %d cells, suffix %q", cells, suffix)
+	}
+}
+
+// The mesh view's key row fits 80 columns in Chinese, untruncated.
+func TestMeshKeysFitInChinese(t *testing.T) {
+	speaking(t, "zh-Hans")
+	m := New(Options{Files: []string{"model.stl"}, Render: "glyph"})
+	t.Cleanup(func() { m.Close() })
+	m.width, m.height = 80, 30
+	m.chart = widget.New(nil, 80, 28, widget.WithRenderMode(nt3d.Software))
+	lines := strings.Split(m.meshFrame("x", 80), "\n")
+	footer := lines[len(lines)-1]
+	if !strings.Contains(footer, "拖动 环绕") || !strings.HasSuffix(strings.TrimRight(footer, " "), "f 适应") {
+		t.Errorf("mesh keys: %q", footer)
+	}
+	if w := ansi.StringWidth(footer); w != 80 {
+		t.Errorf("mesh keys are %d cells, want 80", w)
+	}
+}
+
+// Counts agree with their words, in English too.
+func TestNoteCountsAgree(t *testing.T) {
+	m := themedModel(t, "dark", false)
+	m.typesetSelected = "x"
+	m.typesetSelectKey("y")
+	if m.note != "copied 1 character" {
+		t.Errorf("English: %q", m.note)
+	}
+	speaking(t, "es")
+	m.addDropped(dropResult{files: []string{"other.md"}, skipped: []string{"a.bin: unsupported"}})
+	if want := "1 añadido · 1 sin añadir: a.bin: unsupported"; m.note != want {
+		t.Errorf("drop note = %q, want %q", m.note, want)
+	}
+	// gloss's own errors are translated where the note is written.
+	send(m, imageCopied{err: errNothingToCopy})
+	if want := "error al copiar la imagen: nada que copiar"; m.note != want {
+		t.Errorf("copy note = %q, want %q", m.note, want)
+	}
+}
+
+// The landing page for a pick keeps the key apart from the conjunction.
+func TestPickLandingInSpanish(t *testing.T) {
+	speaking(t, "es")
+	m := New(Options{Render: "glyph", Page: 1, DPI: 72, Pick: true})
+	t.Cleanup(func() { m.Close() })
+	m.Init()
+	m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	view := ansi.Strip(m.View().Content)
+	if !strings.Contains(view, "explore con la tecla o.") {
+		t.Errorf("pick landing:\n%s", view)
+	}
+	fits(t, view, 80)
+}
+
+// Chinese labels end in a full-width colon, which needs no space after it.
+func TestChineseFormatLabelsHaveOneGap(t *testing.T) {
+	speaking(t, "zh-Hans")
+	lines := formatLines()
+	if !strings.HasPrefix(lines[0], "图片：PNG") || !strings.HasPrefix(lines[3], "3D：  ") {
+		t.Errorf("labels: %q", lines)
 	}
 }

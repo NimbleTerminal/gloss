@@ -88,6 +88,28 @@ func openWithChoices(host openwith.Host, target openwith.Target, v openwith.Verb
 	return choices, err
 }
 
+// gloss's own errors that reach a note; noteError says them in the language
+// in use, where the note is written.
+var (
+	errNotRegular        = errors.New("not a regular file or selected directory")
+	errNoBrowserOpenWith = errors.New("not available in the browser")
+	errNothingToCopy     = errors.New("nothing to copy")
+)
+
+// noteError is err's text for a note: gloss's own errors translated, any
+// other (a library's, the system's) as it is.
+func noteError(err error) string {
+	switch {
+	case errors.Is(err, errNotRegular):
+		return i18n.T("app.error.notRegular", "not a regular file or selected directory")
+	case errors.Is(err, errNoBrowserOpenWith):
+		return i18n.T("app.error.browser", "not available in the browser")
+	case errors.Is(err, errNothingToCopy):
+		return i18n.T("app.error.nothingToCopy", "nothing to copy")
+	}
+	return safe(err.Error())
+}
+
 func (m *Model) requestOpenWith(path, kind string, directory, chooser bool, verb openwith.Verb) tea.Cmd {
 	if m.isPreview {
 		return nil
@@ -152,7 +174,7 @@ func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 		return m.closeOpenWith()
 	}
 	if v.err != nil {
-		m.note = i18n.Tf("app.openWith.failed", "%s: %s", verbTitle(v.verb), safe(v.err.Error()))
+		m.note = i18n.Tf("app.openWith.failed", "%s: %s", verbTitle(v.verb), noteError(v.err))
 		if v.switching {
 			p.busy = false
 			return nil
@@ -195,7 +217,7 @@ func (m *Model) openWithFinished(v openWithFinished) tea.Cmd {
 		return nil
 	}
 	if v.err != nil {
-		m.note = i18n.Tf("app.openWith.failed", "%s: %s", verbTitle(p.verb), safe(v.err.Error()))
+		m.note = i18n.Tf("app.openWith.failed", "%s: %s", verbTitle(p.verb), noteError(v.err))
 		if m.layer != layerOpenWith {
 			return m.closeOpenWith()
 		}

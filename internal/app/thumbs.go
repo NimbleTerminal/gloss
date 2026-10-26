@@ -3,6 +3,7 @@ package app
 import (
 	"image"
 	"path/filepath"
+	"unicode"
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
@@ -141,9 +142,18 @@ func (m *Model) loadThumb(path string) tea.Cmd {
 	}
 }
 
-// kindWord is what a tile says for a file that has no picture.
+// kindWord is what a tile says for a file that has no picture. Mosaic
+// draws it in an ASCII bitmap face, so a translation it cannot draw gives
+// way to the English word.
 func kindWord(kind string) string {
-	if word, ok := map[string]string{"ipynb": i18n.T("app.thumbs.notebook", "notebook"), "docx": "Word", "xlsx": "Excel", "grist": "Grist", "csv": "CSV", "json": "JSON", "html": "HTML"}[kind]; ok {
+	notebook := i18n.T("app.thumbs.notebook", "notebook")
+	for _, r := range notebook {
+		if r > unicode.MaxASCII {
+			notebook = "notebook"
+			break
+		}
+	}
+	if word, ok := map[string]string{"ipynb": notebook, "docx": "Word", "xlsx": "Excel", "grist": "Grist", "csv": "CSV", "json": "JSON", "html": "HTML"}[kind]; ok {
 		return word
 	}
 	return kind
