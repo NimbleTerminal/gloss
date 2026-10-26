@@ -61,7 +61,7 @@ gloss -N -S main.go                    # numbered source, long lines scroll side
 | `t` on text, source, JSON or Markdown | Toggle normal text / typeset view |
 | `s` on Markdown | Toggle rendered text or typeset view / source |
 | `u` | Show a selected table URL as a QR code |
-| `C` on a table | Chart its visible columns beside the grid; `t` changes the type, `ctrl+o` opens it in a browser |
+| `C` on a table | Chart its visible columns beside the grid; `t` changes the type, `ctrl+g` draws it as graphics, `ctrl+o` opens it in a browser |
 | Space, `<` / `>` on a GIF or animated WebP | Pause / resume; slower / faster playback |
 | `,` / `.` on a GIF or animated WebP | Step frames; click or drag the bottom bar to seek |
 | Space, `←` / `→`, `c` on a video | Play / pause; seek 5 seconds; change subtitles. Click or drag the bottom bar to seek |

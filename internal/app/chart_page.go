@@ -22,7 +22,7 @@ type chartPageSaved struct {
 // page instead.
 func (m *Model) openChartPage() tea.Cmd {
 	p := m.chartPane
-	if p == nil || p.compiled == nil || p.view == "" {
+	if p == nil || p.compiled == nil || !p.shown() {
 		m.note = "no chart is shown: press C on a table, or open a chart file"
 		return nil
 	}

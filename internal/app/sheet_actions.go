@@ -45,7 +45,7 @@ func (m *Model) chartEntries() []menuEntry {
 		id, label = "hide-chart", i18n.T("app.actions.hideChart", "Hide the chart")
 	}
 	entries := []menuEntry{{id, label, func(m *Model) tea.Cmd { return m.toggleChartPane() }}}
-	if p := m.chartPane; p != nil && p.view != "" && m.opts.OpenWith != nil && m.opts.Scratch != nil {
+	if p := m.chartPane; p != nil && p.shown() && m.opts.OpenWith != nil && m.opts.Scratch != nil {
 		entries = append(entries, menuEntry{"chart-browser", i18n.T("app.actions.chartBrowser", "Open chart in browser"), func(m *Model) tea.Cmd { return m.openChartPage() }})
 	}
 	return entries

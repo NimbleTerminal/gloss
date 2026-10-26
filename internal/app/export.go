@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	"image/png"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/chart"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"
 )
@@ -69,7 +71,7 @@ func (m *Model) export() tea.Cmd {
 		}
 		return nil
 	}
-	if p := m.chartPane; p != nil && p.view != "" {
+	if p := m.chartPane; p != nil && p.shown() {
 		// The chart as it stands, cell for cell, at export size.
 		q := m.exportRequest()
 		name := strings.TrimSuffix(exportName(q.Path, m.kind, m.page, q.Stdin), ".png")
@@ -83,9 +85,22 @@ func (m *Model) export() tea.Cmd {
 		}
 		frame, cols, rows := p.view, p.width, p.height
 		pal := m.palette()
+		var graphics *chart.Document
+		if m.chartGraphics && p.img != nil && p.compiled != nil {
+			graphics = p.compiled
+		}
 		m.note = "exporting…"
 		return func() tea.Msg {
-			img := document.ChartImage(frame, cols, rows, document.ChartCellWidth, document.ChartCellHeight, pal.Foreground, pal.Background)
+			var img image.Image
+			if graphics != nil {
+				// Graphics are drawn again at the export cell's size.
+				var err error
+				if img, err = chart.Default.Raster(context.Background(), *graphics, cols*document.ChartCellWidth, rows*document.ChartCellHeight); err != nil {
+					return exportResult{err: err}
+				}
+			} else {
+				img = document.ChartImage(frame, cols, rows, document.ChartCellWidth, document.ChartCellHeight, pal.Foreground, pal.Background)
+			}
 			var data bytes.Buffer
 			if err := png.Encode(&data, img); err != nil {
 				return exportResult{err: err}

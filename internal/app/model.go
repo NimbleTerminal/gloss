@@ -199,10 +199,13 @@ type textState struct {
 	typesetFont             string
 	savedMarkdown           *markdownView
 	sheet                   *sheetView
-	savedSheet              *sheetView // The cell to return to when a fetched file closes.
-	chartPane               *chartPane // A chart of the sheet, or the chart document on show.
-	chartWanted             bool       // The pane stays on across sheets and files.
-	savedFocus              int        // 1 + the Markdown item to focus again when the document comes back; 0 for none.
+	savedSheet              *sheetView         // The cell to return to when a fetched file closes.
+	chartPane               *chartPane         // A chart of the sheet, or the chart document on show.
+	chartWanted             bool               // The pane stays on across sheets and files.
+	chartGraphics           bool               // ctrl+g: charts drawn as graphics, for the session.
+	chartPic                *ntpicture.Picture // The chart's graphics on screen.
+	chartPicImg             image.Image        // What chartPic was given.
+	savedFocus              int                // 1 + the Markdown item to focus again when the document comes back; 0 for none.
 }
 
 // browserState is what the file browser remembers between visits.
@@ -562,7 +565,7 @@ func (m *Model) clearGraphics() tea.Cmd {
 		// A new file, a reload or a drop leaves no menu holding the mouse.
 		m.closeLayer()
 	}
-	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearVideo(), m.clearMap(), m.clearMarkdown())
+	return tea.Batch(stopped, m.clearStandalone(), m.clearStill(), m.clearFontPicker(), overlayCleanup, m.clearQR(), m.clearChart(), m.clearChartPicture(), m.clearVideo(), m.clearMap(), m.clearMarkdown())
 }
 
 func (m *Model) clearMarkdown() tea.Cmd {
@@ -636,6 +639,7 @@ func (m *Model) graphicsTick(msg tea.Msg) tea.Cmd {
 	if p := m.fontPicker; p != nil {
 		cmd = tea.Batch(cmd, p.pic.Update(msg), m.layoutFontPicker())
 	}
+	cmd = tea.Batch(cmd, m.syncChartPicture(msg))
 	if m.qr != nil {
 		cw, ch := m.cellPixelSize()
 		cmd = tea.Batch(cmd, m.qr.model.SetTerminal(m.kitty, cw, ch), m.layoutQR(), m.qr.model.Update(msg))

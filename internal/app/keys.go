@@ -235,6 +235,9 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 	if k == "ctrl+o" && (m.sheet != nil || m.chartPane != nil) {
 		return m.openChartPage(), true
 	}
+	if k == "ctrl+g" && m.chartPane != nil {
+		return m.toggleChartGraphics(), true
+	}
 	if m.sheet != nil {
 		if k == "u" && m.sheet.url() != "" {
 			return m.openQR(m.sheet.url()), true

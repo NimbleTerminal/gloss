@@ -39,6 +39,7 @@ bookToC: false
 | `c` | List the columns, to show and hide them: `Space` toggles, `a` all, `n` none |
 | `C` | Chart the visible columns beside the grid, or in its place on a narrow terminal; `C` again closes the chart (see [Charts](../charts/)); also in the `a` menu |
 | `t` | While a chart is shown: the next chart type that fits the same columns |
+| `ctrl+g` | While a chart is shown: draw it as graphics (Kitty or half-blocks, by `g`), or as text again; the choice lasts the session (see [Charts](../charts/#graphics)) |
 | `ctrl+o` | While a chart is shown: open it in the default browser as a self-contained ECharts page; under `--serve`, show the page's address |
 | `Enter` | With `--fetch`, open the web address under the cursor |
 | `u` | Show a QR code for the selected table URL; `Esc` or `u` closes it, `g` switches graphics, `e` exports the QR |

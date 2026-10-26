@@ -20,8 +20,8 @@ categories. The chart follows the shape of the visible columns:
 
 | Visible columns | Chart |
 | --- | --- |
-| a date column and one number | line (`t`: area) |
-| a date column and several numbers | line, one series per number |
+| a date column and one number | line, summed per date (`t`: area) |
+| a date column and several numbers | line, one series per number, summed per date |
 | a category and one number | bar, summed per category (`t`: lollipop) |
 | a category and several numbers | stacked bar |
 | two categories and one number | heatmap |
@@ -68,11 +68,23 @@ window of a detached viewer.
 ## Pictures
 
 `e` saves the chart pane as `<name>-chart.png` (a chart file as
-`<name>.png`), cell for cell at 12×24 pixels: the terminal chart, braille
+`<name>.png`); a text chart cell for cell at 12×24 pixels: the terminal chart, braille
 lines and box axes included, in the theme's colours. `--output` on a table
 with `--chart`, or on a chart file, draws 40 to 120 columns from
 `--max-edge` in dark on white; `--info` adds a Chart section with the type,
 series, rows and the first compiler warning.
+
+## Graphics
+
+`ctrl+g` draws the chart as a picture instead of terminal text, with
+[go-analyze/charts](https://github.com/go-analyze/charts) through
+flint-ntcharts: grouped bars, pies and the other Flint templates the text
+chart only approximates, in Kitty graphics where the terminal has them and
+half-blocks otherwise. `ctrl+g` again returns to text; the choice lasts the
+session, across charts and files. A chart the renderer cannot draw (heatmaps,
+box plots, waterfalls) stays text, and the status bar says so. Graphics are
+native only: the browser demo has `ctrl+o`'s page instead. `e` saves the
+picture, drawn again at 12×24 pixels a cell; `--output` stays the text chart.
 
 ## Browser
 

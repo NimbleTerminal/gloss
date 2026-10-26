@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"image"
 	"io"
 	"os"
 	"strings"
@@ -33,7 +34,10 @@ type chartPane struct {
 	cols          []int           // The sheet columns the shape was read from.
 	revision      int
 	width, height int
-	view          string // The last good chart.
+	view          string      // The last good chart.
+	img           image.Image // The chart drawn as graphics, while ctrl+g asks for them.
+	imgErr        error       // Why graphics could not draw it; the text chart stands in.
+	drawn         bool        // Whether the last compile drew graphics.
 	warnings      []chart.Warning
 	err           error
 	cancel        context.CancelFunc
@@ -46,6 +50,8 @@ type chartResult struct {
 	revision int
 	doc      *chart.Document // What was compiled, for the browser page once the view is drawn.
 	view     string
+	img      image.Image // Graphics, when they were asked for and drew.
+	imgErr   error
 	kind     string // The Spec's chart type.
 	series   int
 	warnings []chart.Warning
@@ -262,13 +268,13 @@ func (m *Model) layoutChartPane() tea.Cmd {
 			}
 			p.shape = chart.Analyze(header, rows, cols)
 			p.templates, p.template, p.cols = p.shape.Templates(), 0, cols
-			p.view = ""
+			p.view, p.img = "", nil
 		}
 	}
-	if p.width == w && p.height == h && p.view != "" && p.err == nil {
+	if p.width == w && p.height == h && p.shown() && p.err == nil && p.drawn == m.chartGraphics {
 		return nil
 	}
-	p.width, p.height = w, h
+	p.width, p.height, p.drawn = w, h, m.chartGraphics
 	if p.cancel != nil {
 		p.cancel()
 	}
@@ -307,15 +313,29 @@ func (m *Model) layoutChartPane() tea.Cmd {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	p.cancel = cancel
-	rev := p.revision
+	rev, graphics := p.revision, p.drawn
+	cw, ch := m.chartCellPixels()
 	return func() tea.Msg {
 		defer cancel()
+		r := chartResult{pane: p, revision: rev, doc: &doc}
 		res, err := chart.Default.Compile(ctx, doc, w, h)
-		if err != nil {
-			return chartResult{pane: p, revision: rev, err: err}
+		if err == nil {
+			r.kind, r.series, r.warnings = string(res.Spec.Type), len(res.Spec.Data.Series), res.Warnings
+			r.view, err = chart.RenderText(res.Spec)
 		}
-		view, err := chart.RenderText(res.Spec)
-		return chartResult{pane: p, revision: rev, doc: &doc, view: view, kind: string(res.Spec.Type), series: len(res.Spec.Data.Series), warnings: res.Warnings, err: err}
+		r.err = err
+		if graphics {
+			// The text chart stands in when graphics cannot draw; graphics
+			// draw what text cannot, such as a pie.
+			r.img, r.imgErr = chart.Default.Raster(ctx, doc, w*cw, h*ch)
+			if err != nil && r.img != nil {
+				r.view, r.kind, r.err = "", "image", nil
+			}
+		}
+		if r.err != nil {
+			r.doc = nil
+		}
+		return r
 	}
 }
 
@@ -325,7 +345,7 @@ func (m *Model) reportChart() {
 	if m.opts.Charted == nil {
 		return
 	}
-	if p := m.chartPane; p != nil && p.view != "" {
+	if p := m.chartPane; p != nil && p.shown() {
 		m.opts.Charted(p.compiled)
 		return
 	}
@@ -347,7 +367,7 @@ func (m *Model) nextChartTemplate() tea.Cmd {
 		return nil
 	}
 	p.template = (p.template + 1) % len(p.templates)
-	p.view = ""
+	p.view, p.img = "", nil
 	return m.layoutChartPane()
 }
 
@@ -378,6 +398,7 @@ func (m *Model) chartCompiled(r chartResult) {
 	p.err, p.warnings = r.err, r.warnings
 	if r.err == nil {
 		p.view, p.compiled, p.series = r.view, r.doc, r.series
+		p.img, p.imgErr = r.img, r.imgErr
 		m.reportChart()
 	}
 	if p.reply != nil {
@@ -389,6 +410,9 @@ func (m *Model) chartCompiled(r chartResult) {
 		p.reply, p.claim = nil, nil
 	}
 }
+
+// shown reports whether the pane draws a chart: text, graphics or both.
+func (p *chartPane) shown() bool { return p.view != "" || p.img != nil }
 
 // rows is how many of the sheet's rows the chart draws: those binding kept
 // for a document over the sheet, else those the inferred chart took, after
@@ -425,8 +449,12 @@ func (m *Model) chartPaneView(w, h int) string {
 		title += " · t next type"
 	}
 	body := p.view
+	if pic := m.chartPicView(); pic != "" {
+		title += " · graphics"
+		body = pic
+	}
 	if body == "" && p.err != nil {
-		body = ansi.Wordwrap(safe(p.err.Error()), max(1, w), "")
+		body = ansi.Wordwrap(safe(chartError(p.err)), max(1, w), "")
 		for _, n := range p.shape.Notes {
 			body += "\n" + ansi.Wordwrap(safe(string(n)), max(1, w), "")
 		}
@@ -453,7 +481,11 @@ func (m *Model) chartStatus() string {
 	}
 	switch {
 	case p.err != nil:
-		out += " · ⚠ " + safe(p.err.Error())
+		out += " · ⚠ " + safe(chartError(p.err))
+	case m.chartGraphics && p.imgErr != nil:
+		out += " · ⚠ " + safe(p.imgErr.Error()) + ": showing text"
+	case m.chartGraphics && p.img != nil:
+		out += " · graphics"
 	case len(p.warnings) > 0:
 		out += " · ⚠ " + safe(p.warnings[0].Message)
 	case len(p.bound) > 0:
@@ -480,7 +512,7 @@ func (m *Model) chartFields() []document.Field {
 	}
 	switch {
 	case p.err != nil:
-		fields = append(fields, document.Field{Label: "Problem", Value: p.err.Error()})
+		fields = append(fields, document.Field{Label: "Problem", Value: chartError(p.err)})
 	case len(p.warnings) > 0:
 		fields = append(fields, document.Field{Label: "Warning", Value: p.warnings[0].Message})
 	}

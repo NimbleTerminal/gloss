@@ -112,7 +112,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	case m.markdown != nil:
 		body, mouse, plain = m.markdown.view(), tea.MouseModeCellMotion, false
 	case m.chartPane != nil && m.chartPane.doc != nil:
-		body, plain = m.chartPaneView(w, h), true
+		body, plain = m.chartPaneView(w, h), m.chartPicView() == ""
 	case m.sheet != nil:
 		grid, pane := m.chartSplit()
 		switch {
@@ -599,7 +599,7 @@ func (m *Model) hints() string {
 		if m.chartPane != nil && m.chartPane.source == nil && len(m.chartPane.templates) > 1 {
 			keys = append(keys, i18n.T("app.keys.chartType", "t chart type"))
 		}
-		if m.chartPane != nil && m.chartPane.view != "" {
+		if m.chartPane != nil && m.chartPane.shown() {
 			keys = append(keys, i18n.T("app.keys.browser", "^o browser"))
 		}
 	case m.video != nil:

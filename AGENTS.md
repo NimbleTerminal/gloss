@@ -369,7 +369,12 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   (`internal/app/chart_pane.go`): `C` on a sheet, or "Chart these columns"
   in `a`, toggles the pane beside the grid (120+ columns) or in its place;
   `t` cycles templates; column changes recompile; a chart file is a page;
-  `e` exports the frame cell for cell (`document.ChartImage`, Go Mono from
+  `ctrl+g` (`toggleChartGraphics`, `chart_graphics.go`, session-wide
+  `chartGraphics`) also draws `Compiler.Raster` (the `Option` through
+  flint-ntcharts' `raster`, go-analyze; native only, `raster_js.go` refuses)
+  at the pane's pixel size into one `chartPic`, synced in `graphicsTick`; on
+  `ErrBlank` or an error the text chart stays with the reason;
+  `e` exports the frame cell for cell, or graphics drawn again at export size (`document.ChartImage`, Go Mono from
   `x/image/font/gofont`); `ctrl+o` writes the page through `Options.Scratch`
   and opens it as HTML via Open with, or names `Options.ChartURL`.
   `--chart FILE` (`cmd/gloss/chart.go`, `chartFor`) binds a document over

@@ -30,6 +30,10 @@
   Apache ECharts page from the embedded ECharts build; under `--serve`,
   `GET /<token>/chart` is the same page, linked from the viewer page. The
   browser demo compiles Flint in the browser itself.
+- Charts as graphics: `ctrl+g` draws the chart as a picture (Kitty graphics
+  or half-blocks), including grouped bars and pies, and `e` saves it; charts
+  the renderer cannot draw stay text and say so. Line charts over repeated
+  dates sum each date, as bars sum each category.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
   as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
   zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`
