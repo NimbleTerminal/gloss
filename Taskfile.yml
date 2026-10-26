@@ -76,6 +76,9 @@ tasks:
   test-race:
     desc: Run tests with race detection
     cmds: [go test -mod=readonly -race ./...]
+  i18n:coverage:
+    desc: Fail when a translation is missing, stale, or has different format verbs
+    cmds: ['go test ./internal/i18n/ -run Catalog -v']
   vet:
     desc: Run Go static checks
     cmds: [go vet -mod=readonly ./...]
