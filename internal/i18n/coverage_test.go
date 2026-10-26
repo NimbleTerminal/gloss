@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -274,21 +275,50 @@ func TestCatalogNoStale(t *testing.T) {
 }
 
 var (
-	// The space flag is left out, so prose like "50% de" is not a verb.
-	verbPattern  = regexp.MustCompile(`%[-+#0]*(\[[0-9]+\])?[0-9]*(\.[0-9]+)?[a-zA-Z%]`)
+	// The space flag counts: in a Tf string a bare % (as in "50% de") is
+	// a verb, and a bug.
+	verbPattern  = regexp.MustCompile(`%[-+# 0]*(\[([0-9]+)\])?[0-9]*(\.[0-9]+)?[a-zA-Z%]`)
 	argIndex     = regexp.MustCompile(`\[[0-9]+\]`)
 	countPattern = regexp.MustCompile(`\{\{\s*\.Count\s*\}\}`)
 )
 
-// verbs returns the format verbs in s, sorted and without explicit argument
-// indexes, so a translation may reorder them (%[2]d is %d).
+// verbs describes the format verbs in s by the argument each one prints, as
+// fmt numbers them: an explicit index (%[2]d) is that argument, and a verb
+// without one takes the argument after the previous verb's. A translation
+// may reorder its arguments with indexes, but the same verb must print the
+// same argument: "%s of %d" as "%d de %s" would print %!d(string=…). The
+// description is "%%" for each literal percent sign, then position:verb in
+// order of position, with "|" between different verbs given one argument.
 func verbs(s string) string {
-	v := verbPattern.FindAllString(s, -1)
-	for i := range v {
-		v[i] = argIndex.ReplaceAllString(v[i], "")
+	var lits []string
+	at := map[int][]string{}
+	next := 1
+	for _, m := range verbPattern.FindAllStringSubmatch(s, -1) {
+		if m[0] == "%%" {
+			lits = append(lits, "%%")
+			continue
+		}
+		n := next
+		if m[2] != "" {
+			n, _ = strconv.Atoi(m[2])
+		}
+		next = n + 1
+		v := argIndex.ReplaceAllString(m[0], "")
+		if !slices.Contains(at[n], v) {
+			at[n] = append(at[n], v)
+		}
 	}
-	sort.Strings(v)
-	return strings.Join(v, " ")
+	positions := make([]int, 0, len(at))
+	for n := range at {
+		positions = append(positions, n)
+	}
+	sort.Ints(positions)
+	out := lits
+	for _, n := range positions {
+		sort.Strings(at[n])
+		out = append(out, strconv.Itoa(n)+":"+strings.Join(at[n], "|"))
+	}
+	return strings.Join(out, " ")
 }
 
 func TestCatalogVerbsMatch(t *testing.T) {
@@ -427,19 +457,32 @@ func f() {
 
 func TestVerbs(t *testing.T) {
 	for s, want := range map[string]string{
-		"%d of %d":            "%d %d",
-		"%[2]d de %[1]s":      "%d %s",
-		"%s: %-4d %.2f %%":    "%% %-4d %.2f %s",
-		"al 50% de la página": "",
-		"%[1]q y %[1]q":       "%q %q",
-		"%+v / %#x / %08.3f":  "%#x %+v %08.3f",
+		"%d of %d":            "1:%d 2:%d",
+		"%[2]d de %[1]s":      "1:%s 2:%d",
+		"%s: %-4d %.2f %%":    "%% 1:%s 2:%-4d 3:%.2f",
+		"al 50% de la página": "1:% d",
+		"%[1]q y %[1]q":       "1:%q",
+		"%+v / %#x / %08.3f":  "1:%+v 2:%#x 3:%08.3f",
+		"%[2]s, %s y %[1]d":   "1:%d 2:%s 3:%s",
 	} {
 		if got := verbs(s); got != want {
 			t.Errorf("verbs(%q) = [%s], want [%s]", s, got, want)
 		}
 	}
-	if verbs("%[2]d de %[1]s") != verbs("%s of %d") {
-		t.Error("a reordered translation does not match its source")
+	for _, tt := range []struct {
+		source, translation string
+		match               bool
+	}{
+		{"%s of %d", "%[2]d de %[1]s", true},
+		{"%s of %d", "%d de %s", false}, // prints %!d(string=…)
+		{"%s of %d", "%s de %d", true},
+		{"%d%% done", "%d %% hecho", true},
+		{"%d done", "al 50% de %d", false}, // a bare % is a verb
+		{"%[1]s and %[1]s", "%s", true},
+	} {
+		if got := verbs(tt.translation) == verbs(tt.source); got != tt.match {
+			t.Errorf("%q against %q: match = %v, want %v", tt.translation, tt.source, got, tt.match)
+		}
 	}
 }
 
