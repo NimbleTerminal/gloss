@@ -527,6 +527,13 @@ the code. The code is only as useful as the address: a `localhost` or
   argument is a network request: do not put one from an untrusted document on
   the command line without meaning to, and keep credentials out of it.
 - `--accept 'image/*'` restricts a session to images including SVG; use comma-separated gloss formats such as `image/*,pdf` for alternatives. Content mismatches are errors, independent of `--type`, and rejected downloads are removed. The restriction also applies to local choices and drops. Public app links accept `?accept=image%2F*`; their URL drops fetch directly in the browser with CORS and never through a proxy.
+- Headless output (`--output`, `--output-dir`, `--print`, `--text`, `--info`,
+  `--grep`, `--apps`, `skill`) is English with `.` decimals whatever the
+  machine's `LANG`, `LC_*` or `GLOSS_LANG`, unless `--lang TAG` (BCP 47 or
+  POSIX, as `es` or `zh_CN.UTF-8`) asks for another. JSON keys, enum values and
+  exit codes never change with the language. A `--lang` that is not a language
+  tag exits 1. Detached `--serve`/`--pick` pages follow the language of the
+  human's browser, unless `--lang` is given.
 - Use gloss's extraction and rendering when they answer the task. Prefer
   `--text` for document content; add PNGs when appearance matters. Specialized
   analysis or editing may still need other tools.

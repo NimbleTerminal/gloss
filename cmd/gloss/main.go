@@ -24,6 +24,7 @@ import (
 	"nimbleterminal.dev/gloss/internal/clipimage"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/handoff"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/gloss/skills"
 	"nimbleterminal.dev/nt3d"
@@ -91,6 +92,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringVar(&opts.Font, "font", "readable", "Typeset font pair: readable, editorial, technical, compact")
 	f.StringVar(&opts.Mono, "mono", "", "Override typeset code face: jetbrains")
 	f.StringVar(&opts.Theme, "theme", "auto", "Colors: "+strings.Join(themeNames(), ", ")+", or theme JSON file")
+	f.StringVar(&opts.Lang, "lang", "", "language of gloss's own words and number formats (BCP 47 or POSIX, e.g. es, zh-Hans, de_DE); options stay English")
 	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, plain text, source code, and JSON as graphics")
 	f.BoolVarP(&opts.LineNumbers, "line-numbers", "N", false, "number the lines of plain text, source code, JSON and Markdown source (# toggles, : goes to a line)")
 	f.BoolVarP(&opts.ChopLines, "chop-long-lines", "S", false, "cut long lines at the right edge instead of wrapping them, as less -S does (S toggles, arrows scroll sideways)")
@@ -238,6 +240,13 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	opts.fontExplicit = f.Changed("font") || f.Changed("mono")
 	if _, err := document.ResolveFont(opts.Font, opts.Mono); err != nil {
 		return opts, false, err
+	}
+	if f.Changed("lang") {
+		tag, err := i18n.Parse(opts.Lang)
+		if err != nil {
+			return opts, false, fmt.Errorf("--lang %q: not a language tag", opts.Lang)
+		}
+		opts.Lang = tag.String()
 	}
 	opts.themeExplicit = f.Changed("theme")
 	if ref, err := theme.Load(opts.Theme); err != nil {
@@ -501,6 +510,9 @@ func run(args []string) (err error) {
 	if (opts.Pick || opts.Serve) && !stdinTTY && opts.Detached == "" && !exporting && !opts.Info {
 		return handoff.Detach(args, handoffConfig(opts), os.Stdout, os.Stderr)
 	}
+	lang := language(opts, stdinTTY, os.Getenv)
+	opts.Options.Lang = lang
+	i18n.SetLanguage(lang)
 	// A page needs no terminal. A pick keeps standard output for its answer,
 	// and draws on the terminal itself.
 	var screen *os.File

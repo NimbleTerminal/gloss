@@ -52,6 +52,7 @@ type Options struct {
 	LineNumbers            bool // Show file line numbers in text and typeset views of line-based documents.
 	ChopLines              bool // Cut long lines at the right edge instead of wrapping them, as less -S does.
 	Theme                  string
+	Lang                   string // The user's language tag, as es-MX; "" is English, and leaves handoff pages to the browser.
 	Font, Mono             string
 	SaveFont               func(string, string) error
 	ThemeChoices           []theme.Choice
