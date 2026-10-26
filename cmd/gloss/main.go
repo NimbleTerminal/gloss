@@ -510,7 +510,9 @@ func run(args []string) (err error) {
 	if (opts.Pick || opts.Serve) && !stdinTTY && opts.Detached == "" && !exporting && !opts.Info {
 		return handoff.Detach(args, handoffConfig(opts), os.Stdout, os.Stderr)
 	}
-	lang := language(opts, stdinTTY, os.Getenv)
+	// System, in the language picker, is the language without a saved choice.
+	opts.SystemLang = language(opts, stdinTTY, os.Getenv, nil)
+	lang := language(opts, stdinTTY, os.Getenv, savedLangChoice)
 	opts.Options.Lang = lang
 	i18n.SetLanguage(lang)
 	// A page needs no terminal. A pick keeps standard output for its answer,
@@ -656,6 +658,7 @@ func run(args []string) (err error) {
 	opts.ThemeChoices = theme.Available()
 	opts.SaveTheme = theme.SaveChoice
 	opts.SaveFont = saveFontChoice
+	opts.SaveLang = saveLangChoice
 	if !opts.fontExplicit {
 		if name, mono, err := savedFontChoice(); err == nil {
 			opts.Font, opts.Mono = name, mono

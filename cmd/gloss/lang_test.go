@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"nimbleterminal.dev/gloss/internal/theme"
 )
 
 func TestLangValidation(t *testing.T) {
@@ -29,38 +31,112 @@ func TestLangValidation(t *testing.T) {
 }
 
 func TestLanguageResolution(t *testing.T) {
-	spanish := func(name string) string {
-		if name == "LANG" {
-			return "es_ES"
+	env := func(vars ...string) func(string) string {
+		return func(name string) string {
+			for i := 0; i+1 < len(vars); i += 2 {
+				if vars[i] == name {
+					return vars[i+1]
+				}
+			}
+			return ""
 		}
-		return ""
+	}
+	spanish := env("LANG", "es_ES")
+	saved := func(tag string) func() string {
+		return func() string { return tag }
 	}
 	for _, tt := range []struct {
-		name string
-		args []string
-		tty  bool
-		want string
+		name   string
+		args   []string
+		tty    bool
+		getenv func(string) string
+		saved  func() string
+		want   string
 	}{
-		{"info ignores LANG", []string{"--info", "x.png"}, true, ""},
-		{"info takes --lang", []string{"--info", "--lang", "es", "x.png"}, true, "es"},
-		{"viewer reads LANG", []string{"x.png"}, true, "es-ES"},
-		{"serve without a terminal is detached", []string{"--serve", "x.png"}, false, ""},
-		{"serve from a terminal reads LANG", []string{"--serve", "x.png"}, true, "es-ES"},
+		{"info ignores LANG", []string{"--info", "x.png"}, true, spanish, nil, ""},
+		{"info takes --lang", []string{"--info", "--lang", "es", "x.png"}, true, spanish, nil, "es"},
+		{"viewer reads LANG", []string{"x.png"}, true, spanish, nil, "es-ES"},
+		{"serve without a terminal is detached", []string{"--serve", "x.png"}, false, spanish, nil, ""},
+		{"serve from a terminal reads LANG", []string{"--serve", "x.png"}, true, spanish, nil, "es-ES"},
+		{"saved beats LANG", []string{"x.png"}, true, spanish, saved("zh-Hans"), "zh-Hans"},
+		{"saved beats LC_ALL", []string{"x.png"}, true, env("LC_ALL", "es_ES"), saved("zh-Hans"), "zh-Hans"},
+		{"GLOSS_LANG beats saved", []string{"x.png"}, true, env("GLOSS_LANG", "es", "LANG", "en_US"), saved("zh-Hans"), "es"},
+		{"--lang beats saved", []string{"--lang", "es", "x.png"}, true, spanish, saved("zh-Hans"), "es"},
+		{"no saved choice is LANG", []string{"x.png"}, true, spanish, saved(""), "es-ES"},
+		{"pick in a terminal reads saved", []string{"--pick", "x.png"}, true, spanish, saved("zh-Hans"), "zh-Hans"},
+		{"headless ignores saved", []string{"--info", "x.png"}, true, spanish, saved("zh-Hans"), ""},
+		{"export ignores saved", []string{"--output", "-", "x.png"}, true, spanish, saved("zh-Hans"), ""},
+		{"print ignores saved", []string{"--print", "x.png"}, true, spanish, saved("zh-Hans"), ""},
+		{"detached start ignores saved", []string{"--pick", "x.png"}, false, spanish, saved("zh-Hans"), ""},
+		{"serve page ignores saved", []string{"--serve", "x.png"}, true, spanish, saved("zh-Hans"), "es-ES"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			opts, _, err := parse(tt.args, &bytes.Buffer{})
 			if err != nil {
 				t.Fatal(err)
 			}
-			if got := language(opts, tt.tty, spanish); got != tt.want {
+			if got := language(opts, tt.tty, tt.getenv, tt.saved); got != tt.want {
 				t.Fatalf("language = %q, want %q", got, tt.want)
 			}
 		})
 	}
 	var opts options
 	opts.Serve, opts.Detached = true, "token"
-	if got := language(opts, true, spanish); got != "" {
+	if got := language(opts, true, spanish, saved("zh-Hans")); got != "" {
 		t.Fatalf("detached server: %q", got)
+	}
+	// The saved file is not even read where it does not count.
+	read := func() string { t.Fatal("saved choice read"); return "" }
+	for _, args := range [][]string{{"--info", "x.png"}, {"--text", "x.md"}, {"--serve", "x.png"}, {"--pick-web"}} {
+		opts, _, err := parse(args, &bytes.Buffer{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		language(opts, true, spanish, read)
+	}
+	language(opts, true, spanish, read)
+}
+
+func TestLangPreferences(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "gloss")
+	if err := writeLangChoice(dir, "zh-Hans"); err != nil {
+		t.Fatal(err)
+	}
+	if info, err := os.Stat(dir); err != nil || info.Mode().Perm() != 0700 {
+		t.Fatalf("folder: %v %v", info, err)
+	}
+	if got := readLangChoice(dir); got != "zh-Hans" {
+		t.Fatalf("read %q", got)
+	}
+	if err := writeLangChoice(dir, "es"); err != nil {
+		t.Fatal(err)
+	}
+	if got := readLangChoice(dir); got != "es" {
+		t.Fatalf("read %q", got)
+	}
+	// System removes the file, and removing nothing is no error.
+	for range 2 {
+		if err := writeLangChoice(dir, ""); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := os.Stat(filepath.Join(dir, "lang")); !os.IsNotExist(err) {
+			t.Fatalf("System left the file: %v", err)
+		}
+	}
+	if got := readLangChoice(dir); got != "" {
+		t.Fatalf("no file read %q", got)
+	}
+	if err := writeLangChoice(dir, "garbage!!"); err == nil {
+		t.Fatal("garbage tag saved")
+	}
+	// A corrupt file is no choice.
+	for _, bad := range []string{"", "{", `{"lang":"garbage!!"}`, `{"lang":"es","x":1}`, `{"lang":"es"}{}`, strings.Repeat(" ", 5000) + `{"lang":"es"}`} {
+		if err := os.WriteFile(filepath.Join(dir, "lang"), []byte(bad), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if got := readLangChoice(dir); got != "" {
+			t.Fatalf("%q read as %q", bad, got)
+		}
 	}
 }
 
@@ -103,7 +179,25 @@ func TestHeadlessIgnoresLANG(t *testing.T) {
 		}
 		return outs
 	}
-	spanish := runs([]string{"LANG=es_ES.UTF-8", "LC_ALL="}, filepath.Join(t.TempDir(), "es"))
+	// A language saved in the viewer is no more read than LANG: the Spanish
+	// runs also have Chinese saved in their configuration folder.
+	home := t.TempDir()
+	saved := []string{"HOME=" + home, "XDG_CONFIG_HOME=" + filepath.Join(home, ".config"), "AppData=" + filepath.Join(home, "AppData")}
+	for _, kv := range saved {
+		name, value, _ := strings.Cut(kv, "=")
+		t.Setenv(name, value)
+	}
+	dir, err := theme.Dir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := writeLangChoice(dir, "zh-Hans"); err != nil {
+		t.Fatal(err)
+	}
+	if readLangChoice(dir) != "zh-Hans" {
+		t.Fatal("saved choice not written")
+	}
+	spanish := runs(append([]string{"LANG=es_ES.UTF-8", "LC_ALL="}, saved...), filepath.Join(t.TempDir(), "es"))
 	plain := runs([]string{"LANG=C"}, filepath.Join(t.TempDir(), "c"))
 	for i := range spanish {
 		if spanish[i] != plain[i] {
