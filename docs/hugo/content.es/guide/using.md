@@ -20,8 +20,8 @@ Los gráficos Kitty se eligen automáticamente en las terminales compatibles, co
 caracteres de medio bloque en color como alternativa. El programa usa la pantalla
 alternativa y restaura la terminal al salir. Con `-X` (`--no-alt-screen`, como en
 `less`) dibuja en la pantalla principal: el historial de desplazamiento no se
-toca, y la última vista queda donde se dibujó cuando sales. La decisión puede
-esperar hasta que salgas: `q` sale como se lanzó, y `Q` sale dejando la última
+toca, y la última vista queda donde se dibujó cuando salga. La decisión puede
+esperar hasta que salga: `q` sale como se lanzó, y `Q` sale dejando la última
 vista en el historial en cualquier caso, de modo que una imagen que vale la pena
 conservar se queda junto al siguiente comando, y una que no, no se queda. El
 transporte directo de gráficos funciona por SSH; no hace falta un sistema de
@@ -110,7 +110,7 @@ gloss --at 1:23 clip.mp4          # play from 1:23
 `--qr TEXTO` muestra TEXTO, normalmente una dirección web, como un código QR en
 lugar de un archivo, para que lo escanee un teléfono o una tableta. Funciona
 dondequiera que funcione una imagen: el visor, `--serve` (una página web, donde
-un agente sin terminal puede mostrártelo), `--output` y `--print`. El visor y la
+un agente sin terminal puede mostrárselo), `--output` y `--print`. El visor y la
 página muestran el texto sobre el código, salvo que `--prompt` diga otra cosa. El
 texto solo se codifica: no se descarga nada, y `GLOSS_NO_FETCH` no se aplica.
 
@@ -195,7 +195,7 @@ gloss photo.png drawing.svg model.stl -mP
   alterna el ajuste de líneas largas.
 - Pause un GIF o WebP animado independiente con Space, cambie la velocidad con
   `<`/`>`, y desplácese por los fotogramas o avance de uno en uno. Reproduzca un
-  vídeo (MP4, MOV, WebM, MKV, OGV, AVI y más) con Space, avanza con ←/→ o con
+  vídeo (MP4, MOV, WebM, MKV, OGV, AVI y más) con Space, avance con ←/→ o con
   la barra; consulte [Formatos](/gloss/docs/guide/formats/) (English) para saber
   qué necesita. Oriente mallas STL, 3MF, OBJ y PLY y elija piezas de 3MF con `c`.
   Desplace y amplíe un mapa GeoJSON o GPX, o un archivo PMTiles, dibujados sin conexión.
@@ -252,7 +252,7 @@ escritorio marcada con `Terminal=true`) toma el control de la terminal: gloss
 suspende su interfaz, espera a la aplicación y luego recarga el archivo,
 conservando en lo posible la vista del código fuente y la posición de
 desplazamiento. El menú y el explorador vuelven a su selección anterior. Use un
-editor que permanezca en primer plano hasta que termines.
+editor que permanezca en primer plano hasta que termine.
 
 Pulse `m` en el selector para gestionar las aplicaciones instaladas en todos los
 formatos: las flechas seleccionan, Space oculta o restaura una aplicación y
