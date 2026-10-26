@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 func (m *Model) seekAnimation(frame int) tea.Cmd {
@@ -26,11 +28,11 @@ func (m *Model) scrubberVisible() bool {
 
 // Use the existing hint row, keeping picture placement and prompt layout stable.
 func (m *Model) scrubberGeometry() (start, cells int, suffix string) {
-	suffix = " ,/. step · Space play · ? help"
+	suffix = " " + i18n.T("app.keys.scrubber", ",/. step · Space play · ? help")
 	if m.width < 50 {
 		suffix = ""
 	}
-	return 2, max(2, m.width-4-len([]rune(suffix))), suffix
+	return 2, max(2, m.width-4-ansi.StringWidth(suffix)), suffix
 }
 
 func (m *Model) scrubberView() string {

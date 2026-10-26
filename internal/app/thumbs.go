@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // The grid's tiles, in cells: wide enough for a name, high enough for a
@@ -142,7 +143,7 @@ func (m *Model) loadThumb(path string) tea.Cmd {
 
 // kindWord is what a tile says for a file that has no picture.
 func kindWord(kind string) string {
-	if word, ok := map[string]string{"ipynb": "notebook", "docx": "Word", "xlsx": "Excel", "grist": "Grist", "csv": "CSV", "json": "JSON", "html": "HTML"}[kind]; ok {
+	if word, ok := map[string]string{"ipynb": i18n.T("app.thumbs.notebook", "notebook"), "docx": "Word", "xlsx": "Excel", "grist": "Grist", "csv": "CSV", "json": "JSON", "html": "HTML"}[kind]; ok {
 		return word
 	}
 	return kind

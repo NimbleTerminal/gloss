@@ -37,8 +37,8 @@ type findResult struct {
 
 func newFinder(dir string, w int) *finder {
 	input := textinput.New()
-	input.Prompt = "  Find: "
-	input.Placeholder = "a glob, an extension, or a kind such as images"
+	input.Prompt = "  " + i18n.T("app.find.prompt", "Find:") + " "
+	input.Placeholder = i18n.T("app.find.placeholder", "a glob, an extension, or a kind such as images")
 	input.SetWidth(max(1, w-lipgloss.Width(input.Prompt)-1))
 	input.Focus()
 	return &finder{input: input, dir: dir}
@@ -83,11 +83,11 @@ func (f *finder) view(w, h int) string {
 	dim := lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
 	switch {
 	case f.running:
-		lines = append(lines, dim.Render("  searching…"))
+		lines = append(lines, dim.Render("  "+i18n.T("app.find.running", "searching…")))
 	case !f.searched:
-		lines = append(lines, dim.Render("  Type what to look for, and press Enter. Hidden folders are not searched."))
+		lines = append(lines, dim.Render("  "+i18n.T("app.find.how", "Type what to look for, and press Enter. Hidden folders are not searched.")))
 	case len(f.results) == 0:
-		lines = append(lines, dim.Render("  nothing found"))
+		lines = append(lines, dim.Render("  "+i18n.T("app.find.nothing", "nothing found")))
 	default:
 		rows := max(1, h-1)
 		top := max(0, min(f.cursor-rows/2, len(f.results)-rows))

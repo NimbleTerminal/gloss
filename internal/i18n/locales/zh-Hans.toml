@@ -1116,6 +1116,39 @@ other = "字幕已关闭"
 [app.video.subtitlesOn]
 other = "字幕：%s"
 
+[app.still.failed]
+other = "无法显示图片：%s"
+
+[app.still.preparing]
+other = "正在准备图片…"
+
+[app.find.prompt]
+other = "查找："
+
+[app.find.placeholder]
+other = "glob、扩展名或类别（如 images）"
+
+[app.find.running]
+other = "正在搜索…"
+
+[app.find.how]
+other = "输入要查找的内容并按 Enter。不搜索隐藏文件夹。"
+
+[app.find.nothing]
+other = "未找到任何内容"
+
+[app.keys.scrubber]
+other = ",/. 逐帧 · Space 播放 · ? 帮助"
+
+[app.keys.meshFrame]
+other = "拖动 环绕 · Shift-拖动 平移 · 滚轮 缩放 · 5 投影 · r 旋转 · f 适应"
+
+[app.keys.meshPreview]
+other = "拖动 环绕 · 滚轮 缩放"
+
+[app.thumbs.notebook]
+other = "笔记本"
+
 [app.search.skipped]
 other = "已跳过 {{.Count}} 个无文本页面"
 

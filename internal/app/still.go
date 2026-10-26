@@ -5,6 +5,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
@@ -22,10 +23,10 @@ func (s *stillPicture) view() string {
 		return view
 	}
 	if err := s.pic.Status().Err; err != nil {
-		return ansi.Truncate("Cannot display image: "+safe(err.Error()), s.width, "…")
+		return ansi.Truncate(i18n.Tf("app.still.failed", "Cannot display image: %s", safe(err.Error())), s.width, "…")
 	}
 	if s.pic.Status().Busy {
-		return ansi.Truncate("Preparing image…", s.width, "")
+		return ansi.Truncate(i18n.T("app.still.preparing", "Preparing image…"), s.width, "")
 	}
 	return ""
 }

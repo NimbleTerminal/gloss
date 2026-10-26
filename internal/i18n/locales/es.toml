@@ -1120,6 +1120,39 @@ other = "subtítulos desactivados"
 [app.video.subtitlesOn]
 other = "subtítulos: %s"
 
+[app.still.failed]
+other = "No se puede mostrar la imagen: %s"
+
+[app.still.preparing]
+other = "Preparando imagen…"
+
+[app.find.prompt]
+other = "Buscar:"
+
+[app.find.placeholder]
+other = "un glob, una extensión o un tipo como images"
+
+[app.find.running]
+other = "buscando…"
+
+[app.find.how]
+other = "Escriba qué buscar y pulse Enter. No se busca en carpetas ocultas."
+
+[app.find.nothing]
+other = "no se encontró nada"
+
+[app.keys.scrubber]
+other = ",/. paso · Space reproducir · ? ayuda"
+
+[app.keys.meshFrame]
+other = "arrastrar orbitar · Mayús-arrastrar desplazar · rueda zoom · 5 proyección · r rotar · f ajustar"
+
+[app.keys.meshPreview]
+other = "arrastrar orbitar · rueda zoom"
+
+[app.thumbs.notebook]
+other = "cuaderno"
+
 [app.search.skipped]
 one = "{{.Count}} página sin texto omitida"
 other = "{{.Count}} páginas sin texto omitidas"

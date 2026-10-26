@@ -7,6 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // partPicker is the list of a 3MF's parts, each ticked when shown.
@@ -211,9 +212,9 @@ func (m *Model) meshFrame(content string, w int) string {
 		return line + strings.Repeat(" ", max(0, w-ansi.StringWidth(line)))
 	}
 	lines[0] = pad(ansi.Truncate(title, w, "…"))
-	footer := " drag orbit · Shift-drag pan · wheel zoom · 5 projection · r rotate · f fit"
+	footer := " " + i18n.T("app.keys.meshFrame", "drag orbit · Shift-drag pan · wheel zoom · 5 projection · r rotate · f fit")
 	if m.isPreview {
-		footer = " drag orbit · wheel zoom" // Keys are the list's.
+		footer = " " + i18n.T("app.keys.meshPreview", "drag orbit · wheel zoom") // Keys are the list's.
 	}
 	lines[len(lines)-1] = pad(ansi.Truncate(footer, w, ""))
 	return strings.Join(lines, "\n")

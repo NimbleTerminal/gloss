@@ -102,3 +102,27 @@ func TestNoteFitsTheStatusBarInChinese(t *testing.T) {
 		t.Errorf("status bar lacks the note: %s", bar)
 	}
 }
+
+// Other words the viewer draws itself: a picture on its way, the find
+// prompt, the mesh's key row and the GIF scrubber.
+func TestViewerPlaceholdersSpeakTheLanguage(t *testing.T) {
+	speaking(t, "es")
+	f := newFinder(".", 80)
+	if view := ansi.Strip(f.view(80, 5)); !strings.Contains(view, "Buscar:") || !strings.Contains(view, "Escriba qué buscar y pulse Enter") {
+		t.Errorf("finder:\n%s", view)
+	}
+	f.running = true
+	if view := ansi.Strip(f.view(80, 5)); !strings.Contains(view, "buscando…") {
+		t.Errorf("finder while searching:\n%s", view)
+	}
+	if got := kindWord("ipynb"); got != "cuaderno" {
+		t.Errorf("notebook tile = %q", got)
+	}
+	speaking(t, "zh-Hans")
+	m := New(Options{Render: "glyph"})
+	t.Cleanup(func() { m.Close() })
+	m.width = 60
+	if _, cells, suffix := m.scrubberGeometry(); !strings.Contains(suffix, "逐帧") || cells != 60-4-ansi.StringWidth(suffix) {
+		t.Errorf("scrubber: %d cells, suffix %q", cells, suffix)
+	}
+}
