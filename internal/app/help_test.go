@@ -90,10 +90,9 @@ func TestHelpStacksAndScrolls(t *testing.T) {
 	}
 }
 
-// In every language the help is 22 rows within 80 cells. Translated, it
-// cuts no word off either: each heading and note within its column and each
-// action beside its keys. (Three English actions are cut at 80 columns, as
-// they were before translation.) The translations are used.
+// In every language the help is 22 rows within 80 cells and cuts no word
+// off: each heading and note within its column and each action beside its
+// keys. The translations are used.
 func TestHelpFitsInEveryLanguage(t *testing.T) {
 	t.Cleanup(func() { i18n.SetLanguage("en") })
 	screens := map[string]string{}
@@ -108,9 +107,6 @@ func TestHelpFitsInEveryLanguage(t *testing.T) {
 			if ansi.StringWidth(row) > 80 {
 				t.Errorf("%s: row too wide: %q", tag, row)
 			}
-		}
-		if tag == "en" {
-			continue
 		}
 		for _, row := range rows {
 			if strings.Contains(row, "…") {

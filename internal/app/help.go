@@ -37,8 +37,8 @@ func helpLeft() []helpSection {
 			{"", i18n.T("app.help.everywhere.drop", "Drop files or paste paths to open")},
 		}},
 		{i18n.T("app.help.text.title", "Text"), []helpRow{
-			{"t  s  f", i18n.T("app.help.text.typeset", "typeset / text · source · fonts")},
-			{"Tab", i18n.T("app.help.text.items", "next item in Markdown · else file")},
+			{"t  s  f", i18n.T("app.help.text.typeset", "typeset · source · fonts")},
+			{"Tab", i18n.T("app.help.text.items", "next Markdown item or file")},
 			{"#  :  S", i18n.T("app.help.text.lines", "line numbers · go to · chop")},
 			{"drag + y", i18n.T("app.help.text.copy", "select + copy typeset text")},
 			{"Shift-drag", i18n.T("app.help.text.select", "select in text views")},
@@ -65,7 +65,7 @@ func helpRight() []helpSection {
 		{i18n.T("app.help.motion.title", "GIFs and videos"), []helpRow{
 			{"Space , .", i18n.T("app.help.motion.play", "play / pause · step frames")},
 			{"< > Bksp", i18n.T("app.help.motion.speed", "speed · back to 1×")},
-			{"drag ← → c", i18n.T("app.help.motion.seek", "seek (video 5 s) · subtitles")},
+			{"drag ← → c", i18n.T("app.help.motion.seek", "seek (video 5 s) · captions")},
 		}},
 	}
 }
