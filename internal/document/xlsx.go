@@ -430,21 +430,21 @@ func columnIndex(name string) int {
 }
 
 // fields describes the workbook.
-func (w *Workbook) fields() []Field {
+func (w *Workbook) fields(loc Locale) []Field {
 	var sheets []string
 	for i, name := range w.names {
 		size := ""
 		if sheet, err := w.Sheet(i); err == nil {
-			size = fmt.Sprintf(" (%s × %s)", plural(len(sheet.Rows)+sheet.MoreRows, "row"), plural(sheet.Columns+sheet.MoreColumns, "column"))
+			size = fmt.Sprintf(" (%s × %s)", plural(loc, len(sheet.Rows)+sheet.MoreRows, "row"), plural(loc, sheet.Columns+sheet.MoreColumns, "column"))
 		}
 		sheets = append(sheets, name+size)
 	}
 	return Section("Workbook", append([]Field{{"Format", "Excel workbook"}, {"Sheets", strings.Join(sheets, ", ")}}, w.pkg.officeFields()...)...)
 }
 
-func plural(n int, noun string) string {
+func plural(loc Locale, n int, noun string) string {
 	if n == 1 {
 		return "1 " + noun
 	}
-	return grouped(n) + " " + noun + "s"
+	return loc.Count(n) + " " + noun + "s"
 }

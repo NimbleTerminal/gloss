@@ -138,7 +138,7 @@ func TestPlacement3MF(t *testing.T) {
 	if n := g.Vertices[12+9].Normal; n.X <= 0 || n.Y <= 0 || n.Z >= 0 {
 		t.Fatalf("mirrored normal %+v", n)
 	}
-	expect(t, m.fields(""), map[string]string{"Extent": "11 × 1 × 2 in", "Triangles": "8"})
+	expect(t, m.fields("", Locale{}), map[string]string{"Extent": "11 × 1 × 2 in", "Triangles": "8"})
 }
 
 func TestProduction3MF(t *testing.T) {
@@ -191,7 +191,7 @@ func TestMetadata3MF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fields := m.fields("")
+	fields := m.fields("", Locale{})
 	expect(t, fields, map[string]string{
 		"Format": "3MF", "Title": "Bracket", "Designer": "R. Maker", "Application": "SliceWorks 2.1", "Created": "2026-03-04",
 		"License": "CC BY 4.0", "Description": "A sturdy bracket for shelves.", "Extent": "1 × 1 × 1 cm", "Thumbnail": "8 × 6",
@@ -384,7 +384,7 @@ func TestSlicerProject3MF(t *testing.T) {
 	if m.Thumbnail == nil || m.Thumbnail.Bounds().Dx() != 8 {
 		t.Errorf("thumbnail %v", m.Thumbnail)
 	}
-	expect(t, m.fields(""), map[string]string{"License": "Standard Digital File License", "Objects": "2", "Thumbnail": "8 × 6"})
+	expect(t, m.fields("", Locale{}), map[string]string{"License": "Standard Digital File License", "Objects": "2", "Thumbnail": "8 × 6"})
 }
 
 func TestSlicerSettingsGiveWayToTheModel(t *testing.T) {

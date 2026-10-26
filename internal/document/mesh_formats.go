@@ -147,14 +147,14 @@ func sideFiles(dir string, files fs.FS) func(string) ([]byte, error) {
 }
 
 // meshFormatFields describes an OBJ or PLY model.
-func meshFormatFields(m *Mesh, number func(float64) string) []Field {
+func meshFormatFields(m *Mesh, number func(float64) string, loc Locale) []Field {
 	g := m.geometry
 	extent := g.Bounds.Max.Sub(g.Bounds.Min)
 	count := func(n int) string {
 		if n == 0 {
 			return ""
 		}
-		return grouped(n)
+		return loc.Count(n)
 	}
 	fields := []Field{{"Format", m.format}, {"Objects", count(m.objects)}, {"Triangles", count(m.Triangles())}, {"Textured parts", count(len(m.textured))}, {"Up axis", m.up},
 		{"Points", count(len(g.Points))}, {"Lines", count(len(g.Lines) / 2)},

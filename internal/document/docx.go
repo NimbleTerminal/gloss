@@ -414,7 +414,7 @@ func (w *Word) convert(data []byte) error {
 	return nil
 }
 
-func (w *Word) fields() []Field {
+func (w *Word) fields(loc Locale) []Field {
 	count := func(n int) string {
 		if n == 0 {
 			return ""
@@ -425,7 +425,7 @@ func (w *Word) fields() []Field {
 	for i := range office {
 		if office[i].Label == "Words" || office[i].Label == "Pages" {
 			if n, err := strconv.Atoi(strings.TrimSpace(office[i].Value)); err == nil {
-				office[i].Value = grouped(n)
+				office[i].Value = loc.Count(n)
 			}
 		}
 	}

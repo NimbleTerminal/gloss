@@ -28,7 +28,7 @@ func (l *Loader) loadTypesetText(q Request, data []byte, file []Field, kind stri
 		if doc.cut || (doc.Lines && doc.Shown < doc.Records) {
 			return fail(fmt.Errorf("typeset JSON exceeds the formatted text budget"))
 		}
-		text, language, source, info = doc.Plain, "json", &Markdown{Source: doc.Markdown}, doc.fields()
+		text, language, source, info = doc.Plain, "json", &Markdown{Source: doc.Markdown}, doc.fields(q.Locale)
 	} else {
 		doc, err := ReadText(q.Path, data)
 		if err != nil {
@@ -37,7 +37,7 @@ func (l *Loader) loadTypesetText(q Request, data []byte, file []Field, kind stri
 		if len(strings.TrimSuffix(doc.Plain, "\n")) > MaxMarkdownBytes-4096 || doc.shown > 0 || len(doc.Markdown) > MaxMarkdownBytes {
 			return fail(fmt.Errorf("typeset text exceeds the source view budget"))
 		}
-		text, language, source, info = doc.Plain, doc.language, &Markdown{Source: doc.Markdown}, doc.fields()
+		text, language, source, info = doc.Plain, doc.language, &Markdown{Source: doc.Markdown}, doc.fields(q.Locale)
 	}
 	if len(text) > MaxMarkdownBytes {
 		return fail(fmt.Errorf("typeset text exceeds 2 MiB"))

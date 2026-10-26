@@ -196,13 +196,13 @@ func pdfFields(doc *pdfdoc.Document, page int) []Field {
 		Field{"Creator", info.Creator}, Field{"Producer", info.Producer}, Field{"Created", info.CreationDate}, Field{"Changed", info.ModDate})
 }
 
-func meshFields(data []byte, mesh *Mesh) []Field {
+func meshFields(data []byte, mesh *Mesh, loc Locale) []Field {
 	if mesh == nil {
 		return nil
 	}
 	number := func(v float64) string { return strconv.FormatFloat(v, 'g', 6, 64) }
 	if mesh.format != "" {
-		return meshFormatFields(mesh, number)
+		return meshFormatFields(mesh, number, loc)
 	}
 	format, name := "STL (ASCII)", ""
 	if len(data) >= 84 && 84+50*uint64(binary.LittleEndian.Uint32(data[80:84])) == uint64(len(data)) {
@@ -220,7 +220,7 @@ func meshFields(data []byte, mesh *Mesh) []Field {
 	}, name)
 	extent := mesh.geometry.Bounds.Max.Sub(mesh.geometry.Bounds.Min)
 	// STL records no unit of length.
-	return Section("Mesh", Field{"Format", format}, Field{"Name", name}, Field{"Triangles", grouped(mesh.Triangles())},
+	return Section("Mesh", Field{"Format", format}, Field{"Name", name}, Field{"Triangles", loc.Count(mesh.Triangles())},
 		Field{"Extent", number(float64(extent.X)) + " × " + number(float64(extent.Y)) + " × " + number(float64(extent.Z))}, Field{"Surface area", number(mesh.area())})
 }
 

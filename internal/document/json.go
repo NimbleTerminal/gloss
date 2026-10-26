@@ -254,19 +254,19 @@ func topLevel(data []byte) (kind string, count int, keys []string) {
 	return kind, count, keys
 }
 
-func (doc *JSONDoc) fields() []Field {
+func (doc *JSONDoc) fields(loc Locale) []Field {
 	top := doc.kind
 	switch doc.kind {
 	case "object":
-		top = "object with " + plural(doc.count, "key")
+		top = "object with " + plural(loc, doc.count, "key")
 	case "array":
-		top = fmt.Sprintf("array of %s", grouped(doc.count))
+		top = "array of " + loc.Count(doc.count)
 	}
 	fields := []Field{{"Format", "JSON"}}
 	if doc.Lines {
-		fields = []Field{{"Format", "JSON Lines"}, {"Records", grouped(doc.Records)}}
+		fields = []Field{{"Format", "JSON Lines"}, {"Records", loc.Count(doc.Records)}}
 		if doc.cut {
-			fields = append(fields, Field{"Shown", grouped(doc.Shown)})
+			fields = append(fields, Field{"Shown", loc.Count(doc.Shown)})
 		}
 		fields = append(fields, Field{"Record", top}, Field{"Record keys", strings.Join(doc.keys, ", ")})
 	} else {

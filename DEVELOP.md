@@ -517,7 +517,9 @@ gloss's own words are in English, Spanish (`es`) and Simplified Chinese
 `internal/i18n/locales/es.toml` and `zh-Hans.toml` override it (there is no
 `en.toml`). Both catalogs start with `# Draft translation, awaiting native
 review.` The package wraps go-i18n; number formats come from `x/text`
-(`document.Locale` writes sizes and counts for the info box and tables).
+(`document.Locale`, passed as `Request.Locale`, writes the sizes and counts of
+the info box's fields; error messages and document text keep English
+numbers, and the zero Locale is English).
 
 **A string.** Call `i18n.T("app.search.none", "No matches")` (or `Tf` with
 `fmt` verbs, or `Tn("app.files", "{{.Count}} file", "{{.Count}} files", n)`

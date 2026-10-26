@@ -638,12 +638,12 @@ func (g *GristDoc) plain(v any) string {
 }
 
 // fields describes the document.
-func (g *GristDoc) fields() []Field {
+func (g *GristDoc) fields(loc Locale) []Field {
 	var tables []string
 	for i, name := range g.Names() {
 		size := ""
 		if sheet, err := g.Sheet(i); err == nil {
-			size = fmt.Sprintf(" (%s × %s)", plural(len(sheet.Rows)-1+sheet.MoreRows, "row"), plural(sheet.Columns+sheet.MoreColumns, "column"))
+			size = fmt.Sprintf(" (%s × %s)", plural(loc, len(sheet.Rows)-1+sheet.MoreRows, "row"), plural(loc, sheet.Columns+sheet.MoreColumns, "column"))
 		}
 		tables = append(tables, name+size)
 	}

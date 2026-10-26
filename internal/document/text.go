@@ -107,10 +107,10 @@ func IsText(data []byte) bool {
 	return controls*10 <= runes
 }
 
-func (doc *TextDoc) fields() []Field {
-	fields := []Field{{"Format", "Plain text"}, {"Language", doc.language}, {"Lines", grouped(doc.lines)}}
+func (doc *TextDoc) fields(loc Locale) []Field {
+	fields := []Field{{"Format", "Plain text"}, {"Language", doc.language}, {"Lines", loc.Count(doc.lines)}}
 	if doc.shown > 0 {
-		fields = append(fields, Field{"Shown", grouped(doc.shown) + " lines"})
+		fields = append(fields, Field{"Shown", loc.Count(doc.shown) + " lines"})
 	}
-	return Section("Text", append(fields, Field{"Words", grouped(doc.words)}, Field{"Characters", grouped(doc.characters)})...)
+	return Section("Text", append(fields, Field{"Words", loc.Count(doc.words)}, Field{"Characters", loc.Count(doc.characters)})...)
 }

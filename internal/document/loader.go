@@ -283,7 +283,7 @@ type Loader struct {
 type book interface {
 	Names() []string
 	Sheet(i int) (*Sheet, error)
-	fields() []Field
+	fields(Locale) []Field
 }
 
 func (l *Loader) Close() error {
@@ -457,13 +457,13 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 	case "stl":
 		out.Mesh, out.Err = ParseSTLUp(data, upAxis(q.Up, "z"))
-		details = func() []Field { return meshFields(data, out.Mesh) }
+		details = func() []Field { return meshFields(data, out.Mesh, q.Locale) }
 	case "obj":
 		out.Mesh, out.Err = ParseOBJ(q.Path, data, l.Files, q.Stdin, upAxis(q.Up, "y"))
-		details = func() []Field { return meshFields(data, out.Mesh) }
+		details = func() []Field { return meshFields(data, out.Mesh, q.Locale) }
 	case "ply":
 		out.Mesh, out.Err = ParsePLY(data, upAxis(q.Up, "y"))
-		details = func() []Field { return meshFields(data, out.Mesh) }
+		details = func() []Field { return meshFields(data, out.Mesh, q.Locale) }
 	case "geojson", "gpx":
 		out.Map, out.Err = readMap(kind, data)
 		details = func() []Field { return mapFields(kind, out.Map) }
@@ -484,7 +484,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, doc.Markdown, q.BaseDir, l.Files, false, q.Theme.Dark)
 		out.Text = doc.Plain
-		details = doc.fields
+		details = func() []Field { return doc.fields(q.Locale) }
 	case "ipynb":
 		details = func() []Field { return Section("Notebook", Field{"Format", "Jupyter notebook"}) }
 		nb, err := ReadNotebook(data)
@@ -497,7 +497,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		if out.Markdown != nil {
 			out.Markdown.pack()
 		}
-		details = nb.fields
+		details = func() []Field { return nb.fields(q.Locale) }
 	case "text":
 		details = func() []Field { return Section("Text", Field{"Format", "Plain text"}) }
 		doc, err := ReadText(q.Path, data)
@@ -507,7 +507,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		}
 		out.Markdown, out.Err = loadMarkdownContext(context.Background(), q.Path, doc.Markdown, q.BaseDir, l.Files, false, q.Theme.Dark)
 		out.Text = doc.Plain
-		details = doc.fields
+		details = func() []Field { return doc.fields(q.Locale) }
 	case "html":
 		details = func() []Field { return Section("Page", Field{"Format", "HTML"}) }
 		page, err := ReadHTML(data)
@@ -530,7 +530,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		if out.Markdown != nil {
 			out.Markdown.pack()
 		}
-		details = doc.fields
+		details = func() []Field { return doc.fields(q.Locale) }
 	case "xlsx":
 		details = func() []Field { return Section("Workbook", Field{"Format", "Excel workbook"}) }
 		book, err := OpenWorkbook(data)
@@ -561,7 +561,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		if q.Strict && model.limit == nil {
 			if err := q.Parts.Missing(model.Parts); err != nil {
 				out.Err = err
-				details = func() []Field { return model.fields("") }
+				details = func() []Field { return model.fields("", q.Locale) }
 				return out
 			}
 		}
@@ -584,7 +584,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		default:
 			out.Err = fmt.Errorf("3MF has %s triangles; the limit is %s", grouped(model.Triangles), grouped(maxTriangles))
 		}
-		details = func() []Field { return model.fields(shown) }
+		details = func() []Field { return model.fields(shown, q.Locale) }
 	default:
 		if q.Animate && !q.Preview && animation.Animated(data) {
 			out.Image, out.Animation, out.Err = decodeAnimation(q.Context, data, true)
@@ -716,7 +716,7 @@ func (l *Loader) turnSheet(q Request) Result {
 	page := max(1, min(q.Page, len(l.book.Names())))
 	sheet, err := l.book.Sheet(page - 1)
 	out := Result{Generation: q.Generation, Kind: l.bookKind, Page: page, Pages: len(l.book.Names()), Sheet: sheet, Err: err}
-	out.Info = append(append([]Field(nil), l.file...), describe(l.book.fields)...)
+	out.Info = append(append([]Field(nil), l.file...), describe(func() []Field { return l.book.fields(q.Locale) })...)
 	return out
 }
 

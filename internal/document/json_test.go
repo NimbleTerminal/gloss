@@ -19,7 +19,7 @@ func TestJSONIsPrettyPrintedAsMarkdown(t *testing.T) {
 	if doc.Records != 0 || doc.Lines {
 		t.Fatalf("%+v", doc)
 	}
-	fields := doc.fields()
+	fields := doc.fields(Locale{})
 	if !hasField(fields, "Format", "JSON") || !hasField(fields, "Top level", "object with 3 keys") || !hasField(fields, "Keys", "name, tags, size") {
 		t.Fatalf("fields: %v", fields)
 	}
@@ -34,8 +34,8 @@ func TestJSONLinesAreNumberedRecords(t *testing.T) {
 	if !doc.Lines || doc.Records != 2 || strings.Count(md, "```json\n") != 2 || !strings.Contains(md, "#### 1\n") || !strings.Contains(md, "#### 2\n") {
 		t.Fatalf("%+v\n%s", doc, md)
 	}
-	if !hasField(doc.fields(), "Format", "JSON Lines") || !hasField(doc.fields(), "Records", "2") {
-		t.Fatalf("fields: %v", doc.fields())
+	if !hasField(doc.fields(Locale{}), "Format", "JSON Lines") || !hasField(doc.fields(Locale{}), "Records", "2") {
+		t.Fatalf("fields: %v", doc.fields(Locale{}))
 	}
 	// Lines are read as records even from a .json file.
 	if doc, err := ReadJSON("data.json", []byte("[1]\n[2]\n")); err != nil || doc.Records != 2 {

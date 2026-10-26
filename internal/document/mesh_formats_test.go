@@ -169,7 +169,7 @@ func TestPLYPointCloud(t *testing.T) {
 	if r, g, b, _ := img.At(32, 32).RGBA(); r>>8 > 200 && g>>8 > 200 && b>>8 > 200 {
 		t.Fatal("the middle of the cloud is empty: its discs do not touch")
 	}
-	if !strings.Contains(fieldText(meshFields(nil, m)), "Points=100") {
+	if !strings.Contains(fieldText(meshFields(nil, m, Locale{})), "Points=100") {
 		t.Fatal("info does not count points")
 	}
 	if _, err := ParsePLY([]byte("ply\nformat ascii 1.0\nelement vertex 0\nproperty float x\nend_header\n"), nt3dmesh.YUp); err == nil {

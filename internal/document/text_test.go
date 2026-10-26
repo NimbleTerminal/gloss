@@ -22,7 +22,7 @@ func TestPlainTextIsShownAsItIs(t *testing.T) {
 	if strings.Contains(md, "\r") || strings.Contains(md, "\ufeff") {
 		t.Fatalf("returns or the byte order mark kept:\n%q", md)
 	}
-	fields := doc.fields()
+	fields := doc.fields(Locale{})
 	for label, want := range map[string]string{"Format": "Plain text", "Lines": "5", "Words": "14", "Characters": "67"} {
 		if got := field(fields, label); got != want {
 			t.Errorf("%s = %q, want %q", label, got, want)
@@ -35,8 +35,8 @@ func TestLongTextIsCut(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(doc.Markdown) > MaxMarkdownBytes || !strings.Contains(string(doc.Markdown), "lines shown") || field(doc.fields(), "Lines") != "200,000" {
-		t.Fatalf("len=%d fields=%v", len(doc.Markdown), doc.fields())
+	if len(doc.Markdown) > MaxMarkdownBytes || !strings.Contains(string(doc.Markdown), "lines shown") || field(doc.fields(Locale{}), "Lines") != "200,000" {
+		t.Fatalf("len=%d fields=%v", len(doc.Markdown), doc.fields(Locale{}))
 	}
 }
 
@@ -120,7 +120,7 @@ func TestSourceIsFencedInItsLanguage(t *testing.T) {
 		if !strings.HasPrefix(string(doc.Markdown), "```"+want+"\n") {
 			t.Errorf("%s: fenced as %q, want %q", path, strings.SplitN(string(doc.Markdown), "\n", 2)[0], want)
 		}
-		if got := field(doc.fields(), "Language"); (want == "text") != (got == "") {
+		if got := field(doc.fields(Locale{}), "Language"); (want == "text") != (got == "") {
 			t.Errorf("%s: language field %q", path, got)
 		}
 	}

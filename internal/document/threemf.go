@@ -149,7 +149,7 @@ func meshFromObjects(objects []nt3dmesh.Object) *Mesh {
 
 var markup = regexp.MustCompile(`<[^>]*>`)
 
-func (m *Model3MF) fields(shown string) []Field {
+func (m *Model3MF) fields(shown string, loc Locale) []Field {
 	number := func(v float64) string { return strconv.FormatFloat(v, 'g', 6, 64) }
 	unit := map[string]string{"micron": "µm", "millimeter": "mm", "centimeter": "cm", "inch": "in", "foot": "ft", "meter": "m"}[m.Unit]
 	meta := func(name string) string {
@@ -171,7 +171,7 @@ func (m *Model3MF) fields(shown string) []Field {
 	if unit != "" {
 		area += " " + unit + "²"
 	}
-	objects, triangles, size := grouped(m.Objects), grouped(m.Triangles), strings.TrimSpace(number(float64(extent.X))+" × "+number(float64(extent.Y))+" × "+number(float64(extent.Z))+" "+unit)
+	objects, triangles, size := loc.Count(m.Objects), loc.Count(m.Triangles), strings.TrimSpace(number(float64(extent.X))+" × "+number(float64(extent.Y))+" × "+number(float64(extent.Z))+" "+unit)
 	if m.limit != nil {
 		objects, triangles, size, area = "", "", "", ""
 	}

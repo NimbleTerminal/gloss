@@ -55,7 +55,7 @@ func TestNotebookCellsBecomeMarkdown(t *testing.T) {
 	if data, err := readFileFrom(nb.Files, "dropped/cell-2-output-3.png"); err != nil || len(data) == 0 {
 		t.Fatalf("picture: %v", err)
 	}
-	fields := nb.fields()
+	fields := nb.fields(Locale{})
 	for label, want := range map[string]string{"Format": "Jupyter notebook 4.5", "Language": "python 3.12.1", "Kernel": "Python 3", "Cells": "4 (2 code, 1 markdown, 1 raw)", "Outputs": "4", "Pictures": "1"} {
 		if got := field(fields, label); got != want {
 			t.Errorf("%s = %q, want %q", label, got, want)

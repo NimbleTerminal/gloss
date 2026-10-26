@@ -195,7 +195,7 @@ func fenced(md *bytes.Buffer, language, text string) {
 	fmt.Fprintf(md, "%s%s\n%s\n%s\n\n", fence, language, text, fence)
 }
 
-func (nb *Notebook) fields() []Field {
+func (nb *Notebook) fields(loc Locale) []Field {
 	cells := nb.cells["code"] + nb.cells["markdown"] + nb.cells["raw"]
 	var parts []string
 	for _, kind := range []string{"code", "markdown", "raw"} {
@@ -212,7 +212,7 @@ func (nb *Notebook) fields() []Field {
 		Field{"Language", nb.language},
 		Field{"Kernel", nb.kernel},
 		Field{"Cells", count},
-		Field{"Outputs", grouped(nb.outputs)},
-		Field{"Pictures", grouped(nb.pictures)},
+		Field{"Outputs", loc.Count(nb.outputs)},
+		Field{"Pictures", loc.Count(nb.pictures)},
 	)
 }
