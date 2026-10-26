@@ -256,7 +256,7 @@ func TestEmptySessionIsADropTarget(t *testing.T) {
 	}{{30, true, true, false}, {16, true, true, true}, {12, true, true, false}, {9, true, false, false}, {5, true, false, false}} {
 		m.Update(tea.WindowSizeMsg{Width: 100, Height: c.height})
 		view := ansi.Strip(m.View().Content)
-		if strings.Contains(view, name) != c.banner || strings.Contains(view, "Drop files here to open") != c.text || strings.Contains(view, document.FormatsShort) != c.short {
+		if strings.Contains(view, name) != c.banner || strings.Contains(view, "Drop files here to open") != c.text || strings.Contains(view, formatsShort()) != c.short {
 			t.Fatalf("%d rows: banner=%v text=%v short list=%v:\n%s", c.height, c.banner, c.text, c.short, view)
 		}
 	}
@@ -287,7 +287,7 @@ func TestEmptySessionIsADropTarget(t *testing.T) {
 		t.Fatalf("labels do not line up:\n%s", ansi.Strip(m.View().Content))
 	}
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 16})
-	if view := ansi.Strip(m.View().Content); strings.Contains(view, "Images: ") || !strings.Contains(view, document.FormatsShort) {
+	if view := ansi.Strip(m.View().Content); strings.Contains(view, "Images: ") || !strings.Contains(view, formatsShort()) {
 		t.Fatalf("short screen:\n%s", view)
 	}
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})

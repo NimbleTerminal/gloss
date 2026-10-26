@@ -437,3 +437,83 @@ other = "{{.Name}} 是空文件。"
 
 [web.pick.tooBig]
 other = "{{.Name}} 超过 {{.Limit}}。"
+
+[app.enlarge]
+other = "gloss：请放大终端"
+
+
+[app.formats.3d]
+other = "3D"
+
+
+[app.formats.comma]
+other = "、"
+
+
+[app.formats.doc]
+other = "文档"
+
+
+[app.formats.images]
+other = "图片"
+
+
+[app.formats.label]
+other = "%s："
+
+
+[app.formats.mapNames]
+other = "%s 和栅格 %s"
+
+
+[app.formats.maps]
+other = "地图"
+
+
+[app.formats.meshes]
+other = "%s 和 %s 网格"
+
+
+[app.formats.plainText]
+other = "纯文本"
+
+
+[app.formats.someMaps]
+other = "地图"
+
+
+[app.formats.text]
+other = "文本"
+
+
+[app.formats.textNames]
+other = "%s、纯文本和源代码"
+
+
+[app.landing.browse]
+other = "从文件管理器拖入，粘贴路径，或按 o 浏览。"
+
+
+[app.landing.drop]
+other = "将文件拖到此处打开"
+
+
+[app.landing.paste]
+other = "从文件管理器拖入，或粘贴路径。"
+
+
+[app.landing.send]
+other = "将文件拖到此处发送"
+
+
+[app.landing.sendHow]
+other = "从文件管理器拖入，粘贴路径，或按 o 浏览。"
+
+
+[app.landing.terminal]
+other = "从文件管理器拖到终端上。"
+
+
+[app.landing.tiny]
+other = "GLOSS -- 拖到此处"
+

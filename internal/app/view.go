@@ -56,7 +56,7 @@ func (m *Model) View() tea.View {
 		content, mouse = body+"\n"+bar+"\n", tea.MouseModeNone
 	}
 	if m.height < 3 || (m.screen == screenDocument && m.chart != nil && m.height < 5) {
-		content = ansi.Truncate("gloss: enlarge terminal", w, "")
+		content = ansi.Truncate(i18n.T("app.enlarge", "gloss: enlarge terminal"), w, "")
 	}
 	v := tea.NewView(content)
 	v.ProgramStatus = m.programStatus()
@@ -149,22 +149,25 @@ const DocsURL = "https://nimbleterminal.github.io/gloss/docs/"
 
 // emptyView is the drop target shown before any file, and what it opens.
 func (m *Model) emptyView(w int) string {
-	body := "Drop files here to open\n\nDrag them from a file manager, or paste their paths."
+	title, how := i18n.T("app.landing.drop", "Drop files here to open"), i18n.T("app.landing.paste", "Drag them from a file manager, or paste their paths.")
 	if m.opts.FilesFS != nil {
 		// The browser: files come from drops, or from the page around.
-		body = "Drop files here to open\n\nDrag them from a file manager onto the terminal."
+		how = i18n.T("app.landing.terminal", "Drag them from a file manager onto the terminal.")
 	}
 	if m.canBrowse() {
-		body = "Drop files here to open\n\nDrag them from a file manager, paste their paths, or press o to browse."
+		how = i18n.T("app.landing.browse", "Drag them from a file manager, paste their paths, or press o to browse.")
 	}
 	if m.opts.Pick {
-		body = "Drop a file here to send it\n\nDrag it from a file manager, paste its path, or press o to browse."
+		title = i18n.T("app.landing.send", "Drop a file here to send it")
+		how = i18n.T("app.landing.sendHow", "Drag it from a file manager, paste its path, or press o to browse.")
 	}
+	body := title + "\n\n" + how
 	// The name outranks the rest: as the screen shortens, the list of
 	// formats goes first, then the words on what to do, and the name stays.
 	h, lines := m.bodyHeight(), strings.Count(body, "\n")+1
-	long := lipgloss.NewStyle().Width(lipgloss.Width(strings.Join(document.Formats, "\n"))).Render(strings.Join(document.Formats, "\n\n"))
-	short := lipgloss.NewStyle().Width(w).Align(lipgloss.Center).Render(document.FormatsShort)
+	formats := formatLines()
+	long := lipgloss.NewStyle().Width(lipgloss.Width(strings.Join(formats, "\n"))).Render(strings.Join(formats, "\n\n"))
+	short := lipgloss.NewStyle().Width(w).Align(lipgloss.Center).Render(wrapList(shortFormats(), i18n.T("app.formats.comma", ", "), w))
 	name, gap := strings.Join(banner, "\n"), "\n\n\n"
 	art := lipgloss.NewStyle().Foreground(m.palette().Accent).Bold(true).Render(name)
 	room := func(extra int) bool { return h >= len(banner)+2+lines+extra }
@@ -172,7 +175,7 @@ func (m *Model) emptyView(w int) string {
 	case w < lipgloss.Width(name) || h < len(banner):
 		// Too small to draw the name, so it is said, with what to do if
 		// there is room to say it.
-		if w >= len(tiny) {
+		if tiny := i18n.T("app.landing.tiny", "GLOSS -- drag here"); w >= ansi.StringWidth(tiny) {
 			return tiny
 		}
 		return "GLOSS"
@@ -185,9 +188,6 @@ func (m *Model) emptyView(w int) string {
 	}
 	return art
 }
-
-// tiny stands in for the whole screen where the banner will not fit.
-const tiny = "GLOSS -- drag here"
 
 // banner is the name, drawn small; its lines are of one width, so that
 // centring the lot keeps them aligned.

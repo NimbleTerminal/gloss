@@ -40,17 +40,24 @@ const MaxPixels = 32 << 20
 // examined first, so a supported file need not carry one of them.
 var Extensions = []string{".md", ".markdown", ".mdown", ".mmd", ".mermaid", ".pdf", ".svg", ".stl", ".3mf", ".obj", ".ply", ".geojson", ".gpx", ".pmtiles", ".xlsx", ".xlsm", ".grist", ".docx", ".docm", ".csv", ".tsv", ".json", ".jsonl", ".ndjson", ".ipynb", ".html", ".htm", ".txt", ".text", ".log", ".heic", ".heif", ".hif", ".jxl", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".ogv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv"}
 
-// Formats says, for people, what gloss opens: labelled lines, and a short
-// line for when there is no room for them.
-var Formats = []string{
-	"Images: PNG, JPEG, GIF, WebP, BMP, TIFF, HEIC, JPEG XL",
-	"Doc:    SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter",
-	"Text:   Markdown, HTML, JSON, CSV, plain text and source",
-	"3D:     STL, 3MF, OBJ and PLY meshes",
-	"Maps:   GeoJSON, GPX, and raster PMTiles",
+// FormatGroup is one labelled line of what gloss opens, for people. The
+// names of the formats are the same in every language; the app says the
+// label, in English here, and the words around the names.
+type FormatGroup struct {
+	Label string
+	Names []string
 }
 
-const FormatsShort = "Images, SVG, Mermaid, PDF, Word, Excel, Grist, Jupyter, Markdown, HTML, text, JSON, CSV, 3D, maps"
+// FormatGroups are the lines of formats the landing page lists. Text goes
+// on to plain text and source, 3D's names are meshes, and the last map is
+// raster.
+var FormatGroups = []FormatGroup{
+	{"Images", []string{"PNG", "JPEG", "GIF", "WebP", "BMP", "TIFF", "HEIC", "JPEG XL"}},
+	{"Doc", []string{"SVG", "Mermaid", "PDF", "Word", "Excel", "Grist", "Jupyter"}},
+	{"Text", []string{"Markdown", "HTML", "JSON", "CSV"}},
+	{"3D", []string{"STL", "3MF", "OBJ", "PLY"}},
+	{"Maps", []string{"GeoJSON", "GPX", "PMTiles"}},
+}
 
 var ErrUnsupported = errors.New("unsupported format; expected an image, SVG, Mermaid, PDF, a mesh, a map, Markdown, HTML, JSON, a notebook, Word, Excel, Grist, CSV, or text")
 var ErrNotRegular = errors.New("not a regular file")

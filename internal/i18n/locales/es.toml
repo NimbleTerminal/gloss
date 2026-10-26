@@ -437,3 +437,83 @@ other = "{{.Name}} está vacío."
 
 [web.pick.tooBig]
 other = "{{.Name}} supera {{.Limit}}."
+
+[app.enlarge]
+other = "gloss: agrande la terminal"
+
+
+[app.formats.3d]
+other = "3D"
+
+
+[app.formats.comma]
+other = ", "
+
+
+[app.formats.doc]
+other = "Documentos"
+
+
+[app.formats.images]
+other = "Imágenes"
+
+
+[app.formats.label]
+other = "%s:"
+
+
+[app.formats.mapNames]
+other = "%s y %s ráster"
+
+
+[app.formats.maps]
+other = "Mapas"
+
+
+[app.formats.meshes]
+other = "mallas %s y %s"
+
+
+[app.formats.plainText]
+other = "texto"
+
+
+[app.formats.someMaps]
+other = "mapas"
+
+
+[app.formats.text]
+other = "Texto"
+
+
+[app.formats.textNames]
+other = "%s, texto plano y código fuente"
+
+
+[app.landing.browse]
+other = "Arrástrelos desde un gestor de archivos, pegue rutas o pulse o para explorar."
+
+
+[app.landing.drop]
+other = "Suelte archivos aquí para abrirlos"
+
+
+[app.landing.paste]
+other = "Arrástrelos desde un gestor de archivos o pegue sus rutas."
+
+
+[app.landing.send]
+other = "Suelte un archivo aquí para enviarlo"
+
+
+[app.landing.sendHow]
+other = "Arrástrelo desde un gestor de archivos, pegue su ruta o pulse o para explorar."
+
+
+[app.landing.terminal]
+other = "Arrástrelos desde un gestor de archivos a la terminal."
+
+
+[app.landing.tiny]
+other = "GLOSS -- arrastre aquí"
+
