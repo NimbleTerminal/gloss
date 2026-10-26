@@ -25,8 +25,8 @@ func TestChartSpeaksTheLanguage(t *testing.T) {
 	}{
 		{"es", "gráfico · líneas · 2 series · 4 filas · ", "gráfico de líneas · t tipo siguiente", "Gráfico",
 			"gráfico como imagen: g alterna Kitty / glifos", "gráfico como texto", "no se muestra ningún gráfico: pulse C en una tabla o abra un archivo de gráfico",
-			"nada que graficar", "la terminal es demasiado pequeña para un gráfico", "no hay ninguna tabla abierta para graficar",
-			"Graficar estas columnas", "Ocultar el gráfico", "Abrir gráfico en el navegador", "C gráfico"},
+			"nada que representar", "la terminal es demasiado pequeña para un gráfico", "no hay ninguna tabla abierta que representar",
+			"Crear un gráfico con estas columnas", "Ocultar el gráfico", "Abrir gráfico en el navegador", "C gráfico"},
 		{"zh-Hans", "图表 · 折线图 · 2 个系列 · 4 行 · ", "折线图 · t 下一类型", "图表",
 			"图表图形：g 切换 Kitty / 字符", "文本图表", "未显示图表：请在表格上按 C，或打开图表文件",
 			"没有可绘制的数据", "终端太小，无法显示图表", "没有打开可绘制图表的表格",
@@ -126,7 +126,7 @@ func TestChartPushReplyStaysEnglish(t *testing.T) {
 	if got.Error != "no table is open to chart" {
 		t.Errorf("reply %q", got.Error)
 	}
-	if m.note != "no hay ninguna tabla abierta para graficar" {
+	if m.note != "no hay ninguna tabla abierta que representar" {
 		t.Errorf("note %q", m.note)
 	}
 }

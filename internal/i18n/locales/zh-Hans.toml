@@ -103,7 +103,7 @@ other = "PDF 首页 / 末页"
 other = "Kitty/字符 · 表格网址二维码"
 
 [app.help.pictures.chart]
-other = "图表 · 类型 · 网页 · 图像"
+other = "图表 · 类型 · 网页 · 图形"
 
 [app.help.meshes.title]
 other = "网格模型"
@@ -1942,7 +1942,7 @@ other = "未显示图表：请在表格上按 C，或打开图表文件"
 other = "图表页面：%s"
 
 [app.chart.noBrowser]
-other = "此主机不支持在浏览器中打开"
+other = "当前宿主中不能在浏览器中打开"
 
 [app.chart.opening]
 other = "正在打开…"

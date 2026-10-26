@@ -249,8 +249,9 @@ sesión desconectada sigue el idioma de su navegador; la de un `--serve` iniciad
 en una terminal sigue el de la terminal.
 
 El explorador de archivos, su ayuda y el selector de «Abrir con», las etiquetas
-del cuadro de detalles, la demostración en el navegador y algunos mensajes de
-carga de las páginas siguen en inglés. Estas traducciones son borradores
+del cuadro de detalles, la demostración en el navegador, algunos mensajes de
+carga de las páginas, las notas y avisos del compilador de gráficos y la página
+ECharts del gráfico siguen en inglés. Estas traducciones son borradores
 pendientes de revisión por hablantes nativos.
 
 ## Abrir en otra aplicación

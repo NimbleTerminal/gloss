@@ -100,7 +100,7 @@ other = "pág. o archivo sig. / ant."
 other = "primera / última pág. PDF"
 
 [app.help.pictures.graphicsQR]
-other = "Kitty/glifos · QR de tabla"
+other = "Kitty/glifos · QR de URL"
 
 [app.help.pictures.chart]
 other = "gráf. · tipo · web · imagen"
@@ -1205,7 +1205,7 @@ other = "nada que copiar"
 other = "Ir allí"
 
 [app.actions.chart]
-other = "Graficar estas columnas"
+other = "Crear un gráfico con estas columnas"
 
 [app.actions.chartBrowser]
 other = "Abrir gráfico en el navegador"
@@ -1913,7 +1913,7 @@ other = "imagen"
 other = "gráfico"
 
 [app.chart.graphics]
-other = "imagen"
+other = "como imagen"
 
 [app.chart.graphicsOn]
 other = "gráfico como imagen: g alterna Kitty / glifos"
@@ -1934,13 +1934,13 @@ other = "ctrl+g lo dibuja como imagen."
 other = "la terminal es demasiado pequeña para un gráfico"
 
 [app.chart.nothing]
-other = "nada que graficar: muestre una columna de fecha o categoría y una columna numérica"
+other = "nada que representar: muestre una columna de fecha o categoría y una columna numérica"
 
 [app.chart.noRows]
 other = "el gráfico no tiene filas y no hay ninguna tabla abierta"
 
 [app.chart.noTable]
-other = "no hay ninguna tabla abierta para graficar"
+other = "no hay ninguna tabla abierta que representar"
 
 [app.chart.noChart]
 other = "no se muestra ningún gráfico: pulse C en una tabla o abra un archivo de gráfico"

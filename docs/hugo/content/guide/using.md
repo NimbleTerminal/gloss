@@ -225,7 +225,8 @@ not. A page shown to a person from a detached session follows that person's
 browser language; a `--serve` started in a terminal follows the terminal's.
 
 The file browser, its help and the open-with chooser, the details box labels,
-the browser demo and some upload messages in the pages are still English.
+the browser demo, some upload messages in the pages, a chart's notes and
+warnings from its compiler, and the ECharts chart page are still English.
 These translations are drafts awaiting native review.
 
 ## Open in another app
