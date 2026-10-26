@@ -10,7 +10,7 @@ other = "un paginador visual"
 other = "? o Esc cierra"
 
 [app.help.footer]
-other = "gloss --help: opciones · docs: "
+other = "gloss --help da opciones · docs: "
 
 [app.help.screenFooter]
 other = "gloss --help lista las opciones. Documentación: "
@@ -19,13 +19,13 @@ other = "gloss --help lista las opciones. Documentación: "
 other = "En todas partes"
 
 [app.help.everywhere.quit]
-other = "salir · salir y dejar vista"
+other = "salir · salir sin borrar"
 
 [app.help.everywhere.help]
 other = "ayuda · volver a archivos"
 
 [app.help.everywhere.files]
-other = "archivo siguiente / previo"
+other = "archivo sig. / anterior"
 
 [app.help.everywhere.menu]
 other = "menú · explorar carpetas"
@@ -40,7 +40,7 @@ other = "Tab en el selector: abrir / editar"
 other = "exportar · info · recargar"
 
 [app.help.everywhere.search]
-other = "buscar · siguiente / previo"
+other = "buscar · sig. / anterior"
 
 [app.help.everywhere.theme]
 other = "tema de color · acciones"
@@ -52,7 +52,7 @@ other = "Arrastre archivos o pegue rutas"
 other = "Texto"
 
 [app.help.text.typeset]
-other = "maqueta · código · fuentes"
+other = "maquetado · código · tipos"
 
 [app.help.text.items]
 other = "sig. elemento o archivo"
@@ -91,7 +91,7 @@ other = "código QR de URL de tabla"
 other = "Mallas"
 
 [app.help.meshes.orbit]
-other = "orbitar (con Mayús, mover)"
+other = "orbitar (Mayús: desplazar)"
 
 [app.help.meshes.zoom]
 other = "zoom · ortográfica"
@@ -106,7 +106,7 @@ other = "color del modelo · fondo"
 other = "GIF y vídeos"
 
 [app.help.motion.play]
-other = "reproducir/pausar · cuadros"
+other = "reproducir/pausar · avanzar"
 
 [app.help.motion.speed]
 other = "velocidad · volver a 1×"

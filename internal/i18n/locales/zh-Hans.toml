@@ -43,7 +43,7 @@ other = "导出 · 详情 · 重新加载"
 other = "搜索 · 下一个 / 上一个匹配"
 
 [app.help.everywhere.theme]
-other = "配色主题 · 项目操作"
+other = "配色主题 · 条目操作"
 
 [app.help.everywhere.drop]
 other = "拖入文件或粘贴路径即可打开"
