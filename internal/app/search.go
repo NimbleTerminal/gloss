@@ -248,11 +248,11 @@ func (m *Model) startSearch() tea.Cmd {
 		used := 0
 		stopped := func() bool {
 			if ctx.Err() != nil {
-				out.note = "search stopped (30s limit)"
+				out.note = i18n.T("app.search.stopped", "search stopped (30s limit)")
 				return true
 			}
 			if used >= maxSearchBytes || len(out.matches) >= maxSearchHits {
-				out.note = "partial results: search limit reached"
+				out.note = i18n.T("app.search.partial", "partial results: search limit reached")
 				return true
 			}
 			return false
@@ -273,7 +273,7 @@ func (m *Model) startSearch() tea.Cmd {
 			}
 			for _, loc := range pattern.FindAllStringIndex(text, count) {
 				if len(out.matches) == maxSearchHits {
-					out.note = "partial results: search limit reached"
+					out.note = i18n.T("app.search.partial", "partial results: search limit reached")
 					break
 				}
 				hit.start, hit.end = loc[0], loc[1]
@@ -282,7 +282,7 @@ func (m *Model) startSearch() tea.Cmd {
 			}
 			if truncated {
 				used = maxSearchBytes
-				out.note = "partial results: search limit reached"
+				out.note = i18n.T("app.search.partial", "partial results: search limit reached")
 			}
 		}
 		switch {
@@ -321,7 +321,7 @@ func (m *Model) startSearch() tea.Cmd {
 				}
 				if result.Err != nil {
 					if !errors.Is(result.Err, document.ErrNoTextLayer) {
-						out.note = fmt.Sprintf("partial results: page %d: %s", page, safe(result.Err.Error()))
+						out.note = i18n.Tf("app.search.partialPage", "partial results: page %d: %s", page, safe(result.Err.Error()))
 						break
 					}
 					skipped++
@@ -330,7 +330,8 @@ func (m *Model) startSearch() tea.Cmd {
 				add(result.Text, textMatch{page: page})
 			}
 			if skipped > 0 {
-				out.note += fmt.Sprintf(" · %d pages without text skipped", skipped)
+				// English has always said "pages", even for one.
+				out.note += " · " + i18n.Tn("app.search.skipped", "{{.Count}} pages without text skipped", "{{.Count}} pages without text skipped", skipped)
 			}
 		}
 		return out

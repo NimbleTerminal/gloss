@@ -15,6 +15,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/ntfilepicker"
 )
 
@@ -314,7 +315,7 @@ func (m *Model) openBrowser() tea.Cmd {
 		}
 	}
 	if err != nil {
-		m.note = "cannot browse: " + safe(err.Error())
+		m.note = i18n.Tf("app.note.browseFailed", "cannot browse: %s", safe(err.Error()))
 		return nil
 	}
 	return m.browseFrom(dir)

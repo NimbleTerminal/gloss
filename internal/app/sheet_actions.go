@@ -2,6 +2,7 @@ package app
 
 import (
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // cellEntries lists what can be done with the cell under the cursor in
@@ -14,11 +15,11 @@ func (m *Model) cellEntries() []menuEntry {
 	value, row, address := v.value(), v.rowText(), v.url()
 	entries := []menuEntry{
 		{"Copy value", func(m *Model) tea.Cmd {
-			m.note = "Value copied"
+			m.note = i18n.T("app.note.valueCopied", "Value copied")
 			return tea.SetClipboard(value)
 		}},
 		{"Copy row", func(m *Model) tea.Cmd {
-			m.note = "Row copied"
+			m.note = i18n.T("app.note.rowCopied", "Row copied")
 			return tea.SetClipboard(row)
 		}},
 	}

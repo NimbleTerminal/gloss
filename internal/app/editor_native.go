@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 type editorFinished struct {
@@ -48,12 +49,12 @@ func (m *Model) terminalEditorMessage(msg tea.Msg) (tea.Cmd, bool) {
 		}
 		m.closeOpenWith()
 		m.typesetTop, m.typesetLeft = v.top, v.left
-		m.note = "Editor closed"
+		m.note = i18n.T("app.note.editorClosed", "Editor closed")
 		if v.err != nil {
-			m.note = "Editor: " + safe(v.err.Error())
+			m.note = i18n.Tf("app.note.editorFailed", "Editor: %s", safe(v.err.Error()))
 		}
 		if v.picker.target.Temporary {
-			m.note += " — temporary file; save a copy to keep it"
+			m.note += i18n.T("app.note.editorTemporary", " — temporary file; save a copy to keep it")
 		}
 		if m.browsing() {
 			return m.reread(), true

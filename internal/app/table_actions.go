@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
@@ -31,11 +32,11 @@ func (m *Model) tableEntries(cells [][]string) []menuEntry {
 	}
 	return append(entries,
 		menuEntry{"Copy as TSV", func(m *Model) tea.Cmd {
-			m.note = "Table copied"
+			m.note = i18n.T("app.note.tableCopied", "Table copied")
 			return tea.SetClipboard(tableTSV(cells))
 		}},
 		menuEntry{"Copy as Markdown", func(m *Model) tea.Cmd {
-			m.note = "Table copied"
+			m.note = i18n.T("app.note.tableCopied", "Table copied")
 			return tea.SetClipboard(tableMarkdown(cells))
 		}})
 }
@@ -59,7 +60,7 @@ func (m *Model) tableSaved(v tableSaved) tea.Cmd {
 		return nil
 	}
 	if v.err != nil {
-		m.note = "open table: " + safe(v.err.Error())
+		m.note = i18n.Tf("app.note.openTableFailed", "open table: %s", safe(v.err.Error()))
 		return nil
 	}
 	if !v.chooser {
@@ -83,7 +84,7 @@ func (m *Model) openTableInGloss(path string) tea.Cmd {
 	}
 	m.fetched = append(m.fetched, f)
 	cmd := m.addDropped(dropResult{files: []string{path}})
-	m.note = "opened table"
+	m.note = i18n.T("app.note.tableOpened", "opened table")
 	return cmd
 }
 

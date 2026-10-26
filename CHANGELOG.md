@@ -4,10 +4,10 @@
 
 - `F2` opens a language picker that previews as you move; the terminal viewer
   remembers the choice, which `GLOSS_LANG` and `--lang` still override.
-- Speak Spanish and Simplified Chinese: the help, status line, search, export
-  notes, handoff screen and `--serve`/`--pick-web` pages follow `--lang`,
-  `GLOSS_LANG` or the terminal's locale (a detached page follows the browser),
-  and numbers are written to match. Scripts stay in English unless `--lang` is
+- Speak Spanish and Simplified Chinese: the help, status line, the viewer's
+  notes and messages, search, export, handoff screen and `--serve`/`--pick-web`
+  pages follow `--lang`, `GLOSS_LANG` or the terminal's locale (a detached page
+  follows the browser), and numbers are written to match. Scripts stay in English unless `--lang` is
   given; keys, options and exit codes never change. Drafts awaiting native
   review; the docs site has Spanish and Chinese guides.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines

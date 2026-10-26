@@ -11,6 +11,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/nttypeset"
 )
 
@@ -34,7 +35,9 @@ type pageItem struct {
 	rects   []image.Rectangle // Typeset: page layout pixels.
 }
 
-const noItemsNote = "No pictures, links or tables here · [/] files"
+func noItemsNote() string {
+	return i18n.T("app.items.none", "No pictures, links or tables here · [/] files")
+}
 
 // linkRun is a stretch of a row drawn as one link: its address and the
 // cells it covers.
@@ -367,7 +370,7 @@ func (m *Model) moveFocus(step int) tea.Cmd {
 	items := v.items()
 	if len(items) == 0 {
 		v.focus = nil
-		m.note = noItemsNote
+		m.note = noItemsNote()
 		return nil
 	}
 	at := -1
@@ -504,7 +507,7 @@ func (m *Model) moveTypesetFocus(step int) tea.Cmd {
 		return m.queueTypesetReflow()
 	}
 	if len(items) == 0 {
-		m.note = noItemsNote
+		m.note = noItemsNote()
 		if m.typesetFocus == nil {
 			m.typesetTabPending, m.typesetAhead = 0, false
 			return nil // Nothing outlined: the page need not be drawn again.
@@ -680,9 +683,9 @@ func (m *Model) typesetItemActions(at image.Point, pointer bool) tea.Cmd {
 			}
 		}
 		if i < 0 {
-			m.note = noItemsNote
+			m.note = noItemsNote()
 			if len(m.typesetItems) > 0 || !m.typesetDone {
-				m.note = "No picture, link or table on screen · Tab finds the next"
+				m.note = i18n.T("app.items.offscreen", "No picture, link or table on screen · Tab finds the next")
 			}
 			return nil
 		}

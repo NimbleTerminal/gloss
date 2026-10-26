@@ -7,6 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	"nimbleterminal.dev/ntqrcode/qrcode"
 )
@@ -20,12 +21,12 @@ type qrOverlay struct {
 func (m *Model) openQR(address string) tea.Cmd {
 	code, err := qrcode.Encode(address, qrcode.Options{})
 	if err != nil {
-		m.note = "QR: " + err.Error()
+		m.note = i18n.Tf("app.qr.failed", "QR: %s", err.Error())
 		return nil
 	}
 	model, err := qrcode.New(code, qrcode.Config{Session: m.terminal, NextID: ntpicture.NextImageID})
 	if err != nil {
-		m.note = "QR: " + err.Error()
+		m.note = i18n.Tf("app.qr.failed", "QR: %s", err.Error())
 		return nil
 	}
 	cleanup := m.closeLayer()
@@ -80,7 +81,7 @@ func (m *Model) exportQR() tea.Cmd {
 	if save == nil {
 		save = func(name string, data []byte) (string, error) { return saveFile(".", name, data) }
 	}
-	m.note = "exporting QR…"
+	m.note = i18n.T("app.qr.exporting", "exporting QR…")
 	return func() tea.Msg {
 		img, err := code.Image(8)
 		if err != nil {

@@ -1,12 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"image"
 	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/nttypeset"
 )
 
@@ -155,7 +155,8 @@ func (m *Model) typesetSelectKey(k string) (tea.Cmd, bool) {
 		if m.typesetSelected == "" {
 			return nil, true
 		}
-		m.note = fmt.Sprintf("copied %d characters", utf8.RuneCountInString(m.typesetSelected))
+		// English has always said "characters", even for one.
+		m.note = i18n.Tn("app.note.copiedChars", "copied {{.Count}} characters", "copied {{.Count}} characters", utf8.RuneCountInString(m.typesetSelected))
 		return tea.SetClipboard(m.typesetSelected), true
 	case "esc":
 		if m.typesetSelect == nil && m.typesetSelectShown == nil {

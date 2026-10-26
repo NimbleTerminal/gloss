@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 type fetchResult struct {
@@ -41,16 +42,16 @@ func (m *Model) Fetched() []string {
 // Nothing is fetched unless --fetch allowed it.
 func (m *Model) open(address string) tea.Cmd {
 	if m.opts.Fetch == nil {
-		m.note = "run with --fetch to open addresses"
+		m.note = i18n.T("app.note.fetchNeeded", "run with --fetch to open addresses")
 		return nil
 	}
 	if m.fetching {
-		m.note = "a document is already being fetched"
+		m.note = i18n.T("app.note.fetchBusy", "a document is already being fetched")
 		return nil
 	}
 	m.fetching = true
 	fetch := m.opts.Fetch
-	m.note = "fetching " + safe(address)
+	m.note = i18n.Tf("app.note.fetching", "fetching %s", safe(address))
 	return func() tea.Msg {
 		path, err := fetch(address)
 		return fetchResult{address: address, path: path, err: err}
@@ -66,11 +67,11 @@ func (m *Model) fetchedFile(r fetchResult) tea.Cmd {
 		}
 	}
 	if r.err != nil {
-		m.note = "fetch failed: " + safe(r.err.Error())
+		m.note = i18n.Tf("app.note.fetchFailed", "fetch failed: %s", safe(r.err.Error()))
 		return nil
 	}
 	m.fetched = append(m.fetched, fetchedDoc{path: r.path, from: m.index, sheet: m.sheet})
-	m.note = "fetched " + safe(filepath.Base(r.path))
+	m.note = i18n.Tf("app.note.fetched", "fetched %s", safe(filepath.Base(r.path)))
 	return m.addDropped(dropResult{files: []string{r.path}})
 }
 
@@ -85,11 +86,11 @@ type linkSaved struct {
 // Nothing is fetched unless --fetch allowed it.
 func (m *Model) saveLink(address string) tea.Cmd {
 	if m.opts.Fetch == nil {
-		m.note = "run with --fetch to save linked files"
+		m.note = i18n.T("app.note.saveLinkNeeded", "run with --fetch to save linked files")
 		return nil
 	}
 	if m.fetching {
-		m.note = "a document is already being fetched"
+		m.note = i18n.T("app.note.fetchBusy", "a document is already being fetched")
 		return nil
 	}
 	m.fetching = true
@@ -97,7 +98,7 @@ func (m *Model) saveLink(address string) tea.Cmd {
 	if save == nil {
 		save = func(name string, data []byte) (string, error) { return saveFile(".", name, data) }
 	}
-	m.note = "downloading " + safe(address)
+	m.note = i18n.Tf("app.note.downloading", "downloading %s", safe(address))
 	return func() tea.Msg {
 		path, err := fetch(address)
 		if err != nil {
@@ -127,10 +128,10 @@ func (m *Model) saveLink(address string) tea.Cmd {
 func (m *Model) linkSavedNote(r linkSaved) {
 	m.fetching = false
 	if r.err != nil {
-		m.note = "save failed: " + safe(r.err.Error())
+		m.note = i18n.Tf("app.note.saveFailed", "save failed: %s", safe(r.err.Error()))
 		return
 	}
-	m.note = "saved " + safe(r.name)
+	m.note = i18n.Tf("app.note.saved", "saved %s", safe(r.name))
 }
 
 // isFetched says whether the file on screen came from a cell.
@@ -156,7 +157,7 @@ func (m *Model) closeFetched() (tea.Cmd, bool) {
 	}
 	os.Remove(f.path)
 	m.savedSheet = f.sheet
-	m.note = "closed " + safe(filepath.Base(f.path))
+	m.note = i18n.Tf("app.note.closed", "closed %s", safe(filepath.Base(f.path)))
 	return m.showRestoring(max(0, min(f.from, len(m.opts.Files)-1)), func() {
 		m.savedMarkdown, m.savedFocus, m.typesetTop = f.markdown, f.focus, f.typesetTop
 	}), true

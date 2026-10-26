@@ -206,12 +206,12 @@ func TestTypesetNothingToActOn(t *testing.T) {
 	m := typesetItemsModel(t, "just words", 8, 4, Options{})
 	before := m.generation
 	pressDrain(t, m, tab)
-	if m.note != noItemsNote || m.generation != before {
+	if m.note != noItemsNote() || m.generation != before {
 		t.Fatalf("note %q, %d pages drawn", m.note, m.generation-before)
 	}
 	m.note = ""
 	pressDrain(t, m, press("a"))
-	if m.layer == layerActions || m.note != noItemsNote {
+	if m.layer == layerActions || m.note != noItemsNote() {
 		t.Fatalf("layer %v, note %q", m.layer, m.note)
 	}
 }

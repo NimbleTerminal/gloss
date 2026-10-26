@@ -165,7 +165,7 @@ func (m *Model) videoKey(k string) (tea.Cmd, bool) {
 // and the first again after none: files beside the video, and its own.
 func (m *Model) nextSubtitles(tracks []ntvideo.Track) {
 	if len(tracks) == 0 {
-		m.note = "no subtitles"
+		m.note = i18n.T("app.video.noSubtitles", "no subtitles")
 		return
 	}
 	next := 0
@@ -176,11 +176,11 @@ func (m *Model) nextSubtitles(tracks []ntvideo.Track) {
 	}
 	if next == len(tracks) {
 		m.video.SelectCaptionTrack("")
-		m.note = "subtitles off"
+		m.note = i18n.T("app.video.subtitlesOff", "subtitles off")
 		return
 	}
 	m.video.SelectCaptionTrack(tracks[next].ID)
-	m.note = "subtitles: " + safe(trackName(tracks[next]))
+	m.note = i18n.Tf("app.video.subtitlesOn", "subtitles: %s", safe(trackName(tracks[next])))
 }
 
 // trackName is what a subtitle track is called: its label, else its language.

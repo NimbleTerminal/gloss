@@ -11,6 +11,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 type linkOpened struct {
@@ -235,7 +236,7 @@ func linkEntries(m *Model, url string, label string) []menuEntry {
 	}
 	entries = append(entries, fetchEntries(m, url)...)
 	return append(entries, menuEntry{"Copy address", func(m *Model) tea.Cmd {
-		m.note = "Address copied"
+		m.note = i18n.T("app.note.addressCopied", "Address copied")
 		return tea.SetClipboard(url)
 	}})
 }

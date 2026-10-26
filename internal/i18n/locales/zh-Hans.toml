@@ -920,3 +920,204 @@ other = "字幕 %s"
 
 [app.video.track]
 other = "轨道 %s"
+
+[app.note.animation]
+other = "动画：%s"
+
+[app.note.added]
+other = "已添加 %d 个"
+
+[app.note.skipped]
+other = "已跳过 %d 个：%s"
+
+[app.note.editorClosed]
+other = "编辑器已关闭"
+
+[app.note.editorFailed]
+other = "编辑器：%s"
+
+[app.note.editorTemporary]
+other = " — 临时文件；请另存副本以保留"
+
+[app.note.fetchNeeded]
+other = "需以 --fetch 运行才能打开网址"
+
+[app.note.fetchBusy]
+other = "已有文档正在下载"
+
+[app.note.fetching]
+other = "正在下载 %s"
+
+[app.note.fetchFailed]
+other = "下载失败：%s"
+
+[app.note.fetched]
+other = "已下载 %s"
+
+[app.note.saveLinkNeeded]
+other = "需以 --fetch 运行才能保存链接的文件"
+
+[app.note.downloading]
+other = "正在下载 %s"
+
+[app.note.saveFailed]
+other = "保存失败：%s"
+
+[app.note.saved]
+other = "已保存 %s"
+
+[app.note.closed]
+other = "已关闭 %s"
+
+[app.items.none]
+other = "此处没有图片、链接或表格 · [/] 文件"
+
+[app.items.offscreen]
+other = "屏幕上没有图片、链接或表格 · Tab 查找下一个"
+
+[app.note.searchText]
+other = "在文本视图中搜索"
+
+[app.note.addressCopied]
+other = "网址已复制"
+
+[app.line.numbersSource]
+other = "行号需要源码视图：按 s"
+
+[app.line.goSource]
+other = "跳转行需要源码视图：按 s"
+
+[app.line.numbersPages]
+other = "行号：仅限文本、源码和 JSON 页面"
+
+[app.line.goPages]
+other = "跳转行：仅限文本、源码和 JSON 页面"
+
+[app.line.chopPages]
+other = "截断长行：仅限文本、源码和 JSON 页面"
+
+[app.place.needsFetch]
+other = "查找地点需要 --fetch 和 %s"
+
+[app.place.finding]
+other = "正在查找 %s…"
+
+[app.place.notFound]
+other = "未找到与 %s 相符的地点"
+
+[app.place.failed]
+other = "查找地点失败：%s"
+
+[app.note.saveFont]
+other = "保存字体失败：%s"
+
+[app.note.saveTheme]
+other = "保存主题失败：%s"
+
+[app.note.saveLang]
+other = "保存语言失败：%s"
+
+[app.note.openLink]
+other = "打开链接失败：%s"
+
+[app.openWith.unavailable]
+other = "浏览器或当前宿主中不能使用“打开方式”"
+
+[app.openWith.noFile]
+other = "未选择文件"
+
+[app.openWith.failed]
+other = "%s：%s"
+
+[app.openWith.noEditor]
+other = "没有应用可以编辑 %s"
+
+[app.openWith.defaultSaved]
+other = "已为 %s（%s）保存默认应用"
+
+[app.openWith.opened]
+other = "已在 %s 中打开"
+
+[app.openWith.editing]
+other = "正在 %s 中编辑"
+
+[app.openWith.temporary]
+other = " — 临时文件；请在应用中另存副本以保留"
+
+[app.openWith.appUnavailable]
+other = "该应用不可用"
+
+[app.openWith.noDefault]
+other = "此操作不能设为默认"
+
+[app.openWith.folder]
+other = "文件夹无法编辑"
+
+[app.openWith.manageFailed]
+other = "管理应用：%s"
+
+[app.note.pathCopied]
+other = "路径已复制"
+
+[app.note.browseFailed]
+other = "无法浏览：%s"
+
+[app.note.copyingImage]
+other = "正在复制图片…"
+
+[app.note.imageCopied]
+other = "图片已复制"
+
+[app.note.copyImageFailed]
+other = "复制图片失败：%s"
+
+[app.note.openImageFailed]
+other = "打开图片失败：%s"
+
+[app.search.stopped]
+other = "搜索已停止（30 秒上限）"
+
+[app.search.partial]
+other = "部分结果：已达搜索上限"
+
+[app.search.partialPage]
+other = "部分结果：第 %d 页：%s"
+
+[app.qr.failed]
+other = "二维码：%s"
+
+[app.qr.exporting]
+other = "正在导出二维码…"
+
+[app.note.valueCopied]
+other = "值已复制"
+
+[app.note.rowCopied]
+other = "行已复制"
+
+[app.note.tableCopied]
+other = "表格已复制"
+
+[app.note.openTableFailed]
+other = "打开表格失败：%s"
+
+[app.note.tableOpened]
+other = "已打开表格"
+
+[app.note.typesetFailed]
+other = "排版：%s"
+
+[app.video.noSubtitles]
+other = "无字幕"
+
+[app.video.subtitlesOff]
+other = "字幕已关闭"
+
+[app.video.subtitlesOn]
+other = "字幕：%s"
+
+[app.search.skipped]
+other = "已跳过 {{.Count}} 个无文本页面"
+
+[app.note.copiedChars]
+other = "已复制 {{.Count}} 个字符"

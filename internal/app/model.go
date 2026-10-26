@@ -14,6 +14,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/nt3d"
@@ -706,22 +707,22 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return nil
 	case fontSaved:
 		if v.err != nil {
-			m.note = "save font: " + safe(v.err.Error())
+			m.note = i18n.Tf("app.note.saveFont", "save font: %s", safe(v.err.Error()))
 		}
 		return nil
 	case themeSaved:
 		if v.err != nil {
-			m.note = "save theme: " + safe(v.err.Error())
+			m.note = i18n.Tf("app.note.saveTheme", "save theme: %s", safe(v.err.Error()))
 		}
 		return nil
 	case langSaved:
 		if v.err != nil {
-			m.note = "save language: " + safe(v.err.Error())
+			m.note = i18n.Tf("app.note.saveLang", "save language: %s", safe(v.err.Error()))
 		}
 		return nil
 	case linkOpened:
 		if v.generation == m.generation && v.err != nil {
-			m.note = "open link: " + safe(v.err.Error())
+			m.note = i18n.Tf("app.note.openLink", "open link: %s", safe(v.err.Error()))
 		}
 		return nil
 	case tea.BackgroundColorMsg:

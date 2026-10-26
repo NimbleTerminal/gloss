@@ -99,7 +99,7 @@ func (m *Model) mapKey(k string) (tea.Cmd, bool) {
 	switch k {
 	case "/":
 		if m.opts.Maps == nil || m.opts.Maps.Geocoder == nil {
-			m.note = "finding a place needs --fetch and " + geocoderVariable
+			m.note = i18n.Tf("app.place.needsFetch", "finding a place needs --fetch and %s", geocoderVariable)
 			return nil, true
 		}
 		m.placeInput = &placeInput{}
@@ -146,7 +146,7 @@ func (m *Model) placeKey(msg tea.KeyPressMsg) tea.Cmd {
 		if query == "" || m.mapView == nil {
 			return nil
 		}
-		m.note = "finding " + query + "…"
+		m.note = i18n.Tf("app.place.finding", "finding %s…", query)
 		return findPlace(m.opts.Maps.Geocoder, m.mapView, query)
 	case "backspace":
 		if len(in.draft) > 0 {
@@ -190,10 +190,10 @@ func (m *Model) showPlace(msg placeFound) tea.Cmd {
 	}
 	switch {
 	case errors.Is(msg.err, geocode.ErrNotFound):
-		m.note = "no place found for " + msg.query
+		m.note = i18n.Tf("app.place.notFound", "no place found for %s", msg.query)
 		return nil
 	case msg.err != nil:
-		m.note = "finding a place failed: " + plainNote(msg.err.Error())
+		m.note = i18n.Tf("app.place.failed", "finding a place failed: %s", plainNote(msg.err.Error()))
 		return nil
 	}
 	m.note = msg.query

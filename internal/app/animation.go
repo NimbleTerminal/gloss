@@ -5,6 +5,7 @@ import (
 	"math"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	ntpicture "nimbleterminal.dev/ntpicture"
 	ntanimation "nimbleterminal.dev/ntpicture/animation"
 	"nimbleterminal.dev/ntpicture/playback"
@@ -123,7 +124,7 @@ func (m *Model) updateStandalone(msg tea.Msg) tea.Cmd {
 			m.source = state.PresentedPlayer.Image()
 		}
 		if state.Err != nil {
-			m.note = "animation: " + safe(state.Err.Error())
+			m.note = i18n.Tf("app.note.animation", "animation: %s", safe(state.Err.Error()))
 		}
 		if state.Err != nil || !state.Busy && state.Player != nil && state.Player.Frame() == m.animation.target {
 			m.animation.target = 0

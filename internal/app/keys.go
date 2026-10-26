@@ -4,6 +4,7 @@ import (
 	"image"
 
 	tea "charm.land/bubbletea/v2"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
@@ -149,7 +150,7 @@ func (m *Model) documentKey(k string) (tea.Cmd, bool) {
 				m.markdown = newMarkdownView(m.typeset, m.terminal)
 				m.markdown.raw = m.kind == "markdown"
 				cmd = tea.Sequence(m.clearPicture(), m.layoutMarkdown())
-				m.note = "searching text view"
+				m.note = i18n.T("app.note.searchText", "searching text view")
 			}
 			m.editSearch()
 			return cmd, true

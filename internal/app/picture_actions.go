@@ -13,6 +13,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
@@ -66,7 +67,7 @@ func (m *Model) pictureEntries(p pictureItem) []menuEntry {
 			if err != nil {
 				path = p.path
 			}
-			m.note = "Path copied"
+			m.note = i18n.T("app.note.pathCopied", "Path copied")
 			return tea.SetClipboard(path)
 		}})
 	}
@@ -138,7 +139,7 @@ func (m *Model) copyImage(shown image.Image) tea.Cmd {
 	if copyPNG == nil {
 		return nil
 	}
-	m.note = "Copying image…"
+	m.note = i18n.T("app.note.copyingImage", "Copying image…")
 	return func() tea.Msg {
 		data, err := encodePNG(shown)
 		if err == nil {
@@ -149,9 +150,9 @@ func (m *Model) copyImage(shown image.Image) tea.Cmd {
 }
 
 func (m *Model) imageCopied(v imageCopied) tea.Cmd {
-	m.note = "Image copied"
+	m.note = i18n.T("app.note.imageCopied", "Image copied")
 	if v.err != nil {
-		m.note = "copy image: " + safe(v.err.Error())
+		m.note = i18n.Tf("app.note.copyImageFailed", "copy image: %s", safe(v.err.Error()))
 	}
 	return nil
 }
@@ -185,7 +186,7 @@ func (m *Model) shownSaved(v shownSaved) tea.Cmd {
 		return nil
 	}
 	if v.err != nil {
-		m.note = "open image: " + safe(v.err.Error())
+		m.note = i18n.Tf("app.note.openImageFailed", "open image: %s", safe(v.err.Error()))
 		return nil
 	}
 	return m.requestOpenWith(v.path, "png", false, true, openwith.Open)

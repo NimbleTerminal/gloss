@@ -2,7 +2,6 @@ package app
 
 import (
 	"strconv"
-	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
@@ -11,8 +10,6 @@ import (
 
 // lineInput is the go-to-line prompt: the digits typed so far.
 type lineInput struct{ draft []rune }
-
-const lineNumbersNeedSource = "line numbers need the source view: press s"
 
 // typesetLined says the typeset page on show is a document whose blocks are
 // its lines, which the loader numbers and goes to.
@@ -34,9 +31,9 @@ func (m *Model) lineKey(k string) (tea.Cmd, bool) {
 	if m.markdown != nil {
 		lined = m.markdown.numbered()
 	}
-	need := lineNumbersNeedSource
+	need, goNeed := i18n.T("app.line.numbersSource", "line numbers need the source view: press s"), i18n.T("app.line.goSource", "go to line need the source view: press s")
 	if typeset {
-		need = "line numbers: text, source and JSON pages only"
+		need, goNeed = i18n.T("app.line.numbersPages", "line numbers: text, source and JSON pages only"), i18n.T("app.line.goPages", "go to line: text, source and JSON pages only")
 	}
 	switch k {
 	case "#":
@@ -53,7 +50,7 @@ func (m *Model) lineKey(k string) (tea.Cmd, bool) {
 		return m.layoutMarkdown(), true
 	case ":":
 		if !lined {
-			m.note = strings.Replace(need, "line numbers", "go to line", 1)
+			m.note = goNeed
 			return nil, true
 		}
 		m.lineInput = &lineInput{}
@@ -64,7 +61,7 @@ func (m *Model) lineKey(k string) (tea.Cmd, bool) {
 		m.chopLines = !m.chopLines
 		if typeset {
 			if !lined {
-				m.note = "chopping lines: text, source and JSON pages only"
+				m.note = i18n.T("app.line.chopPages", "chopping lines: text, source and JSON pages only")
 				return nil, true
 			}
 			return m.queueTypesetReflow(), true

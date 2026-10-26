@@ -249,7 +249,8 @@ func TestLangPickerSaveErrorAndHosts(t *testing.T) {
 	drainAnimation(t, m, m.langPickerKey("down"))
 	drainAnimation(t, m, m.langPickerKey("down"))
 	drainAnimation(t, m, m.langPickerKey("enter"))
-	if !strings.Contains(m.note, "save language: read-only preferences") {
+	// The note is in the language just chosen; the error's own text is not.
+	if !strings.Contains(m.note, "error al guardar el idioma: read-only preferences") {
 		t.Fatalf("note %q", m.note)
 	}
 	// Hosts without SaveLang still switch the language. The picker opens

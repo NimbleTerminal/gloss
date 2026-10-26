@@ -2,7 +2,6 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -100,10 +99,10 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	}
 	var notes []string
 	if added > 0 {
-		notes = append(notes, fmt.Sprintf("added %d", added))
+		notes = append(notes, i18n.Tf("app.note.added", "added %d", added))
 	}
 	if len(r.skipped) > 0 {
-		notes = append(notes, fmt.Sprintf("skipped %d: %s", len(r.skipped), r.skipped[0]))
+		notes = append(notes, i18n.Tf("app.note.skipped", "skipped %d: %s", len(r.skipped), r.skipped[0]))
 	}
 	m.note = strings.Join(notes, " · ")
 	if first < 0 {

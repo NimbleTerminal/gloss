@@ -924,3 +924,206 @@ other = "subtítulos %s"
 
 [app.video.track]
 other = "pista %s"
+
+[app.note.animation]
+other = "animación: %s"
+
+[app.note.added]
+other = "%d añadidos"
+
+[app.note.skipped]
+other = "%d omitidos: %s"
+
+[app.note.editorClosed]
+other = "Editor cerrado"
+
+[app.note.editorFailed]
+other = "Editor: %s"
+
+[app.note.editorTemporary]
+other = " — archivo temporal; guarde una copia para conservarlo"
+
+[app.note.fetchNeeded]
+other = "ejecute con --fetch para abrir direcciones"
+
+[app.note.fetchBusy]
+other = "ya se está descargando un documento"
+
+[app.note.fetching]
+other = "descargando %s"
+
+[app.note.fetchFailed]
+other = "error al descargar: %s"
+
+[app.note.fetched]
+other = "descargado %s"
+
+[app.note.saveLinkNeeded]
+other = "ejecute con --fetch para guardar archivos enlazados"
+
+[app.note.downloading]
+other = "descargando %s"
+
+[app.note.saveFailed]
+other = "error al guardar: %s"
+
+[app.note.saved]
+other = "guardado %s"
+
+[app.note.closed]
+other = "cerrado %s"
+
+[app.items.none]
+other = "No hay imágenes, enlaces ni tablas aquí · [/] archivos"
+
+[app.items.offscreen]
+other = "No hay imagen, enlace ni tabla en pantalla · Tab busca el siguiente"
+
+[app.note.searchText]
+other = "buscando en la vista de texto"
+
+[app.note.addressCopied]
+other = "Dirección copiada"
+
+[app.line.numbersSource]
+other = "los números de línea necesitan la vista de código: pulse s"
+
+[app.line.goSource]
+other = "ir a una línea necesita la vista de código: pulse s"
+
+[app.line.numbersPages]
+other = "números de línea: solo páginas de texto, código y JSON"
+
+[app.line.goPages]
+other = "ir a una línea: solo páginas de texto, código y JSON"
+
+[app.line.chopPages]
+other = "cortar líneas: solo páginas de texto, código y JSON"
+
+[app.place.needsFetch]
+other = "buscar un lugar requiere --fetch y %s"
+
+[app.place.finding]
+other = "buscando %s…"
+
+[app.place.notFound]
+other = "no se encontró ningún lugar para %s"
+
+[app.place.failed]
+other = "error al buscar el lugar: %s"
+
+[app.note.saveFont]
+other = "error al guardar la fuente: %s"
+
+[app.note.saveTheme]
+other = "error al guardar el tema: %s"
+
+[app.note.saveLang]
+other = "error al guardar el idioma: %s"
+
+[app.note.openLink]
+other = "error al abrir el enlace: %s"
+
+[app.openWith.unavailable]
+other = "Abrir con no está disponible en el navegador ni en este host"
+
+[app.openWith.noFile]
+other = "Ningún archivo seleccionado"
+
+[app.openWith.failed]
+other = "%s: %s"
+
+[app.openWith.noEditor]
+other = "Ninguna app puede editar %s"
+
+[app.openWith.defaultSaved]
+other = "Predeterminada guardada para %s (%s)"
+
+[app.openWith.opened]
+other = "Abierto en %s"
+
+[app.openWith.editing]
+other = "Editando en %s"
+
+[app.openWith.temporary]
+other = " — archivo temporal; guarde una copia en la app para conservarlo"
+
+[app.openWith.appUnavailable]
+other = "La aplicación no está disponible"
+
+[app.openWith.noDefault]
+other = "Esta acción no puede ser la predeterminada"
+
+[app.openWith.folder]
+other = "Las carpetas no se pueden editar"
+
+[app.openWith.manageFailed]
+other = "Gestionar apps: %s"
+
+[app.note.pathCopied]
+other = "Ruta copiada"
+
+[app.note.browseFailed]
+other = "no se puede explorar: %s"
+
+[app.note.copyingImage]
+other = "Copiando imagen…"
+
+[app.note.imageCopied]
+other = "Imagen copiada"
+
+[app.note.copyImageFailed]
+other = "error al copiar la imagen: %s"
+
+[app.note.openImageFailed]
+other = "error al abrir la imagen: %s"
+
+[app.search.stopped]
+other = "búsqueda detenida (límite de 30 s)"
+
+[app.search.partial]
+other = "resultados parciales: se alcanzó el límite de búsqueda"
+
+[app.search.partialPage]
+other = "resultados parciales: página %d: %s"
+
+[app.qr.failed]
+other = "QR: %s"
+
+[app.qr.exporting]
+other = "exportando QR…"
+
+[app.note.valueCopied]
+other = "Valor copiado"
+
+[app.note.rowCopied]
+other = "Fila copiada"
+
+[app.note.tableCopied]
+other = "Tabla copiada"
+
+[app.note.openTableFailed]
+other = "error al abrir la tabla: %s"
+
+[app.note.tableOpened]
+other = "tabla abierta"
+
+[app.note.typesetFailed]
+other = "maquetado: %s"
+
+[app.video.noSubtitles]
+other = "sin subtítulos"
+
+[app.video.subtitlesOff]
+other = "subtítulos desactivados"
+
+[app.video.subtitlesOn]
+other = "subtítulos: %s"
+
+[app.search.skipped]
+one = "{{.Count}} página sin texto omitida"
+other = "{{.Count}} páginas sin texto omitidas"
+
+[app.note.copiedChars]
+one = "{{.Count}} carácter copiado"
+other = "{{.Count}} caracteres copiados"

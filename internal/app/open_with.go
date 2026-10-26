@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 	"nimbleterminal.dev/ntopenwith"
 	"os/exec"
@@ -92,11 +93,11 @@ func (m *Model) requestOpenWith(path, kind string, directory, chooser bool, verb
 		return nil
 	}
 	if m.opts.OpenWith == nil {
-		m.note = "Open with is not available in the browser or this host"
+		m.note = i18n.T("app.openWith.unavailable", "Open with is not available in the browser or this host")
 		return nil
 	}
 	if path == "" {
-		m.note = "No file selected"
+		m.note = i18n.T("app.openWith.noFile", "No file selected")
 		return nil
 	}
 	if m.openWithPicker != nil {
@@ -151,7 +152,7 @@ func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 		return m.closeOpenWith()
 	}
 	if v.err != nil {
-		m.note = verbTitle(v.verb) + ": " + safe(v.err.Error())
+		m.note = i18n.Tf("app.openWith.failed", "%s: %s", verbTitle(v.verb), safe(v.err.Error()))
 		if v.switching {
 			p.busy = false
 			return nil
@@ -160,7 +161,7 @@ func (m *Model) openWithLoaded(v openWithLoaded) tea.Cmd {
 	}
 	if v.switching && len(v.choices) == 0 {
 		p.busy = false
-		m.note = "No app can edit " + safe(filepath.Base(p.target.Path))
+		m.note = i18n.Tf("app.openWith.noEditor", "No app can edit %s", safe(filepath.Base(p.target.Path)))
 		return nil
 	}
 	if v.choose {
@@ -187,32 +188,32 @@ func (m *Model) openWithFinished(v openWithFinished) tea.Cmd {
 	}
 	p.busy = false
 	if errors.Is(v.err, ntopenwith.ErrNoEditor) {
-		m.note = "No app can edit " + safe(filepath.Base(v.target.Path))
+		m.note = i18n.Tf("app.openWith.noEditor", "No app can edit %s", safe(filepath.Base(v.target.Path)))
 		if m.layer != layerOpenWith {
 			return m.closeOpenWith()
 		}
 		return nil
 	}
 	if v.err != nil {
-		m.note = verbTitle(p.verb) + ": " + safe(v.err.Error())
+		m.note = i18n.Tf("app.openWith.failed", "%s: %s", verbTitle(p.verb), safe(v.err.Error()))
 		if m.layer != layerOpenWith {
 			return m.closeOpenWith()
 		}
 		return nil
 	}
 	if v.saved {
-		m.note = "Default saved for " + p.target.Kind + " (" + string(p.verb) + ")"
+		m.note = i18n.Tf("app.openWith.defaultSaved", "Default saved for %s (%s)", p.target.Kind, string(p.verb))
 		for i := range p.choices {
 			p.choices[i].Default = i == p.cursor
 		}
 		return nil
 	}
-	m.note = "Opened in " + safe(v.name)
+	m.note = i18n.Tf("app.openWith.opened", "Opened in %s", safe(v.name))
 	if p.verb == openwith.Edit {
-		m.note = "Editing in " + safe(v.name)
+		m.note = i18n.Tf("app.openWith.editing", "Editing in %s", safe(v.name))
 	}
 	if v.temporary {
-		m.note += " — temporary file; save a copy in the app to keep it"
+		m.note += i18n.T("app.openWith.temporary", " — temporary file; save a copy in the app to keep it")
 	}
 	return m.closeOpenWith()
 }
@@ -273,18 +274,18 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 		}
 		c := p.choices[p.cursor]
 		if !c.Available {
-			m.note = "Application is unavailable"
+			m.note = i18n.T("app.openWith.appUnavailable", "Application is unavailable")
 			return nil
 		}
 		save := msg.String() == "d"
 		if save && (c.ID == "copy" || c.ID == "reveal" || c.ID == "gloss" || p.target.Kind == "") {
-			m.note = "This action cannot be a default"
+			m.note = i18n.T("app.openWith.noDefault", "This action cannot be a default")
 			return nil
 		}
 		if c.ID == "copy" {
 			target := p.target.Path
 			m.closeOpenWith()
-			m.note = "Path copied"
+			m.note = i18n.T("app.note.pathCopied", "Path copied")
 			return tea.SetClipboard(target)
 		}
 		if c.ID == "gloss" {
@@ -301,7 +302,7 @@ func (m *Model) openWithKey(msg tea.KeyPressMsg) tea.Cmd {
 func (m *Model) switchOpenWithVerb() tea.Cmd {
 	p := m.openWithPicker
 	if p.target.Directory {
-		m.note = "Folders cannot be edited"
+		m.note = i18n.T("app.openWith.folder", "Folders cannot be edited")
 		return nil
 	}
 	verb := openwith.Edit
@@ -484,7 +485,7 @@ func (m *Model) openWithAppsLoaded(v openWithAppsLoaded) tea.Cmd {
 	}
 	p.busy = false
 	if v.err != nil {
-		m.note = "Manage apps: " + safe(v.err.Error())
+		m.note = i18n.Tf("app.openWith.manageFailed", "Manage apps: %s", safe(v.err.Error()))
 	} else {
 		m.note = ""
 	}

@@ -10,6 +10,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // typesetResizeDelay coalesces a burst of width changes before reflowing. It
@@ -155,7 +156,7 @@ func (m *Model) typesetReflowed(msg typesetReflowResult) tea.Cmd {
 		return m.queueTypesetReflow()
 	}
 	if v.Err != nil {
-		m.note = "typeset: " + safe(v.Err.Error())
+		m.note = i18n.Tf("app.note.typesetFailed", "typeset: %s", safe(v.Err.Error()))
 		m.typesetTabPending, m.typesetGoTop, m.typesetAhead = 0, -1, false
 		return nil
 	}
