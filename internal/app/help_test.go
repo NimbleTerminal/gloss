@@ -6,6 +6,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 func helpRows(t *testing.T, w, h int, keys ...string) []string {
@@ -85,5 +87,55 @@ func TestHelpStacksAndScrolls(t *testing.T) {
 	m.Update(tea.KeyPressMsg{Code: tea.KeyEscape})
 	if m.help || m.helpOffset != 0 {
 		t.Fatal("Esc did not close the help and forget the scroll")
+	}
+}
+
+// In every language the help is 22 rows within 80 cells. Translated, it
+// cuts no word off either: each heading and note within its column and each
+// action beside its keys. (Three English actions are cut at 80 columns, as
+// they were before translation.) The translations are used.
+func TestHelpFitsInEveryLanguage(t *testing.T) {
+	t.Cleanup(func() { i18n.SetLanguage("en") })
+	screens := map[string]string{}
+	for _, tag := range []string{"en", "es", "zh-Hans"} {
+		i18n.SetLanguage(tag)
+		screens[tag] = helpScreen()
+		rows := helpRows(t, 80, 24)
+		if len(rows) != 22 {
+			t.Errorf("%s: %d rows", tag, len(rows))
+		}
+		for _, row := range rows {
+			if ansi.StringWidth(row) > 80 {
+				t.Errorf("%s: row too wide: %q", tag, row)
+			}
+		}
+		if tag == "en" {
+			continue
+		}
+		for _, row := range rows {
+			if strings.Contains(row, "…") {
+				t.Errorf("%s: cut off: %q", tag, row)
+			}
+		}
+		col := (80 - 4) / 2
+		for _, s := range append(helpLeft(), helpRight()...) {
+			if w := ansi.StringWidth(s.title); w > col {
+				t.Errorf("%s: heading %q is %d cells, over %d", tag, s.title, w, col)
+			}
+			for _, r := range s.rows {
+				limit := col - helpKeyWidth - 1
+				if r.keys == "" {
+					limit = col
+				}
+				if w := ansi.StringWidth(r.action); w > limit {
+					t.Errorf("%s: %q is %d cells, over %d", tag, r.action, w, limit)
+				}
+			}
+		}
+	}
+	for _, tag := range []string{"es", "zh-Hans"} {
+		if screens[tag] == screens["en"] {
+			t.Errorf("%s help is the English one", tag)
+		}
 	}
 }

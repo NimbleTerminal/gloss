@@ -2,3 +2,114 @@
 
 [test.seed]
 other = "种子"
+
+[app.help.title]
+other = "可视化分页器"
+
+[app.help.closes]
+other = "? 或 Esc 关闭"
+
+[app.help.footer]
+other = "gloss --help 列出选项 · 文档："
+
+[app.help.screenFooter]
+other = "gloss --help 列出选项。文档："
+
+[app.help.everywhere.title]
+other = "通用"
+
+[app.help.everywhere.quit]
+other = "退出 · 退出并保留画面"
+
+[app.help.everywhere.help]
+other = "帮助 · 返回文件列表"
+
+[app.help.everywhere.files]
+other = "下一个 / 上一个文件"
+
+[app.help.everywhere.menu]
+other = "文件菜单 · 浏览文件夹"
+
+[app.help.everywhere.open]
+other = "打开 · 选择应用 · 编辑"
+
+[app.help.everywhere.chooser]
+other = "应用选择器中 Tab：打开 / 编辑"
+
+[app.help.everywhere.export]
+other = "导出 · 详情 · 重新加载"
+
+[app.help.everywhere.search]
+other = "搜索 · 下一个 / 上一个匹配"
+
+[app.help.everywhere.theme]
+other = "配色主题 · 项目操作"
+
+[app.help.everywhere.drop]
+other = "拖入文件或粘贴路径即可打开"
+
+[app.help.text.title]
+other = "文本"
+
+[app.help.text.typeset]
+other = "排版 / 文本 · 源码 · 字体"
+
+[app.help.text.items]
+other = "下一项（Markdown）或文件"
+
+[app.help.text.lines]
+other = "行号 · 跳转 · 截断长行"
+
+[app.help.text.copy]
+other = "选择并复制排版文本"
+
+[app.help.text.select]
+other = "在文本视图中选择"
+
+[app.help.pictures.title]
+other = "图片与页面"
+
+[app.help.pictures.zoom]
+other = "缩放 · 适应 / 重置"
+
+[app.help.pictures.pan]
+other = "平移（或方向键）"
+
+[app.help.pictures.pages]
+other = "下一 / 上一页或文件"
+
+[app.help.pictures.ends]
+other = "PDF 首页 / 末页"
+
+[app.help.pictures.graphics]
+other = "Kitty / 字符图形"
+
+[app.help.pictures.qr]
+other = "表格网址的二维码"
+
+[app.help.meshes.title]
+other = "网格模型"
+
+[app.help.meshes.orbit]
+other = "环绕（Shift 拖动平移）"
+
+[app.help.meshes.zoom]
+other = "缩放 · 正交投影"
+
+[app.help.meshes.rotate]
+other = "自动旋转"
+
+[app.help.meshes.colors]
+other = "模型颜色 · 背景"
+
+[app.help.motion.title]
+other = "GIF 与视频"
+
+[app.help.motion.play]
+other = "播放 / 暂停 · 逐帧"
+
+[app.help.motion.speed]
+other = "速度 · 恢复 1×"
+
+[app.help.motion.seek]
+other = "定位（视频 5 秒）· 字幕"

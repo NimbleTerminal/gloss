@@ -5,6 +5,8 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // helpRow is one key group and what it does; a row with no keys is a note.
@@ -17,49 +19,55 @@ type helpSection struct {
 
 // helpLeft is what works everywhere and in text documents; helpRight is for
 // pictures, pages, meshes, GIFs and videos. At 80 columns they sit side by side in
-// 22 rows, the room a 24-row terminal leaves; narrower, they stack.
-var helpLeft = []helpSection{
-	{"Everywhere", []helpRow{
-		{"q  Q", "quit · quit, keep the view"},
-		{"?  Esc", "help · back to the files"},
-		{"]  [", "next / previous file"},
-		{"m  o", "file menu · browse folders"},
-		{"w  W  E", "open · choose app · edit"},
-		{"", "Tab in the app chooser: open / edit"},
-		{"e  i  R", "export · details · reload"},
-		{"/  n  N", "search · next / prev match"},
-		{"T  a", "color theme · item actions"},
-		{"", "Drop files or paste paths to open"},
-	}},
-	{"Text", []helpRow{
-		{"t  s  f", "typeset / text · source · fonts"},
-		{"Tab", "next item in Markdown · else file"},
-		{"#  :  S", "line numbers · go to · chop"},
-		{"drag + y", "select + copy typeset text"},
-		{"Shift-drag", "select in text views"},
-	}},
+// 22 rows, the room a 24-row terminal leaves; narrower, they stack. Both are
+// in the active language, each action within the 27 cells its keys leave at
+// 80 columns.
+func helpLeft() []helpSection {
+	return []helpSection{
+		{i18n.T("app.help.everywhere.title", "Everywhere"), []helpRow{
+			{"q  Q", i18n.T("app.help.everywhere.quit", "quit · quit, keep the view")},
+			{"?  Esc", i18n.T("app.help.everywhere.help", "help · back to the files")},
+			{"]  [", i18n.T("app.help.everywhere.files", "next / previous file")},
+			{"m  o", i18n.T("app.help.everywhere.menu", "file menu · browse folders")},
+			{"w  W  E", i18n.T("app.help.everywhere.open", "open · choose app · edit")},
+			{"", i18n.T("app.help.everywhere.chooser", "Tab in the app chooser: open / edit")},
+			{"e  i  R", i18n.T("app.help.everywhere.export", "export · details · reload")},
+			{"/  n  N", i18n.T("app.help.everywhere.search", "search · next / prev match")},
+			{"T  a", i18n.T("app.help.everywhere.theme", "color theme · item actions")},
+			{"", i18n.T("app.help.everywhere.drop", "Drop files or paste paths to open")},
+		}},
+		{i18n.T("app.help.text.title", "Text"), []helpRow{
+			{"t  s  f", i18n.T("app.help.text.typeset", "typeset / text · source · fonts")},
+			{"Tab", i18n.T("app.help.text.items", "next item in Markdown · else file")},
+			{"#  :  S", i18n.T("app.help.text.lines", "line numbers · go to · chop")},
+			{"drag + y", i18n.T("app.help.text.copy", "select + copy typeset text")},
+			{"Shift-drag", i18n.T("app.help.text.select", "select in text views")},
+		}},
+	}
 }
 
-var helpRight = []helpSection{
-	{"Pictures and pages", []helpRow{
-		{"+ - f 0", "zoom · fit / reset"},
-		{"h j k l", "pan (or the arrows)"},
-		{"n p Space", "next / prev page or file"},
-		{"Home  End", "first / last PDF page"},
-		{"g", "Kitty / glyph graphics"},
-		{"u", "QR code of a table URL"},
-	}},
-	{"Meshes", []helpRow{
-		{"drag", "orbit (Shift-drag pans)"},
-		{"wheel  5", "zoom · orthographic"},
-		{"r", "auto-rotate"},
-		{"C  B", "model color · background"},
-	}},
-	{"GIFs and videos", []helpRow{
-		{"Space , .", "play / pause · step frames"},
-		{"< > Bksp", "speed · back to 1×"},
-		{"drag ← → c", "seek (video 5 s) · subtitles"},
-	}},
+func helpRight() []helpSection {
+	return []helpSection{
+		{i18n.T("app.help.pictures.title", "Pictures and pages"), []helpRow{
+			{"+ - f 0", i18n.T("app.help.pictures.zoom", "zoom · fit / reset")},
+			{"h j k l", i18n.T("app.help.pictures.pan", "pan (or the arrows)")},
+			{"n p Space", i18n.T("app.help.pictures.pages", "next / prev page or file")},
+			{"Home  End", i18n.T("app.help.pictures.ends", "first / last PDF page")},
+			{"g", i18n.T("app.help.pictures.graphics", "Kitty / glyph graphics")},
+			{"u", i18n.T("app.help.pictures.qr", "QR code of a table URL")},
+		}},
+		{i18n.T("app.help.meshes.title", "Meshes"), []helpRow{
+			{"drag", i18n.T("app.help.meshes.orbit", "orbit (Shift-drag pans)")},
+			{"wheel  5", i18n.T("app.help.meshes.zoom", "zoom · orthographic")},
+			{"r", i18n.T("app.help.meshes.rotate", "auto-rotate")},
+			{"C  B", i18n.T("app.help.meshes.colors", "model color · background")},
+		}},
+		{i18n.T("app.help.motion.title", "GIFs and videos"), []helpRow{
+			{"Space , .", i18n.T("app.help.motion.play", "play / pause · step frames")},
+			{"< > Bksp", i18n.T("app.help.motion.speed", "speed · back to 1×")},
+			{"drag ← → c", i18n.T("app.help.motion.seek", "seek (video 5 s) · subtitles")},
+		}},
+	}
 }
 
 // Browser help describes the active file chooser rather than document controls.
@@ -127,14 +135,14 @@ func (m *Model) helpColumn(sections []helpSection, width int) []string {
 // helpView is the help page at w×h: a title row, two columns or one, and
 // the docs row, scrolled by helpOffset when it is taller than the screen.
 func (m *Model) helpView(w, h int) string {
-	leftSections, rightSections := helpLeft, helpRight
+	leftSections, rightSections := helpLeft(), helpRight()
 	if m.browsing() {
 		leftSections, rightSections = browserHelpLeft, browserHelpRight
 	}
 	p := m.palette()
 	name := lipgloss.NewStyle().Foreground(p.Accent).Bold(true).Render("gloss " + safe(m.opts.Version))
-	closing := lipgloss.NewStyle().Foreground(p.Muted).Render("? or Esc closes")
-	heading := " " + name + lipgloss.NewStyle().Foreground(p.Foreground).Render(" — a visual pager")
+	closing := lipgloss.NewStyle().Foreground(p.Muted).Render(i18n.T("app.help.closes", "? or Esc closes"))
+	heading := " " + name + lipgloss.NewStyle().Foreground(p.Foreground).Render(" — "+i18n.T("app.help.title", "a visual pager"))
 	gap := max(1, w-ansi.StringWidth(heading)-ansi.StringWidth(closing)-1)
 	rows := []string{heading + strings.Repeat(" ", gap) + closing, ""}
 	if w >= 80 {
@@ -155,7 +163,7 @@ func (m *Model) helpView(w, h int) string {
 			rows = append(rows, " "+row)
 		}
 	}
-	footer := lipgloss.NewStyle().Foreground(p.Muted).Render(" gloss --help lists options · docs: ") + ansi.SetHyperlink(DocsURL) + DocsURL + ansi.ResetHyperlink()
+	footer := lipgloss.NewStyle().Foreground(p.Muted).Render(" "+i18n.T("app.help.footer", "gloss --help lists options · docs: ")) + ansi.SetHyperlink(DocsURL) + DocsURL + ansi.ResetHyperlink()
 	rows = append(rows, "", footer)
 	// Scroll when the page is taller than the screen; the footer scrolls too.
 	m.helpOffset = max(0, min(m.helpOffset, len(rows)-h))
@@ -169,8 +177,8 @@ func (m *Model) helpView(w, h int) string {
 // the words of the page, for what reads it rather than looks at it.
 func helpScreen() string {
 	var b strings.Builder
-	b.WriteString("gloss — a visual pager\n\n")
-	for _, s := range append(append([]helpSection{}, helpLeft...), helpRight...) {
+	b.WriteString("gloss — " + i18n.T("app.help.title", "a visual pager") + "\n\n")
+	for _, s := range append(helpLeft(), helpRight()...) {
 		b.WriteString(s.title + "\n")
 		for _, r := range s.rows {
 			if r.keys == "" {
@@ -181,6 +189,6 @@ func helpScreen() string {
 		}
 		b.WriteString("\n")
 	}
-	b.WriteString("gloss --help lists options. Docs: " + ansi.SetHyperlink(DocsURL) + DocsURL + ansi.ResetHyperlink() + "\n")
+	b.WriteString(i18n.T("app.help.screenFooter", "gloss --help lists options. Docs: ") + ansi.SetHyperlink(DocsURL) + DocsURL + ansi.ResetHyperlink() + "\n")
 	return b.String()
 }

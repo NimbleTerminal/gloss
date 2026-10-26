@@ -2,3 +2,114 @@
 
 [test.seed]
 other = "semilla"
+
+[app.help.title]
+other = "un paginador visual"
+
+[app.help.closes]
+other = "? o Esc cierra"
+
+[app.help.footer]
+other = "gloss --help: opciones · docs: "
+
+[app.help.screenFooter]
+other = "gloss --help lista las opciones. Documentación: "
+
+[app.help.everywhere.title]
+other = "En todas partes"
+
+[app.help.everywhere.quit]
+other = "salir · salir y dejar vista"
+
+[app.help.everywhere.help]
+other = "ayuda · volver a archivos"
+
+[app.help.everywhere.files]
+other = "archivo siguiente / previo"
+
+[app.help.everywhere.menu]
+other = "menú · explorar carpetas"
+
+[app.help.everywhere.open]
+other = "abrir · elegir app · editar"
+
+[app.help.everywhere.chooser]
+other = "Tab en el selector: abrir / editar"
+
+[app.help.everywhere.export]
+other = "exportar · info · recargar"
+
+[app.help.everywhere.search]
+other = "buscar · siguiente / previo"
+
+[app.help.everywhere.theme]
+other = "tema de color · acciones"
+
+[app.help.everywhere.drop]
+other = "Arrastre archivos o pegue rutas"
+
+[app.help.text.title]
+other = "Texto"
+
+[app.help.text.typeset]
+other = "maqueta · código · fuentes"
+
+[app.help.text.items]
+other = "sig. elemento o archivo"
+
+[app.help.text.lines]
+other = "nº de línea · ir a · cortar"
+
+[app.help.text.copy]
+other = "copiar selección maquetada"
+
+[app.help.text.select]
+other = "seleccionar en modo texto"
+
+[app.help.pictures.title]
+other = "Imágenes y páginas"
+
+[app.help.pictures.zoom]
+other = "zoom · ajustar / original"
+
+[app.help.pictures.pan]
+other = "desplazar (o las flechas)"
+
+[app.help.pictures.pages]
+other = "pág. o archivo sig. / ant."
+
+[app.help.pictures.ends]
+other = "primera / última pág. PDF"
+
+[app.help.pictures.graphics]
+other = "gráficos Kitty / glifos"
+
+[app.help.pictures.qr]
+other = "código QR de URL de tabla"
+
+[app.help.meshes.title]
+other = "Mallas"
+
+[app.help.meshes.orbit]
+other = "orbitar (con Mayús, mover)"
+
+[app.help.meshes.zoom]
+other = "zoom · ortográfica"
+
+[app.help.meshes.rotate]
+other = "rotación automática"
+
+[app.help.meshes.colors]
+other = "color del modelo · fondo"
+
+[app.help.motion.title]
+other = "GIF y vídeos"
+
+[app.help.motion.play]
+other = "reproducir/pausar · cuadros"
+
+[app.help.motion.speed]
+other = "velocidad · volver a 1×"
+
+[app.help.motion.seek]
+other = "ir (vídeo 5 s) · subtítulos"
