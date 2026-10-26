@@ -166,7 +166,7 @@ gloss photo.png drawing.svg model.stl -mP
 - 用 `u` 把表格中的 URL 显示为二维码，或用 `--pick-web` 让手机上传文件和回复。
   局域网设置和智能体会话参见[文件交接](/gloss/docs/guide/handoff/)（英文）。
 
-[控制参考](/gloss/docs/guide/controls/)（英文）涵盖各种媒体类型的按键。
+[按键参考](/gloss/docs/guide/controls/)（英文）涵盖各种媒体类型的按键。
 
 ## 用其他应用打开
 

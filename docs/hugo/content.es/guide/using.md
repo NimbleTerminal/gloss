@@ -8,7 +8,7 @@ bookToC: false
 
 > Borrador de traducción, sin revisar por una persona; si hay dudas, vale la versión en inglés.
 
-gloss muestra los archivos que le indicas, o el contenido de una carpeta, o lo que le envíes por una tubería. Sin ningún archivo se abre vacío: suelta archivos sobre él, o pulsa `o` para explorar. Una dirección `http://` o `https://` en lugar de un archivo se descarga primero y luego se muestra como el archivo que es; consulta [Abrir una dirección web](#abrir-una-dirección-web).
+gloss muestra los archivos que le indica, o el contenido de una carpeta, o lo que le envíe por una tubería. Sin ningún archivo se abre vacío: suelte archivos sobre él, o pulse `o` para explorar. Una dirección `http://` o `https://` en lugar de un archivo se descarga primero y luego se muestra como el archivo que es; consulte [Abrir una dirección web](#abrir-una-dirección-web).
 
 ```sh
 gloss photo.png drawing.svg report.pdf model.stl
@@ -25,7 +25,7 @@ esperar hasta que salgas: `q` sale como se lanzó, y `Q` sale dejando la última
 vista en el historial en cualquier caso, de modo que una imagen que vale la pena
 conservar se queda junto al siguiente comando, y una que no, no se queda. El
 transporte directo de gráficos funciona por SSH; no hace falta un sistema de
-archivos compartido ni un conversor externo. En tmux, activa el paso directo con
+archivos compartido ni un conversor externo. En tmux, active el paso directo con
 `set -g allow-passthrough on`.
 
 ```sh
@@ -66,7 +66,7 @@ las tablas usan el dibujado normal de la terminal. No hay interfaz del visor,
 bucle de entrada, movimiento del cursor, consultas a la terminal ni protocolo
 Kitty. Los GIF y los WebP animados se quedan en el primer fotograma. Las mallas
 usan una captura por software. Un anfitrión que elimine los estilos ANSI perderá
-los colores de las imágenes; para que un agente inspeccione píxeles, usa la
+los colores de las imágenes; para que un agente inspeccione píxeles, use la
 exportación a PNG y su herramienta de lectura de imágenes.
 
 El área por omisión es el tamaño de la terminal de la salida estándar, o **80
@@ -74,9 +74,9 @@ columnas × 24 filas** cuando la salida se captura. `--print-width 1..512` y
 `--print-height 1..256` la modifican; las dimensiones de la terminal se limitan a
 esos valores. Cada archivo indicado imprime una vista, separadas por una línea en
 blanco. `--page` elige una página u hoja (o un fragmento de exportación
-tipográfica), y `--cols`/`--coln` filtran las tablas.
+maquetada), y `--cols`/`--coln` filtran las tablas.
 `--typeset`, los números de línea y las líneas recortadas son compatibles. El
-tema automático es claro, sin sondeo ni lectura de preferencias guardadas; usa
+tema automático es claro, sin sondeo ni lectura de preferencias guardadas; use
 `--theme dark` de forma explícita para una salida oscura en la línea de comandos.
 
 `--print` no puede combinarse con otro modo de salida, con opciones del visor
@@ -119,7 +119,7 @@ gloss --serve --qr http://192.168.1.20:8000/
 gloss --qr https://example.com/ --output qr.png
 ```
 
-Un código para una dirección `localhost` no sirve en otro dispositivo; indica la
+Un código para una dirección `localhost` no sirve en otro dispositivo; indique la
 dirección a la que el dispositivo pueda llegar.
 
 ## Abrir una dirección web
@@ -151,14 +151,14 @@ nombre para las direcciones que se abren dentro de documentos con `--fetch`.
 Un argumento URL es una petición de red. Un guion que pase nombres que no eligió
 puede prohibirlo definiendo `GLOSS_NO_FETCH` con cualquier valor no vacío en el
 entorno: entonces los argumentos de dirección fallan y `--fetch` se rechaza. No
-pongas contraseñas en las direcciones; se enviarían como autenticación básica y
-quedarían en el historial de tu intérprete de comandos. Un archivo local cuyo
+ponga contraseñas en las direcciones; se enviarían como autenticación básica y
+quedarían en el historial de su intérprete de comandos. Un archivo local cuyo
 nombre empiece por `http://` no se puede nombrar en la línea de comandos; no hay
 ninguno.
 
 Las opciones usan la sintaxis GNU de `pflag` y pueden aparecer antes o después
 de los nombres de archivo. Tanto `--page=3` como `-p3` funcionan; las opciones
-cortas booleanas se pueden agrupar (`-mP`). Usa `--` para terminar el análisis de
+cortas booleanas se pueden agrupar (`-mP`). Use `--` para terminar el análisis de
 opciones. `--type image|svg|pdf|stl|3mf|obj|ply|geojson|gpx|pmtiles|docx|xlsx|grist|csv|json|ipynb|html|text|markdown|mermaid|video` (`jsonl` y `ndjson` significan `json`, `md` significa `markdown`) sustituye la detección para todas las
 entradas. La detección por contenido admite archivos sin extensión. Un `-` lee
 la entrada estándar una vez en un archivo temporal, que se elimina al salir; la
@@ -186,23 +186,23 @@ gloss photo.png drawing.svg model.stl -mP
 
 ## Elegir una vista
 
-- Lee Markdown como texto de terminal, o pulsa `t` para una página tipográfica
+- Lea Markdown como texto de terminal, o pulse `t` para una página maquetada
   con imágenes locales, GIF y WebP animados, y código resaltado. El texto, el
-  código fuente y JSON también admiten `t`. Elige fuentes con `f` y temas con
-  `T`; consulta [Markdown](/gloss/docs/guide/markdown/) (English).
-- Busca texto de documentos, celdas de tablas o texto de PDF con `/`. En código
+  código fuente y JSON también admiten `t`. Elija fuentes con `f` y temas con
+  `T`; consulte [Markdown](/gloss/docs/guide/markdown/) (English).
+- Busque texto de documentos, celdas de tablas o texto de PDF con `/`. En código
   fuente y texto, `#` muestra números de línea, `:` va a una línea y `S`
   alterna el ajuste de líneas largas.
-- Pausa un GIF o WebP animado independiente con Space, cambia la velocidad con
-  `<`/`>`, y desplázate por los fotogramas o avanza de uno en uno. Reproduce un
+- Pause un GIF o WebP animado independiente con Space, cambie la velocidad con
+  `<`/`>`, y desplácese por los fotogramas o avance de uno en uno. Reproduzca un
   vídeo (MP4, MOV, WebM, MKV, OGV, AVI y más) con Space, avanza con ←/→ o con
-  la barra; consulta [Formatos](/gloss/docs/guide/formats/) (English) para saber
-  qué necesita. Orbita mallas STL, 3MF, OBJ y PLY y elige piezas de 3MF con `c`.
-  Desplaza y amplía un mapa GeoJSON o GPX, o un archivo PMTiles, dibujados sin conexión.
-- Pulsa `e` para exportar la imagen actual o el área tipográfica. Los guiones usan
+  la barra; consulte [Formatos](/gloss/docs/guide/formats/) (English) para saber
+  qué necesita. Oriente mallas STL, 3MF, OBJ y PLY y elija piezas de 3MF con `c`.
+  Desplace y amplíe un mapa GeoJSON o GPX, o un archivo PMTiles, dibujados sin conexión.
+- Pulse `e` para exportar la imagen actual o la vista maquetada. Los guiones usan
   `--output` sin terminal; las mallas pueden exportar varias vistas en una hoja.
-- Muestra la URL de una tabla como QR con `u`, o usa `--pick-web` para que el
-  teléfono suba archivos y envíe respuestas. Consulta el
+- Muestre la URL de una tabla como QR con `u`, o use `--pick-web` para que el
+  teléfono suba archivos y envíe respuestas. Consulte el
   [traspaso de archivos](/gloss/docs/guide/handoff/) (English) para la
   configuración de la red local y las sesiones de agentes.
 
@@ -212,7 +212,7 @@ teclas de cada tipo de medio.
 ## Abrir en otra aplicación
 
 Las aplicaciones que ofrece gloss, y cuál es la predeterminada para cada tipo de
-archivo, vienen de tu sistema operativo: Launch Services en macOS, las entradas
+archivo, vienen de su sistema operativo: Launch Services en macOS, las entradas
 de escritorio XDG y los valores MIME por omisión en Linux y BSD, el registro en
 Windows. gloss no añade ningún catálogo propio.
 
@@ -220,14 +220,14 @@ En el visor nativo, `w` abre el archivo actual en su aplicación predeterminada,
 `W` abre un selector **Open with** y `E` edita el archivo. En el menú de archivos
 o en la cuadrícula de miniaturas estas teclas actúan sobre el archivo resaltado.
 En el explorador de archivos, Alt+Enter abre el selector **Open with** sin elegir
-la entrada; los directorios solo ofrecen Reveal (mostrar en la carpeta). Si tu terminal no
-comunica Alt+Enter, abre un archivo compatible con Enter y pulsa `W`, o configura
+la entrada; los directorios solo ofrecen Reveal (mostrar en la carpeta). Si su terminal no
+comunica Alt+Enter, abra un archivo compatible con Enter y pulse `W`, o configure
 la asignación de teclas de la terminal.
 
-El selector lista System default, las aplicaciones que tu sistema
+El selector lista System default, las aplicaciones que su sistema
 conoce para este tipo de archivo, Reveal in Finder/Explorer (la carpeta que lo
-contiene en Linux) y Copy path. Usa las flechas para elegir y Enter para abrir.
-Pulsa `d` sobre una aplicación para guardarla como predeterminada para este tipo
+contiene en Linux) y Copy path. Use las flechas para elegir y Enter para abrir.
+Pulse `d` sobre una aplicación para guardarla como predeterminada para este tipo
 de archivo y verbo; esto no la lanza. En Linux, una aplicación registrada para un
 tipo general se ofrece también para sus subtipos, así que un editor de texto
 plano aparece para código fuente, Markdown y JSON. Esc cierra el selector; una
@@ -235,26 +235,26 @@ elección guardada se conserva.
 
 `E` edita con la aplicación resuelta para editar. Para texto, Markdown, JSON,
 HTML, SVG, CSV, Mermaid, OBJ y cuadernos, es `$VISUAL`, con `$EDITOR` como
-alternativa cuando VISUAL está vacío, salvo que hayas guardado otra
+alternativa cuando VISUAL está vacío, salvo que haya guardado otra
 predeterminada, siempre que nombre un programa instalado; en otro caso, y para
 los demás archivos, es el editor predeterminado del sistema. Cuando no hay
 ninguno, se abre en su lugar el selector **Edit with**. Un archivo binario nunca
 se envía al editor de terminal, y cuando ninguna aplicación puede editar un
 archivo, gloss lo dice. Tab en el selector alterna entre **Open with** y
 **Edit with**; las predeterminadas se guardan por tipo de archivo y por verbo,
-así que la aplicación con la que abres un archivo Markdown puede ser distinta de
-aquella en la que lo editas. En **Open with**, elige System default y
-pulsa `d` para quitar una sustitución. Por ejemplo, ejecuta
-`EDITOR=nano gloss README.md` o define `VISUAL='nvim -f'` en tu intérprete de comandos.
+así que la aplicación con la que abre un archivo Markdown puede ser distinta de
+aquella en la que lo edita. En **Open with**, elija System default y
+pulse `d` para quitar una sustitución. Por ejemplo, ejecute
+`EDITOR=nano gloss README.md` o defina `VISUAL='nvim -f'` en su intérprete de comandos.
 
 Una aplicación de terminal (un editor de terminal, o en Linux una entrada de
 escritorio marcada con `Terminal=true`) toma el control de la terminal: gloss
 suspende su interfaz, espera a la aplicación y luego recarga el archivo,
 conservando en lo posible la vista del código fuente y la posición de
-desplazamiento. El menú y el explorador vuelven a su selección anterior. Usa un
+desplazamiento. El menú y el explorador vuelven a su selección anterior. Use un
 editor que permanezca en primer plano hasta que termines.
 
-Pulsa `m` en el selector para gestionar las aplicaciones instaladas en todos los
+Pulse `m` en el selector para gestionar las aplicaciones instaladas en todos los
 formatos: las flechas seleccionan, Space oculta o restaura una aplicación y
 guarda de inmediato, y Enter o Esc vuelve al selector. Las aplicaciones ocultas
 siguen apareciendo en esta lista. System default y Reveal no se pueden ocultar, y las aplicaciones de terminal no aparecen. Ocultar
@@ -262,13 +262,13 @@ una predeterminada guardada usa la predeterminada del sistema hasta que esa
 aplicación se restaure.
 
 Las preferencias están en `gloss/open-with-v1.json` dentro de la carpeta de
-configuración de usuario de tu sistema operativo. Contienen identificadores de
+configuración de usuario de su sistema operativo. Contienen identificadores de
 aplicación, nunca comandos ejecutables. Una aplicación guardada que no esté
 disponible recurre a la predeterminada del sistema. Si falta ese archivo, gloss
 lee el antiguo `gloss/open-with.json` mientras el nuevo no exista, incluidos sus
-identificadores cortos (`vscode`, `preview`, ...), y lo deja intacto; tus
+identificadores cortos (`vscode`, `preview`, ...), y lo deja intacto; sus
 elecciones se guardan en el archivo nuevo. Si `open-with-v1.json` está dañado,
-gloss lo comunica y no guarda hasta que lo repares o lo borres. En Linux, evita
+gloss lo comunica y no guarda hasta que lo repare o lo borre. En Linux, evite
 que gloss sea su propio abridor predeterminado.
 
 `gloss --apps` lista las aplicaciones disponibles por formato y verbo, con la
@@ -278,12 +278,12 @@ demostración en el navegador, el visor servido y el selector web no pueden lanz
 aplicaciones del anfitrión.
 
 Abrir un archivo de la entrada estándar o descargado no prolonga su vida útil.
-Guarda una copia desde la otra aplicación antes de que gloss termine si quieres
+Guarde una copia desde la otra aplicación antes de que gloss termine si quiere
 conservarlo. Abrir envía una petición de lanzamiento; gloss no puede saber si la
 otra aplicación mostró el archivo.
 
-El explorador de archivos tiene su propia ayuda: pulsa `?` antes de escribir un
-filtro, o `F1` mientras escribes. Lista los controles de navegación,
+El explorador de archivos tiene su propia ayuda: pulse `?` antes de escribir un
+filtro, o `F1` mientras escribe. Lista los controles de navegación,
 autocompletado, disposiciones, filtros por tipo, ordenación, búsqueda y apertura
 con aplicaciones. Las flechas y PageUp/PageDown desplazan la ayuda; Esc o F1 vuelve
 a la misma carpeta, filtro y selección. Un `?` dentro de un filtro existente

@@ -10,7 +10,7 @@ bookToC: false
 
 - [安装](/gloss/docs/guide/install/)（英文）
 - [使用 gloss](using/)
-- [控制](/gloss/docs/guide/controls/)（英文）
+- [按键](/gloss/docs/guide/controls/)（英文）
 - [文件浏览器](/gloss/docs/guide/browser/)（英文）
 - [索取文件](/gloss/docs/guide/handoff/)（英文）
 - [Markdown](/gloss/docs/guide/markdown/)（英文）

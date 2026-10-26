@@ -10,7 +10,7 @@ bookToC: false
 
 Un paginador visual para la terminal: como `less`, para imágenes, SVG, PDF, mallas STL, 3MF, OBJ y PLY, Markdown, diagramas Mermaid, HTML, texto plano, JSON, cuadernos Jupyter, Word, Excel, Grist y archivos CSV.
 
-[**Pruébalo en tu navegador →**](https://nimbleterminal.github.io/gloss/) La terminal en vivo ejecuta el paginador real en Go como WebAssembly, con una muestra de cada tipo.
+[**Pruébelo en su navegador →**](https://nimbleterminal.github.io/gloss/) La terminal en vivo ejecuta el paginador real en Go como WebAssembly, con una muestra de cada tipo.
 
 ## Inicio rápido
 
@@ -26,8 +26,8 @@ gloss --info --json model.3mf             # what a file says about itself
 ## Dónde mirar
 
 - **[Guía](guide/)**: instalación, las teclas, cómo pedirle un archivo al usuario, los formatos que abre gloss y sus límites, y cómo usarlo desde un agente.
-- **[Referencia de comandos](/gloss/docs/command/)** (en inglés): todas las opciones, agrupadas según su función. gloss no tiene subcomandos; es un solo comando con grupos de opciones.
-- **[Para LLM](/gloss/docs/guide/for-llms/)** (en inglés): la skill que gloss incluye para enseñar a un agente su superficie sin interfaz (`gloss skill show`).
+- **[Referencia de comandos](/gloss/docs/command/)** (English): todas las opciones, agrupadas según su función. gloss no tiene subcomandos; es un solo comando con grupos de opciones.
+- **[Para LLM](/gloss/docs/guide/for-llms/)** (English): la skill que gloss incluye para enseñar a un agente su superficie sin interfaz (`gloss skill show`).
 
 La página de manual, `gloss(1)`, se incluye en los archivos de cada versión y en el paquete Debian.
 

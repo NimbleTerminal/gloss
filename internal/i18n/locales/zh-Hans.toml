@@ -265,7 +265,7 @@ other = "简单交接。"
 other = "选择要发送的文件。"
 
 [web.pick.intro]
-other = "添加文件，检查列表，然后发回给正在等待的人或代理。"
+other = "添加文件，检查列表，然后发回给正在等待的人或智能体。"
 
 [web.pick.cardLabel]
 other = "选择并发送文件"
