@@ -65,19 +65,40 @@ func verbTitle(v openwith.Verb) string {
 	return i18n.T("app.openWith.openTitle", "Open with")
 }
 
-// appName is how the chooser shows an app: the rows gloss and ntopenwith
-// name themselves in the language in use, the system's apps as the system
-// names them. The ID and the English name must both match, so an app of the
-// system's that happens to share a name keeps it.
+// appName is how the chooser and its notes show an app: the apps gloss and
+// ntopenwith name themselves in the language in use, the system's apps as
+// the system names them. Those are known by ID; a launch the system resolved
+// has none, and is known by ntopenwith's English name. In English the host's
+// own name is kept.
 func appName(id, name string) string {
-	switch {
-	case id == ntopenwith.SystemID && name == "System default":
-		return i18n.T("app.openWith.system", "System default")
-	case id == ntopenwith.TerminalEditorID && name == "Edit in terminal":
-		return i18n.T("app.openWith.terminalEditor", "Edit in terminal")
-	case id == "copy" && name == "Copy path":
-		return i18n.T("app.actions.copyPath", "Copy path")
-	case id == "reveal":
+	if base, ok := strings.CutSuffix(name, " (saved app unavailable)"); ok {
+		return appName(id, base) + i18n.T("app.openWith.savedUnavailable", " (saved app unavailable)")
+	}
+	if id == "" {
+		switch name {
+		case "System default":
+			id = ntopenwith.SystemID
+		case "Edit in terminal":
+			id = ntopenwith.TerminalEditorID
+		case "Reveal in Finder", "Reveal in Explorer", "Open containing folder":
+			id = "reveal"
+		}
+	}
+	switch id {
+	case ntopenwith.SystemID:
+		if t := i18n.T("app.openWith.system", "System default"); t != "System default" {
+			return t
+		}
+	case ntopenwith.TerminalEditorID:
+		if t := i18n.T("app.openWith.terminalEditor", "Edit in terminal"); t != "Edit in terminal" {
+			return t
+		}
+	case "copy":
+		if t := i18n.T("app.actions.copyPath", "Copy path"); t != "Copy path" {
+			return t
+		}
+	case "reveal":
+		// One row, named for the platform's file manager.
 		switch name {
 		case "Reveal in Finder":
 			return i18n.T("app.openWith.revealFinder", "Reveal in Finder")

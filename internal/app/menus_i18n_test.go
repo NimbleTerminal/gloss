@@ -112,7 +112,7 @@ func TestOpenWithChooserSpeaksTheLanguage(t *testing.T) {
 		terminal, manage, noApps, close        string
 	}{
 		{"es", "Abrir con — note.md", "Editar con — note.md", "Predeterminada del sistema (predeterminada)", "Mostrar en Finder",
-			"Copiar ruta", "Enter abrir", "Editar en la terminal", "Gestionar apps — todos los formatos", "No hay apps instaladas que gestionar", "Esc cerrar"},
+			"Copiar ruta", "Tab editar con", "Editar en la terminal", "Gestionar apps — todos los formatos", "No hay apps instaladas que gestionar", "Esc cerrar"},
 		{"zh-Hans", "打开方式 — note.md", "编辑方式 — note.md", "系统默认（默认）", "在 Finder 中显示",
 			"复制路径", "Enter 打开", "在终端中编辑", "管理应用 — 所有格式", "没有可管理的已安装应用", "Esc 关闭"},
 	} {
@@ -138,8 +138,12 @@ func TestOpenWithChooserSpeaksTheLanguage(t *testing.T) {
 			// The keys fit their row whole, to the last.
 			for _, verb := range []openwith.Verb{openwith.Open, openwith.Edit} {
 				m.openWithPicker.verb = verb
-				if _, hint := m.openWithStatus(80); !strings.HasSuffix(hint, c.close) {
+				_, hint := m.openWithStatus(80)
+				if !strings.HasSuffix(hint, c.close) {
 					t.Errorf("%s keys cut short at 80: %q", verb, hint)
+				}
+				if other := map[string]string{"es": "Tab abrir con", "zh-Hans": "Tab 打开方式"}[c.tag]; verb == openwith.Edit && !strings.Contains(hint, other) {
+					t.Errorf("edit keys lack %q: %q", other, hint)
 				}
 			}
 			m.openWithPicker.verb = openwith.Edit
@@ -198,5 +202,52 @@ func TestColorPickerSpeaksTheLanguage(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// A launch the system resolved, with no app chosen, names gloss's and
+// ntopenwith's own apps in the language in use, its fallback note too.
+func TestDirectLaunchNamesTheAppInTheLanguage(t *testing.T) {
+	for _, c := range []struct{ tag, plain, fallback, editor string }{
+		{"es", "Abierto en Predeterminada del sistema", "Abierto en Predeterminada del sistema (la app guardada no está disponible)", "Editando en Editar en la terminal"},
+		{"zh-Hans", "已在 系统默认 中打开", "已在 系统默认（已保存的应用不可用） 中打开", "正在 在终端中编辑 中编辑"},
+	} {
+		t.Run(c.tag, func(t *testing.T) {
+			speaking(t, c.tag)
+			for name, want := range map[string]string{"System default": c.plain, "System default (saved app unavailable)": c.fallback} {
+				m := themedModel(t, "dark", false)
+				h := &fakeOpenHost{launch: &openwith.Launched{Name: name}}
+				noteFile(t, m, h)
+				send(m, press("w"))
+				if len(h.ids) != 1 || h.ids[0] != "" {
+					t.Fatalf("w did not launch the default: %v", h.ids)
+				}
+				if m.note != want {
+					t.Errorf("w with %q: note = %q, want %q", name, m.note, want)
+				}
+			}
+			m := themedModel(t, "dark", false)
+			noteFile(t, m, &fakeOpenHost{launch: &openwith.Launched{Name: "Edit in terminal"}})
+			send(m, press("E"))
+			if m.note != c.editor {
+				t.Errorf("E: note = %q, want %q", m.note, c.editor)
+			}
+		})
+	}
+	// In English the names are the host's own.
+	if got := appName("terminal-editor", "Terminal editor"); got != "Terminal editor" {
+		t.Errorf("English renamed the terminal editor %q", got)
+	}
+}
+
+// A picture with no file and no alt text is titled in the language in use.
+func TestUntitledPictureTitle(t *testing.T) {
+	speaking(t, "es")
+	p := pictureItem{name: "picture", untitled: true}
+	if got := itemTitle(pageItem{kind: itemPicture, picture: p}); got != "imagen" {
+		t.Errorf("title = %q", got)
+	}
+	if p.name != "picture" {
+		t.Error("the scratch name changed")
 	}
 }

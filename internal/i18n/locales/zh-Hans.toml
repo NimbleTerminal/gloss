@@ -1360,7 +1360,7 @@ other = "布局与筛选"
 other = "选择文件类型"
 
 [app.help.layout.unsupported]
-other = "隐藏 / 显示灰显项"
+other = "隐藏/显示不支持的"
 
 [app.help.leave.close]
 other = "关闭弹窗或返回"
@@ -1384,7 +1384,7 @@ other = "查找与退出"
 other = "备用屏幕"
 
 [app.info.askedFor]
-other = "（按要求）"
+other = "（已指定）"
 
 [app.info.cellPixels]
 other = "，每个 %d × %d 像素"
@@ -1555,7 +1555,7 @@ other = "设计者"
 other = "详情"
 
 [app.info.label.diagram]
-other = "图表"
+other = "图示"
 
 [app.info.label.dimensions]
 other = "尺寸"
@@ -1826,3 +1826,9 @@ other = "工作簿"
 
 [app.info.label.zooms]
 other = "缩放级别"
+
+[app.openWith.savedUnavailable]
+other = "（已保存的应用不可用）"
+
+[app.actions.picture]
+other = "图片"

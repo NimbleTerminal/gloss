@@ -1,6 +1,11 @@
 package app
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -56,5 +61,114 @@ func TestInfoBoxSpeaksTheLanguage(t *testing.T) {
 				t.Error("an unknown label is not shown as it came")
 			}
 		})
+	}
+}
+
+// Every heading and label document writes, as a literal, has its case in
+// infoLabel: a new one cannot reach the box in English unnoticed.
+func TestInfoLabelKnowsEveryDocumentLabel(t *testing.T) {
+	literal := func(e ast.Expr) (string, bool) {
+		if bl, ok := e.(*ast.BasicLit); ok && bl.Kind == token.STRING {
+			s, err := strconv.Unquote(bl.Value)
+			return s, err == nil
+		}
+		return "", false
+	}
+	isField := func(e ast.Expr) bool {
+		switch e := e.(type) {
+		case *ast.Ident:
+			return e.Name == "Field"
+		case *ast.SelectorExpr:
+			return e.Sel.Name == "Field"
+		}
+		return false
+	}
+	parse := func(pattern string) []*ast.File {
+		files, err := filepath.Glob(pattern)
+		if err != nil || len(files) == 0 {
+			t.Fatalf("%s: %v", pattern, err)
+		}
+		var out []*ast.File
+		for _, f := range files {
+			if strings.HasSuffix(f, "_test.go") {
+				continue
+			}
+			file, err := parser.ParseFile(token.NewFileSet(), f, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			out = append(out, file)
+		}
+		return out
+	}
+	// The cases infoLabel has.
+	known := map[string]bool{}
+	for _, file := range parse("info_labels.go") {
+		ast.Inspect(file, func(n ast.Node) bool {
+			if cc, ok := n.(*ast.CaseClause); ok {
+				for _, e := range cc.List {
+					if s, ok := literal(e); ok {
+						known[s] = true
+					}
+				}
+			}
+			return true
+		})
+	}
+	// The labels document and the box's terminal section write.
+	labels := map[string]bool{}
+	field := func(cl *ast.CompositeLit) {
+		for i, el := range cl.Elts {
+			if kv, ok := el.(*ast.KeyValueExpr); ok {
+				if id, ok := kv.Key.(*ast.Ident); ok && id.Name == "Label" {
+					if s, ok := literal(kv.Value); ok {
+						labels[s] = true
+					}
+				}
+			} else if i == 0 {
+				if s, ok := literal(el); ok {
+					labels[s] = true
+				}
+			}
+		}
+	}
+	for _, file := range append(parse("../document/*.go"), parse("info.go")...) {
+		ast.Inspect(file, func(n ast.Node) bool {
+			switch n := n.(type) {
+			case *ast.CallExpr:
+				name := ""
+				switch fn := n.Fun.(type) {
+				case *ast.Ident:
+					name = fn.Name
+				case *ast.SelectorExpr:
+					name = fn.Sel.Name
+				}
+				if name == "Section" && len(n.Args) > 0 {
+					if s, ok := literal(n.Args[0]); ok {
+						labels[s] = true
+					}
+				}
+			case *ast.CompositeLit:
+				if isField(n.Type) {
+					field(n)
+				}
+				if at, ok := n.Type.(*ast.ArrayType); ok && isField(at.Elt) {
+					for _, el := range n.Elts {
+						if cl, ok := el.(*ast.CompositeLit); ok && cl.Type == nil {
+							field(cl)
+						}
+					}
+				}
+			}
+			return true
+		})
+	}
+	if len(labels) < 100 {
+		t.Fatalf("found only %d labels: the scan is broken", len(labels))
+	}
+	for label := range labels {
+		if !known[label] {
+			t.Errorf("infoLabel has no case for %q", label)
+		}
 	}
 }

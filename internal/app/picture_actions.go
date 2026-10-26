@@ -24,6 +24,17 @@ type pictureItem struct {
 	shown func() image.Image // What is on screen now; called when an entry runs.
 	link  string             // The link around it, if any.
 	video bool               // Offer Save frame as PNG.
+	// untitled: name is the English "picture", for want of a file or alt
+	// text; title says it in the language in use.
+	untitled bool
+}
+
+// title heads p's menu: its name, or a word for a picture without one.
+func (p pictureItem) title() string {
+	if p.untitled {
+		return i18n.T("app.actions.picture", "picture")
+	}
+	return p.name
 }
 
 // imageCopied and shownSaved are the answers of the commands that copy a
@@ -283,7 +294,7 @@ func (m *Model) openItemActions(at image.Point, pointer bool) tea.Cmd {
 			area := m.pictureArea()
 			at = image.Pt(area.Min.X+area.Dx()/2, area.Min.Y+area.Dy()/2)
 		}
-		return m.openActions(p.name, m.pictureEntries(p), at)
+		return m.openActions(p.title(), m.pictureEntries(p), at)
 	}
 	if m.tabItems() {
 		return m.markdownItemActions(at, pointer)

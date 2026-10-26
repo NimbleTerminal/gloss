@@ -1367,7 +1367,7 @@ other = "Diseño y filtros"
 other = "elegir tipos de archivo"
 
 [app.help.layout.unsupported]
-other = "ocultar/mostrar atenuados"
+other = "ocultar/ver no compatibles"
 
 [app.help.leave.close]
 other = "cerrar ventana o volver"
@@ -1433,7 +1433,7 @@ other = "alambre (solicitado)"
 other = "Esc cerrar"
 
 [app.openWith.editKeys]
-other = "↑/↓ elegir · Enter editar · Tab abrir · d por defecto"
+other = "↑/↓ elegir · Enter editar · Tab abrir con · d por defecto"
 
 [app.openWith.editTitle]
 other = "Editar con"
@@ -1463,7 +1463,7 @@ other = "Gestionar apps — todos los formatos"
 other = "No hay apps instaladas que gestionar"
 
 [app.openWith.openKeys]
-other = "↑/↓ elegir · Enter abrir · Tab editar · d por defecto"
+other = "↑/↓ elegir · Enter abrir · Tab editar con · d por defecto"
 
 [app.openWith.openTitle]
 other = "Abrir con"
@@ -1751,7 +1751,7 @@ other = "Pantalla"
 other = "Hojas"
 
 [app.info.label.shown]
-other = "Mostrado"
+other = "Se muestra"
 
 [app.info.label.size]
 other = "Tamaño"
@@ -1778,7 +1778,7 @@ other = "Tabla"
 other = "Tablas"
 
 [app.info.label.taken]
-other = "Tomada"
+other = "Fecha de captura"
 
 [app.info.label.terminal]
 other = "Terminal"
@@ -1823,7 +1823,7 @@ other = "Eje vertical"
 other = "Vídeo"
 
 [app.info.label.viewBox]
-other = "Caja de vista"
+other = "viewBox"
 
 [app.info.label.words]
 other = "Palabras"
@@ -1833,3 +1833,9 @@ other = "Libro"
 
 [app.info.label.zooms]
 other = "Niveles de zoom"
+
+[app.openWith.savedUnavailable]
+other = " (la app guardada no está disponible)"
+
+[app.actions.picture]
+other = "imagen"

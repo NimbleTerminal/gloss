@@ -103,7 +103,7 @@ func browserHelpRight() []helpSection {
 		{i18n.T("app.help.leave.title", "Find and leave"), []helpRow{
 			{"/", i18n.T("app.help.leave.find", "find files (empty filter)")},
 			{"G", i18n.T("app.help.leave.go", "go to folder (empty filter)")},
-			{"Esc", i18n.T("app.help.leave.close", "close popup or go back")},
+			{"Esc", i18n.T("app.help.leave.close", "close popup / back to view")},
 			{"Ctrl-C", i18n.T("app.help.leave.quit", "quit gloss")},
 			{"", i18n.T("app.help.leave.keeps", "Help keeps your filter and selection")},
 		}},

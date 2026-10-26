@@ -191,9 +191,9 @@ func (v *markdownView) pictureAt(index, first, last int) pageItem {
 	case asset.Path != "":
 		name = filepath.Base(asset.Path)
 	case name == "":
-		name = "picture"
+		name = "picture" // A scratch file's name too: English.
 	}
-	p := pictureItem{name: name, path: asset.Path, link: v.content.imageLinks[index], shown: func() image.Image {
+	p := pictureItem{name: name, untitled: asset.Path == "" && asset.Alt == "", path: asset.Path, link: v.content.imageLinks[index], shown: func() image.Image {
 		if a := v.animators[index]; a != nil {
 			if shown := a.Status().Presented; shown != nil {
 				return shown.Image()
@@ -437,7 +437,7 @@ func (m *Model) markdownItemActions(at image.Point, pointer bool) tea.Cmd {
 func itemTitle(it pageItem) string {
 	switch it.kind {
 	case itemPicture:
-		return it.picture.name
+		return it.picture.title()
 	case itemLink:
 		return it.url
 	}
@@ -630,9 +630,9 @@ func (m *Model) typesetPageItem(it document.TypesetItem) pageItem {
 		case it.Path != "":
 			name = filepath.Base(it.Path)
 		case name == "":
-			name = "picture"
+			name = "picture" // A scratch file's name too: English.
 		}
-		p := pictureItem{name: name, path: it.Path, link: it.URL, shown: func() image.Image { return m.typesetPictureShown(it) }}
+		p := pictureItem{name: name, untitled: it.Path == "" && it.Alt == "", path: it.Path, link: it.URL, shown: func() image.Image { return m.typesetPictureShown(it) }}
 		return pageItem{kind: itemPicture, picture: p, rects: it.Rects}
 	case document.TypesetLinkItem:
 		return pageItem{kind: itemLink, url: it.URL, rects: it.Rects}
