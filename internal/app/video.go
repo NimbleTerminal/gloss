@@ -9,6 +9,7 @@ import (
 	"nimbleterminal.dev/ntvideo"
 
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // videoSeek is how far ← and → move in a video.
@@ -190,7 +191,30 @@ func trackName(t ntvideo.Track) string {
 	case t.Language != "":
 		return t.Language
 	}
-	return "track " + t.ID
+	return i18n.Tf("app.video.track", "track %s", t.ID)
+}
+
+// videoState names a player's state in the language in use.
+func videoState(s ntvideo.State) string {
+	switch s {
+	case ntvideo.Idle:
+		return i18n.T("app.video.idle", "idle")
+	case ntvideo.Loading:
+		return i18n.T("app.video.loading", "loading")
+	case ntvideo.Paused:
+		return i18n.T("app.video.paused", "paused")
+	case ntvideo.Playing:
+		return i18n.T("app.video.playing", "playing")
+	case ntvideo.Buffering:
+		return i18n.T("app.video.buffering", "buffering")
+	case ntvideo.Ended:
+		return i18n.T("app.video.ended", "ended")
+	case ntvideo.Failed:
+		return i18n.T("app.video.failed", "failed")
+	case ntvideo.Closed:
+		return i18n.T("app.video.closed", "closed")
+	}
+	return string(s)
 }
 
 // videoDetail is the status line's account of the video.
@@ -200,13 +224,13 @@ func (m *Model) videoDetail() string {
 	if s.Duration > 0 {
 		detail += "/" + document.Clock(s.Duration)
 	}
-	state := string(s.State)
+	state := videoState(s.State)
 	if s.Err != nil {
 		state = s.Err.Error()
 	}
 	for _, t := range s.CaptionTracks {
 		if t.Selected {
-			detail += " · subtitles " + safe(trackName(t))
+			detail += " · " + i18n.Tf("app.video.subtitles", "subtitles %s", safe(trackName(t)))
 		}
 	}
 	return detail + " · " + state

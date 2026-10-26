@@ -1,12 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/theme"
 )
 
@@ -90,7 +90,7 @@ func (m *Model) themePickerView(w, h int) string {
 	rows := max(1, h-6)
 	start := max(0, min(p.cursor-rows/2, len(p.choices)-rows))
 	var b strings.Builder
-	b.WriteString("Themes\n")
+	b.WriteString(ansi.Truncate(i18n.T("app.theme.title", "Themes"), width, "…") + "\n")
 	for i := start; i < min(len(p.choices), start+rows); i++ {
 		c := p.choices[i]
 		label := "  " + c.Name
@@ -104,7 +104,7 @@ func (m *Model) themePickerView(w, h int) string {
 		}
 		b.WriteString(style.Render(row) + "\n")
 	}
-	b.WriteString(ansi.Truncate(fmt.Sprintf("%d/%d · ↑/↓ preview · Enter keep", p.cursor+1, len(p.choices)), width, "…"))
-	b.WriteString("\n" + ansi.Truncate("Esc restores previous theme", width, "…"))
+	b.WriteString(ansi.Truncate(i18n.Tf("app.theme.hint", "%d/%d · ↑/↓ preview · Enter keep", p.cursor+1, len(p.choices)), width, "…"))
+	b.WriteString("\n" + ansi.Truncate(i18n.T("app.theme.restore", "Esc restores previous theme"), width, "…"))
 	return lipgloss.NewStyle().Foreground(m.palette().Foreground).Background(m.palette().Background).Border(lipgloss.RoundedBorder()).BorderForeground(m.palette().Accent).Width(width + 2).Render(b.String())
 }

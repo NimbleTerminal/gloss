@@ -438,82 +438,485 @@ other = "{{.Name}} 是空文件。"
 [web.pick.tooBig]
 other = "{{.Name}} 超过 {{.Limit}}。"
 
+[app.actions.enlarge]
+other = "请放大终端"
+
+[app.browser.byDate]
+other = "日期"
+
+[app.browser.byKind]
+other = "类型"
+
+[app.browser.byName]
+other = "名称"
+
+[app.browser.find]
+other = "查找"
+
+[app.browser.findKeys]
+other = "Enter 搜索并打开 · ↑/↓ 选择 · Ctrl-A 全部添加 · Esc 返回"
+
+[app.browser.goKeys]
+other = "输入文件夹路径 · Tab 补全文件夹 · Enter 前往 · Esc 返回"
+
+[app.browser.hideGreyed]
+other = "隐藏灰显项"
+
+[app.browser.keys]
+other = "?/F1 帮助 · Enter 打开 · ←/→ 文件夹 · / 查找 · G 前往 · Tab 补全 · Ctrl-F 类型 · Ctrl-L 布局 · Ctrl-G 位置 · Ctrl-S 排序 · Ctrl-T %s · Ctrl-X %s · Alt-Enter 打开方式 · Esc 取消"
+
+[app.browser.noText]
+other = "不显示文本"
+
+[app.browser.open]
+other = "打开"
+
+[app.browser.order]
+other = "按%s"
+
+[app.browser.showGreyed]
+other = "显示灰显项"
+
+[app.browser.text]
+other = "显示文本"
+
 [app.enlarge]
 other = "gloss：请放大终端"
 
+[app.files.gridKeys]
+other = "←→↑↓ 选择 · Enter 打开 · t 列表 · Esc 取消 · q 退出"
+
+[app.files.gridStatus]
+other = "文件 · 网格 · 已选 %d/%d · 当前 %d"
+
+[app.files.keys]
+other = "↑/↓ 选择 · Enter 打开 · t 缩略图 · v 预览 · w/W 应用 · Esc 取消 · q 退出"
+
+[app.files.status]
+other = "文件 · 已选 %d/%d · 当前 %d"
+
+[app.files.thumbnails]
+other = "正在生成缩略图"
+
+[app.find.found]
+other = "找到 %d 个"
+
+[app.find.searching]
+other = "正在搜索"
+
+[app.find.where]
+other = "在 %s 中搜索"
+
+[app.font.hint]
+other = "↑/↓ 预览 · Enter 保留 · Esc 取消"
+
+[app.font.status]
+other = "↑/↓ 字体 · Enter 保留 · Esc 取消 · +/- 缩放"
+
+[app.font.title]
+other = "字体 · %s"
+
+[app.font.unavailable]
+other = "无法预览：%s"
 
 [app.formats.3d]
 other = "3D"
 
-
 [app.formats.comma]
 other = "、"
-
 
 [app.formats.doc]
 other = "文档"
 
-
 [app.formats.images]
 other = "图片"
-
 
 [app.formats.label]
 other = "%s："
 
-
 [app.formats.mapNames]
 other = "%s 和栅格 %s"
-
 
 [app.formats.maps]
 other = "地图"
 
-
 [app.formats.meshes]
 other = "%s 和 %s 网格"
-
 
 [app.formats.plainText]
 other = "纯文本"
 
-
 [app.formats.someMaps]
 other = "地图"
-
 
 [app.formats.text]
 other = "文本"
 
-
 [app.formats.textNames]
 other = "%s、纯文本和源代码"
 
+[app.keys.actions]
+other = "a 操作"
+
+[app.keys.actionsLayer]
+other = "↑/↓ 选择 · Enter 执行 · Esc 关闭"
+
+[app.keys.background]
+other = "B 背景色"
+
+[app.keys.browse]
+other = "o 浏览"
+
+[app.keys.cancel]
+other = "q 取消"
+
+[app.keys.chop]
+other = "S 截断"
+
+[app.keys.clear]
+other = "Esc 清除"
+
+[app.keys.close]
+other = "Esc 关闭"
+
+[app.keys.color]
+other = "C 颜色"
+
+[app.keys.colorLayer]
+other = "Tab 模式 · ↑/↓ ←/→ 选择 · Space 应用 · r 文件原色 · Enter 保留 · Esc 撤销"
+
+[app.keys.columns]
+other = "c 列"
+
+[app.keys.columnsLayer]
+other = "↑/↓ 选择 · Space 显示/隐藏 · a 全部 · n 全不选 · Esc 关闭"
+
+[app.keys.copy]
+other = "y 复制所选"
+
+[app.keys.export]
+other = "e 导出"
+
+[app.keys.exportFrame]
+other = "e 导出当前帧"
+
+[app.keys.files]
+other = "[/] 文件"
+
+[app.keys.findPlace]
+other = "/ 查找地点"
+
+[app.keys.fit]
+other = "f 适应"
+
+[app.keys.fitWidth]
+other = "f 适应宽度"
+
+[app.keys.graphics]
+other = "g 图形"
+
+[app.keys.help]
+other = "? 帮助"
+
+[app.keys.info]
+other = "i 详情"
+
+[app.keys.items]
+other = "Tab 条目"
+
+[app.keys.line]
+other = ": 跳转行"
+
+[app.keys.menu]
+other = "m 文件"
+
+[app.keys.move]
+other = "↑/↓ ←/→ 移动"
+
+[app.keys.nextFiles]
+other = "n/p 文件"
+
+[app.keys.normalSpeed]
+other = "Backspace 1×"
+
+[app.keys.numbers]
+other = "# 行号"
+
+[app.keys.openAddress]
+other = "Enter 打开网址"
+
+[app.keys.optionSelect]
+other = "⌥-拖动选择"
+
+[app.keys.page]
+other = "Space/b 翻页"
+
+[app.keys.pages]
+other = "n/p 翻页"
+
+[app.keys.pan]
+other = "方向键 平移"
+
+[app.keys.parts]
+other = "c 部件"
+
+[app.keys.partsLayer]
+other = "↑/↓ 选择 · Space 显示/隐藏 · Enter 聚焦 · a 全部 · n 仅此项 · X 全部并关闭 · Esc 关闭"
+
+[app.keys.pause]
+other = "Space 暂停/播放"
+
+[app.keys.play]
+other = "Space 播放/暂停"
+
+[app.keys.qrAddress]
+other = "u 网址二维码"
+
+[app.keys.qrLayer]
+other = "Esc/u 关闭二维码 · g 图形 · e 导出二维码 · q 退出"
+
+[app.keys.quit]
+other = "q 退出"
+
+[app.keys.screen]
+other = "Space/b 翻屏"
+
+[app.keys.scroll]
+other = "↑/↓ 滚动"
+
+[app.keys.search]
+other = "/ 搜索"
+
+[app.keys.seek]
+other = "←/→ 跳转"
+
+[app.keys.send]
+other = "Enter 发送 %s"
+
+[app.keys.sheets]
+other = "n/p 工作表"
+
+[app.keys.shiftSelect]
+other = "Shift-拖动选择"
+
+[app.keys.source]
+other = "s 源码"
+
+[app.keys.spaceScroll]
+other = "Space/b 滚动"
+
+[app.keys.speed]
+other = "</> 速度"
+
+[app.keys.subtitles]
+other = "c 字幕"
+
+[app.keys.tables]
+other = "n/p 表"
+
+[app.keys.text]
+other = "t 文本"
+
+[app.keys.typeset]
+other = "t 排版"
+
+[app.keys.typesetView]
+other = "s 排版视图"
+
+[app.keys.wheel]
+other = "↑/↓/滚轮 滚动"
+
+[app.keys.wrap]
+other = "S 换行"
+
+[app.keys.zoom]
+other = "+/- 缩放"
 
 [app.landing.browse]
 other = "从文件管理器拖入，粘贴路径，或按 o 浏览。"
 
-
 [app.landing.drop]
 other = "将文件拖到此处打开"
-
 
 [app.landing.paste]
 other = "从文件管理器拖入，或粘贴路径。"
 
-
 [app.landing.send]
 other = "将文件拖到此处发送"
-
 
 [app.landing.sendHow]
 other = "从文件管理器拖入，粘贴路径，或按 o 浏览。"
 
-
 [app.landing.terminal]
 other = "从文件管理器拖到终端上。"
-
 
 [app.landing.tiny]
 other = "GLOSS -- 拖到此处"
 
+[app.line.keys]
+other = "Enter 跳转到该行 · Esc 取消"
+
+[app.pick.files]
+other = "{{.Count}} 个文件"
+
+[app.place.keys]
+other = "Enter 查找 · Esc 取消"
+
+[app.place.prompt]
+other = "查找地点："
+
+[app.sheet.cell]
+other = "单元格 %s"
+
+[app.sheet.col]
+other = "列 %s/%s"
+
+[app.sheet.cols]
+other = "列 %s–%s/%s"
+
+[app.sheet.empty]
+other = "空"
+
+[app.sheet.firstRows]
+other = "已读取前 %s 行"
+
+[app.sheet.row]
+other = "行 %d/%s"
+
+[app.sheet.rows]
+other = "行 %d–%d/%s"
+
+[app.sheet.shown]
+other = "显示列 %d/%d"
+
+[app.status.background]
+other = "背景 #%02x%02x%02x"
+
+[app.status.column]
+other = "列 %d"
+
+[app.status.features]
+other = "%s 个要素"
+
+[app.status.finished]
+other = "已结束"
+
+[app.status.footnote]
+other = "跳到脚注"
+
+[app.status.footnoteBack]
+other = "返回脚注引用处"
+
+[app.status.frame]
+other = "帧 %d/%d"
+
+[app.status.line]
+other = "行 %d/%d"
+
+[app.status.link]
+other = "链接：%s"
+
+[app.status.noFiles]
+other = "无文件"
+
+[app.status.noFilesYet]
+other = "尚无文件"
+
+[app.status.notebook]
+other = "笔记本"
+
+[app.status.page]
+other = "第 %d/%d 页"
+
+[app.status.painted]
+other = "已上色 #%02x%02x%02x"
+
+[app.status.parts]
+other = "部件 %d/%d"
+
+[app.status.paused]
+other = "已暂停"
+
+[app.status.playing]
+other = "播放中"
+
+[app.status.points]
+other = "%s 个点"
+
+[app.status.rendered]
+other = "渲染"
+
+[app.status.seeking]
+other = "定位到 %d"
+
+[app.status.sheet]
+other = "工作表 %d/%d"
+
+[app.status.source]
+other = "源码"
+
+[app.status.speed]
+other = "%g× 速度"
+
+[app.status.table]
+other = "表 %d/%d"
+
+[app.status.text]
+other = "文本"
+
+[app.status.textFormat]
+other = "文本"
+
+[app.status.thumbnail]
+other = "缩略图"
+
+[app.status.triangles]
+other = "%s 个三角形"
+
+[app.status.typeset]
+other = "排版"
+
+[app.status.zoom]
+other = "缩放 %d"
+
+[app.theme.hint]
+other = "%d/%d · ↑/↓ 预览 · Enter 保留"
+
+[app.theme.restore]
+other = "Esc 恢复原来的主题"
+
+[app.theme.status]
+other = "↑/↓ 预览主题 · Enter 保留 · Esc 取消"
+
+[app.theme.title]
+other = "主题"
+
+[app.video.buffering]
+other = "缓冲中"
+
+[app.video.closed]
+other = "已关闭"
+
+[app.video.ended]
+other = "已结束"
+
+[app.video.failed]
+other = "失败"
+
+[app.video.idle]
+other = "空闲"
+
+[app.video.loading]
+other = "加载中"
+
+[app.video.paused]
+other = "已暂停"
+
+[app.video.playing]
+other = "播放中"
+
+[app.video.subtitles]
+other = "字幕 %s"
+
+[app.video.track]
+other = "轨道 %s"

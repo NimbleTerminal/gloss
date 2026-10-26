@@ -5,6 +5,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // menuEntry is one thing the action menu can do.
@@ -164,7 +165,7 @@ func (m *Model) actionsMouse(msg tea.Msg) (tea.Cmd, bool) {
 // be drawn.
 func (m *Model) actionsNote() string {
 	if m.layer == layerActions && m.actionsTooSmall() {
-		return "enlarge terminal"
+		return i18n.T("app.actions.enlarge", "enlarge terminal")
 	}
 	return ""
 }

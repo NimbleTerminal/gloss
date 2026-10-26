@@ -15,6 +15,7 @@ import (
 	ntpicture "nimbleterminal.dev/ntpicture"
 
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // MapProvider is an online map service the user named: tiles drawn under a
@@ -168,7 +169,7 @@ func (m *Model) placeKey(msg tea.KeyPressMsg) tea.Cmd {
 
 // status is the prompt as the hint line shows it.
 func (in *placeInput) status(width int) string {
-	return ansi.Truncate(" Find a place: "+string(in.draft)+"\x1b[7m▏\x1b[27m  Enter find · Esc cancel", width, "")
+	return ansi.Truncate(" "+i18n.T("app.place.prompt", "Find a place:")+" "+string(in.draft)+"\x1b[7m▏\x1b[27m  "+i18n.T("app.place.keys", "Enter find · Esc cancel"), width, "")
 }
 
 // findPlace asks the geocoder where query is, off the event loop.

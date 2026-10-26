@@ -8,6 +8,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // DropMsg adds files to the session. Hosts without bracketed paste, such as
@@ -169,7 +170,7 @@ func (m *Model) picking() string {
 	case !m.opts.Pick || len(m.opts.Files) == 0:
 		return ""
 	case len(m.added) > 1:
-		return fmt.Sprintf("%d files", len(m.added))
+		return i18n.Tn("app.pick.files", "{{.Count}} file", "{{.Count}} files", len(m.added))
 	case len(m.added) == 1:
 		return safe(filepath.Base(m.added[0]))
 	}

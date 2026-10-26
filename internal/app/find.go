@@ -3,7 +3,6 @@
 package app
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -12,6 +11,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // finder searches the folder the browser shows for files by glob, kind,
@@ -110,11 +110,11 @@ func (f *finder) view(w, h int) string {
 func (f *finder) status() string {
 	switch {
 	case f.running:
-		return "searching"
+		return i18n.T("app.find.searching", "searching")
 	case !f.searched:
-		return "search " + safe(f.dir)
+		return i18n.Tf("app.find.where", "search %s", safe(f.dir))
 	}
-	out := fmt.Sprintf("%d found", len(f.results))
+	out := i18n.Tf("app.find.found", "%d found", len(f.results))
 	if f.note != "" {
 		out += " · " + f.note
 	}

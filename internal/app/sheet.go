@@ -10,6 +10,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 const (
@@ -344,25 +345,25 @@ func fit(text string, width int) string {
 // status describes what is on show, for the status bar.
 func (v *sheetView) status(w, h int) string {
 	if v.rows() == 0 {
-		return "empty"
+		return i18n.T("app.sheet.empty", "empty")
 	}
 	last := min(v.rows(), v.row+h-1)
-	rows := fmt.Sprintf("row %d–%d/%s", v.row+1, last, grouped(v.rows()+v.sheet.MoreRows))
+	rows := i18n.Tf("app.sheet.rows", "row %d–%d/%s", v.row+1, last, grouped(v.rows()+v.sheet.MoreRows))
 	if last == v.row+1 {
-		rows = fmt.Sprintf("row %d/%s", v.row+1, grouped(v.rows()+v.sheet.MoreRows))
+		rows = i18n.Tf("app.sheet.row", "row %d/%s", v.row+1, grouped(v.rows()+v.sheet.MoreRows))
 	}
 	n := v.shown(v.col, w)
 	end := document.ColumnName(len(v.widths) + v.sheet.MoreColumns - 1)
-	cols := fmt.Sprintf("col %s–%s/%s", document.ColumnName(v.cols[v.col]), document.ColumnName(v.cols[v.col+n-1]), end)
+	cols := i18n.Tf("app.sheet.cols", "col %s–%s/%s", document.ColumnName(v.cols[v.col]), document.ColumnName(v.cols[v.col+n-1]), end)
 	if n == 1 {
-		cols = fmt.Sprintf("col %s/%s", document.ColumnName(v.cols[v.col]), end)
+		cols = i18n.Tf("app.sheet.col", "col %s/%s", document.ColumnName(v.cols[v.col]), end)
 	}
-	out := fmt.Sprintf("cell %s · %s · %s", v.ref(), rows, cols)
+	out := i18n.Tf("app.sheet.cell", "cell %s", v.ref()) + " · " + rows + " · " + cols
 	if v.hiding() > 0 {
-		out += fmt.Sprintf(" · cols %d/%d", len(v.cols), len(v.hidden))
+		out += " · " + i18n.Tf("app.sheet.shown", "cols %d/%d", len(v.cols), len(v.hidden))
 	}
 	if v.sheet.MoreRows > 0 {
-		out += fmt.Sprintf(" · first %s rows read", grouped(v.rows()))
+		out += " · " + i18n.Tf("app.sheet.firstRows", "first %s rows read", grouped(v.rows()))
 	}
 	if url := v.url(); url != "" {
 		out += " → " + safe(url)

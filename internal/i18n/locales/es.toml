@@ -438,82 +438,489 @@ other = "{{.Name}} está vacío."
 [web.pick.tooBig]
 other = "{{.Name}} supera {{.Limit}}."
 
+[app.actions.enlarge]
+other = "agrande la terminal"
+
+[app.browser.byDate]
+other = "fecha"
+
+[app.browser.byKind]
+other = "tipo"
+
+[app.browser.byName]
+other = "nombre"
+
+[app.browser.find]
+other = "Buscar"
+
+[app.browser.findKeys]
+other = "Enter buscar y abrir · ↑/↓ elegir · Ctrl-A añadir todo · Esc volver"
+
+[app.browser.goKeys]
+other = "Escriba la ruta de una carpeta · Tab completa carpetas · Enter ir · Esc volver"
+
+[app.browser.hideGreyed]
+other = "ocultar atenuados"
+
+[app.browser.keys]
+other = "?/F1 ayuda · Enter abrir · ←/→ carpetas · / buscar · G ir a · Tab completar · Ctrl-F tipos · Ctrl-L diseño · Ctrl-G lugares · Ctrl-S ordenar · Ctrl-T %s · Ctrl-X %s · Alt-Enter abrir con · Esc cancelar"
+
+[app.browser.noText]
+other = "sin texto"
+
+[app.browser.open]
+other = "Abrir"
+
+[app.browser.order]
+other = "por %s"
+
+[app.browser.showGreyed]
+other = "mostrar atenuados"
+
+[app.browser.text]
+other = "con texto"
+
 [app.enlarge]
 other = "gloss: agrande la terminal"
 
+[app.files.gridKeys]
+other = "←→↑↓ elegir · Enter abrir · t lista · Esc cancelar · q salir"
+
+[app.files.gridStatus]
+other = "Archivos · cuadrícula · %d/%d seleccionado · actual %d"
+
+[app.files.keys]
+other = "↑/↓ elegir · Enter abrir · t miniaturas · v vista previa · w/W apps · Esc cancelar · q salir"
+
+[app.files.status]
+other = "Archivos · %d/%d seleccionado · actual %d"
+
+[app.files.thumbnails]
+other = "creando miniaturas"
+
+[app.find.found]
+other = "%d encontrados"
+
+[app.find.searching]
+other = "buscando"
+
+[app.find.where]
+other = "buscar en %s"
+
+[app.font.hint]
+other = "↑/↓ vista previa · Enter conservar · Esc cancelar"
+
+[app.font.status]
+other = "↑/↓ fuentes · Enter conservar · Esc cancelar · +/- zoom"
+
+[app.font.title]
+other = "Fuentes · %s"
+
+[app.font.unavailable]
+other = "Vista previa no disponible: %s"
 
 [app.formats.3d]
 other = "3D"
 
-
 [app.formats.comma]
 other = ", "
-
 
 [app.formats.doc]
 other = "Documentos"
 
-
 [app.formats.images]
 other = "Imágenes"
-
 
 [app.formats.label]
 other = "%s:"
 
-
 [app.formats.mapNames]
 other = "%s y %s ráster"
-
 
 [app.formats.maps]
 other = "Mapas"
 
-
 [app.formats.meshes]
 other = "mallas %s y %s"
-
 
 [app.formats.plainText]
 other = "texto"
 
-
 [app.formats.someMaps]
 other = "mapas"
-
 
 [app.formats.text]
 other = "Texto"
 
-
 [app.formats.textNames]
 other = "%s, texto plano y código fuente"
 
+[app.keys.actions]
+other = "a acciones"
+
+[app.keys.actionsLayer]
+other = "↑/↓ elegir · Enter ejecutar · Esc cerrar"
+
+[app.keys.background]
+other = "B color de fondo"
+
+[app.keys.browse]
+other = "o explorar"
+
+[app.keys.cancel]
+other = "q cancelar"
+
+[app.keys.chop]
+other = "S cortar"
+
+[app.keys.clear]
+other = "Esc borrar"
+
+[app.keys.close]
+other = "Esc cerrar"
+
+[app.keys.color]
+other = "C color"
+
+[app.keys.colorLayer]
+other = "Tab modo · ↑/↓ ←/→ elegir · Space aplicar · r colores del archivo · Enter conservar · Esc deshacer"
+
+[app.keys.columns]
+other = "c columnas"
+
+[app.keys.columnsLayer]
+other = "↑/↓ elegir · Space mostrar/ocultar · a todas · n ninguna · Esc cerrar"
+
+[app.keys.copy]
+other = "y copiar selección"
+
+[app.keys.export]
+other = "e exportar"
+
+[app.keys.exportFrame]
+other = "e exportar fotograma"
+
+[app.keys.files]
+other = "[/] archivos"
+
+[app.keys.findPlace]
+other = "/ buscar un lugar"
+
+[app.keys.fit]
+other = "f ajustar"
+
+[app.keys.fitWidth]
+other = "f ajustar al ancho"
+
+[app.keys.graphics]
+other = "g gráficos"
+
+[app.keys.help]
+other = "? ayuda"
+
+[app.keys.info]
+other = "i info"
+
+[app.keys.items]
+other = "Tab elementos"
+
+[app.keys.line]
+other = ": línea"
+
+[app.keys.menu]
+other = "m archivos"
+
+[app.keys.move]
+other = "↑/↓ ←/→ mover"
+
+[app.keys.nextFiles]
+other = "n/p archivos"
+
+[app.keys.normalSpeed]
+other = "Backspace 1×"
+
+[app.keys.numbers]
+other = "# números"
+
+[app.keys.openAddress]
+other = "Enter abrir dirección"
+
+[app.keys.optionSelect]
+other = "⌥-arrastrar para seleccionar"
+
+[app.keys.page]
+other = "Space/b página"
+
+[app.keys.pages]
+other = "n/p páginas"
+
+[app.keys.pan]
+other = "flechas desplazar"
+
+[app.keys.parts]
+other = "c piezas"
+
+[app.keys.partsLayer]
+other = "↑/↓ elegir · Space mostrar/ocultar · Enter enfocar · a todas · n solo esta · X todas y cerrar · Esc cerrar"
+
+[app.keys.pause]
+other = "Space pausa/reproducir"
+
+[app.keys.play]
+other = "Space reproducir/pausa"
+
+[app.keys.qrAddress]
+other = "u QR de la dirección"
+
+[app.keys.qrLayer]
+other = "Esc/u cerrar QR · g gráficos · e exportar QR · q salir"
+
+[app.keys.quit]
+other = "q salir"
+
+[app.keys.screen]
+other = "Space/b pantalla"
+
+[app.keys.scroll]
+other = "↑/↓ desplazar"
+
+[app.keys.search]
+other = "/ buscar"
+
+[app.keys.seek]
+other = "←/→ saltar"
+
+[app.keys.send]
+other = "Enter enviar %s"
+
+[app.keys.sheets]
+other = "n/p hojas"
+
+[app.keys.shiftSelect]
+other = "Mayús-arrastrar para seleccionar"
+
+[app.keys.source]
+other = "s código"
+
+[app.keys.spaceScroll]
+other = "Space/b desplazar"
+
+[app.keys.speed]
+other = "</> velocidad"
+
+[app.keys.subtitles]
+other = "c subtítulos"
+
+[app.keys.tables]
+other = "n/p tablas"
+
+[app.keys.text]
+other = "t texto"
+
+[app.keys.typeset]
+other = "t maquetado"
+
+[app.keys.typesetView]
+other = "s vista maquetada"
+
+[app.keys.wheel]
+other = "↑/↓/rueda desplazar"
+
+[app.keys.wrap]
+other = "S ajustar"
+
+[app.keys.zoom]
+other = "+/- zoom"
 
 [app.landing.browse]
 other = "Arrástrelos desde un gestor de archivos, pegue rutas o pulse o para explorar."
 
-
 [app.landing.drop]
 other = "Suelte archivos aquí para abrirlos"
-
 
 [app.landing.paste]
 other = "Arrástrelos desde un gestor de archivos o pegue sus rutas."
 
-
 [app.landing.send]
 other = "Suelte un archivo aquí para enviarlo"
-
 
 [app.landing.sendHow]
 other = "Arrástrelo desde un gestor de archivos, pegue su ruta o pulse o para explorar."
 
-
 [app.landing.terminal]
 other = "Arrástrelos desde un gestor de archivos a la terminal."
-
 
 [app.landing.tiny]
 other = "GLOSS -- arrastre aquí"
 
+[app.line.keys]
+other = "Enter ir a la línea · Esc cancelar"
+
+[app.pick.files]
+one = "{{.Count}} archivo"
+other = "{{.Count}} archivos"
+
+[app.place.keys]
+other = "Enter buscar · Esc cancelar"
+
+[app.place.prompt]
+other = "Buscar un lugar:"
+
+[app.sheet.cell]
+other = "celda %s"
+
+[app.sheet.col]
+other = "col %s/%s"
+
+[app.sheet.cols]
+other = "col %s–%s/%s"
+
+[app.sheet.empty]
+other = "vacía"
+
+[app.sheet.firstRows]
+other = "leídas las primeras %s filas"
+
+[app.sheet.row]
+other = "fila %d/%s"
+
+[app.sheet.rows]
+other = "fila %d–%d/%s"
+
+[app.sheet.shown]
+other = "cols %d/%d"
+
+[app.status.background]
+other = "fondo #%02x%02x%02x"
+
+[app.status.column]
+other = "col %d"
+
+[app.status.features]
+one = "%s elemento"
+other = "%s elementos"
+
+[app.status.finished]
+other = "terminado"
+
+[app.status.footnote]
+other = "Ir a la nota al pie"
+
+[app.status.footnoteBack]
+other = "Volver a la referencia de la nota"
+
+[app.status.frame]
+other = "fotograma %d/%d"
+
+[app.status.line]
+other = "línea %d/%d"
+
+[app.status.link]
+other = "Enlace: %s"
+
+[app.status.noFiles]
+other = "sin archivos"
+
+[app.status.noFilesYet]
+other = "Aún no hay archivos"
+
+[app.status.notebook]
+other = "cuaderno"
+
+[app.status.page]
+other = "página %d/%d"
+
+[app.status.painted]
+other = "pintado #%02x%02x%02x"
+
+[app.status.parts]
+other = "piezas %d/%d"
+
+[app.status.paused]
+other = "en pausa"
+
+[app.status.playing]
+other = "reproduciendo"
+
+[app.status.points]
+one = "%s punto"
+other = "%s puntos"
+
+[app.status.rendered]
+other = "renderizado"
+
+[app.status.seeking]
+other = "saltando a %d"
+
+[app.status.sheet]
+other = "hoja %d/%d"
+
+[app.status.source]
+other = "código"
+
+[app.status.speed]
+other = "velocidad %g×"
+
+[app.status.table]
+other = "tabla %d/%d"
+
+[app.status.text]
+other = "texto"
+
+[app.status.textFormat]
+other = "Texto"
+
+[app.status.thumbnail]
+other = "miniatura"
+
+[app.status.triangles]
+one = "%s triángulo"
+other = "%s triángulos"
+
+[app.status.typeset]
+other = "maquetado"
+
+[app.status.zoom]
+other = "zoom %d"
+
+[app.theme.hint]
+other = "%d/%d · ↑/↓ vista previa · Enter conservar"
+
+[app.theme.restore]
+other = "Esc vuelve al tema anterior"
+
+[app.theme.status]
+other = "↑/↓ vista previa del tema · Enter conservar · Esc cancelar"
+
+[app.theme.title]
+other = "Temas"
+
+[app.video.buffering]
+other = "almacenando en búfer"
+
+[app.video.closed]
+other = "cerrado"
+
+[app.video.ended]
+other = "terminado"
+
+[app.video.failed]
+other = "error"
+
+[app.video.idle]
+other = "inactivo"
+
+[app.video.loading]
+other = "cargando"
+
+[app.video.paused]
+other = "en pausa"
+
+[app.video.playing]
+other = "reproduciendo"
+
+[app.video.subtitles]
+other = "subtítulos %s"
+
+[app.video.track]
+other = "pista %s"

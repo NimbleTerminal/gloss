@@ -254,43 +254,57 @@ func (m *Model) statusLine(w, h int) (bar, hint string) {
 	return m.documentStatus(w, h)
 }
 
+// orderName names the file browser's sort order.
+func orderName(i int) string {
+	switch orderNames[i] {
+	case "name":
+		return i18n.T("app.browser.byName", "name")
+	case "date":
+		return i18n.T("app.browser.byDate", "date")
+	case "kind":
+		return i18n.T("app.browser.byKind", "kind")
+	}
+	return orderNames[i]
+}
+
 func (m *Model) browserStatus(w int) (bar, hint string) {
 	// The end of a long path says where you are; the start rarely does.
-	dir, note := safe(m.opener.dir), " · by "+orderNames[m.sortBy]
+	dir, note := safe(m.opener.dir), " · "+i18n.Tf("app.browser.order", "by %s", orderName(m.sortBy))
 	if m.note != "" {
 		note += " · " + m.note
 	}
-	if over := ansi.StringWidth(" Open · "+dir+note) - w; over > 0 && over+1 < ansi.StringWidth(dir) {
+	open := " " + i18n.T("app.browser.open", "Open") + " · "
+	if over := ansi.StringWidth(open+dir+note) - w; over > 0 && over+1 < ansi.StringWidth(dir) {
 		dir = "…" + ansi.TruncateLeft(dir, over+1, "")
 	}
-	bar = lipgloss.NewStyle().Width(w).Render(ansi.Truncate(" Open · "+dir+note, w, "…"))
-	greyed, text := "hide greyed", "no text"
+	bar = lipgloss.NewStyle().Width(w).Render(ansi.Truncate(open+dir+note, w, "…"))
+	greyed, text := i18n.T("app.browser.hideGreyed", "hide greyed"), i18n.T("app.browser.noText", "no text")
 	if m.hideUnsupported {
-		greyed = "show greyed"
+		greyed = i18n.T("app.browser.showGreyed", "show greyed")
 	}
 	if m.noTextFiles {
-		text = "text"
+		text = i18n.T("app.browser.text", "text")
 	}
-	hint = ansi.Truncate(" ?/F1 help · Enter open · ←/→ folders · / find · G go to · Tab complete · Ctrl-F types · Ctrl-L layout · Ctrl-G places · Ctrl-S sort · Ctrl-T "+greyed+" · Ctrl-X "+text+" · Alt-Enter open with · Esc cancel", w, "")
+	hint = ansi.Truncate(" "+i18n.Tf("app.browser.keys", "?/F1 help · Enter open · ←/→ folders · / find · G go to · Tab complete · Ctrl-F types · Ctrl-L layout · Ctrl-G places · Ctrl-S sort · Ctrl-T %s · Ctrl-X %s · Alt-Enter open with · Esc cancel", greyed, text), w, "")
 	if m.opener.going {
-		hint = ansi.Truncate(" Type a folder's path · Tab completes folders · Enter go · Esc back", w, "")
+		hint = ansi.Truncate(" "+i18n.T("app.browser.goKeys", "Type a folder's path · Tab completes folders · Enter go · Esc back"), w, "")
 	}
 	if f := m.opener.find; f != nil {
-		bar = lipgloss.NewStyle().Width(w).Render(ansi.Truncate(" Find · "+f.status(), w, "…"))
-		hint = ansi.Truncate(" Enter search, then open · ↑/↓ select · Ctrl-A add all · Esc back", w, "")
+		bar = lipgloss.NewStyle().Width(w).Render(ansi.Truncate(" "+i18n.T("app.browser.find", "Find")+" · "+f.status(), w, "…"))
+		hint = ansi.Truncate(" "+i18n.T("app.browser.findKeys", "Enter search, then open · ↑/↓ select · Ctrl-A add all · Esc back"), w, "")
 	}
 	return bar, hint
 }
 
 func (m *Model) listStatus(w int) (bar, hint string) {
-	status := fmt.Sprintf(" Files · %d/%d selected · current %d", m.selection+1, len(m.opts.Files), m.index+1)
-	hint = " ↑/↓ select · Enter open · t thumbnails · v preview · w/W apps · Esc cancel · q quit"
+	status := " " + i18n.Tf("app.files.status", "Files · %d/%d selected · current %d", m.selection+1, len(m.opts.Files), m.index+1)
+	hint = " " + i18n.T("app.files.keys", "↑/↓ select · Enter open · t thumbnails · v preview · w/W apps · Esc cancel · q quit")
 	if m.screen == screenGrid && m.grid != nil {
-		status = fmt.Sprintf(" Files · grid · %d/%d selected · current %d", m.selection+1, len(m.opts.Files), m.index+1)
+		status = " " + i18n.Tf("app.files.gridStatus", "Files · grid · %d/%d selected · current %d", m.selection+1, len(m.opts.Files), m.index+1)
 		if m.grid.pending() {
-			status += " · making thumbnails"
+			status += " · " + i18n.T("app.files.thumbnails", "making thumbnails")
 		}
-		hint = " ←→↑↓ select · Enter open · t list · Esc cancel · q quit"
+		hint = " " + i18n.T("app.files.gridKeys", "←→↑↓ select · Enter open · t list · Esc cancel · q quit")
 	}
 	if m.note != "" {
 		status += " · " + m.note
@@ -302,7 +316,7 @@ func (m *Model) listStatus(w int) (bar, hint string) {
 // keys work: the document's own, and those of the layer over it.
 func (m *Model) documentStatus(w, h int) (bar, hint string) {
 	empty := len(m.opts.Files) == 0
-	name := "no files"
+	name := i18n.T("app.status.noFiles", "no files")
 	if !empty {
 		name = safe(filepath.Base(m.opts.Files[m.index]))
 		if m.opts.IsStdin(m.opts.Files[m.index]) {
@@ -319,18 +333,18 @@ func (m *Model) documentStatus(w, h int) (bar, hint string) {
 		status = " " + note + " · " + status[1:]
 	}
 	if empty {
-		status = " No files yet"
+		status = " " + i18n.T("app.status.noFilesYet", "No files yet")
 		if m.note != "" {
 			status += " · " + m.note
 		}
 	}
 	if m.hoverLinkActive && m.typeset != nil {
 		if address := m.linkAt(m.hoverLinkPoint.X, m.hoverLinkPoint.Y); address != "" {
-			status = " Link: " + safe(address)
+			status = " " + i18n.Tf("app.status.link", "Link: %s", safe(address))
 			if _, internal := document.FootnotePeer(address); internal {
-				status = " Return to footnote reference"
+				status = " " + i18n.T("app.status.footnoteBack", "Return to footnote reference")
 				if strings.HasPrefix(address, "gloss:fn:") {
-					status = " Jump to footnote"
+					status = " " + i18n.T("app.status.footnote", "Jump to footnote")
 				}
 			}
 		}
@@ -339,57 +353,72 @@ func (m *Model) documentStatus(w, h int) (bar, hint string) {
 	return bar, ansi.Truncate(m.hints(), w, "")
 }
 
+// counted fills form, a plural form from Tn with %s for n, with n grouped
+// by thousands.
+func counted(form string, n int) string { return fmt.Sprintf(form, grouped(n)) }
+
 // detail says what is shown of the document. How things are drawn, the
 // renderer and the transport, is the info box's to say.
 func (m *Model) detail(w, h int) string {
 	detail := fmt.Sprintf("%s · %dx", m.kind, 1<<m.zoom)
 	if m.animation != nil {
-		state := "playing"
+		state := i18n.T("app.status.playing", "playing")
 		if m.animation.Status().Paused {
-			state = "paused"
+			state = i18n.T("app.status.paused", "paused")
 		} else if m.animation.Status().Finished {
-			state = "finished"
+			state = i18n.T("app.status.finished", "finished")
 		}
 		if m.animation.target != 0 {
-			state = fmt.Sprintf("seeking %d", m.animation.target)
+			state = i18n.Tf("app.status.seeking", "seeking %d", m.animation.target)
 		}
-		detail += fmt.Sprintf(" · %g× speed · frame %d/%d · %s", m.animation.rate(), m.animation.player().Frame(), m.animation.player().Frames(), state)
+		detail += " · " + i18n.Tf("app.status.speed", "%g× speed", m.animation.rate()) + " · " + i18n.Tf("app.status.frame", "frame %d/%d", m.animation.player().Frame(), m.animation.player().Frames()) + " · " + state
 	}
 	if m.kind == "pdf" {
-		detail += fmt.Sprintf(" · page %d/%d", m.page, m.pages)
+		detail += " · " + i18n.Tf("app.status.page", "page %d/%d", m.page, m.pages)
 	}
 	switch {
 	case m.video != nil:
 		detail = m.videoDetail()
 	case m.mapFile != nil && m.mapFile.Tiles != nil:
-		detail = fmt.Sprintf("PMTiles · zoom %d", m.mapView.Zoom())
+		detail = "PMTiles · " + i18n.Tf("app.status.zoom", "zoom %d", m.mapView.Zoom())
 	case m.mapFile != nil:
-		detail = fmt.Sprintf("%s · %s · zoom %d", strings.ToUpper(m.kind), plural(len(m.mapFile.Data.Features), "feature"), m.mapView.Zoom())
+		n := len(m.mapFile.Data.Features)
+		detail = strings.ToUpper(m.kind) + " · " + counted(i18n.Tn("app.status.features", "%s feature", "%s features", n), n) + " · " + i18n.Tf("app.status.zoom", "zoom %d", m.mapView.Zoom())
 	case m.chart != nil:
-		detail = fmt.Sprintf("%s · %s", strings.ToUpper(m.kind), plural(m.triangles, "triangle"))
+		detail = strings.ToUpper(m.kind) + " · " + counted(i18n.Tn("app.status.triangles", "%s triangle", "%s triangles", m.triangles), m.triangles)
 		if m.triangles == 0 && m.points > 0 {
-			detail = fmt.Sprintf("%s · %s", strings.ToUpper(m.kind), plural(m.points, "point"))
+			detail = strings.ToUpper(m.kind) + " · " + counted(i18n.Tn("app.status.points", "%s point", "%s points", m.points), m.points)
 		}
 		if m.hasParts() && m.partsShown != nil {
-			detail += fmt.Sprintf(" · parts %d/%d", m.partsOnScreen(), len(m.parts))
+			detail += " · " + i18n.Tf("app.status.parts", "parts %d/%d", m.partsOnScreen(), len(m.parts))
 		}
 		if m.tint != nil {
-			detail += fmt.Sprintf(" · painted #%02x%02x%02x", m.tint.R, m.tint.G, m.tint.B)
+			detail += " · " + i18n.Tf("app.status.painted", "painted #%02x%02x%02x", m.tint.R, m.tint.G, m.tint.B)
 		}
 		if m.bg != nil {
-			detail += fmt.Sprintf(" · background #%02x%02x%02x", m.bg.R, m.bg.G, m.bg.B)
+			detail += " · " + i18n.Tf("app.status.background", "background #%02x%02x%02x", m.bg.R, m.bg.G, m.bg.B)
 		}
 	case m.typeset != nil && m.markdown == nil:
-		detail = map[string]string{"markdown": "Markdown", "text": "Text", "json": "JSON"}[m.kind] + " · typeset"
+		format := map[string]string{"markdown": "Markdown", "json": "JSON"}[m.kind]
+		if m.kind == "text" {
+			format = i18n.T("app.status.textFormat", "Text")
+		}
+		detail = format + " · " + i18n.T("app.status.typeset", "typeset")
 		if s := m.typesetShown; s != nil && s.Lines > 0 {
-			detail += fmt.Sprintf(" · line %d/%d", s.Line, s.Lines)
+			detail += " · " + i18n.Tf("app.status.line", "line %d/%d", s.Line, s.Lines)
 		}
 	case m.markdown != nil:
-		mode := "rendered"
+		mode := i18n.T("app.status.rendered", "rendered")
 		if m.markdown.raw {
-			mode = "source"
+			mode = i18n.T("app.status.source", "source")
 		}
-		format := map[string]string{"docx": "Word", "json": "JSON", "ipynb": "notebook", "html": "HTML", "text": "text"}[m.kind]
+		format := map[string]string{"docx": "Word", "json": "JSON", "html": "HTML"}[m.kind]
+		switch m.kind {
+		case "ipynb":
+			format = i18n.T("app.status.notebook", "notebook")
+		case "text":
+			format = i18n.T("app.status.text", "text")
+		}
 		if format == "" {
 			format = "Markdown"
 		}
@@ -406,24 +435,61 @@ func (m *Model) detail(w, h int) string {
 		detail = fmt.Sprintf("%s · %s", m.kind, m.sheet.status(w, h))
 		switch m.kind {
 		case "xlsx":
-			detail = fmt.Sprintf("xlsx · sheet %d/%d · %s · %s", m.page, m.pages, safe(m.sheet.sheet.Name), m.sheet.status(w, h))
+			detail = "xlsx · " + i18n.Tf("app.status.sheet", "sheet %d/%d", m.page, m.pages) + " · " + safe(m.sheet.sheet.Name) + " · " + m.sheet.status(w, h)
 		case "grist":
-			detail = fmt.Sprintf("grist · table %d/%d · %s · %s", m.page, m.pages, safe(m.sheet.sheet.Name), m.sheet.status(w, h))
+			detail = "grist · " + i18n.Tf("app.status.table", "table %d/%d", m.page, m.pages) + " · " + safe(m.sheet.sheet.Name) + " · " + m.sheet.status(w, h)
 		}
 	case m.kind == "3mf":
 		// Too large to draw, or a preview: the picture the file carries.
-		detail = fmt.Sprintf("3MF · thumbnail · %dx", 1<<m.zoom)
+		detail = "3MF · " + i18n.T("app.status.thumbnail", "thumbnail") + fmt.Sprintf(" · %dx", 1<<m.zoom)
 	}
 	return detail
+}
+
+// keyRow is a row of key hints, drawn " a · b · c".
+type keyRow []string
+
+func (r keyRow) String() string {
+	if len(r) == 0 {
+		return ""
+	}
+	return " " + strings.Join(r, " · ")
+}
+
+// instead is the row led by first, in place of the quit key where the row
+// starts with it.
+func (r keyRow) instead(first ...string) keyRow {
+	if len(r) > 0 && r[0] == quitKey() {
+		r = r[1:]
+	}
+	return append(keyRow(first), r...)
+}
+
+// The keys that most rows name.
+func quitKey() string    { return i18n.T("app.keys.quit", "q quit") }
+func helpKey() string    { return i18n.T("app.keys.help", "? help") }
+func menuKey() string    { return i18n.T("app.keys.menu", "m files") }
+func filesKey() string   { return i18n.T("app.keys.files", "[/] files") }
+func zoomKey() string    { return i18n.T("app.keys.zoom", "+/- zoom") }
+func exportKey() string  { return i18n.T("app.keys.export", "e export") }
+func infoKey() string    { return i18n.T("app.keys.info", "i info") }
+func actionsKey() string { return i18n.T("app.keys.actions", "a actions") }
+
+// chopKey names what S does next: chop long lines, or wrap them again.
+func chopKey(chopped bool) string {
+	if chopped {
+		return i18n.T("app.keys.wrap", "S wrap")
+	}
+	return i18n.T("app.keys.chop", "S chop")
 }
 
 // hints names the keys that work over the document.
 func (m *Model) hints() string {
 	if m.fontPicker != nil {
-		return " ↑/↓ fonts · Enter keep · Esc cancel · +/- zoom"
+		return " " + i18n.T("app.font.status", "↑/↓ fonts · Enter keep · Esc cancel · +/- zoom")
 	}
 	if m.themePicker != nil {
-		return " ↑/↓ preview theme · Enter keep · Esc cancel"
+		return " " + i18n.T("app.theme.status", "↑/↓ preview theme · Enter keep · Esc cancel")
 	}
 	if m.langPicker != nil {
 		return " " + i18n.T("app.lang.status", "↑/↓ preview language · Enter keep · Esc cancel")
@@ -435,111 +501,114 @@ func (m *Model) hints() string {
 		return m.placeInput.status(m.width)
 	}
 	if len(m.opts.Files) == 0 {
-		keys := " q quit · ? help · i info"
+		keys := keyRow{quitKey(), helpKey(), infoKey()}
 		if m.canBrowse() {
-			keys += " · o browse"
+			keys = append(keys, i18n.T("app.keys.browse", "o browse"))
 		}
-		return keys
+		return keys.String()
 	}
 	// A layer takes the keys while it is up.
 	switch m.layer {
 	case layerTheme:
-		return " ↑/↓ preview theme · Enter keep · Esc cancel"
+		return " " + i18n.T("app.theme.status", "↑/↓ preview theme · Enter keep · Esc cancel")
 	case layerActions:
-		return " ↑/↓ choose · Enter do · Esc close"
+		return " " + i18n.T("app.keys.actionsLayer", "↑/↓ choose · Enter do · Esc close")
 	case layerQR:
-		return " Esc/u close QR · g graphics · e export QR · q quit"
+		return " " + i18n.T("app.keys.qrLayer", "Esc/u close QR · g graphics · e export QR · q quit")
 	case layerColumns:
-		return " ↑/↓ select · Space show/hide · a all · n none · Esc close"
+		return " " + i18n.T("app.keys.columnsLayer", "↑/↓ select · Space show/hide · a all · n none · Esc close")
 	case layerParts:
-		return " ↑/↓ select · Space show/hide · Enter focus · a all · n only · X all and close · Esc close"
+		return " " + i18n.T("app.keys.partsLayer", "↑/↓ select · Space show/hide · Enter focus · a all · n only · X all and close · Esc close")
 	case layerColor:
-		return " Tab mode · ↑/↓ ←/→ choose · Space apply · r file's colors · Enter keep · Esc undo"
+		return " " + i18n.T("app.keys.colorLayer", "Tab mode · ↑/↓ ←/→ choose · Space apply · r file's colors · Enter keep · Esc undo")
 	}
-	keys := " q quit · ? help · m files · [/] files · n/p pages · +/- zoom · e export · i info"
+	keys := keyRow{quitKey(), helpKey(), menuKey(), filesKey(), i18n.T("app.keys.pages", "n/p pages"), zoomKey(), exportKey(), infoKey()}
 	switch {
 	case m.typeset != nil && m.markdown == nil:
-		keys = " q quit · ↑/↓/wheel scroll · Space/b screen · +/- zoom · f fit width · s source · t text · e export"
+		keys = keyRow{quitKey(), i18n.T("app.keys.wheel", "↑/↓/wheel scroll"), i18n.T("app.keys.screen", "Space/b screen"), zoomKey(), i18n.T("app.keys.fitWidth", "f fit width"), i18n.T("app.keys.source", "s source"), i18n.T("app.keys.text", "t text"), exportKey()}
 		if m.typesetLined() {
-			keys += " · : line · # numbers · S " + map[bool]string{false: "chop", true: "wrap"}[m.typesetShown.Chop]
+			keys = append(keys, i18n.T("app.keys.line", ": line"), i18n.T("app.keys.numbers", "# numbers"), chopKey(m.typesetShown.Chop))
 		}
 		if m.typesetSelected != "" {
-			keys = " y copy selection · Esc clear · ↑/↓/wheel scroll · +/- zoom · e export · q quit"
+			keys = keyRow{i18n.T("app.keys.copy", "y copy selection"), i18n.T("app.keys.clear", "Esc clear"), i18n.T("app.keys.wheel", "↑/↓/wheel scroll"), zoomKey(), exportKey(), quitKey()}
 		}
 	case m.typeset != nil:
-		keys = " q quit · m files · ↑/↓ scroll · Space/b scroll · s typeset view · t text"
+		keys = keyRow{quitKey(), menuKey(), i18n.T("app.keys.scroll", "↑/↓ scroll"), i18n.T("app.keys.spaceScroll", "Space/b scroll"), i18n.T("app.keys.typesetView", "s typeset view"), i18n.T("app.keys.text", "t text")}
 	case m.animation != nil:
-		keys = " Space pause/play · </> speed · Backspace 1× · +/- zoom · e export frame · ? help · q quit"
+		keys = keyRow{i18n.T("app.keys.pause", "Space pause/play"), i18n.T("app.keys.speed", "</> speed"), i18n.T("app.keys.normalSpeed", "Backspace 1×"), zoomKey(), i18n.T("app.keys.exportFrame", "e export frame"), helpKey(), quitKey()}
 	case m.markdown != nil:
-		keys = " q quit · m files · ↑/↓ scroll · Space/b page · s source · g graphics"
+		keys = keyRow{quitKey(), menuKey(), i18n.T("app.keys.scroll", "↑/↓ scroll"), i18n.T("app.keys.page", "Space/b page"), i18n.T("app.keys.source", "s source"), i18n.T("app.keys.graphics", "g graphics")}
 		if m.canTypeset() {
-			keys += " · t typeset"
+			keys = append(keys, i18n.T("app.keys.typeset", "t typeset"))
 		}
 		if m.markdown.numbered() {
-			keys += " · : line · # numbers"
+			keys = append(keys, i18n.T("app.keys.line", ": line"), i18n.T("app.keys.numbers", "# numbers"))
 		}
-		keys += " · S " + map[bool]string{false: "chop", true: "wrap"}[m.markdown.chop] + " · " + selectHint()
+		keys = append(keys, chopKey(m.markdown.chop), selectHint())
 	case m.sheet != nil:
-		keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p sheets · c columns · i info · a actions"
+		turn := i18n.T("app.keys.sheets", "n/p sheets")
 		switch {
 		case m.kind == "grist":
-			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p tables · c columns · i info · a actions"
+			turn = i18n.T("app.keys.tables", "n/p tables")
 		case !m.booked():
-			keys = " q quit · m files · ↑/↓ ←/→ move · Space/b page · n/p files · c columns · i info · a actions"
+			turn = i18n.T("app.keys.nextFiles", "n/p files")
 		}
-		if m.sheet.rows() == 0 {
-			keys = strings.TrimSuffix(keys, " · a actions") // An empty sheet has no cell to act on.
+		keys = keyRow{quitKey(), menuKey(), i18n.T("app.keys.move", "↑/↓ ←/→ move"), i18n.T("app.keys.page", "Space/b page"), turn, i18n.T("app.keys.columns", "c columns"), infoKey()}
+		if m.sheet.rows() > 0 { // An empty sheet has no cell to act on.
+			keys = append(keys, actionsKey())
 		}
 		if m.sheet.url() != "" && m.opts.Fetch != nil {
-			keys = " Enter open address ·" + strings.TrimPrefix(keys, " q quit ·")
+			keys = keys.instead(i18n.T("app.keys.openAddress", "Enter open address"))
 		}
 		if m.sheet.url() != "" {
-			keys = " u QR of address ·" + strings.TrimPrefix(keys, " q quit ·")
+			keys = keys.instead(i18n.T("app.keys.qrAddress", "u QR of address"))
 		}
 	case m.video != nil:
-		keys = " q quit · Space play/pause · ←/→ seek · ? help · m files · [/] files · e export · i info"
+		keys = keyRow{quitKey(), i18n.T("app.keys.play", "Space play/pause"), i18n.T("app.keys.seek", "←/→ seek")}
 		if len(m.video.Status().CaptionTracks) > 0 {
-			keys = " q quit · Space play/pause · ←/→ seek · c subtitles · ? help · m files · [/] files · e export · i info"
+			keys = append(keys, i18n.T("app.keys.subtitles", "c subtitles"))
 		}
+		keys = append(keys, helpKey(), menuKey(), filesKey(), exportKey(), infoKey())
 	case m.mapView != nil:
-		keys = " q quit · arrows pan · +/- zoom · f fit · ? help · m files · [/] files · e export · i info"
+		keys = keyRow{quitKey(), i18n.T("app.keys.pan", "arrows pan"), zoomKey(), i18n.T("app.keys.fit", "f fit")}
 		if m.opts.Maps != nil && m.opts.Maps.Geocoder != nil {
-			keys = strings.Replace(keys, " · ? help", " · / find a place · ? help", 1)
+			keys = append(keys, i18n.T("app.keys.findPlace", "/ find a place"))
 		}
+		keys = append(keys, helpKey(), menuKey(), filesKey(), exportKey(), infoKey())
 	case m.chart != nil && m.mesh != nil:
-		keys = " q quit · ? help · m files · [/] files · e export · i info · C color · B bg-color"
+		keys = keyRow{quitKey(), helpKey(), menuKey(), filesKey(), exportKey(), infoKey(), i18n.T("app.keys.color", "C color"), i18n.T("app.keys.background", "B bg-color")}
 		if m.hasParts() {
-			keys += " · c parts"
+			keys = append(keys, i18n.T("app.keys.parts", "c parts"))
 		}
 	}
 	if p, ok := m.viewPicture(); ok {
 		if len(m.pictureEntries(p)) > 0 {
-			keys += " · a actions"
+			keys = append(keys, actionsKey())
 		}
 	} else if m.tabItems() {
-		keys += " · Tab items · a actions"
+		keys = append(keys, i18n.T("app.keys.items", "Tab items"), actionsKey())
 	}
 	if m.isFetched() {
-		keys = " Esc close ·" + strings.TrimPrefix(keys, " q quit ·")
+		keys = keys.instead(i18n.T("app.keys.close", "Esc close"))
 	}
 	if m.searchable() {
-		keys = " / search ·" + keys
+		keys = append(keyRow{i18n.T("app.keys.search", "/ search")}, keys...)
 	}
 	if m.canBrowse() {
-		keys += " · o browse"
+		keys = append(keys, i18n.T("app.keys.browse", "o browse"))
 	}
 	if what := m.picking(); what != "" {
 		// Say what will be sent before it is.
-		keys = " Enter send " + what + " · q cancel ·" + strings.TrimPrefix(keys, " q quit ·")
+		keys = keys.instead(i18n.Tf("app.keys.send", "Enter send %s", what), i18n.T("app.keys.cancel", "q cancel"))
 	}
-	return keys
+	return keys.String()
 }
 
 // selectHint says how to select text the terminal's way on a screen that
 // takes the mouse: with Option held in iTerm2, with Shift in most others.
 func selectHint() string {
 	if os.Getenv("TERM_PROGRAM") == "iTerm.app" {
-		return "⌥-drag select"
+		return i18n.T("app.keys.optionSelect", "⌥-drag select")
 	}
-	return "Shift-drag select"
+	return i18n.T("app.keys.shiftSelect", "Shift-drag select")
 }

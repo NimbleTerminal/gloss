@@ -218,11 +218,3 @@ func (m *Model) meshFrame(content string, w int) string {
 	lines[len(lines)-1] = pad(ansi.Truncate(footer, w, ""))
 	return strings.Join(lines, "\n")
 }
-
-// plural counts a noun.
-func plural(n int, noun string) string {
-	if n == 1 {
-		return "1 " + noun
-	}
-	return grouped(n) + " " + noun + "s"
-}

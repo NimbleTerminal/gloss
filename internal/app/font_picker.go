@@ -10,6 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/theme"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
@@ -168,9 +169,9 @@ func (m *Model) fontPickerView() string {
 		}
 		body = strings.Join(lines, "\n")
 		if p.err != nil {
-			body += "\n" + ansi.Truncate("Preview unavailable: "+safe(p.err.Error()), p.width, "…")
+			body += "\n" + ansi.Truncate(i18n.Tf("app.font.unavailable", "Preview unavailable: %s", safe(p.err.Error())), p.width, "…")
 		}
 	}
-	title := "Fonts · " + document.FontLooks()[p.cursor].Name
-	return ansi.Truncate(title, p.width, "…") + "\n" + body + "\n" + ansi.Truncate("↑/↓ preview · Enter keep · Esc cancel", p.width, "…")
+	title := i18n.Tf("app.font.title", "Fonts · %s", document.FontLooks()[p.cursor].Name)
+	return ansi.Truncate(title, p.width, "…") + "\n" + body + "\n" + ansi.Truncate(i18n.T("app.font.hint", "↑/↓ preview · Enter keep · Esc cancel"), p.width, "…")
 }

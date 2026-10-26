@@ -7,6 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
@@ -102,5 +103,71 @@ func TestLandingPageEnglishFormats(t *testing.T) {
 		if got, want := style.Render(wrapList(shortFormats(), ", ", w)), style.Render(formatsShort()); got != want {
 			t.Fatalf("%d columns:\n%s\nwant\n%s", w, got, want)
 		}
+	}
+}
+
+func TestSheetStatusAndHintsSpeakTheLanguage(t *testing.T) {
+	for _, c := range []struct {
+		tag        string
+		bar, hints []string
+	}{
+		{"es", []string{"celda A1", "fila 1–2/2", "col A–B/B"}, []string{"q salir", "m archivos", "mover", "n/p archivos"}},
+		{"zh-Hans", []string{"单元格 A1", "行 1–2/2", "列 A–B/B"}, []string{"q 退出", "移动", "n/p 文件", "c 列"}},
+	} {
+		t.Run(c.tag, func(t *testing.T) {
+			speaking(t, c.tag)
+			m := viewing(t, Options{Files: []string{"sales.csv"}}, "")
+			m.Update(document.Result{Generation: m.generation, Kind: "csv", Page: 1, Pages: 1, Sheet: &document.Sheet{Name: "sales", Rows: [][]string{{"a", "b"}, {"1", "2"}}, Columns: 2, Delimiter: "comma"}})
+			for _, w := range []int{80, 40} {
+				m.Update(tea.WindowSizeMsg{Width: w, Height: 20})
+				view := ansi.Strip(m.View().Content)
+				lines := strings.Split(view, "\n")
+				if len(lines) != 20 {
+					t.Fatalf("%d columns: %d rows, want 20:\n%s", w, len(lines), view)
+				}
+				fits(t, view, w)
+				if w != 80 {
+					continue
+				}
+				bar, hint := lines[len(lines)-2], lines[len(lines)-1]
+				for _, want := range c.bar {
+					if !strings.Contains(bar, want) {
+						t.Errorf("status lacks %q: %s", want, bar)
+					}
+				}
+				for _, want := range c.hints {
+					if !strings.Contains(hint, want) {
+						t.Errorf("hint lacks %q: %s", want, hint)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestFileBrowserStatusInChinese(t *testing.T) {
+	speaking(t, "zh-Hans")
+	m := browsing(t, folder(t))
+	send(m, tea.WindowSizeMsg{Width: 80, Height: 24})
+	view := ansi.Strip(m.View().Content)
+	lines := strings.Split(view, "\n")
+	if len(lines) != 24 {
+		t.Fatalf("%d rows, want 24:\n%s", len(lines), view)
+	}
+	fits(t, view, 80)
+	bar, hint := lines[len(lines)-2], lines[len(lines)-1]
+	if !strings.Contains(bar, "打开") || !strings.Contains(bar, "按名称") {
+		t.Errorf("status: %s", bar)
+	}
+	if !strings.Contains(hint, "?/F1 帮助") || !strings.Contains(hint, "Enter 打开") {
+		t.Errorf("hint: %s", hint)
+	}
+}
+
+func TestDocumentHintsKeepTheirKeysInSpanish(t *testing.T) {
+	speaking(t, "es")
+	m := viewing(t, Options{Files: []string{samples + "shapes.svg"}}, "svg")
+	if got, want := m.hints(), " q salir · ? ayuda · m archivos · [/] archivos · n/p páginas · +/- zoom · e exportar · i info · o explorar"; got != want {
+		t.Fatalf("hints\n got %q\nwant %q", got, want)
 	}
 }

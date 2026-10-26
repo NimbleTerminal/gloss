@@ -1,12 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"nimbleterminal.dev/gloss/internal/i18n"
 )
 
 // lineInput is the go-to-line prompt: the digits typed so far.
@@ -129,7 +129,7 @@ func (m *Model) lineInputKey(msg tea.KeyPressMsg) tea.Cmd {
 
 // lineInputStatus is the prompt as the hint line shows it.
 func (in *lineInput) status(width int) string {
-	return ansi.Truncate(":"+string(in.draft)+"\x1b[7m▏\x1b[27m  Enter go to line · Esc cancel", width, "")
+	return ansi.Truncate(":"+string(in.draft)+"\x1b[7m▏\x1b[27m  "+i18n.T("app.line.keys", "Enter go to line · Esc cancel"), width, "")
 }
 
 // topLine is the file line at the top of a text view, the first numbered
@@ -146,12 +146,12 @@ func (v *markdownView) topLine() int {
 // lineDetail is the position part of the status bar for a text view: file
 // lines when the rows are file lines, screen rows otherwise.
 func (v *markdownView) lineDetail() string {
-	detail := fmt.Sprintf("line %d/%d", min(v.offset+1, len(v.lines)), len(v.lines))
+	detail := i18n.Tf("app.status.line", "line %d/%d", min(v.offset+1, len(v.lines)), len(v.lines))
 	if v.numbered() {
-		detail = fmt.Sprintf("line %d/%d", v.topLine(), v.lastLine)
+		detail = i18n.Tf("app.status.line", "line %d/%d", v.topLine(), v.lastLine)
 	}
 	if v.chop && v.left > 0 {
-		detail += fmt.Sprintf(" · col %d", v.left+1)
+		detail += " · " + i18n.Tf("app.status.column", "col %d", v.left+1)
 	}
 	return detail
 }
