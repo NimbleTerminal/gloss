@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Speak Spanish and Simplified Chinese: the help, status line, search, export
+  notes, handoff screen and `--serve`/`--pick-web` pages follow `--lang`,
+  `GLOSS_LANG` or the terminal's locale (a detached page follows the browser),
+  and numbers are written to match. Scripts stay in English unless `--lang` is
+  given; keys, options and exit codes never change. Drafts awaiting native
+  review; the docs site has Spanish and Chinese guides.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
   as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
   zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`

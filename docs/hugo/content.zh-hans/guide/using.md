@@ -168,6 +168,31 @@ gloss photo.png drawing.svg model.stl -mP
 
 [按键参考](/gloss/docs/guide/controls/)（英文）涵盖各种媒体类型的按键。
 
+## 语言
+
+gloss 支持英语、西班牙语（`es`）和简体中文（`zh-Hans`）。查看器使用终端区域设置的语言
+（依次为 `LC_ALL`、`LC_MESSAGES`、`LANG`；`LC_ALL=C` 为英语），数字也按该语言书写。
+`GLOSS_LANG` 会覆盖区域设置，`--lang` 会覆盖两者：
+
+```sh
+GLOSS_LANG=zh-Hans gloss notes.md
+gloss --lang es report.pdf
+```
+
+`--lang` 接受 BCP 47 标签（`es-MX`、`zh-CN`）或 POSIX 名称（`zh_CN.UTF-8`）；其他写法
+会报错退出。没有译文的语言（例如 `fr` 或 `zh-TW`）显示英文文字，但数字仍按该语言书写。
+帮助、状态栏、搜索、导出提示、交接界面以及 `--serve` 和 `--pick-web` 页面中的文字
+都有译文；选项名、选项值和 JSON 键始终不翻译。
+
+供脚本使用的输出无论区域设置如何都是英文：`--output`、`--print`、`--text`、`--info`、
+`--grep`、`--apps` 以及脱离终端的 `--serve`/`--pick` 启动都会忽略 `GLOSS_LANG`、
+`LC_*` 和 `LANG`。需要其他语言时请给出 `--lang`；此时个别值会改变（例如西班牙语中
+大小会写成 `7,1 KiB (7.294 bytes)`），但键、枚举值和退出码不会变。脱离终端的会话向人
+展示的页面使用对方浏览器的语言；在终端中启动的 `--serve` 则使用终端的语言。
+
+文件浏览器及其帮助、“用其他应用打开”选择器、详情框的标签、浏览器演示，以及页面中的
+部分上传提示仍是英文。这些译文均为草稿，尚待母语者审校。
+
 ## 用其他应用打开
 
 gloss 提供哪些应用、每种文件的默认应用是哪一个，都来自你的操作系统：macOS 上是

@@ -510,6 +510,89 @@ To try a chooser change in gloss before it is released, add the clone to a
 `go.work` (`go work use ../ntfilepicker`); `task ci` sets `GOWORK=off`, so the
 pin in `go.mod` is what is checked.
 
+## Internationalization
+
+gloss's own words are in English, Spanish (`es`) and Simplified Chinese
+(`zh-Hans`). `internal/i18n` holds them; English lives in the source and
+`internal/i18n/locales/es.toml` and `zh-Hans.toml` override it (there is no
+`en.toml`). Both catalogs start with `# Draft translation, awaiting native
+review.` The package wraps go-i18n; number formats come from `x/text`
+(`document.Locale` writes sizes and counts for the info box and tables).
+
+**A string.** Call `i18n.T("app.search.none", "No matches")` (or `Tf` with
+`fmt` verbs, or `Tn("app.files", "{{.Count}} file", "{{.Count}} files", n)`
+for a plural) with a literal dotted ID and the English default, then add the
+ID to each catalog:
+
+```toml
+[app.search.none]
+other = "Sin coincidencias"
+```
+
+IDs are grouped `app.*` (the pager), `handoff.*`, `web.*` (the pages) and
+`cmd.*` (the command line), and are always literals, never built by
+concatenation: the coverage test finds them by scanning the source. The pages
+use `{{t "web.id" "English"}}` in Go templates and `msg('web.id', 'English')` in
+`web/*.mjs`; the server writes the catalog's `web.*` strings into the page as
+`#gloss-messages`, and `lang` is the language. Code with no localizer in hand
+(`internal/app`) uses the process-wide `i18n.T`, set once by
+`i18n.SetLanguage`; code that serves several languages (the handoff server)
+takes a `*i18n.Localizer` from `i18n.For(tag)`.
+
+**Resolution.** In the viewer, `--lang` beats `GLOSS_LANG`, `LC_ALL`,
+`LC_MESSAGES`, `LANG`, then English (`language` in `cmd/gloss/lang.go`,
+`i18n.FromEnv`); an unparseable value in the environment is skipped, while a bad
+`--lang` is a usage error. `Match` serves a tag only at `language.High`
+confidence (`es-MX` is `es`; `zh-CN`, `zh` and `zh-SG` are `zh-Hans`; `zh-TW`,
+`zh-Hant` and `fr` are `en`). A valid tag with no catalog keeps English words
+but formats numbers by the tag.
+
+Rules that keep the agent contract stable:
+
+- Option names and values, JSON keys, enum values, exit codes, `--info` labels
+  (they are JSON keys) and OSC 7501 program-status messages never change with
+  the language.
+- Headless modes (`--output`, `--output-dir`, `--print`, `--text`, `--info`,
+  `--grep`, `--apps`, `skill`) and a detached start are English and read no
+  `GLOSS_LANG`, `LC_*` or `LANG`. Only an explicit `--lang` changes them, and
+  then only *values* such as a size (`7,1 KiB (7.294 bytes)`), never keys.
+- A detached handoff page follows the browser's `Accept-Language` (unless
+  `--lang`); a foreground one follows the terminal's, so `LANG=C` gives English.
+- Measure display width with `ansi.StringWidth`, never `len`; Chinese is two
+  cells a character. Translations must fit the width the English did, or wrap.
+- The browser demo (`examples/demo`) stays English.
+
+**Coverage.** `task i18n:coverage` (`internal/i18n/coverage_test.go`, part of
+`task test`) fails for an ID the source asks for that a catalog lacks, a catalog
+entry nothing asks for, translations whose format verbs differ from the
+English, and a plural form the language needs but lacks.
+
+**A language.** Add `locales/NAME.toml` (a BCP 47 tag, with the draft header
+above), a row in `i18n.Languages()`, and the language to `catalogs` in
+`locale.go`, which is what `Match` and `FromAcceptLanguage` serve; add the case
+to `Match`'s switch, and its plural forms to `need` in `TestCatalogPlurals`. For the site, add
+`[languages.NAME]` (`label`, `locale`) and a `content.NAME` mount with its
+`sites.matrix` to `docs/hugo/hugo.toml` (Hugo 0.153 or later) and translate
+`_index.md` and `guide/using.md`; `TestTranslatedGuideLinksResolve` checks that
+every link resolves and the weights match English.
+
+Style: Spanish uses *usted* throughout and calls typesetting *maquetado*;
+Chinese calls an agent 智能体. Use the app's own terms for the same thing
+everywhere.
+
+**Known gaps.**
+
+- Libraries gloss builds on take no locale yet, so their words stay English:
+  ntcharts/Flint, ntmaps, nttypeset, ntvideo, ntfilepicker (the file browser,
+  its help and menus) and ntopenwith. Typeset fonts have no CJK glyphs, so
+  Chinese text in a typeset page is not drawn; the terminal text view is
+  unaffected.
+- The browser demo is English, as are the details box labels (JSON keys),
+  `http.Error` bodies, and the drop, upload, picker and `remote.mjs` strings in
+  the pages.
+- `x/text` groups four-digit Spanish numbers (`1.234`), which some style guides
+  do not.
+
 ## Documentation
 
 The documentation is written from the code where it can be, so it cannot say

@@ -209,6 +209,41 @@ gloss photo.png drawing.svg model.stl -mP
 La [referencia de controles](/gloss/docs/guide/controls/) (English) recoge las
 teclas de cada tipo de medio.
 
+## Idiomas
+
+gloss habla inglés, español (`es`) y chino simplificado (`zh-Hans`). El visor
+toma el idioma de la configuración regional de su terminal (`LC_ALL`,
+`LC_MESSAGES` y después `LANG`; `LC_ALL=C` es inglés) y escribe los números
+según ella. `GLOSS_LANG` sustituye esa configuración, y `--lang` sustituye a
+ambas:
+
+```sh
+GLOSS_LANG=es gloss notas.md
+gloss --lang zh-Hans informe.pdf
+```
+
+`--lang` acepta una etiqueta BCP 47 (`es-MX`, `zh-CN`) o un nombre POSIX
+(`zh_CN.UTF-8`); cualquier otra cosa termina con un error. Un idioma sin
+traducción, como `fr` o `zh-TW`, muestra el texto en inglés pero escribe los
+números como ese idioma. Se traducen las palabras de la ayuda, la línea de
+estado, la búsqueda, las notas de exportación, la pantalla de entrega y las
+páginas de `--serve` y `--pick-web`; los nombres y valores de las opciones y las
+claves JSON nunca se traducen.
+
+La salida pensada para guiones está en inglés sea cual sea su configuración
+regional: `--output`, `--print`, `--text`, `--info`, `--grep`, `--apps` y el
+inicio desconectado de `--serve`/`--pick` ignoran `GLOSS_LANG`, `LC_*` y `LANG`.
+Indique `--lang` para pedir otro idioma; entonces cambian algunos valores (un
+tamaño se escribe `7,1 KiB (7.294 bytes)` en español), pero no las claves, los
+valores enumerados ni los códigos de salida. La página que ve una persona en una
+sesión desconectada sigue el idioma de su navegador; la de un `--serve` iniciado
+en una terminal sigue el de la terminal.
+
+El explorador de archivos, su ayuda y el selector de «Abrir con», las etiquetas
+del cuadro de detalles, la demostración en el navegador y algunos mensajes de
+carga de las páginas siguen en inglés. Estas traducciones son borradores
+pendientes de revisión por hablantes nativos.
+
 ## Abrir en otra aplicación
 
 Las aplicaciones que ofrece gloss, y cuál es la predeterminada para cada tipo de

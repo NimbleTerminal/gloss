@@ -31,6 +31,11 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   and their terminal QR. It takes a `handoff.Config` from the command line; its
   JSON shapes and exit codes are gloss's agent contract, not a public library.
   `handoff/handofftest` drives a page from outside, for both packages' tests.
+- `internal/i18n`: gloss's own words in English (source defaults), Spanish and
+  Simplified Chinese (`locales/*.toml`, go-i18n): `T`/`Tf`/`Tn` with literal
+  dotted IDs, `Parse`/`FromEnv`/`FromAcceptLanguage`/`Match`, `For` for a
+  per-request `Localizer`. `coverage_test.go` (`task i18n:coverage`) keeps the
+  catalogs and the source in step. See DEVELOP.md, Internationalization.
 - `internal/app`: terminal pager, file-selection menu, preview pane, the
   adapter for the file browser, and Markdown layout.
 - The file chooser is `nimbleterminal.dev/ntfilepicker` (layouts: list,
@@ -347,6 +352,19 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   are omitted, and no site proxy is used. Browser downloads have a one-minute
   deadline and a streamed 128 MiB limit; URL documents are not saved in the
   public app's persistent library.
+
+Languages: English, Spanish (`es`) and Simplified Chinese (`zh-Hans`), drafts
+awaiting native review. The viewer resolves `--lang` > `GLOSS_LANG` > `LC_ALL` >
+`LC_MESSAGES` > `LANG` > English (`language` in `cmd/gloss/lang.go`); a tag
+matches a catalog only at high confidence (`zh-TW`, `fr` are English), but a
+valid tag still formats numbers (`document.Locale`). Option names and values,
+JSON keys, enums, exit codes, `--info` labels and OSC 7501 messages never
+translate. Headless modes and a detached start are English and ignore the
+environment; an explicit `--lang` may change JSON *values* (sizes), never keys.
+A detached `--serve`/`--pick-web` page follows the browser's `Accept-Language`
+unless `--lang`; a foreground one follows the terminal. Not translated: the
+sibling libraries (ntfilepicker, ntcharts, ntmaps, nttypeset, ntvideo,
+ntopenwith), typeset CJK glyphs, the browser demo.
 
 `T` previews named themes over a document; Enter keeps, Esc restores. The native
 host saves accepted choices in its OS user-config directory under `gloss/theme`;

@@ -188,6 +188,37 @@ gloss photo.png drawing.svg model.stl -mP
 
 The [controls reference](../controls/) covers the keys for each media type.
 
+## Languages
+
+gloss speaks English, Spanish (`es`) and Simplified Chinese (`zh-Hans`). The
+viewer takes the language of your terminal's locale (`LC_ALL`, `LC_MESSAGES`,
+then `LANG`; `LC_ALL=C` is English) and writes numbers in it. `GLOSS_LANG`
+overrides the locale, and `--lang` overrides both:
+
+```sh
+GLOSS_LANG=es gloss notes.md
+gloss --lang zh-Hans report.pdf
+```
+
+`--lang` takes a BCP 47 tag (`es-MX`, `zh-CN`) or a POSIX name (`zh_CN.UTF-8`);
+anything else exits with an error. A language with no translation, such as
+`fr` or `zh-TW`, shows English text but still writes numbers the way that
+language does. The words in the help, status line, search, export notes, the
+handoff screen and the `--serve` and `--pick-web` pages are translated; option
+names, values and JSON keys never are.
+
+Output meant for scripts is English whatever your locale: `--output`,
+`--print`, `--text`, `--info`, `--grep`, `--apps` and the detached
+`--serve`/`--pick` start ignore `GLOSS_LANG`, `LC_*` and `LANG`. Give `--lang`
+to ask for another language; then a few values change (a size is written
+`7,1 KiB (7.294 bytes)` in Spanish), but keys, enum values and exit codes do
+not. A page shown to a person from a detached session follows that person's
+browser language; a `--serve` started in a terminal follows the terminal's.
+
+The file browser, its help and the open-with chooser, the details box labels,
+the browser demo and some upload messages in the pages are still English.
+These translations are drafts awaiting native review.
+
 ## Open in another app
 
 The apps gloss offers, and which one is the default for each kind of file, come

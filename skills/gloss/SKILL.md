@@ -531,9 +531,13 @@ the code. The code is only as useful as the address: a `localhost` or
   `--grep`, `--apps`, `skill`) is English with `.` decimals whatever the
   machine's `LANG`, `LC_*` or `GLOSS_LANG`, unless `--lang TAG` (BCP 47 or
   POSIX, as `es` or `zh_CN.UTF-8`) asks for another. JSON keys, enum values and
-  exit codes never change with the language. A `--lang` that is not a language
-  tag exits 1. Detached `--serve`/`--pick` pages follow the language of the
-  human's browser, unless `--lang` is given.
+  exit codes never change with the language, but with `--lang` some JSON
+  *values* do (a `Size` of `7,1 KiB (7.294 bytes)` in Spanish), so parse keys
+  and enums, not formatted values; the `--info` field labels are JSON keys and
+  stay English. A `--lang` that is not a language tag exits 1. Detached
+  `--serve`/`--pick` pages follow the language of the human's browser, unless
+  `--lang` is given; a foreground one follows the terminal's (`LANG=C` is
+  English).
 - Use gloss's extraction and rendering when they answer the task. Prefer
   `--text` for document content; add PNGs when appearance matters. Specialized
   analysis or editing may still need other tools.

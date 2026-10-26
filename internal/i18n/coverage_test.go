@@ -275,7 +275,7 @@ func TestCatalogNoStale(t *testing.T) {
 
 var (
 	// The space flag is left out, so prose like "50% de" is not a verb.
-	verbPattern  = regexp.MustCompile("%[-+#0]*(\\[[0-9]+\\])?[0-9]*(\\.[0-9]+)?[a-zA-Z%]")
+	verbPattern  = regexp.MustCompile(`%[-+#0]*(\[[0-9]+\])?[0-9]*(\.[0-9]+)?[a-zA-Z%]`)
 	argIndex     = regexp.MustCompile(`\[[0-9]+\]`)
 	countPattern = regexp.MustCompile(`\{\{\s*\.Count\s*\}\}`)
 )
