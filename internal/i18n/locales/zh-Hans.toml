@@ -1380,6 +1380,48 @@ other = "退出 gloss"
 [app.help.leave.title]
 other = "查找与退出"
 
+[app.info.alternate]
+other = "备用屏幕"
+
+[app.info.askedFor]
+other = "（按要求）"
+
+[app.info.cellPixels]
+other = "，每个 %d × %d 像素"
+
+[app.info.cells]
+other = "%d × %d 个单元格"
+
+[app.info.glyphs]
+other = "字符"
+
+[app.info.kitty]
+other = "Kitty 图形"
+
+[app.info.mainScreen]
+other = "主屏幕，退出后保留"
+
+[app.info.none]
+other = "暂无详情。"
+
+[app.info.software]
+other = "软件（按要求）"
+
+[app.info.supported]
+other = "支持"
+
+[app.info.unknown]
+other = "尚不清楚"
+
+[app.info.unsupported]
+other = "不支持"
+
+[app.info.webgpu]
+other = "WebGPU，不可用时用软件"
+
+[app.info.wireframe]
+other = "线框（按要求）"
+
 [app.openWith.closeKey]
 other = "Esc 关闭"
 
@@ -1436,3 +1478,351 @@ other = "在终端中编辑"
 
 [app.openWith.working]
 other = "处理中…"
+
+[app.info.label.animated]
+other = "动画"
+
+[app.info.label.application]
+other = "应用程序"
+
+[app.info.label.areas]
+other = "区域"
+
+[app.info.label.artist]
+other = "艺术家"
+
+[app.info.label.attribution]
+other = "署名"
+
+[app.info.label.audio]
+other = "音频"
+
+[app.info.label.author]
+other = "作者"
+
+[app.info.label.bodyFont]
+other = "正文字体"
+
+[app.info.label.bounds]
+other = "范围"
+
+[app.info.label.camera]
+other = "相机"
+
+[app.info.label.cells]
+other = "单元格"
+
+[app.info.label.changed]
+other = "更改时间"
+
+[app.info.label.changedBy]
+other = "修改者"
+
+[app.info.label.characters]
+other = "字符数"
+
+[app.info.label.codeFont]
+other = "代码字体"
+
+[app.info.label.color]
+other = "颜色"
+
+[app.info.label.columns]
+other = "列数"
+
+[app.info.label.company]
+other = "公司"
+
+[app.info.label.copyright]
+other = "版权"
+
+[app.info.label.created]
+other = "创建时间"
+
+[app.info.label.creator]
+other = "创建者"
+
+[app.info.label.declaredSize]
+other = "声明尺寸"
+
+[app.info.label.description]
+other = "描述"
+
+[app.info.label.designer]
+other = "设计者"
+
+[app.info.label.details]
+other = "详情"
+
+[app.info.label.diagram]
+other = "图表"
+
+[app.info.label.dimensions]
+other = "尺寸"
+
+[app.info.label.document]
+other = "文档"
+
+[app.info.label.drawing]
+other = "绘图"
+
+[app.info.label.drawn]
+other = "绘制"
+
+[app.info.label.duration]
+other = "时长"
+
+[app.info.label.elements]
+other = "元素"
+
+[app.info.label.exposure]
+other = "曝光"
+
+[app.info.label.extent]
+other = "尺寸范围"
+
+[app.info.label.features]
+other = "要素"
+
+[app.info.label.file]
+other = "文件"
+
+[app.info.label.fontFallback]
+other = "后备字体"
+
+[app.info.label.format]
+other = "格式"
+
+[app.info.label.frames]
+other = "帧数"
+
+[app.info.label.gristDocument]
+other = "Grist 文档"
+
+[app.info.label.headings]
+other = "标题"
+
+[app.info.label.image]
+other = "图片"
+
+[app.info.label.images]
+other = "图片数"
+
+[app.info.label.json]
+other = "JSON"
+
+[app.info.label.kernel]
+other = "内核"
+
+[app.info.label.keys]
+other = "键"
+
+[app.info.label.keywords]
+other = "关键词"
+
+[app.info.label.kittyGraphics]
+other = "Kitty 图形"
+
+[app.info.label.language]
+other = "语言"
+
+[app.info.label.lens]
+other = "镜头"
+
+[app.info.label.license]
+other = "许可"
+
+[app.info.label.lines]
+other = "行数"
+
+[app.info.label.links]
+other = "链接"
+
+[app.info.label.location]
+other = "位置"
+
+[app.info.label.map]
+other = "地图"
+
+[app.info.label.mesh]
+other = "网格"
+
+[app.info.label.meshes]
+other = "网格模型"
+
+[app.info.label.missingGlyphs]
+other = "缺失字形"
+
+[app.info.label.model]
+other = "模型"
+
+[app.info.label.modified]
+other = "修改时间"
+
+[app.info.label.multiplexer]
+other = "终端复用器"
+
+[app.info.label.name]
+other = "名称"
+
+[app.info.label.names]
+other = "名称"
+
+[app.info.label.notShown]
+other = "未显示"
+
+[app.info.label.note]
+other = "备注"
+
+[app.info.label.notebook]
+other = "笔记本"
+
+[app.info.label.objects]
+other = "对象"
+
+[app.info.label.orientation]
+other = "方向"
+
+[app.info.label.outputs]
+other = "输出"
+
+[app.info.label.page]
+other = "页面"
+
+[app.info.label.pageSize]
+other = "页面尺寸"
+
+[app.info.label.pages]
+other = "页数"
+
+[app.info.label.parts]
+other = "部件"
+
+[app.info.label.path]
+other = "路径"
+
+[app.info.label.photo]
+other = "照片"
+
+[app.info.label.pictures]
+other = "图片"
+
+[app.info.label.places]
+other = "地点"
+
+[app.info.label.points]
+other = "点数"
+
+[app.info.label.positions]
+other = "位置点"
+
+[app.info.label.producer]
+other = "生成工具"
+
+[app.info.label.program]
+other = "程序"
+
+[app.info.label.record]
+other = "记录"
+
+[app.info.label.recordKeys]
+other = "记录键"
+
+[app.info.label.records]
+other = "记录数"
+
+[app.info.label.rows]
+other = "行数"
+
+[app.info.label.schemaVersion]
+other = "架构版本"
+
+[app.info.label.screen]
+other = "屏幕"
+
+[app.info.label.sheets]
+other = "工作表"
+
+[app.info.label.shown]
+other = "已显示"
+
+[app.info.label.size]
+other = "大小"
+
+[app.info.label.software]
+other = "软件"
+
+[app.info.label.subject]
+other = "主题"
+
+[app.info.label.subtitleStreams]
+other = "字幕流"
+
+[app.info.label.subtitles]
+other = "字幕"
+
+[app.info.label.surfaceArea]
+other = "表面积"
+
+[app.info.label.table]
+other = "表格"
+
+[app.info.label.tables]
+other = "表格数"
+
+[app.info.label.taken]
+other = "拍摄时间"
+
+[app.info.label.terminal]
+other = "终端"
+
+[app.info.label.text]
+other = "文本"
+
+[app.info.label.textTheme]
+other = "文本主题"
+
+[app.info.label.texturedParts]
+other = "带纹理的部件"
+
+[app.info.label.thumbnail]
+other = "缩略图"
+
+[app.info.label.tileCount]
+other = "瓦片数"
+
+[app.info.label.tiles]
+other = "瓦片"
+
+[app.info.label.timeZone]
+other = "时区"
+
+[app.info.label.title]
+other = "标题"
+
+[app.info.label.topLevel]
+other = "顶层"
+
+[app.info.label.triangles]
+other = "三角形"
+
+[app.info.label.type]
+other = "类型"
+
+[app.info.label.upAxis]
+other = "向上轴"
+
+[app.info.label.video]
+other = "视频"
+
+[app.info.label.viewBox]
+other = "视图框"
+
+[app.info.label.words]
+other = "字数"
+
+[app.info.label.workbook]
+other = "工作簿"
+
+[app.info.label.zooms]
+other = "缩放级别"

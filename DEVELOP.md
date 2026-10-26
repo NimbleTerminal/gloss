@@ -562,7 +562,10 @@ Rules that keep the agent contract stable:
 
 - Option names and values, JSON keys, enum values, exit codes, `--info` labels
   (they are JSON keys) and OSC 7501 program-status messages never change with
-  the language.
+  the language. `document` writes its labels in English; only the viewer's
+  details box translates them, as it draws them (`infoLabel` in
+  `internal/app/info_labels.go`, English for a label it lacks). Menu entries
+  are known by an `id`, never by their label.
 - Headless modes (`--output`, `--output-dir`, `--print`, `--text`, `--info`,
   `--grep`, `--apps`, `skill`), a detached start and the JSON of `--status`,
   `--resume` and `--cancel` are English and read no `GLOSS_LANG`, `LC_*` or

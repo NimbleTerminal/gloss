@@ -5,7 +5,8 @@
 - `F2` opens a language picker that previews as you move; the terminal viewer
   remembers the choice, which `GLOSS_LANG` and `--lang` still override.
 - Speak Spanish and Simplified Chinese: the help, status line, the viewer's
-  notes and messages, search, export, handoff screen and
+  notes and messages, menus and choosers, the file browser's help, the
+  details box (`i`), search, export, handoff screen and
   `--serve`/`--pick-web` pages follow `--lang`, `GLOSS_LANG` or the terminal's
   locale (a detached page follows the browser), and numbers are written to
   match. Scripts stay in English unless `--lang` is given; keys, options and

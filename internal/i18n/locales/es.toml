@@ -1387,6 +1387,48 @@ other = "salir de gloss"
 [app.help.leave.title]
 other = "Buscar y salir"
 
+[app.info.alternate]
+other = "alternativa"
+
+[app.info.askedFor]
+other = " (solicitado)"
+
+[app.info.cellPixels]
+other = ", %d × %d píxeles cada una"
+
+[app.info.cells]
+other = "%d × %d celdas"
+
+[app.info.glyphs]
+other = "glifos"
+
+[app.info.kitty]
+other = "gráficos Kitty"
+
+[app.info.mainScreen]
+other = "principal, se conserva al salir"
+
+[app.info.none]
+other = "Aún no hay detalles."
+
+[app.info.software]
+other = "software (solicitado)"
+
+[app.info.supported]
+other = "compatible"
+
+[app.info.unknown]
+other = "aún desconocido"
+
+[app.info.unsupported]
+other = "no compatible"
+
+[app.info.webgpu]
+other = "WebGPU, o software sin él"
+
+[app.info.wireframe]
+other = "alambre (solicitado)"
+
 [app.openWith.closeKey]
 other = "Esc cerrar"
 
@@ -1443,3 +1485,351 @@ other = "Editar en la terminal"
 
 [app.openWith.working]
 other = "Procesando…"
+
+[app.info.label.animated]
+other = "Animado"
+
+[app.info.label.application]
+other = "App"
+
+[app.info.label.areas]
+other = "Áreas"
+
+[app.info.label.artist]
+other = "Artista"
+
+[app.info.label.attribution]
+other = "Atribución"
+
+[app.info.label.audio]
+other = "Audio"
+
+[app.info.label.author]
+other = "Autor"
+
+[app.info.label.bodyFont]
+other = "Fuente del texto"
+
+[app.info.label.bounds]
+other = "Límites"
+
+[app.info.label.camera]
+other = "Cámara"
+
+[app.info.label.cells]
+other = "Celdas"
+
+[app.info.label.changed]
+other = "Cambiado"
+
+[app.info.label.changedBy]
+other = "Cambiado por"
+
+[app.info.label.characters]
+other = "Caracteres"
+
+[app.info.label.codeFont]
+other = "Fuente del código"
+
+[app.info.label.color]
+other = "Color"
+
+[app.info.label.columns]
+other = "Columnas"
+
+[app.info.label.company]
+other = "Empresa"
+
+[app.info.label.copyright]
+other = "Copyright"
+
+[app.info.label.created]
+other = "Creado"
+
+[app.info.label.creator]
+other = "Creador"
+
+[app.info.label.declaredSize]
+other = "Tamaño declarado"
+
+[app.info.label.description]
+other = "Descripción"
+
+[app.info.label.designer]
+other = "Diseñador"
+
+[app.info.label.details]
+other = "Detalles"
+
+[app.info.label.diagram]
+other = "Diagrama"
+
+[app.info.label.dimensions]
+other = "Dimensiones"
+
+[app.info.label.document]
+other = "Documento"
+
+[app.info.label.drawing]
+other = "Dibujo"
+
+[app.info.label.drawn]
+other = "Dibujado"
+
+[app.info.label.duration]
+other = "Duración"
+
+[app.info.label.elements]
+other = "Elementos"
+
+[app.info.label.exposure]
+other = "Exposición"
+
+[app.info.label.extent]
+other = "Extensión"
+
+[app.info.label.features]
+other = "Entidades"
+
+[app.info.label.file]
+other = "Archivo"
+
+[app.info.label.fontFallback]
+other = "Fuentes de respaldo"
+
+[app.info.label.format]
+other = "Formato"
+
+[app.info.label.frames]
+other = "Fotogramas"
+
+[app.info.label.gristDocument]
+other = "Documento de Grist"
+
+[app.info.label.headings]
+other = "Encabezados"
+
+[app.info.label.image]
+other = "Imagen"
+
+[app.info.label.images]
+other = "Imágenes"
+
+[app.info.label.json]
+other = "JSON"
+
+[app.info.label.kernel]
+other = "Kernel"
+
+[app.info.label.keys]
+other = "Claves"
+
+[app.info.label.keywords]
+other = "Palabras clave"
+
+[app.info.label.kittyGraphics]
+other = "Gráficos Kitty"
+
+[app.info.label.language]
+other = "Lenguaje"
+
+[app.info.label.lens]
+other = "Objetivo"
+
+[app.info.label.license]
+other = "Licencia"
+
+[app.info.label.lines]
+other = "Líneas"
+
+[app.info.label.links]
+other = "Enlaces"
+
+[app.info.label.location]
+other = "Ubicación"
+
+[app.info.label.map]
+other = "Mapa"
+
+[app.info.label.mesh]
+other = "Malla"
+
+[app.info.label.meshes]
+other = "Mallas"
+
+[app.info.label.missingGlyphs]
+other = "Glifos ausentes"
+
+[app.info.label.model]
+other = "Modelo"
+
+[app.info.label.modified]
+other = "Modificado"
+
+[app.info.label.multiplexer]
+other = "Multiplexor"
+
+[app.info.label.name]
+other = "Nombre"
+
+[app.info.label.names]
+other = "Nombres"
+
+[app.info.label.notShown]
+other = "No se muestra"
+
+[app.info.label.note]
+other = "Nota"
+
+[app.info.label.notebook]
+other = "Cuaderno"
+
+[app.info.label.objects]
+other = "Objetos"
+
+[app.info.label.orientation]
+other = "Orientación"
+
+[app.info.label.outputs]
+other = "Salidas"
+
+[app.info.label.page]
+other = "Página"
+
+[app.info.label.pageSize]
+other = "Tamaño de página"
+
+[app.info.label.pages]
+other = "Páginas"
+
+[app.info.label.parts]
+other = "Piezas"
+
+[app.info.label.path]
+other = "Ruta"
+
+[app.info.label.photo]
+other = "Foto"
+
+[app.info.label.pictures]
+other = "Imágenes"
+
+[app.info.label.places]
+other = "Lugares"
+
+[app.info.label.points]
+other = "Puntos"
+
+[app.info.label.positions]
+other = "Posiciones"
+
+[app.info.label.producer]
+other = "Productor"
+
+[app.info.label.program]
+other = "Programa"
+
+[app.info.label.record]
+other = "Registro"
+
+[app.info.label.recordKeys]
+other = "Claves del registro"
+
+[app.info.label.records]
+other = "Registros"
+
+[app.info.label.rows]
+other = "Filas"
+
+[app.info.label.schemaVersion]
+other = "Versión del esquema"
+
+[app.info.label.screen]
+other = "Pantalla"
+
+[app.info.label.sheets]
+other = "Hojas"
+
+[app.info.label.shown]
+other = "Mostrado"
+
+[app.info.label.size]
+other = "Tamaño"
+
+[app.info.label.software]
+other = "Software"
+
+[app.info.label.subject]
+other = "Asunto"
+
+[app.info.label.subtitleStreams]
+other = "Pistas de subtítulos"
+
+[app.info.label.subtitles]
+other = "Subtítulos"
+
+[app.info.label.surfaceArea]
+other = "Área de superficie"
+
+[app.info.label.table]
+other = "Tabla"
+
+[app.info.label.tables]
+other = "Tablas"
+
+[app.info.label.taken]
+other = "Tomada"
+
+[app.info.label.terminal]
+other = "Terminal"
+
+[app.info.label.text]
+other = "Texto"
+
+[app.info.label.textTheme]
+other = "Tema del texto"
+
+[app.info.label.texturedParts]
+other = "Piezas con textura"
+
+[app.info.label.thumbnail]
+other = "Miniatura"
+
+[app.info.label.tileCount]
+other = "Número de teselas"
+
+[app.info.label.tiles]
+other = "Teselas"
+
+[app.info.label.timeZone]
+other = "Zona horaria"
+
+[app.info.label.title]
+other = "Título"
+
+[app.info.label.topLevel]
+other = "Nivel superior"
+
+[app.info.label.triangles]
+other = "Triángulos"
+
+[app.info.label.type]
+other = "Tipo"
+
+[app.info.label.upAxis]
+other = "Eje vertical"
+
+[app.info.label.video]
+other = "Vídeo"
+
+[app.info.label.viewBox]
+other = "Caja de vista"
+
+[app.info.label.words]
+other = "Palabras"
+
+[app.info.label.workbook]
+other = "Libro"
+
+[app.info.label.zooms]
+other = "Niveles de zoom"

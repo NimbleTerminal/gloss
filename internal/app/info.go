@@ -1,13 +1,13 @@
 package app
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/theme"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
@@ -23,7 +23,7 @@ func (m *Model) infoBox(w, h int) string {
 	labels := 0
 	for _, f := range fields {
 		if f.Value != "" {
-			labels = max(labels, lipgloss.Width(f.Label))
+			labels = max(labels, lipgloss.Width(safe(infoLabel(f.Label))))
 		}
 	}
 	text := m.boxText()
@@ -31,10 +31,10 @@ func (m *Model) infoBox(w, h int) string {
 	var lines []string
 	for _, f := range fields {
 		if f.Value == "" {
-			lines = append(lines, heading.Render(ansi.Truncate(safe(f.Label), inner, "…")))
+			lines = append(lines, heading.Render(ansi.Truncate(safe(infoLabel(f.Label)), inner, "…")))
 			continue
 		}
-		name, value := safe(f.Label), safe(f.Value)
+		name, value := safe(infoLabel(f.Label)), safe(f.Value)
 		room := max(1, inner-labels-3)
 		if over := ansi.StringWidth(value) - room; over > 0 && f.Label == "Path" {
 			// The name at the end of a path says more than the root at its start.
@@ -44,7 +44,7 @@ func (m *Model) infoBox(w, h int) string {
 		lines = append(lines, label.Render(" "+name+strings.Repeat(" ", labels-ansi.StringWidth(name)+2))+text.Render(value))
 	}
 	if len(lines) == 0 {
-		lines = []string{text.Render("No details yet.")}
+		lines = []string{text.Render(i18n.T("app.info.none", "No details yet."))}
 	}
 	if len(lines) > rows {
 		lines = append(lines[:rows-1], text.Render("…"))
@@ -55,27 +55,30 @@ func (m *Model) infoBox(w, h int) string {
 // terminalFields describes the terminal and how gloss draws on it: what
 // the box says when there is no file, and what it ends with when there is.
 func (m *Model) terminalFields() []document.Field {
-	size := fmt.Sprintf("%d × %d cells", m.width, m.height)
+	size := i18n.Tf("app.info.cells", "%d × %d cells", m.width, m.height)
 	if cw, ch := m.cellPixelSize(); cw > 1 && ch > 1 {
-		size += fmt.Sprintf(", %d × %d pixels each", cw, ch)
+		size += i18n.Tf("app.info.cellPixels", ", %d × %d pixels each", cw, ch)
 	}
-	pictures := "glyphs"
+	pictures := i18n.T("app.info.glyphs", "glyphs")
 	if m.kitty {
-		pictures = "Kitty graphics"
+		pictures = i18n.T("app.info.kitty", "Kitty graphics")
 	}
 	if m.opts.Render == "glyph" {
-		pictures += " (asked for)"
+		pictures += i18n.T("app.info.askedFor", " (asked for)")
 	}
 	kitty := map[ntpicture.KittyCapability]string{
-		ntpicture.KittyCapabilitySupported:   "supported",
-		ntpicture.KittyCapabilityUnsupported: "not supported",
+		ntpicture.KittyCapabilitySupported:   i18n.T("app.info.supported", "supported"),
+		ntpicture.KittyCapabilityUnsupported: i18n.T("app.info.unsupported", "not supported"),
 	}[m.terminal.Snapshot().Kitty]
 	if kitty == "" {
-		kitty = "not yet known"
+		kitty = i18n.T("app.info.unknown", "not yet known")
 	}
-	meshes := map[string]string{"software": "software (asked for)", "wireframe": "wireframe (asked for)"}[m.opts.Render3D]
+	meshes := map[string]string{
+		"software":  i18n.T("app.info.software", "software (asked for)"),
+		"wireframe": i18n.T("app.info.wireframe", "wireframe (asked for)"),
+	}[m.opts.Render3D]
 	if meshes == "" {
-		meshes = "WebGPU, or software without it"
+		meshes = i18n.T("app.info.webgpu", "WebGPU, or software without it")
 	}
 	if m.chart != nil {
 		meshes = m.chart.RenderMode().String()
@@ -90,9 +93,9 @@ func (m *Model) terminalFields() []document.Field {
 	if os.Getenv("TMUX") != "" {
 		multiplexer = "tmux"
 	}
-	screen := "alternate"
+	screen := i18n.T("app.info.alternate", "alternate")
 	if m.opts.KeepScreen {
-		screen = "main, kept after quitting"
+		screen = i18n.T("app.info.mainScreen", "main, kept after quitting")
 	}
 	return document.Section("Terminal",
 		document.Field{Label: "Size", Value: size},
