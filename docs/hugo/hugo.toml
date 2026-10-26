@@ -2,6 +2,8 @@ baseURL = "https://nimbleterminal.github.io/gloss/docs/"
 title = "gloss"
 theme = "hugo-book"
 contentDir = "content"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = false
 
 # Disable auto-generated timestamps for reproducible builds
 enableGitInfo = false
@@ -22,11 +24,44 @@ enableGitInfo = false
   BookSearch = true
   BookComments = false
 
+# English lives at the root. The other languages are drafts under /es/ and
+# /zh-hans/: they translate the guide's index, Using gloss and the home page,
+# and link the rest of the guide in English by its site path.
+[languages]
+  [languages.en]
+    weight = 1
+    languageName = "English"
+    languageCode = "en"
+  [languages.es]
+    weight = 2
+    languageName = "Español"
+    languageCode = "es"
+    [languages.es.params]
+      description = "Un paginador visual para la terminal: como less, para imágenes, PDF, mallas 3D y documentos"
+  [languages.zh-hans]
+    weight = 3
+    languageName = "简体中文"
+    languageCode = "zh-Hans"
+    [languages.zh-hans.params]
+      description = "终端里的可视化分页器：像 less 一样，可查看图片、PDF、三维网格和各类文档"
+
 # The fonts are the landing page's: one copy, mounted into the site.
 [module]
   [[module.mounts]]
     source = "content"
     target = "content"
+    [module.mounts.sites.matrix]
+      languages = ["en"]
+  [[module.mounts]]
+    source = "content.es"
+    target = "content"
+    [module.mounts.sites.matrix]
+      languages = ["es"]
+  [[module.mounts]]
+    source = "content.zh-hans"
+    target = "content"
+    [module.mounts.sites.matrix]
+      languages = ["zh-hans"]
   [[module.mounts]]
     source = "assets"
     target = "assets"

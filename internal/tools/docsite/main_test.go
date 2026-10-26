@@ -114,3 +114,101 @@ func TestGuideIsComplete(t *testing.T) {
 		}
 	}
 }
+
+var siteDir = filepath.Join("..", "..", "..", "docs", "hugo")
+
+// Pages `task docs` writes; a checkout may not have them yet.
+func generatedPage(path string) bool {
+	return path == "guide/development" || path == "guide/for-llms" || path == "command" || strings.HasPrefix(path, "command/")
+}
+
+// pageExists reports whether the content folder has a page at the site path
+// ("guide/using"): a leaf page or a section's index.
+func pageExists(root, path string) bool {
+	for _, name := range []string{path + ".md", filepath.Join(path, "_index.md")} {
+		if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(name))); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func weightOf(body []byte) string {
+	m := regexp.MustCompile(`(?m)^weight: (\d+)$`).FindSubmatch(body)
+	if m == nil {
+		return ""
+	}
+	return string(m[1])
+}
+
+// A translated page may link a translated page, or the English one by its
+// site path; neither may be a dead end. Its weight is the English page's, so
+// the menu keeps one order in every language.
+func TestTranslatedGuideLinksResolve(t *testing.T) {
+	folders, err := filepath.Glob(filepath.Join(siteDir, "content.*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(folders) == 0 {
+		t.Fatal("no content.<lang> folder: the site has no translations")
+	}
+	english := filepath.Join(siteDir, "content")
+	link := regexp.MustCompile(`\]\(([^)\s]+)\)`)
+	for _, folder := range folders {
+		lang := strings.TrimPrefix(filepath.Base(folder), "content.")
+		pages := 0
+		err := filepath.WalkDir(folder, func(path string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() || !strings.HasSuffix(path, ".md") {
+				return err
+			}
+			pages++
+			rel, _ := filepath.Rel(folder, path)
+			rel = filepath.ToSlash(rel)
+			body, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			en, err := os.ReadFile(filepath.Join(english, filepath.FromSlash(rel)))
+			if err != nil {
+				t.Errorf("%s/%s has no English counterpart", lang, rel)
+			} else if weightOf(body) != weightOf(en) {
+				t.Errorf("%s/%s: weight %q, English %q", lang, rel, weightOf(body), weightOf(en))
+			}
+			// A page's address is its folder, except a section's index, which is its own.
+			dir := strings.TrimSuffix(rel, ".md")
+			if strings.HasSuffix(rel, "_index.md") {
+				dir = strings.TrimSuffix(rel, "_index.md")
+			}
+			dir = strings.TrimSuffix(dir, "/")
+			for _, m := range link.FindAllStringSubmatch(string(body), -1) {
+				target := m[1]
+				if i := strings.IndexAny(target, "#?"); i >= 0 {
+					target = target[:i]
+				}
+				switch {
+				case target == "" || strings.Contains(target, "://") || strings.HasPrefix(target, "mailto:"):
+					continue
+				case strings.HasPrefix(target, "/gloss/docs/"):
+					site := strings.Trim(strings.TrimPrefix(target, "/gloss/docs/"), "/")
+					if site != "" && !generatedPage(site) && !pageExists(english, site) {
+						t.Errorf("%s/%s links %s, which is not an English page", lang, rel, m[1])
+					}
+				case strings.HasPrefix(target, "/"):
+					t.Errorf("%s/%s links %s: use a relative link or /gloss/docs/...", lang, rel, m[1])
+				default:
+					site := strings.Trim(filepath.ToSlash(filepath.Join(filepath.FromSlash(dir), filepath.FromSlash(target))), "/")
+					if site != "." && !pageExists(folder, site) {
+						t.Errorf("%s/%s links %s, which is not a %s page", lang, rel, m[1], lang)
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if pages == 0 {
+			t.Errorf("content.%s has no pages", lang)
+		}
+	}
+}
