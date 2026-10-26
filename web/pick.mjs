@@ -3,6 +3,8 @@ import { createPickAPI, fileProblem, messageProblem, messageDraft, maxMessageCha
 
 const api = createPickAPI();
 const el = id => document.getElementById(id);
+// Numbers are written in the page's language; an empty lang is the browser's.
+const pageLang = document.documentElement.lang || undefined;
 const previews = new Map();
 let files = [], busy = true, finished = false;
 let storage;
@@ -21,7 +23,7 @@ function controls() {
   el('reply').disabled = busy || finished;
   el('reply').setCustomValidity(problem);
   el('reply').setAttribute('aria-invalid', String(Boolean(problem)));
-  el('reply-count').textContent = msg('web.pick.count', '{{.Count}} / {{.Max}} characters', { Count: count.toLocaleString(), Max: maxMessageCharacters.toLocaleString() })
+  el('reply-count').textContent = msg('web.pick.count', '{{.Count}} / {{.Max}} characters', { Count: count.toLocaleString(pageLang), Max: maxMessageCharacters.toLocaleString(pageLang) })
     + (problem ? msg('web.pick.shorten', ' — please shorten your message.') : '');
   el('reply-count').classList.toggle('error', Boolean(problem));
   el('choose').disabled = busy || finished;

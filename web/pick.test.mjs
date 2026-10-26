@@ -22,13 +22,14 @@ class Element {
 }
 
 let imports = 0;
-async function page(t, { values = new Map(), reject = false } = {}) {
+async function page(t, { values = new Map(), reject = false, lang = 'en' } = {}) {
   const ids = ['choose', 'cancel', 'send', 'files', 'reply', 'reply-count', 'picker', 'result', 'result-title', 'result-detail', 'result-note', 'message', 'input', 'drop', 'progress'];
   const elements = Object.fromEntries(ids.map(id => [id, new Element()]));
   const calls = [];
   const original = { document: globalThis.document, window: globalThis.window, fetch: globalThis.fetch };
   t.after(() => Object.assign(globalThis, original));
   globalThis.document = {
+    documentElement: { lang },
     getElementById: id => elements[id],
     createElement: tag => Object.assign(new Element(), { tag }),
   };
@@ -80,4 +81,14 @@ test('drafts survive refresh and failed confirmation; Cancel does not send them'
   assert.equal(calls.find(c => c.path === 'decline').options.body, undefined);
   assert.equal(e['result-note'].textContent, '');
   assert.equal(values.size, 0);
+});
+
+test('the character count is written in the page language', async t => {
+  const { elements: e } = await page(t, { lang: 'de' });
+  e.reply.value = 'x'.repeat(1200);
+  e.reply.handlers.input();
+  assert.match(e['reply-count'].textContent, /^1\.200 \/ 2\.000 /);
+  const { elements: none } = await page(t, { lang: '' });
+  none.reply.handlers.input();
+  assert.match(none['reply-count'].textContent, /\/ /);
 });
