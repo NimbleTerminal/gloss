@@ -13,6 +13,7 @@ require (
 	charm.land/bubbles/v2 v2.2.1 // indirect
 	charm.land/glamour/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
+	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2 // indirect
 	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
@@ -54,6 +55,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa // indirect
+	github.com/nicksnyder/go-i18n/v2 v2.6.1 // indirect
 	github.com/piglig/go-qr/v2 v2.7.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
