@@ -105,19 +105,22 @@ func (s *Server) localizer(r *http.Request) *i18n.Localizer {
 }
 
 // viewerOptions are opts for a viewer session. One with no language of its
-// own takes the last page's, and makes it gloss's, so a detached viewer
-// speaks as its page does.
+// own takes the page's, and the first makes it gloss's, so a detached viewer
+// speaks as its page does. The language is gloss's, not the session's: later
+// sessions keep the first one's, so a second browser cannot switch it.
 func (s *Server) viewerOptions(opts app.Options) app.Options {
 	if opts.Lang != "" {
 		return opts
 	}
 	s.mu.Lock()
-	tag := s.pageLang
-	s.mu.Unlock()
-	if tag != "" {
-		opts.Lang = tag
-		i18n.SetLanguage(tag)
+	if !s.langChosen {
+		s.langChosen, s.viewerLang = true, s.pageLang
+		if s.viewerLang != "" {
+			i18n.SetLanguage(s.viewerLang)
+		}
 	}
+	opts.Lang = s.viewerLang
+	s.mu.Unlock()
 	return opts
 }
 
@@ -155,10 +158,14 @@ type Server struct {
 
 	mu       sync.Mutex
 	model    *app.Model
-	pageLang string       // The browser's language, from the last page served.
-	dir      string       // Where drops are kept; made when the first arrives.
-	stored   atomic.Int64 // Bytes kept so far, against maxSessionBytes.
-	uploads  atomic.Int32 // Active requests, including bytes not committed yet.
+	pageLang string // The browser's language, from the last page served.
+	// viewerLang is the first viewer session's language, which every
+	// session keeps; langChosen says it has been chosen.
+	viewerLang string
+	langChosen bool
+	dir        string       // Where drops are kept; made when the first arrives.
+	stored     atomic.Int64 // Bytes kept so far, against maxSessionBytes.
+	uploads    atomic.Int32 // Active requests, including bytes not committed yet.
 
 	// Exports, made by e in the viewer, wait here for the page to take
 	// them as downloads: the server's working directory is not the

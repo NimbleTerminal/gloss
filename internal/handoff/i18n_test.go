@@ -104,12 +104,17 @@ func TestMessagesAreEscaped(t *testing.T) {
 }
 
 func TestViewerFollowsThePage(t *testing.T) {
-	t.Cleanup(func() { i18n.SetLanguage("") })
+	t.Cleanup(func() { i18n.SetLanguage("en") })
 	s := &Server{token: "test-token"}
 	page(t, s, "es-MX")
 	opts := s.viewerOptions(app.Options{})
 	if opts.Lang != "es-MX" || i18n.Language() != "es" {
 		t.Errorf("viewer Lang %q, language %q; want es-MX, es", opts.Lang, i18n.Language())
+	}
+	// A second browser cannot switch the running viewer's language.
+	page(t, s, "zh-CN")
+	if opts := s.viewerOptions(app.Options{}); opts.Lang != "es-MX" || i18n.Language() != "es" {
+		t.Errorf("second viewer Lang %q, language %q; want es-MX, es", opts.Lang, i18n.Language())
 	}
 	s = &Server{token: "test-token", lang: "zh-CN"}
 	page(t, s, "es")
