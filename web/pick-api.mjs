@@ -1,4 +1,5 @@
 import { maxBytes, maxLabel } from './drop.mjs';
+import { msg } from './i18n.mjs';
 import { maxPicked } from './pickers.mjs';
 
 // The upload page talks only in upload IDs; it never sends local host paths.
@@ -9,7 +10,7 @@ export function createPickAPI(send = fetch, makeXHR = () => new XMLHttpRequest()
       method, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
       ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
     });
-    if (!response.ok) throw new Error((await response.text()).trim() || `Request failed (${response.status}).`);
+    if (!response.ok) throw new Error((await response.text()).trim() || msg('web.pick.requestFailed', 'Request failed ({{.Status}}).', { Status: response.status }));
     return response.json();
   }
   return {
@@ -32,15 +33,15 @@ export function createPickAPI(send = fetch, makeXHR = () => new XMLHttpRequest()
         };
         xhr.onload = () => {
           if (xhr.status < 200 || xhr.status >= 300) {
-            reject(new Error(xhr.responseText.trim() || `Upload failed (${xhr.status}).`));
+            reject(new Error(xhr.responseText.trim() || msg('web.pick.uploadFailed', 'Upload failed ({{.Status}}).', { Status: xhr.status })));
             return;
           }
           try { resolve(JSON.parse(xhr.responseText).files); }
-          catch { reject(new Error('The upload response could not be read.')); }
+          catch { reject(new Error(msg('web.pick.uploadUnreadable', 'The upload response could not be read.'))); }
         };
-        xhr.onerror = () => reject(new Error('The upload connection was lost.'));
-        xhr.ontimeout = () => reject(new Error('The upload took too long.'));
-        xhr.onabort = () => reject(new Error('The upload was interrupted.'));
+        xhr.onerror = () => reject(new Error(msg('web.pick.uploadLost', 'The upload connection was lost.')));
+        xhr.ontimeout = () => reject(new Error(msg('web.pick.uploadSlow', 'The upload took too long.')));
+        xhr.onabort = () => reject(new Error(msg('web.pick.uploadInterrupted', 'The upload was interrupted.')));
         const body = new FormData();
         body.append('file', file, file.name);
         xhr.send(body);
@@ -54,7 +55,7 @@ export const maxPickBytes = maxBytes;
 export const maxMessageCharacters = 2000;
 
 export function messageProblem(message) {
-  return Array.from(message).length > maxMessageCharacters ? 'Message must be at most 2,000 characters.' : '';
+  return Array.from(message).length > maxMessageCharacters ? msg('web.pick.messageLong', 'Message must be at most 2,000 characters.') : '';
 }
 
 // Drafts stay in this browser tab, scoped to the session URL. Nothing sends
@@ -68,8 +69,8 @@ export function messageDraft(storage, key) {
 }
 
 export function fileProblem(file, count) {
-  if (count >= maxPickFiles) return `At most ${maxPickFiles} files can be added.`;
-  if (!file.size) return `${file.name} is empty.`;
-  if (file.size > maxPickBytes) return `${file.name} is over ${maxLabel}.`;
+  if (count >= maxPickFiles) return msg('web.pick.tooMany', 'At most {{.Max}} files can be added.', { Max: maxPickFiles });
+  if (!file.size) return msg('web.pick.empty', '{{.Name}} is empty.', { Name: file.name });
+  if (file.size > maxPickBytes) return msg('web.pick.tooBig', '{{.Name}} is over {{.Limit}}.', { Name: file.name, Limit: maxLabel });
   return '';
 }

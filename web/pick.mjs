@@ -1,3 +1,4 @@
+import { msg } from './i18n.mjs';
 import { createPickAPI, fileProblem, messageProblem, messageDraft, maxMessageCharacters } from './pick-api.mjs';
 
 const api = createPickAPI();
@@ -20,12 +21,15 @@ function controls() {
   el('reply').disabled = busy || finished;
   el('reply').setCustomValidity(problem);
   el('reply').setAttribute('aria-invalid', String(Boolean(problem)));
-  el('reply-count').textContent = `${count.toLocaleString()} / ${maxMessageCharacters.toLocaleString()} characters${problem ? ' — please shorten your message.' : ''}`;
+  el('reply-count').textContent = msg('web.pick.count', '{{.Count}} / {{.Max}} characters', { Count: count.toLocaleString(), Max: maxMessageCharacters.toLocaleString() })
+    + (problem ? msg('web.pick.shorten', ' — please shorten your message.') : '');
   el('reply-count').classList.toggle('error', Boolean(problem));
   el('choose').disabled = busy || finished;
   el('cancel').disabled = busy || finished;
   el('send').disabled = busy || finished || !files.length || Boolean(problem);
-  el('send').textContent = files.length ? `Send ${files.length} file${files.length === 1 ? '' : 's'}` : 'Send files';
+  el('send').textContent = !files.length ? msg('web.pick.send', 'Send files')
+    : files.length === 1 ? msg('web.pick.sendOne', 'Send 1 file')
+    : msg('web.pick.sendMany', 'Send {{.Count}} files', { Count: files.length });
   for (const button of el('files').querySelectorAll('button')) button.disabled = busy || finished;
 }
 
@@ -60,13 +64,13 @@ function render() {
     name.textContent = file.name;
     const info = document.createElement('span');
     info.className = 'size';
-    info.textContent = `${size(file.size)} · Ready to send`;
+    info.textContent = msg('web.pick.ready', '{{.Size}} · Ready to send', { Size: size(file.size) });
     details.append(name, info);
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'remove';
-    remove.textContent = 'Remove';
-    remove.setAttribute('aria-label', `Remove ${file.name}`);
+    remove.textContent = msg('web.pick.remove', 'Remove');
+    remove.setAttribute('aria-label', msg('web.pick.removeName', 'Remove {{.Name}}', { Name: file.name }));
     remove.addEventListener('click', () => removeFile(file.id));
     row.append(picture, details, remove);
     el('files').append(row);
@@ -80,10 +84,11 @@ function finish(state, count = files.length, message = '') {
   for (const id of previews.keys()) release(id);
   el('picker').hidden = true;
   el('result').hidden = false;
-  el('result-title').textContent = state === 'picked' ? 'Files sent.' : 'Request declined.';
+  el('result-title').textContent = state === 'picked' ? msg('web.pick.sent', 'Files sent.') : msg('web.pick.declined', 'Request declined.');
   el('result-detail').textContent = state === 'picked'
-    ? `${count} file${count === 1 ? ' is' : 's are'} ready for the requester. You can close this tab.`
-    : 'No files were handed over. You can close this tab.';
+    ? (count === 1 ? msg('web.pick.sentOne', '1 file is ready for the requester. You can close this tab.')
+      : msg('web.pick.sentMany', '{{.Count}} files are ready for the requester. You can close this tab.', { Count: count }))
+    : msg('web.pick.declinedDetail', 'No files were handed over. You can close this tab.');
   el('result-note').textContent = state === 'picked' ? message : '';
   el('result-note').hidden = !el('result-note').textContent;
   notice('');
@@ -106,7 +111,7 @@ async function removeFile(id) {
     const result = await api.remove(id);
     files = result.files;
     release(id);
-    notice('File removed.');
+    notice(msg('web.pick.removed', 'File removed.'));
   } catch (error) { notice(error.message, true); }
   finally { busy = false; render(); el('choose').focus(); }
 }
@@ -121,7 +126,7 @@ async function addFiles(chosen) {
     for (const [index, file] of Array.from(chosen).entries()) {
       const problem = fileProblem(file, files.length);
       if (problem) { problems.push(problem); continue; }
-      notice(`Uploading ${index + 1} of ${chosen.length}: ${file.name}`);
+      notice(msg('web.pick.uploading', 'Uploading {{.Index}} of {{.Total}}: {{.Name}}', { Index: index + 1, Total: chosen.length, Name: file.name }));
       el('progress').value = 0;
       try {
         const uploaded = await api.upload(file, value => { el('progress').value = value; });
@@ -139,9 +144,9 @@ async function addFiles(chosen) {
         break;
       }
     }
-    notice(problems.length ? problems.join(' ') : 'Ready when you are. Check the list, then send your files.', problems.length > 0);
+    notice(problems.length ? problems.join(' ') : msg('web.pick.readyAll', 'Ready when you are. Check the list, then send your files.'), problems.length > 0);
   } catch {
-    notice('Connection lost. Reload this page to recover completed uploads while the request is still open.', true);
+    notice(msg('web.pick.lost', 'Connection lost. Reload this page to recover completed uploads while the request is still open.'), true);
   } finally {
     busy = false;
     el('progress').hidden = true;
@@ -154,15 +159,15 @@ async function settle(decline = false) {
   if (!decline && messageProblem(el('reply').value)) { el('reply').reportValidity(); return; }
   busy = true;
   controls();
-  notice(decline ? 'Declining request…' : 'Sending your files…');
+  notice(decline ? msg('web.pick.declining', 'Declining request…') : msg('web.pick.sending', 'Sending your files…'));
   try {
     const result = decline ? await api.decline() : await api.confirm(files.map(file => file.id), el('reply').value);
     finish(result.state, files.length, result.message);
   } catch {
     // Do not claim failure: the confirmation might have reached the server.
     try { await refresh(); }
-    catch { notice('Could not confirm the result. The request may have finished; ask the requester to check its status.', true); }
-    if (!finished && !el('message').classList.contains('error')) notice('The request is still open. Check your files and try again.', true);
+    catch { notice(msg('web.pick.unconfirmed', 'Could not confirm the result. The request may have finished; ask the requester to check its status.'), true); }
+    if (!finished && !el('message').classList.contains('error')) notice(msg('web.pick.stillOpen', 'The request is still open. Check your files and try again.'), true);
   } finally { busy = false; controls(); }
 }
 
@@ -189,10 +194,10 @@ window.addEventListener('pagehide', () => { for (const id of previews.keys()) re
 
 try {
   await refresh();
-  if (!finished) notice(files.length ? 'Your uploaded files are still here. Check the list, then send them.' : '');
+  if (!finished) notice(files.length ? msg('web.pick.restored', 'Your uploaded files are still here. Check the list, then send them.') : '');
   busy = false;
   controls();
 } catch {
   el('reply').disabled = true;
-  notice('This request is unavailable or has expired. Ask the requester for a new link.', true);
+  notice(msg('web.pick.unavailable', 'This request is unavailable or has expired. Ask the requester for a new link.'), true);
 }

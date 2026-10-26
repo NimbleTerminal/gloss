@@ -71,8 +71,8 @@ func TestTranslated(t *testing.T) {
 	if m["test.seed"] != "semilla" {
 		t.Errorf("Messages seed = %q", m["test.seed"])
 	}
-	if got := For("es").Messages("web."); len(got) != 0 {
-		t.Errorf("web. = %v", got)
+	if got := For("es").Messages("none."); len(got) != 0 {
+		t.Errorf("none. = %v", got)
 	}
 	if got := For("en").Messages("test."); len(got) != 0 {
 		t.Errorf("en Messages = %v", got)

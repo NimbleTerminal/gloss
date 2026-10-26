@@ -1,3 +1,4 @@
+import { msg } from './i18n.mjs';
 import { BoobaTerminal, resolveBoobaURLs } from './static/booba/booba.js';
 import { parseRendererFromURL } from './static/ghostty-web/ghostty-web.js';
 import { installDrop } from './drop.mjs';
@@ -71,7 +72,7 @@ async function chosen(names, contents, skipped = []) {
   choose.disabled = true;
   try {
     await upload(names, contents);
-    message.textContent = `${names.length} file${names.length === 1 ? '' : 's'} added. ${skipped.join('; ')}`;
+    message.textContent = `${names.length === 1 ? msg('web.serve.addedOne', '1 file added.') : msg('web.serve.addedMany', '{{.Count}} files added.', { Count: names.length })} ${skipped.join('; ')}`;
   } catch (error) {
     notice(error.message || String(error));
   } finally {
@@ -81,7 +82,7 @@ async function chosen(names, contents, skipped = []) {
 }
 let fetching = false;
 installDrop(window, hint, chosen, notice, document.body.dataset.fetch === 'true' ? async address => {
-  if (fetching) throw new Error('A document is already being fetched.');
+  if (fetching) throw new Error(msg('web.serve.fetching', 'A document is already being fetched.'));
   fetching = true;
   try {
     const [name, data] = await fetchDocument(address);
@@ -143,7 +144,7 @@ try {
   terminal.focus();
 } catch (error) {
   console.error(error);
-  status.textContent = `Unable to start gloss: ${error.message || error}`;
+  status.textContent = msg('web.serve.startFailed', 'Unable to start gloss: {{.Error}}', { Error: error.message || error });
   status.hidden = false;
   choose.disabled = true;
 }

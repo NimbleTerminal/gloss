@@ -173,3 +173,249 @@ other = "等待在设备上点击“发送” · g 图形 · q/Esc 取消"
 
 [app.loadError]
 other = "无法打开文件\n\n%s\n\nR 重试 · ] 下一个文件 · q 退出"
+
+[web.serve.labelPick]
+other = "文件请求"
+
+[web.serve.labelView]
+other = "gloss 查看器"
+
+[web.serve.headingPick]
+other = "选择要发送的文件"
+
+[web.serve.headingView]
+other = "查看你的文件"
+
+[web.serve.choose]
+other = "选择文件"
+
+[web.serve.pickHelp]
+other = "选择或拖放文件，在下方检查后，在查看器中按 Enter 发送。按 q 取消。"
+
+[web.serve.done]
+other = "完成查看"
+
+[web.serve.more]
+other = "更多"
+
+[web.serve.another]
+other = "打开其他文件"
+
+[web.serve.keep]
+other = "继续查看"
+
+[web.serve.formats]
+other = "所需格式:"
+
+[web.serve.terminal]
+other = "交互式终端"
+
+[web.serve.connecting]
+other = "正在连接 gloss…"
+
+[web.serve.drop]
+other = "拖放文件以打开"
+
+[web.serve.dropURL]
+other = "拖放文件或一个网址以打开"
+
+[web.serve.fetching]
+other = "已有文档正在下载。"
+
+[web.serve.addedOne]
+other = "已添加 1 个文件。"
+
+[web.serve.addedMany]
+other = "已添加 {{.Count}} 个文件。"
+
+[web.serve.startFailed]
+other = "无法启动 gloss：{{.Error}}"
+
+[web.serve.finished]
+other = "gloss 已结束。可以关闭此标签页。"
+
+[web.serve.expired]
+other = "会话已过期。"
+
+[web.serve.lost]
+other = "连接已断开。"
+
+[web.serve.pickGone]
+other = "此文件请求已不可用。"
+
+[web.serve.viewGone]
+other = "此视图已不可交互。请让请求者重新打开。"
+
+[web.serve.idleExpiry]
+other = "无操作时，查看会话将在 {{.Seconds}} 秒后过期。点击“继续查看”以继续。"
+
+[web.serve.deadline]
+other = "此会话将在 {{.Seconds}} 秒后结束（请求者设定的时限）。"
+
+[web.pick.title]
+other = "发送文件 · gloss"
+
+[web.pick.eyebrow]
+other = "文件请求"
+
+[web.pick.headingLead]
+other = "简单交接。"
+
+[web.pick.heading]
+other = "选择要发送的文件。"
+
+[web.pick.intro]
+other = "添加文件，检查列表，然后发回给正在等待的人或代理。"
+
+[web.pick.cardLabel]
+other = "选择并发送文件"
+
+[web.pick.dropTitle]
+other = "你的文件，准备就绪。"
+
+[web.pick.dropHelp]
+other = "从此设备选择，或将文件拖放到这里。"
+
+[web.pick.choose]
+other = "选择文件"
+
+[web.pick.limits]
+other = "最多 200 个文件 · 每个文件 128 MiB · 总计 1 GiB"
+
+[web.pick.formats]
+other = "所需格式:"
+
+[web.pick.filesLabel]
+other = "要发送的文件"
+
+[web.pick.progress]
+other = "上传进度"
+
+[web.pick.replyLabel]
+other = "给请求者的留言"
+
+[web.pick.optional]
+other = "（可选）"
+
+[web.pick.replyPlaceholder]
+other = "关于这些文件，有什么需要对方知道的吗？"
+
+[web.pick.replyHelp]
+other = "点击“发送文件”时随文件一同发送。"
+
+[web.pick.countStart]
+other = "0 / 2,000 字符"
+
+[web.pick.count]
+other = "{{.Count}} / {{.Max}} 字符"
+
+[web.pick.shorten]
+other = " — 请缩短留言。"
+
+[web.pick.cancel]
+other = "取消"
+
+[web.pick.send]
+other = "发送文件"
+
+[web.pick.sendOne]
+other = "发送 1 个文件"
+
+[web.pick.sendMany]
+other = "发送 {{.Count}} 个文件"
+
+[web.pick.connecting]
+other = "正在连接你的文件请求…"
+
+[web.pick.noscript]
+other = "此文件请求需要 JavaScript 才能上传和发送文件。"
+
+[web.pick.footerUpload]
+other = "文件在你选择时即上传到这台计算机。"
+
+[web.pick.footerSend]
+other = "只有点击“发送文件”后才会答复请求。"
+
+[web.pick.ready]
+other = "{{.Size}} · 可以发送"
+
+[web.pick.remove]
+other = "移除"
+
+[web.pick.removeName]
+other = "移除 {{.Name}}"
+
+[web.pick.sent]
+other = "文件已发送。"
+
+[web.pick.declined]
+other = "已拒绝请求。"
+
+[web.pick.sentOne]
+other = "1 个文件已交给请求者。可以关闭此标签页。"
+
+[web.pick.sentMany]
+other = "{{.Count}} 个文件已交给请求者。可以关闭此标签页。"
+
+[web.pick.declinedDetail]
+other = "没有交出任何文件。可以关闭此标签页。"
+
+[web.pick.removed]
+other = "文件已移除。"
+
+[web.pick.uploading]
+other = "正在上传第 {{.Index}} 个，共 {{.Total}} 个：{{.Name}}"
+
+[web.pick.readyAll]
+other = "准备好了。请检查列表，然后发送文件。"
+
+[web.pick.lost]
+other = "连接已断开。请求仍然有效时，重新加载此页面可恢复已完成的上传。"
+
+[web.pick.declining]
+other = "正在拒绝请求…"
+
+[web.pick.sending]
+other = "正在发送文件…"
+
+[web.pick.unconfirmed]
+other = "无法确认结果。请求可能已经结束；请让请求者查看其状态。"
+
+[web.pick.stillOpen]
+other = "请求仍然有效。请检查文件后重试。"
+
+[web.pick.restored]
+other = "你上传的文件仍在这里。请检查列表，然后发送。"
+
+[web.pick.unavailable]
+other = "此请求不可用或已过期。请向请求者索取新链接。"
+
+[web.pick.requestFailed]
+other = "请求失败（{{.Status}}）。"
+
+[web.pick.uploadFailed]
+other = "上传失败（{{.Status}}）。"
+
+[web.pick.uploadUnreadable]
+other = "无法读取上传响应。"
+
+[web.pick.uploadLost]
+other = "上传连接已断开。"
+
+[web.pick.uploadSlow]
+other = "上传耗时过长。"
+
+[web.pick.uploadInterrupted]
+other = "上传已中断。"
+
+[web.pick.messageLong]
+other = "留言最多 2,000 个字符。"
+
+[web.pick.tooMany]
+other = "最多只能添加 {{.Max}} 个文件。"
+
+[web.pick.empty]
+other = "{{.Name}} 是空文件。"
+
+[web.pick.tooBig]
+other = "{{.Name}} 超过 {{.Limit}}。"

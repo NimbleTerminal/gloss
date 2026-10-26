@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>gloss</title>
+<html lang="{{.Lang}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>gloss</title>
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%23A7D7B1%27/%3E%3Ctext x=%2732%27 y=%2747%27 text-anchor=%27middle%27 font-size=%2752%27 fill=%27%233F3080%27%3E%E2%96%A7%3C/text%3E%3C/svg%3E">
 <style>
@@ -18,17 +18,17 @@ main{position:relative;flex:1;min-height:0}#terminal{height:100%;padding:4px}
 </style></head>
 <body data-fetch="{{.Fetch}}" data-pick="{{.Pick}}">
 <header aria-labelledby="request">
-  <p class="label">{{if .Pick}}File request{{else}}gloss viewer{{end}}</p>
-  <h1 id="request">{{if .Prompt}}{{.Prompt}}{{else if .Pick}}Choose files to send{{else}}View your files{{end}}</h1>
-  <div class="actions">{{if .Pick}}<button id="choose-files" type="button" disabled>Choose files</button>
-    <p>Choose or drop files, review them below, then press Enter in the viewer to send. Press q to cancel.</p>
-    {{else}}<button id="done-viewing" type="button" disabled>Done viewing</button>
-    <details><summary>More</summary><button id="choose-files" type="button" disabled>Open another file</button></details>{{end}}
-    <button id="keep-viewing" type="button" hidden>Keep viewing</button>
+  <p class="label">{{if .Pick}}{{t "web.serve.labelPick" "File request"}}{{else}}{{t "web.serve.labelView" "gloss viewer"}}{{end}}</p>
+  <h1 id="request">{{if .Prompt}}{{.Prompt}}{{else if .Pick}}{{t "web.serve.headingPick" "Choose files to send"}}{{else}}{{t "web.serve.headingView" "View your files"}}{{end}}</h1>
+  <div class="actions">{{if .Pick}}<button id="choose-files" type="button" disabled>{{t "web.serve.choose" "Choose files"}}</button>
+    <p>{{t "web.serve.pickHelp" "Choose or drop files, review them below, then press Enter in the viewer to send. Press q to cancel."}}</p>
+    {{else}}<button id="done-viewing" type="button" disabled>{{t "web.serve.done" "Done viewing"}}</button>
+    <details><summary>{{t "web.serve.more" "More"}}</summary><button id="choose-files" type="button" disabled>{{t "web.serve.another" "Open another file"}}</button></details>{{end}}
+    <button id="keep-viewing" type="button" hidden>{{t "web.serve.keep" "Keep viewing"}}</button>
   </div>
   <p id="lifetime" role="status" aria-live="polite"></p>
-  {{if .Accept}}<p>Required formats: {{.Accept}}</p>{{end}}
+  {{if .Accept}}<p>{{t "web.serve.formats" "Required formats:"}} {{.Accept}}</p>{{end}}
   <p id="message" role="status" aria-live="polite"></p>
 </header>
-<main><div id="terminal" aria-label="Interactive terminal"></div><div id="status" role="status">Connecting to gloss…</div></main>
-<div id="drop" role="status" hidden>Drop files{{if .Fetch}} or one URL{{end}} to open</div><script type="module" src="serve.mjs"></script></body></html>
+<main><div id="terminal" aria-label="{{t "web.serve.terminal" "Interactive terminal"}}"></div><div id="status" role="status">{{t "web.serve.connecting" "Connecting to gloss…"}}</div></main>
+<div id="drop" role="status" hidden>{{if .Fetch}}{{t "web.serve.dropURL" "Drop files or one URL to open"}}{{else}}{{t "web.serve.drop" "Drop files to open"}}{{end}}</div><script type="application/json" id="gloss-messages">{{.Messages}}</script><script type="module" src="serve.mjs"></script></body></html>

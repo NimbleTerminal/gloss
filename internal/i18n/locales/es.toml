@@ -169,7 +169,253 @@ other = "; agrande la terminal"
 other = "Cerrando la solicitud…"
 
 [handoff.screen.waiting]
-other = "Esperando Enviar en su dispositivo · g gráficos · q/Esc cancelar"
+other = "Esperando a que pulse «Enviar» en su dispositivo · g gráficos · q/Esc cancelar"
 
 [app.loadError]
 other = "No se puede abrir el archivo\n\n%s\n\nR reintentar · ] siguiente archivo · q salir"
+
+[web.serve.labelPick]
+other = "Solicitud de archivos"
+
+[web.serve.labelView]
+other = "visor de gloss"
+
+[web.serve.headingPick]
+other = "Elija archivos para enviar"
+
+[web.serve.headingView]
+other = "Vea sus archivos"
+
+[web.serve.choose]
+other = "Elegir archivos"
+
+[web.serve.pickHelp]
+other = "Elija o suelte archivos, revíselos abajo y pulse Enter en el visor para enviarlos. Pulse q para cancelar."
+
+[web.serve.done]
+other = "Terminar de ver"
+
+[web.serve.more]
+other = "Más"
+
+[web.serve.another]
+other = "Abrir otro archivo"
+
+[web.serve.keep]
+other = "Seguir viendo"
+
+[web.serve.formats]
+other = "Formatos requeridos:"
+
+[web.serve.terminal]
+other = "Terminal interactiva"
+
+[web.serve.connecting]
+other = "Conectando con gloss…"
+
+[web.serve.drop]
+other = "Suelte archivos para abrirlos"
+
+[web.serve.dropURL]
+other = "Suelte archivos o una URL para abrirlos"
+
+[web.serve.fetching]
+other = "Ya se está descargando un documento."
+
+[web.serve.addedOne]
+other = "1 archivo añadido."
+
+[web.serve.addedMany]
+other = "{{.Count}} archivos añadidos."
+
+[web.serve.startFailed]
+other = "No se pudo iniciar gloss: {{.Error}}"
+
+[web.serve.finished]
+other = "gloss ha terminado. Puede cerrar esta pestaña."
+
+[web.serve.expired]
+other = "La sesión ha caducado."
+
+[web.serve.lost]
+other = "Se perdió la conexión."
+
+[web.serve.pickGone]
+other = "Esta solicitud de archivos ya no está disponible."
+
+[web.serve.viewGone]
+other = "Esta vista ya no es interactiva. Pida al solicitante que la vuelva a abrir."
+
+[web.serve.idleExpiry]
+other = "La sesión caduca por inactividad en {{.Seconds}} s. Pulse «Seguir viendo» para continuar."
+
+[web.serve.deadline]
+other = "Esta sesión termina en {{.Seconds}} s (límite de tiempo del solicitante)."
+
+[web.pick.title]
+other = "Enviar archivos · gloss"
+
+[web.pick.eyebrow]
+other = "Solicitud de archivos"
+
+[web.pick.headingLead]
+other = "Una pequeña entrega."
+
+[web.pick.heading]
+other = "Elija archivos para enviar."
+
+[web.pick.intro]
+other = "Añada sus archivos, revise la lista y envíelos a la persona o al agente que los espera."
+
+[web.pick.cardLabel]
+other = "Elegir y enviar archivos"
+
+[web.pick.dropTitle]
+other = "Sus archivos, listos para enviar."
+
+[web.pick.dropHelp]
+other = "Elija desde este dispositivo o suelte archivos aquí."
+
+[web.pick.choose]
+other = "Elegir archivos"
+
+[web.pick.limits]
+other = "Hasta 200 archivos · 128 MiB por archivo · 1 GiB en total"
+
+[web.pick.formats]
+other = "Formatos requeridos:"
+
+[web.pick.filesLabel]
+other = "Archivos para enviar"
+
+[web.pick.progress]
+other = "Progreso de la subida"
+
+[web.pick.replyLabel]
+other = "Mensaje para el solicitante"
+
+[web.pick.optional]
+other = "(opcional)"
+
+[web.pick.replyPlaceholder]
+other = "¿Algo que deba saber sobre estos archivos?"
+
+[web.pick.replyHelp]
+other = "Se envía con sus archivos al pulsar «Enviar archivos»."
+
+[web.pick.countStart]
+other = "0 / 2000 caracteres"
+
+[web.pick.count]
+other = "{{.Count}} / {{.Max}} caracteres"
+
+[web.pick.shorten]
+other = " — acorte su mensaje."
+
+[web.pick.cancel]
+other = "Cancelar"
+
+[web.pick.send]
+other = "Enviar archivos"
+
+[web.pick.sendOne]
+other = "Enviar 1 archivo"
+
+[web.pick.sendMany]
+other = "Enviar {{.Count}} archivos"
+
+[web.pick.connecting]
+other = "Conectando con su solicitud de archivos…"
+
+[web.pick.noscript]
+other = "Esta solicitud de archivos necesita JavaScript para subir y enviar archivos."
+
+[web.pick.footerUpload]
+other = "Los archivos se suben a este equipo a medida que los elige."
+
+[web.pick.footerSend]
+other = "La solicitud solo se responde cuando pulsa «Enviar archivos»."
+
+[web.pick.ready]
+other = "{{.Size}} · Listo para enviar"
+
+[web.pick.remove]
+other = "Quitar"
+
+[web.pick.removeName]
+other = "Quitar {{.Name}}"
+
+[web.pick.sent]
+other = "Archivos enviados."
+
+[web.pick.declined]
+other = "Solicitud rechazada."
+
+[web.pick.sentOne]
+other = "1 archivo está listo para el solicitante. Puede cerrar esta pestaña."
+
+[web.pick.sentMany]
+other = "{{.Count}} archivos están listos para el solicitante. Puede cerrar esta pestaña."
+
+[web.pick.declinedDetail]
+other = "No se entregó ningún archivo. Puede cerrar esta pestaña."
+
+[web.pick.removed]
+other = "Archivo quitado."
+
+[web.pick.uploading]
+other = "Subiendo {{.Index}} de {{.Total}}: {{.Name}}"
+
+[web.pick.readyAll]
+other = "Todo listo. Revise la lista y envíe sus archivos."
+
+[web.pick.lost]
+other = "Se perdió la conexión. Recargue esta página para recuperar las subidas completadas mientras la solicitud siga abierta."
+
+[web.pick.declining]
+other = "Rechazando la solicitud…"
+
+[web.pick.sending]
+other = "Enviando sus archivos…"
+
+[web.pick.unconfirmed]
+other = "No se pudo confirmar el resultado. Puede que la solicitud haya terminado; pida al solicitante que compruebe su estado."
+
+[web.pick.stillOpen]
+other = "La solicitud sigue abierta. Revise sus archivos e inténtelo de nuevo."
+
+[web.pick.restored]
+other = "Sus archivos subidos siguen aquí. Revise la lista y envíelos."
+
+[web.pick.unavailable]
+other = "Esta solicitud no está disponible o ha caducado. Pida al solicitante un enlace nuevo."
+
+[web.pick.requestFailed]
+other = "La solicitud falló ({{.Status}})."
+
+[web.pick.uploadFailed]
+other = "La subida falló ({{.Status}})."
+
+[web.pick.uploadUnreadable]
+other = "No se pudo leer la respuesta de la subida."
+
+[web.pick.uploadLost]
+other = "Se perdió la conexión de la subida."
+
+[web.pick.uploadSlow]
+other = "La subida tardó demasiado."
+
+[web.pick.uploadInterrupted]
+other = "La subida se interrumpió."
+
+[web.pick.messageLong]
+other = "El mensaje debe tener como máximo 2000 caracteres."
+
+[web.pick.tooMany]
+other = "Se pueden añadir como máximo {{.Max}} archivos."
+
+[web.pick.empty]
+other = "{{.Name}} está vacío."
+
+[web.pick.tooBig]
+other = "{{.Name}} supera {{.Limit}}."

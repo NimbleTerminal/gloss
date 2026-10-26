@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"io/fs"
 	"log"
@@ -25,7 +24,7 @@ import (
 const maxWebPickFiles = 200
 const maxWebPickMessage = 2000 // Unicode code points; mirrored by pick-api.mjs.
 
-var webPickPage = template.Must(template.ParseFS(web.Page, "pick.html"))
+var webPickPage = newLocalizedPage("pick.html")
 
 // webPick owns the request independently of a viewer or browser connection.
 // All API operations are serialized, including upload and settlement, so Send
@@ -75,7 +74,7 @@ func serveWebPick(ctx context.Context, opts Config) (*Server, error) {
 	}
 	access := network.access(listener.Addr().(*net.TCPAddr).Port)
 	s := &Server{
-		token: token, prompt: opts.Prompt, accept: opts.Accept, pick: true,
+		token: token, prompt: opts.Prompt, lang: opts.Lang, accept: opts.Accept, pick: true,
 		cancel: cancel, done: make(chan struct{}),
 		webPick: &webPick{access: access, state: statusWaiting, files: []webPickFile{}},
 	}
@@ -165,7 +164,7 @@ func (s *Server) webPickAnswer(ctx context.Context, timeout time.Duration) ([]st
 func (s *Server) serveWebPick(w http.ResponseWriter, r *http.Request, rest string) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src blob:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
-	if rest == "" || rest == "pick.mjs" || rest == "pick-api.mjs" || rest == "drop.mjs" || rest == "pickers.mjs" {
+	if rest == "" || rest == "pick.mjs" || rest == "i18n.mjs" || rest == "pick-api.mjs" || rest == "drop.mjs" || rest == "pickers.mjs" {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
 			http.Error(w, "GET the page", http.StatusMethodNotAllowed)
@@ -173,7 +172,11 @@ func (s *Server) serveWebPick(w http.ResponseWriter, r *http.Request, rest strin
 		}
 		if rest == "" {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			_ = webPickPage.Execute(w, struct{ Prompt, Accept string }{s.prompt, string(s.accept)})
+			l := s.localizer(r)
+			_ = webPickPage.in(l).Execute(w, struct {
+				pageText
+				Prompt, Accept string
+			}{newPageText(l), s.prompt, string(s.accept)})
 		} else {
 			data, err := fs.ReadFile(web.Page, rest)
 			if err != nil {

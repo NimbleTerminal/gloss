@@ -32,6 +32,7 @@ import (
 	booba "github.com/NimbleMarkets/go-booba/serve"
 	"nimbleterminal.dev/gloss/internal/app"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/web"
 )
 
@@ -42,7 +43,83 @@ var (
 
 const maxDrops = 256 // Files in one drop.
 
-var servePage = template.Must(template.ParseFS(web.Page, "serve.html"))
+var servePage = newLocalizedPage("serve.html")
+
+// localizedPage is a page's template once per catalog, each with a t of its
+// own language. They are made when first wanted: a clone must be taken
+// before its original runs.
+type localizedPage struct {
+	name  string
+	once  sync.Once
+	pages map[string]*template.Template
+}
+
+func newLocalizedPage(name string) *localizedPage { return &localizedPage{name: name} }
+
+// in returns the page in l's language.
+func (p *localizedPage) in(l *i18n.Localizer) *template.Template {
+	p.once.Do(func() {
+		english := func(id, def string) string { return def }
+		base := template.Must(template.New(p.name).Funcs(template.FuncMap{"t": english}).ParseFS(web.Page, p.name))
+		p.pages = map[string]*template.Template{}
+		for _, lang := range i18n.Languages() {
+			loc := i18n.For(lang.Tag)
+			p.pages[loc.Tag()] = template.Must(base.Clone()).Funcs(template.FuncMap{"t": loc.T})
+		}
+	})
+	return p.pages[l.Tag()]
+}
+
+// webMessages are the strings a page's scripts translate. It is a variable
+// so that tests can give it strings no catalog has.
+var webMessages = func(l *i18n.Localizer) map[string]string { return l.Messages("web.") }
+
+// pageText is what every page is told of its language: the catalog's tag,
+// and the scripts' messages as JSON (which escapes <, > and &, so no
+// message ends the element it is in).
+type pageText struct {
+	Lang     string
+	Messages template.JS
+}
+
+func newPageText(l *i18n.Localizer) pageText {
+	data, err := json.Marshal(webMessages(l))
+	if err != nil {
+		data = []byte("{}")
+	}
+	return pageText{Lang: l.Tag(), Messages: template.JS(data)}
+}
+
+// localizer is the language of the page r asks for: the viewer's when it
+// has one, else the browser's best that a catalog serves. The browser's is
+// kept, for the viewer that the page goes on to start.
+func (s *Server) localizer(r *http.Request) *i18n.Localizer {
+	if s.lang != "" {
+		return i18n.For(s.lang)
+	}
+	tag := i18n.FromAcceptLanguage(r.Header.Get("Accept-Language"))
+	s.mu.Lock()
+	s.pageLang = tag
+	s.mu.Unlock()
+	return i18n.For(tag)
+}
+
+// viewerOptions are opts for a viewer session. One with no language of its
+// own takes the last page's, and makes it gloss's, so a detached viewer
+// speaks as its page does.
+func (s *Server) viewerOptions(opts app.Options) app.Options {
+	if opts.Lang != "" {
+		return opts
+	}
+	s.mu.Lock()
+	tag := s.pageLang
+	s.mu.Unlock()
+	if tag != "" {
+		opts.Lang = tag
+		i18n.SetLanguage(tag)
+	}
+	return opts
+}
 
 // maxSessionBytes is all that one session keeps from the page, over every
 // drop: the token holder is trusted, but a page that loops should fill no disk.
@@ -59,6 +136,7 @@ type Server struct {
 	URL     string
 	backend string
 	prompt  string
+	lang    string // The viewer's language, or "" to follow the browser.
 	pick    bool
 	fetch   bool
 	accept  document.AcceptFilter
@@ -75,11 +153,12 @@ type Server struct {
 	lifetime      *viewerLifetime
 	closeOnce     sync.Once
 
-	mu      sync.Mutex
-	model   *app.Model
-	dir     string       // Where drops are kept; made when the first arrives.
-	stored  atomic.Int64 // Bytes kept so far, against maxSessionBytes.
-	uploads atomic.Int32 // Active requests, including bytes not committed yet.
+	mu       sync.Mutex
+	model    *app.Model
+	pageLang string       // The browser's language, from the last page served.
+	dir      string       // Where drops are kept; made when the first arrives.
+	stored   atomic.Int64 // Bytes kept so far, against maxSessionBytes.
+	uploads  atomic.Int32 // Active requests, including bytes not committed yet.
 
 	// Exports, made by e in the viewer, wait here for the page to take
 	// them as downloads: the server's working directory is not the
@@ -107,7 +186,7 @@ func random() (string, error) {
 
 func serve(ctx context.Context, opts app.Options) (*Server, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	s := &Server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, pick: opts.Pick, drops: make(chan []string, 16), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
+	s := &Server{fetch: opts.Fetch != nil, accept: opts.Accept, cancel: cancel, prompt: opts.Prompt, lang: opts.Lang, pick: opts.Pick, drops: make(chan []string, 16), started: make(chan struct{}), done: make(chan struct{}), exported: make(chan struct{})}
 	s.lifetime = newViewerLifetime()
 	opts.OnQuit = func() { s.lifetime.finish("closed") }
 	// The browser carries the full request as accessible page text, outside
@@ -148,7 +227,7 @@ func serve(ctx context.Context, opts app.Options) (*Server, error) {
 	failed := make(chan error, 1)
 	go func() {
 		failed <- viewer.Serve(ctx, func(session booba.Session) (tea.Model, []tea.ProgramOption) {
-			m := app.New(opts)
+			m := app.New(s.viewerOptions(opts))
 			s.mu.Lock()
 			first := s.model == nil
 			if first {
@@ -308,13 +387,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.viewerSession(w, r, rest)
 	case rest == "":
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		servePage.Execute(w, struct {
+		l := s.localizer(r)
+		servePage.in(l).Execute(w, struct {
+			pageText
 			Prompt string
 			Pick   bool
 			Fetch  bool
 			Accept document.AcceptFilter
-		}{s.prompt, s.pick, s.fetch, s.accept})
-	case rest == "serve.mjs" || rest == "viewer-session.mjs" || rest == "drop.mjs" || rest == "upload.mjs" || rest == "pickers.mjs" || rest == "remote.mjs":
+		}{newPageText(l), s.prompt, s.pick, s.fetch, s.accept})
+	case rest == "serve.mjs" || rest == "i18n.mjs" || rest == "viewer-session.mjs" || rest == "drop.mjs" || rest == "upload.mjs" || rest == "pickers.mjs" || rest == "remote.mjs":
 		data, err := fs.ReadFile(web.Page, rest)
 		if err != nil {
 			http.NotFound(w, r)

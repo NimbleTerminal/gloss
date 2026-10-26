@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{.Lang}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Send files · gloss</title>
+  <title>{{t "web.pick.title" "Send files · gloss"}}</title>
   <link rel="icon" href="data:,">
   <style>
     :root { color-scheme: light; font: 16px/1.5 system-ui, sans-serif; color: #292723; background: #f4f1eb; }
@@ -64,30 +64,30 @@
   <main class="shell">
     <div class="brand"><span class="mark" aria-hidden="true">▧</span>gloss</div>
     <header aria-labelledby="request">
-      <p class="eyebrow">File request</p>
-      <h1 id="request">{{if .Prompt}}{{.Prompt}}{{else}}A little handoff.<br>Choose files to send.{{end}}</h1>
-      <p class="intro">Add your files, check the list, then send them back to the person or agent waiting for them.</p>
+      <p class="eyebrow">{{t "web.pick.eyebrow" "File request"}}</p>
+      <h1 id="request">{{if .Prompt}}{{.Prompt}}{{else}}{{t "web.pick.headingLead" "A little handoff."}}<br>{{t "web.pick.heading" "Choose files to send."}}{{end}}</h1>
+      <p class="intro">{{t "web.pick.intro" "Add your files, check the list, then send them back to the person or agent waiting for them."}}</p>
     </header>
-    <section class="card" aria-label="Choose and send files">
+    <section class="card" aria-label="{{t "web.pick.cardLabel" "Choose and send files"}}">
       <div id="picker">
         <div class="drop" id="drop">
-          <strong>Your files, ready to go.</strong>
-          <p>Choose from this device, or drop files here.</p>
-          <button class="secondary" id="choose" type="button" disabled>Choose files</button>
+          <strong>{{t "web.pick.dropTitle" "Your files, ready to go."}}</strong>
+          <p>{{t "web.pick.dropHelp" "Choose from this device, or drop files here."}}</p>
+          <button class="secondary" id="choose" type="button" disabled>{{t "web.pick.choose" "Choose files"}}</button>
           <input id="input" type="file" multiple hidden>
         </div>
-        <p class="limits">Up to 200 files · 128 MiB per file · 1 GiB total{{if .Accept}}<br>Required formats: {{.Accept}}{{end}}</p>
-        <ul id="files" aria-label="Files to send"></ul>
-        <progress id="progress" max="100" value="0" aria-label="Upload progress" hidden></progress>
+        <p class="limits">{{t "web.pick.limits" "Up to 200 files · 128 MiB per file · 1 GiB total"}}{{if .Accept}}<br>{{t "web.pick.formats" "Required formats:"}} {{.Accept}}{{end}}</p>
+        <ul id="files" aria-label="{{t "web.pick.filesLabel" "Files to send"}}"></ul>
+        <progress id="progress" max="100" value="0" aria-label="{{t "web.pick.progress" "Upload progress"}}" hidden></progress>
         <div class="reply">
-          <label for="reply">Message to requester <span>(optional)</span></label>
-          <textarea id="reply" rows="3" aria-describedby="reply-help reply-count" placeholder="Anything they should know about these files?" disabled></textarea>
-          <p class="reply-help" id="reply-help">Sent with your files when you press Send files.</p>
-          <p class="reply-help" id="reply-count">0 / 2,000 characters</p>
+          <label for="reply">{{t "web.pick.replyLabel" "Message to requester"}} <span>{{t "web.pick.optional" "(optional)"}}</span></label>
+          <textarea id="reply" rows="3" aria-describedby="reply-help reply-count" placeholder="{{t "web.pick.replyPlaceholder" "Anything they should know about these files?"}}" disabled></textarea>
+          <p class="reply-help" id="reply-help">{{t "web.pick.replyHelp" "Sent with your files when you press Send files."}}</p>
+          <p class="reply-help" id="reply-count">{{t "web.pick.countStart" "0 / 2,000 characters"}}</p>
         </div>
         <div class="actions">
-          <button class="secondary" id="cancel" type="button" disabled>Cancel</button>
-          <button class="primary" id="send" type="button" disabled>Send files</button>
+          <button class="secondary" id="cancel" type="button" disabled>{{t "web.pick.cancel" "Cancel"}}</button>
+          <button class="primary" id="send" type="button" disabled>{{t "web.pick.send" "Send files"}}</button>
         </div>
       </div>
       <div id="result" tabindex="-1" hidden>
@@ -95,11 +95,12 @@
         <p id="result-detail"></p>
         <p id="result-note" hidden></p>
       </div>
-      <p id="message" role="status" aria-live="polite">Connecting to your file request…</p>
-      <noscript>This file request needs JavaScript to upload and send files.</noscript>
+      <p id="message" role="status" aria-live="polite">{{t "web.pick.connecting" "Connecting to your file request…"}}</p>
+      <noscript>{{t "web.pick.noscript" "This file request needs JavaScript to upload and send files."}}</noscript>
     </section>
-    <footer>Files upload to this computer as you choose them.<br>The request is answered only when you press Send files.</footer>
+    <footer>{{t "web.pick.footerUpload" "Files upload to this computer as you choose them."}}<br>{{t "web.pick.footerSend" "The request is answered only when you press Send files."}}</footer>
   </main>
+  <script type="application/json" id="gloss-messages">{{.Messages}}</script>
   <script type="module" src="pick.mjs"></script>
 </body>
 </html>
