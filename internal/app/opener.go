@@ -60,13 +60,60 @@ var typeFilters = []typeFilter{
 	{"Videos", []string{"🎬"}},
 }
 
+// title is the kind's name in the menu, in the language in use. The chooser
+// knows a kind by this name; gloss keeps the English one, so that a kind
+// chosen stays chosen across a change of language.
+func (f typeFilter) title() string {
+	switch f.name {
+	case "Pictures":
+		return i18n.T("app.browser.kind.pictures", "Pictures")
+	case "Drawings (SVG, Mermaid)":
+		return i18n.T("app.browser.kind.drawings", "Drawings (SVG, Mermaid)")
+	case "Meshes (STL, 3MF, OBJ, PLY)":
+		return i18n.T("app.browser.kind.meshes", "Meshes (STL, 3MF, OBJ, PLY)")
+	case "Maps (GeoJSON, GPX, PMTiles)":
+		return i18n.T("app.browser.kind.maps", "Maps (GeoJSON, GPX, PMTiles)")
+	case "Markdown, HTML, text":
+		return i18n.T("app.browser.kind.text", "Markdown, HTML, text")
+	case "Notebooks":
+		return i18n.T("app.browser.kind.notebooks", "Notebooks")
+	case "Tables (CSV, Excel, Grist)":
+		return i18n.T("app.browser.kind.tables", "Tables (CSV, Excel, Grist)")
+	case "Videos":
+		return i18n.T("app.browser.kind.videos", "Videos")
+	}
+	return f.name // A format's own name: PDF, JSON, Word.
+}
+
+// shownKinds are the chooser's names for the kinds of file named in
+// English, and keptKinds the English names of those it names.
+func shownKinds(names []string) []string {
+	var out []string
+	for _, f := range typeFilters {
+		if slices.Contains(names, f.name) {
+			out = append(out, f.title())
+		}
+	}
+	return out
+}
+
+func keptKinds(titles []string) []string {
+	var out []string
+	for _, f := range typeFilters {
+		if slices.Contains(titles, f.title()) {
+			out = append(out, f.name)
+		}
+	}
+	return out
+}
+
 // browseFilters are those kinds as the chooser takes them. A file is looked
 // into only for the kind that text by content is part of.
 func browseFilters() []ntfilepicker.Filter {
 	out := make([]ntfilepicker.Filter, len(typeFilters))
 	for i, f := range typeFilters {
 		byContent := slices.Contains(f.marks, "📃")
-		out[i] = ntfilepicker.Filter{Name: f.name, Mark: f.marks[0], Match: func(e fs.DirEntry) bool {
+		out[i] = ntfilepicker.Filter{Name: f.title(), Mark: f.marks[0], Match: func(e fs.DirEntry) bool {
 			if m, ok := extMark(e); ok {
 				return slices.Contains(f.marks, m)
 			}
@@ -149,13 +196,16 @@ type opener struct {
 	height int
 }
 
-const filterPrompt, goPrompt = "  Filter: ", "  Go to: "
+// filterPrompt and goPrompt start the line typed on: names to filter by,
+// or a folder to go to.
+func filterPrompt() string { return "  " + i18n.T("app.browser.filterPrompt", "Filter: ") }
+func goPrompt() string     { return "  " + i18n.T("app.browser.goPrompt", "Go to: ") }
 
 // goTo asks for a folder's path, starting from the one shown, with the
 // picker's completion at hand.
 func (o *opener) goTo() tea.Cmd {
 	o.going = true
-	o.picker.SetPrompt(goPrompt)
+	o.picker.SetPrompt(goPrompt())
 	o.picker.SetDirsOnlyCompletion(true) // The aim is a folder; its files are still listed.
 	return o.picker.SetFilter(o.dir + string(filepath.Separator))
 }
@@ -177,7 +227,7 @@ func (o *opener) leavePopup() bool {
 // stopGoing ends the go-to, the filter cleared.
 func (o *opener) stopGoing() tea.Cmd {
 	o.going = false
-	o.picker.SetPrompt(filterPrompt)
+	o.picker.SetPrompt(filterPrompt())
 	o.picker.SetDirsOnlyCompletion(false)
 	return o.picker.ClearFilter()
 }
@@ -327,8 +377,8 @@ func (m *Model) browseFrom(dir string) tea.Cmd {
 		return nil
 	}
 	reads := &readLog{ReadDirFS: os.DirFS(string(filepath.Separator)).(fs.ReadDirFS), hide: m.hideUnsupported, text: !m.noTextFiles}
-	options := []ntfilepicker.Option{ntfilepicker.WithMarker(mark), ntfilepicker.WithSort(ordering(m.sortBy)), ntfilepicker.WithLayout(ntfilepicker.Layout(m.browseLayout)), ntfilepicker.WithPrompt(filterPrompt),
-		ntfilepicker.WithFilters(browseFilters()), ntfilepicker.WithActiveFilters(m.browseTypes...), ntfilepicker.WithLinksFollowed(), ntfilepicker.WithUnchoosableNote("gloss cannot show this file")}
+	options := []ntfilepicker.Option{ntfilepicker.WithMarker(mark), ntfilepicker.WithSort(ordering(m.sortBy)), ntfilepicker.WithLayout(ntfilepicker.Layout(m.browseLayout)), ntfilepicker.WithPrompt(filterPrompt()),
+		ntfilepicker.WithFilters(browseFilters()), ntfilepicker.WithActiveFilters(shownKinds(m.browseTypes)...), ntfilepicker.WithLinksFollowed(), ntfilepicker.WithUnchoosableNote(i18n.T("app.browser.unchoosable", "gloss cannot show this file"))}
 	if m.opts.Type == "" {
 		// Judged by name where the name says; the rest by a look inside.
 		reads.allowed = document.Extensions
@@ -365,13 +415,13 @@ func (m *Model) browse(msg tea.Msg) tea.Cmd {
 	was := o.picker.Dir()
 	var cmd tea.Cmd
 	o.picker, cmd = o.picker.Update(msg)
-	o.dir, m.browseLayout, m.browseTypes = filepath.FromSlash(o.picker.Dir()), int(o.picker.Layout()), o.picker.ActiveFilters()
+	o.dir, m.browseLayout, m.browseTypes = filepath.FromSlash(o.picker.Dir()), int(o.picker.Layout()), keptKinds(o.picker.ActiveFilters())
 	if o.going && (o.picker.Dir() != was || entered && o.picker.FilterValue() == "") {
 		// The folder aimed at was gone to: by Enter on it, or by any other way
 		// of changing folders (a click on a crumb or a place, up, back), after
 		// which the filter is the filter again and G and / mean what they did.
 		o.going = false
-		o.picker.SetPrompt(filterPrompt)
+		o.picker.SetPrompt(filterPrompt())
 		o.picker.SetDirsOnlyCompletion(false)
 	}
 	chosen, ok := o.picker.Chosen()

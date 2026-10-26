@@ -70,38 +70,44 @@ func helpRight() []helpSection {
 	}
 }
 
-// Browser help describes the active file chooser rather than document controls.
-var browserHelpLeft = []helpSection{
-	{"File browser", []helpRow{
-		{"type", "filter file names"},
-		{"? / F1", "help (F1 while typing)"},
-		{"↑/↓", "select an entry"},
-		{"PgUp/PgDn", "move a screen"},
-		{"Enter", "open file or enter folder"},
-		{"←/→", "parent / enter folder"},
-		{"Alt-↑", "parent folder"},
-		{"Alt-←/→", "back / forward"},
-		{"Tab", "complete name"},
-		{"Shift-Tab", "previous completion"},
-		{"Alt-Enter", "choose an external app"},
-	}},
+// Browser help describes the active file chooser rather than document
+// controls, in the active language and within the same cells as the rest.
+func browserHelpLeft() []helpSection {
+	return []helpSection{
+		{i18n.T("app.help.browser.title", "File browser"), []helpRow{
+			{i18n.T("app.help.browser.typeKey", "type"), i18n.T("app.help.browser.filter", "filter file names")},
+			{"? / F1", i18n.T("app.help.browser.help", "help (F1 while typing)")},
+			{"↑/↓", i18n.T("app.help.browser.select", "select an entry")},
+			{"PgUp/PgDn", i18n.T("app.help.browser.screen", "move a screen")},
+			{"Enter", i18n.T("app.help.browser.open", "open file or enter folder")},
+			{"←/→", i18n.T("app.help.browser.folders", "parent / enter folder")},
+			{"Alt-↑", i18n.T("app.help.browser.parent", "parent folder")},
+			{"Alt-←/→", i18n.T("app.help.browser.history", "back / forward")},
+			{"Tab", i18n.T("app.help.browser.complete", "complete name")},
+			{"Shift-Tab", i18n.T("app.help.browser.previous", "previous completion")},
+			{"Alt-Enter", i18n.T("app.help.browser.app", "choose an external app")},
+		}},
+	}
 }
-var browserHelpRight = []helpSection{
-	{"Layout and filters", []helpRow{
-		{"Ctrl-L", "list / columns / places"},
-		{"Ctrl-G", "focus places sidebar"},
-		{"Ctrl-F", "choose file types"},
-		{"Ctrl-S", "sort by name / date / kind"},
-		{"Ctrl-T", "hide / show unsupported"},
-		{"Ctrl-X", "include / exclude text"},
-	}},
-	{"Find and leave", []helpRow{
-		{"/", "find files (empty filter)"},
-		{"G", "go to folder (empty filter)"},
-		{"Esc", "close popup or return to view"},
-		{"Ctrl-C", "quit gloss"},
-		{"", "Help preserves your filter and selection"},
-	}},
+
+func browserHelpRight() []helpSection {
+	return []helpSection{
+		{i18n.T("app.help.layout.title", "Layout and filters"), []helpRow{
+			{"Ctrl-L", i18n.T("app.help.layout.layout", "list / columns / places")},
+			{"Ctrl-G", i18n.T("app.help.layout.places", "focus places sidebar")},
+			{"Ctrl-F", i18n.T("app.help.layout.types", "choose file types")},
+			{"Ctrl-S", i18n.T("app.help.layout.sort", "sort by name / date / kind")},
+			{"Ctrl-T", i18n.T("app.help.layout.unsupported", "hide / show unsupported")},
+			{"Ctrl-X", i18n.T("app.help.layout.text", "include / exclude text")},
+		}},
+		{i18n.T("app.help.leave.title", "Find and leave"), []helpRow{
+			{"/", i18n.T("app.help.leave.find", "find files (empty filter)")},
+			{"G", i18n.T("app.help.leave.go", "go to folder (empty filter)")},
+			{"Esc", i18n.T("app.help.leave.close", "close popup or go back")},
+			{"Ctrl-C", i18n.T("app.help.leave.quit", "quit gloss")},
+			{"", i18n.T("app.help.leave.keeps", "Help keeps your filter and selection")},
+		}},
+	}
 }
 
 const helpKeyWidth = 10
@@ -137,7 +143,7 @@ func (m *Model) helpColumn(sections []helpSection, width int) []string {
 func (m *Model) helpView(w, h int) string {
 	leftSections, rightSections := helpLeft(), helpRight()
 	if m.browsing() {
-		leftSections, rightSections = browserHelpLeft, browserHelpRight
+		leftSections, rightSections = browserHelpLeft(), browserHelpRight()
 	}
 	p := m.palette()
 	name := lipgloss.NewStyle().Foreground(p.Accent).Bold(true).Render("gloss " + safe(m.opts.Version))

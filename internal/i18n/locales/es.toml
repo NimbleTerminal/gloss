@@ -1228,6 +1228,39 @@ other = "Mostrar QR"
 [app.actions.table]
 other = "Tabla"
 
+[app.browser.filterPrompt]
+other = "Filtro: "
+
+[app.browser.goPrompt]
+other = "Ir a: "
+
+[app.browser.kind.drawings]
+other = "Dibujos (SVG, Mermaid)"
+
+[app.browser.kind.maps]
+other = "Mapas (GeoJSON, GPX, PMTiles)"
+
+[app.browser.kind.meshes]
+other = "Mallas (STL, 3MF, OBJ, PLY)"
+
+[app.browser.kind.notebooks]
+other = "Cuadernos"
+
+[app.browser.kind.pictures]
+other = "Imágenes"
+
+[app.browser.kind.tables]
+other = "Tablas (CSV, Excel, Grist)"
+
+[app.browser.kind.text]
+other = "Markdown, HTML, texto"
+
+[app.browser.kind.videos]
+other = "Vídeos"
+
+[app.browser.unchoosable]
+other = "gloss no puede mostrar este archivo"
+
 [app.color.allFaces]
 other = "todas las caras"
 
@@ -1275,6 +1308,84 @@ other = "Color"
 
 [app.color.type]
 other = "Escriba un color: "
+
+[app.help.browser.app]
+other = "elegir una app externa"
+
+[app.help.browser.complete]
+other = "completar nombre"
+
+[app.help.browser.filter]
+other = "filtrar por nombre"
+
+[app.help.browser.folders]
+other = "carpeta superior / entrar"
+
+[app.help.browser.help]
+other = "ayuda (F1 al escribir)"
+
+[app.help.browser.history]
+other = "atrás / adelante"
+
+[app.help.browser.open]
+other = "abrir archivo o carpeta"
+
+[app.help.browser.parent]
+other = "carpeta superior"
+
+[app.help.browser.previous]
+other = "completado anterior"
+
+[app.help.browser.screen]
+other = "avanzar una pantalla"
+
+[app.help.browser.select]
+other = "elegir una entrada"
+
+[app.help.browser.title]
+other = "Explorador de archivos"
+
+[app.help.browser.typeKey]
+other = "escriba"
+
+[app.help.layout.layout]
+other = "lista / columnas / lugares"
+
+[app.help.layout.places]
+other = "ir a la barra de lugares"
+
+[app.help.layout.sort]
+other = "ordenar: nombre/fecha/tipo"
+
+[app.help.layout.text]
+other = "incluir / excluir texto"
+
+[app.help.layout.title]
+other = "Diseño y filtros"
+
+[app.help.layout.types]
+other = "elegir tipos de archivo"
+
+[app.help.layout.unsupported]
+other = "ocultar/mostrar atenuados"
+
+[app.help.leave.close]
+other = "cerrar ventana o volver"
+
+[app.help.leave.find]
+other = "buscar (filtro vacío)"
+
+[app.help.leave.go]
+other = "ir a carpeta (filtro vacío)"
+
+[app.help.leave.keeps]
+other = "La ayuda conserva filtro y selección"
+
+[app.help.leave.quit]
+other = "salir de gloss"
+
+[app.help.leave.title]
+other = "Buscar y salir"
 
 [app.openWith.closeKey]
 other = "Esc cerrar"

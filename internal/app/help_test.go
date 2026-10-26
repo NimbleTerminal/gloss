@@ -134,4 +134,58 @@ func TestHelpFitsInEveryLanguage(t *testing.T) {
 			t.Errorf("%s help is the English one", tag)
 		}
 	}
+
+	// The file browser's help holds to the same: within 80×24, nothing cut.
+	browsed := map[string]string{}
+	for _, tag := range []string{"en", "es", "zh-Hans"} {
+		i18n.SetLanguage(tag)
+		m := browsing(t, folder(t))
+		send(m, tea.WindowSizeMsg{Width: 80, Height: 24}, press("?"))
+		if !m.help {
+			t.Fatalf("%s: ? did not open the browser's help", tag)
+		}
+		view := ansi.Strip(m.View().Content)
+		browsed[tag] = view
+		if title := browserHelpLeft()[0].title; tag != "en" && (title == "File browser" || !strings.Contains(view, title)) {
+			t.Errorf("%s: the browser help's heading is %q", tag, title)
+		}
+		lines := strings.Split(view, "\n")
+		if len(lines) > 24 {
+			t.Errorf("%s: browser help is %d rows", tag, len(lines))
+		}
+		for _, row := range lines[:len(lines)-2] { // Without the status and hint lines.
+			if ansi.StringWidth(row) > 80 {
+				t.Errorf("%s: browser help row too wide: %q", tag, row)
+			}
+			if strings.Contains(row, "…") {
+				t.Errorf("%s: browser help cut off: %q", tag, row)
+			}
+		}
+		if !strings.Contains(view, DocsURL) {
+			t.Errorf("%s: the browser help lost the docs row:\n%s", tag, view)
+		}
+		col := (80 - 4) / 2
+		for _, s := range append(browserHelpLeft(), browserHelpRight()...) {
+			if w := ansi.StringWidth(s.title); w > col {
+				t.Errorf("%s: heading %q is %d cells, over %d", tag, s.title, w, col)
+			}
+			for _, r := range s.rows {
+				limit := col - helpKeyWidth - 1
+				if r.keys == "" {
+					limit = col
+				}
+				if w := ansi.StringWidth(r.keys); w > helpKeyWidth {
+					t.Errorf("%s: keys %q are %d cells, over %d", tag, r.keys, w, helpKeyWidth)
+				}
+				if w := ansi.StringWidth(r.action); w > limit {
+					t.Errorf("%s: %q is %d cells, over %d", tag, r.action, w, limit)
+				}
+			}
+		}
+	}
+	for _, tag := range []string{"es", "zh-Hans"} {
+		if browsed[tag] == browsed["en"] {
+			t.Errorf("%s browser help is the English one", tag)
+		}
+	}
 }

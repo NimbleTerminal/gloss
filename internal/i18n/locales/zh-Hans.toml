@@ -1221,6 +1221,39 @@ other = "显示二维码"
 [app.actions.table]
 other = "表格"
 
+[app.browser.filterPrompt]
+other = "筛选："
+
+[app.browser.goPrompt]
+other = "前往："
+
+[app.browser.kind.drawings]
+other = "绘图（SVG、Mermaid）"
+
+[app.browser.kind.maps]
+other = "地图（GeoJSON、GPX、PMTiles）"
+
+[app.browser.kind.meshes]
+other = "网格模型（STL、3MF、OBJ、PLY）"
+
+[app.browser.kind.notebooks]
+other = "笔记本"
+
+[app.browser.kind.pictures]
+other = "图片"
+
+[app.browser.kind.tables]
+other = "表格（CSV、Excel、Grist）"
+
+[app.browser.kind.text]
+other = "Markdown、HTML、文本"
+
+[app.browser.kind.videos]
+other = "视频"
+
+[app.browser.unchoosable]
+other = "gloss 无法显示此文件"
+
 [app.color.allFaces]
 other = "所有面"
 
@@ -1268,6 +1301,84 @@ other = "颜色"
 
 [app.color.type]
 other = "输入颜色："
+
+[app.help.browser.app]
+other = "选择外部应用"
+
+[app.help.browser.complete]
+other = "补全名称"
+
+[app.help.browser.filter]
+other = "按名称筛选"
+
+[app.help.browser.folders]
+other = "上级 / 进入文件夹"
+
+[app.help.browser.help]
+other = "帮助（输入时按 F1）"
+
+[app.help.browser.history]
+other = "后退 / 前进"
+
+[app.help.browser.open]
+other = "打开文件或进入文件夹"
+
+[app.help.browser.parent]
+other = "上级文件夹"
+
+[app.help.browser.previous]
+other = "上一个补全"
+
+[app.help.browser.screen]
+other = "翻一屏"
+
+[app.help.browser.select]
+other = "选择条目"
+
+[app.help.browser.title]
+other = "文件浏览器"
+
+[app.help.browser.typeKey]
+other = "输入"
+
+[app.help.layout.layout]
+other = "列表 / 分栏 / 位置"
+
+[app.help.layout.places]
+other = "聚焦位置侧栏"
+
+[app.help.layout.sort]
+other = "按名称 / 日期 / 类型排序"
+
+[app.help.layout.text]
+other = "包含 / 排除文本文件"
+
+[app.help.layout.title]
+other = "布局与筛选"
+
+[app.help.layout.types]
+other = "选择文件类型"
+
+[app.help.layout.unsupported]
+other = "隐藏 / 显示灰显项"
+
+[app.help.leave.close]
+other = "关闭弹窗或返回"
+
+[app.help.leave.find]
+other = "查找文件（空筛选时）"
+
+[app.help.leave.go]
+other = "前往文件夹（空筛选时）"
+
+[app.help.leave.keeps]
+other = "帮助会保留筛选和选择"
+
+[app.help.leave.quit]
+other = "退出 gloss"
+
+[app.help.leave.title]
+other = "查找与退出"
 
 [app.openWith.closeKey]
 other = "Esc 关闭"
