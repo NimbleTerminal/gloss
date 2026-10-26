@@ -2,10 +2,14 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
+	"sort"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -71,25 +75,31 @@ func TestHeadlessIgnoresLANG(t *testing.T) {
 		}
 		os.Exit(0)
 	}
+	// child runs gloss with args under the locale variables in locale.
+	child := func(locale, args []string) string {
+		t.Helper()
+		cmd := exec.Command(os.Args[0], "-test.run=^TestHeadlessIgnoresLANG$")
+		cmd.Env = append(withoutLocale(os.Environ()), "GLOSS_TEST_LANG_CHILD=1", "GLOSS_TEST_LANG_ARGS="+strings.Join(args, "\n"))
+		cmd.Env = append(cmd.Env, locale...)
+		var out, stderr bytes.Buffer
+		cmd.Stdout, cmd.Stderr = &out, &stderr
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("%v %v: %v stderr=%s", locale, args, err, &stderr)
+		}
+		if out.Len() == 0 {
+			t.Fatalf("%v %v: no output", locale, args)
+		}
+		return out.String()
+	}
+	info := []string{"--info", "--json", "../../examples/sales.csv", "../../examples/landscape.png"}
 	runs := func(locale []string, dir string) []string {
 		var outs []string
 		for _, args := range [][]string{
-			{"--info", "--json", "../../examples/sales.csv", "../../examples/landscape.png"},
+			info,
 			{"--text", "--json", "../../examples/readme.md"},
 			{"--output-dir", dir, "--json", "../../examples/landscape.png"},
 		} {
-			cmd := exec.Command(os.Args[0], "-test.run=^TestHeadlessIgnoresLANG$")
-			cmd.Env = append(withoutLocale(os.Environ()), "GLOSS_TEST_LANG_CHILD=1", "GLOSS_TEST_LANG_ARGS="+strings.Join(args, "\n"))
-			cmd.Env = append(cmd.Env, locale...)
-			var out, stderr bytes.Buffer
-			cmd.Stdout, cmd.Stderr = &out, &stderr
-			if err := cmd.Run(); err != nil {
-				t.Fatalf("%v %v: %v stderr=%s", locale, args, err, &stderr)
-			}
-			if out.Len() == 0 {
-				t.Fatalf("%v %v: no output", locale, args)
-			}
-			outs = append(outs, strings.ReplaceAll(out.String(), dir, "DIR"))
+			outs = append(outs, strings.ReplaceAll(child(locale, args), dir, "DIR"))
 		}
 		return outs
 	}
@@ -103,6 +113,43 @@ func TestHeadlessIgnoresLANG(t *testing.T) {
 	if !regexp.MustCompile(`"DIR/`).MatchString(spanish[2]) {
 		t.Errorf("export manifest names no file in its folder: %s", spanish[2])
 	}
+
+	// An explicit --lang changes values, never keys.
+	explicit := child([]string{"LANG=C"}, append([]string{"--lang", "es-ES"}, info...))
+	var en, es any
+	if err := json.Unmarshal([]byte(plain[0]), &en); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal([]byte(explicit), &es); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := jsonKeys(es, ""), jsonKeys(en, ""); !slices.Equal(got, want) {
+		t.Errorf("--lang es-ES keys differ:\nes: %v\nen: %v", got, want)
+	}
+	size := func(v any) string {
+		return v.([]any)[1].(map[string]any)["details"].(map[string]any)["File"].(map[string]any)["Size"].(string)
+	}
+	if size(es) == size(en) {
+		t.Errorf("--lang es-ES did not change the Size value: %q", size(es))
+	}
+}
+
+// jsonKeys returns the paths of every object key in v, sorted.
+func jsonKeys(v any, prefix string) []string {
+	var keys []string
+	switch v := v.(type) {
+	case map[string]any:
+		for k, e := range v {
+			keys = append(keys, prefix+"."+k)
+			keys = append(keys, jsonKeys(e, prefix+"."+k)...)
+		}
+	case []any:
+		for i, e := range v {
+			keys = append(keys, jsonKeys(e, prefix+"["+strconv.Itoa(i)+"]")...)
+		}
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // withoutLocale drops the variables a language is read from.
