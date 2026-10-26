@@ -328,7 +328,8 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `Options.FontFamilies` takes the request's font look (body, code) and
   `Options.Colors` its theme palette (background, foreground, accent for
   links); fonts where an element names none, colors only when the page sets
-  no text or background color at all. Exports (`Request.Layout`, `--output` and not `--typeset`/`--text`,
+  no text or background color at all. The view past a short page's end is
+  filled with `Result.Background()`, the page's own canvas color. Exports (`Request.Layout`, `--output` and not `--typeset`/`--text`,
   `html_layout.go`) are 800 CSS px wide in slices cut at `PageBreak`, named
   `-page-N`; a thumbnail is slice 1 (`loadThumb`, the kind word when it
   fails). The viewer's `t` (`canTypeset`, `typesetName` "page") answers

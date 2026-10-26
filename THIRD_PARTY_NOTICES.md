@@ -3916,7 +3916,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nthtml v0.0.0-20261025203215-90ea6be536e9
+## nimbleterminal.dev/nthtml v0.1.1
 
 ```
 MIT License
@@ -4151,7 +4151,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nttypeset v0.1.3
+## nimbleterminal.dev/nttypeset v0.1.4
 
 ```
 MIT License

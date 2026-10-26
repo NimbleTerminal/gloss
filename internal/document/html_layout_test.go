@@ -221,3 +221,32 @@ func TestHTMLViewLong(t *testing.T) {
 		t.Fatalf("err %v extent %d view %+v", r.Err, r.TypesetExtent, r.TypesetView)
 	}
 }
+
+// A page shorter than the view goes on in its own canvas color: the
+// theme's where it sets no colors, its own, or white, where it does.
+func TestHTMLViewCanvas(t *testing.T) {
+	for _, c := range []struct {
+		page string
+		want color.Color
+	}{
+		{`<p>Short.</p>`, testTheme("dark").Palette.Background},
+		{`<style>.a{color:#666}</style><p class=a>Short.</p>`, color.RGBA{0xff, 0xff, 0xff, 0xff}},
+		{`<style>body{background:#223;color:#eee}</style><p>Short.</p>`, color.RGBA{0x22, 0x22, 0x33, 0xff}},
+	} {
+		path := filepath.Join(t.TempDir(), "short.html")
+		if err := os.WriteFile(path, []byte("<html><body>"+c.page+"</body></html>"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		l := &Loader{}
+		v := TypesetViewport{Height: 900}
+		r := l.Load(Request{Path: path, MarkdownMode: "typeset", TypesetView: &v, Theme: testTheme("dark"), Page: 1})
+		l.Close()
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		b := r.Image.Bounds()
+		if top, bottom := r.Image.At(1, 1), r.Image.At(1, b.Dy()-2); top != c.want || bottom != c.want {
+			t.Errorf("%s: top %v bottom %v, want %v", c.page, top, bottom, c.want)
+		}
+	}
+}

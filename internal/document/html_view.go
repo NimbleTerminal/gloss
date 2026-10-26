@@ -156,11 +156,8 @@ func (l *Loader) renderHTMLView(q Request) (out Result) {
 	area := image.Rect(int(math.Floor(float64(left)/htmlScale)), int(math.Floor(float64(top)/htmlScale)),
 		int(math.Ceil(float64(left+width)/htmlScale)), int(math.Ceil(float64(top+height)/htmlScale))).Intersect(bounds)
 	canvas := image.NewRGBA(image.Rectangle{Max: size})
-	background := color.RGBA{0xff, 0xff, 0xff, 0xff}
-	if c := q.Theme.Palette.Background; c.A > 0 {
-		background = c
-	}
-	draw.Draw(canvas, canvas.Bounds(), image.NewUniform(background), image.Point{}, draw.Src)
+	// Past the page's end, its own canvas goes on.
+	draw.Draw(canvas, canvas.Bounds(), image.NewUniform(h.result.Background()), image.Point{}, draw.Src)
 	// device places a page point in CSS pixels on the canvas.
 	device := func(p image.Point) image.Point {
 		return image.Pt(int(math.Round((float64(p.X)*htmlScale-float64(left))*scale)), int(math.Round((float64(p.Y)*htmlScale-float64(top))*scale)))

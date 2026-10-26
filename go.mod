@@ -32,14 +32,14 @@ require (
 	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
-	nimbleterminal.dev/nthtml v0.0.0-20261025203215-90ea6be536e9
+	nimbleterminal.dev/nthtml v0.1.1
 	nimbleterminal.dev/ntmaps v0.5.1
 	nimbleterminal.dev/ntopenwith v0.1.1
 	nimbleterminal.dev/ntpdf v0.5.1
 	nimbleterminal.dev/ntpicture v0.1.1
 	nimbleterminal.dev/ntqrcode v0.3.1
 	nimbleterminal.dev/ntsvg v0.5.2
-	nimbleterminal.dev/nttypeset v0.1.3
+	nimbleterminal.dev/nttypeset v0.1.4
 	nimbleterminal.dev/ntvideo v0.3.0
 )
 
