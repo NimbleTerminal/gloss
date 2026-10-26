@@ -39,6 +39,16 @@ func language(opts options, stdinTTY bool, getenv func(string) string, saved fun
 	return i18n.FromEnv(getenv)
 }
 
+// langFixed says whether --lang or GLOSS_LANG decides the language, so that
+// a choice saved in the viewer waits for a start without them.
+func langFixed(opts options, getenv func(string) string) bool {
+	if opts.Lang != "" {
+		return true
+	}
+	_, err := i18n.Parse(getenv("GLOSS_LANG"))
+	return err == nil
+}
+
 type langPreference struct {
 	Lang string `json:"lang"`
 }

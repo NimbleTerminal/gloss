@@ -548,7 +548,10 @@ pages) takes a `*i18n.Localizer` from `i18n.For(tag)`.
 `internal/app/lang_picker.go`): it previews by `i18n.SetLanguage` and
 `opts.Lang`, Enter loads the document again so `document.Locale` follows, and
 the native host's `Options.SaveLang` writes `lang` in `theme.Dir()` (removed for
-System, the language without it: `Options.SystemLang`). `language` takes it as
+System, the language without it: `Options.SystemLang`). The picker opens on
+`Options.SavedLang`, the choice in force, and saves only a changed choice; with
+`Options.LangFixed` (`--lang` or `GLOSS_LANG`) Enter notes that the choice
+waits for a start without them. `language` takes it as
 a getter, called only for the terminal viewer, never headless, detached or
 `--serve`; an unreadable file counts as none. `Match` serves a tag only at `language.High`
 confidence (`es-MX` is `es`; `zh-CN`, `zh` and `zh-SG` are `zh-Hans`; `zh-TW`,

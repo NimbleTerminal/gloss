@@ -512,6 +512,7 @@ func run(args []string) (err error) {
 	}
 	// System, in the language picker, is the language without a saved choice.
 	opts.SystemLang = language(opts, stdinTTY, os.Getenv, nil)
+	opts.LangFixed = langFixed(opts, os.Getenv)
 	lang := language(opts, stdinTTY, os.Getenv, savedLangChoice)
 	opts.Options.Lang = lang
 	i18n.SetLanguage(lang)
@@ -658,7 +659,7 @@ func run(args []string) (err error) {
 	opts.ThemeChoices = theme.Available()
 	opts.SaveTheme = theme.SaveChoice
 	opts.SaveFont = saveFontChoice
-	opts.SaveLang = saveLangChoice
+	opts.SaveLang, opts.SavedLang = saveLangChoice, savedLangChoice()
 	if !opts.fontExplicit {
 		if name, mono, err := savedFontChoice(); err == nil {
 			opts.Font, opts.Mono = name, mono

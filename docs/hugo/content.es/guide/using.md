@@ -226,7 +226,7 @@ gloss --lang zh-Hans informe.pdf
 visor en cada idioma a medida que se mueve, Enter conserva uno y Esc vuelve
 atrás. El visor de la terminal recuerda la elección en su carpeta de
 configuración (`gloss/lang`), que entonces va antes de `LC_ALL`, `LC_MESSAGES`
-y `LANG`; `GLOSS_LANG` y `--lang` siguen teniendo prioridad. **Sistema** olvida
+y `LANG`; `GLOSS_LANG` y `--lang` siguen teniendo prioridad. **Sistema (según LANG)** olvida
 la elección y vuelve a seguir la configuración regional. Un visor de `--serve`
 cambia de idioma pero no guarda nada, y ningún modo sin interfaz lee la
 elección guardada.

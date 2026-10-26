@@ -425,6 +425,9 @@ func (m *Model) hints() string {
 	if m.themePicker != nil {
 		return " ↑/↓ preview theme · Enter keep · Esc cancel"
 	}
+	if m.langPicker != nil {
+		return " " + i18n.T("app.lang.status", "↑/↓ preview language · Enter keep · Esc cancel")
+	}
 	if m.lineInput != nil {
 		return m.lineInput.status(m.width)
 	}
@@ -442,8 +445,6 @@ func (m *Model) hints() string {
 	switch m.layer {
 	case layerTheme:
 		return " ↑/↓ preview theme · Enter keep · Esc cancel"
-	case layerLang:
-		return " " + i18n.T("app.lang.status", "↑/↓ preview language · Enter keep · Esc cancel")
 	case layerActions:
 		return " ↑/↓ choose · Enter do · Esc close"
 	case layerQR:

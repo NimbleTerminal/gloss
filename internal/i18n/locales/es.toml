@@ -49,16 +49,19 @@ other = "tema · idioma · acciones"
 other = "Idiomas"
 
 [app.lang.system]
-other = "Sistema (de LANG)"
+other = "Sistema (según LANG)"
 
 [app.lang.hint]
-other = "%d/%d · ↑/↓ probar · Enter conservar"
+other = "%d/%d · ↑/↓ vista previa · Enter conservar"
 
 [app.lang.restore]
 other = "Esc vuelve al idioma anterior"
 
 [app.lang.status]
-other = "↑/↓ probar idioma · Enter conservar · Esc cancelar"
+other = "↑/↓ vista previa del idioma · Enter conservar · Esc cancelar"
+
+[app.lang.fixed]
+other = "Guardado; se aplica cuando no se indica --lang ni GLOSS_LANG"
 
 [app.help.everywhere.drop]
 other = "Arrastre archivos o pegue rutas"

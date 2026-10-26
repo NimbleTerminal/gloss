@@ -105,19 +105,127 @@ func TestLangPickerKeepSavesAndReloads(t *testing.T) {
 	if fmt.Sprint(*saved) != "[zh-Hans ]" || i18n.Language() != "en" || m.opts.Lang != "" {
 		t.Fatalf("System: saved %q, language %q / %q", *saved, i18n.Language(), m.opts.Lang)
 	}
-	// Enter on the language already shown loads nothing again.
+	// Enter on the choice already kept loads and saves nothing again.
 	pressF2(t, m)
 	generation = m.generation
 	drainAnimation(t, m, m.langPickerKey("enter"))
 	if m.generation != generation {
 		t.Fatal("an unchanged language reloaded the document")
 	}
+	if len(*saved) != 2 {
+		t.Fatalf("an unchanged choice saved again: %q", *saved)
+	}
+}
+
+// A saved choice that matches the environment is still a choice: Enter on
+// it, untouched, must not forget it.
+func TestLangPickerKeepsASavedChoice(t *testing.T) {
+	m, saved := langModel(t)
+	m.opts.Lang, m.opts.SystemLang, m.opts.SavedLang = "es", "es-ES", "es"
+	i18n.SetLanguage("es")
+	pressF2(t, m)
+	if p := m.langPicker; p.choices[p.cursor].Tag != "es" {
+		t.Fatalf("cursor on %q, want es", p.choices[p.cursor].Tag)
+	}
+	drainAnimation(t, m, m.langPickerKey("enter"))
+	for _, tag := range *saved {
+		if tag == "" {
+			t.Fatalf("untouched Enter forgot the saved choice: %q", *saved)
+		}
+	}
+	if m.opts.SavedLang != "es" || i18n.Language() != "es" {
+		t.Fatalf("saved %q, language %q", m.opts.SavedLang, i18n.Language())
+	}
+	// Choosing System, then, forgets it, and reopening starts there.
+	pressF2(t, m)
+	drainAnimation(t, m, m.langPickerKey("home"))
+	drainAnimation(t, m, m.langPickerKey("enter"))
+	if len(*saved) == 0 || (*saved)[len(*saved)-1] != "" || m.opts.SavedLang != "" {
+		t.Fatalf("System: saved %q, SavedLang %q", *saved, m.opts.SavedLang)
+	}
+	pressF2(t, m)
+	if p := m.langPicker; p.choices[p.cursor].Tag != "" {
+		t.Fatalf("cursor on %q, want System", p.choices[p.cursor].Tag)
+	}
+	// English chosen over System is a choice of its own.
+	drainAnimation(t, m, m.langPickerKey("down"))
+	drainAnimation(t, m, m.langPickerKey("enter"))
+	if (*saved)[len(*saved)-1] != "en" || m.opts.SavedLang != "en" {
+		t.Fatalf("English: saved %q", *saved)
+	}
+}
+
+func TestLangPickerOwnsTheMouse(t *testing.T) {
+	m, _ := langModel(t)
+	pressF2(t, m)
+	offset := m.markdown.offset
+	for _, msg := range []tea.Msg{
+		tea.MouseClickMsg{Button: tea.MouseRight, X: 10, Y: 5},
+		tea.MouseClickMsg{Button: tea.MouseLeft, X: 10, Y: 5},
+		tea.MouseWheelMsg{Button: tea.MouseWheelDown, X: 10, Y: 5},
+	} {
+		drainAnimation(t, m, m.handle(msg))
+		if m.layer != layerLang || m.langPicker == nil {
+			t.Fatalf("%T took the picker down: layer %v", msg, m.layer)
+		}
+	}
+	if m.markdown.offset != offset {
+		t.Fatalf("the wheel scrolled the document under the picker: %d to %d", offset, m.markdown.offset)
+	}
+}
+
+func TestLangPickerHintAndInputs(t *testing.T) {
+	m, _ := langModel(t)
+	pressF2(t, m)
+	if !strings.Contains(m.hints(), "preview language") {
+		t.Fatalf("hint %q", m.hints())
+	}
+	drainAnimation(t, m, m.langPickerKey("esc"))
+	// Typed into a prompt, F2 and T are not pickers.
+	for _, open := range []func(){
+		func() { m.lineInput = &lineInput{} },
+		func() { m.placeInput = &placeInput{} },
+	} {
+		open()
+		pressF2(t, m)
+		cmd, _ := m.key(tea.KeyPressMsg{Code: 'T', Text: "T"})
+		drainAnimation(t, m, cmd)
+		if m.langPicker != nil || m.themePicker != nil {
+			t.Fatal("a picker opened over a prompt")
+		}
+		m.lineInput, m.placeInput = nil, nil
+	}
+}
+
+// Where --lang or GLOSS_LANG decides the language at start, keeping a choice
+// says that it counts only without them.
+func TestLangPickerNotesAnOverride(t *testing.T) {
+	m, saved := langModel(t)
+	m.opts.LangFixed = true
+	pressF2(t, m)
+	drainAnimation(t, m, m.langPickerKey("down"))
+	drainAnimation(t, m, m.langPickerKey("down"))
+	drainAnimation(t, m, m.langPickerKey("enter"))
+	if fmt.Sprint(*saved) != "[es]" {
+		t.Fatalf("saved %q", *saved)
+	}
+	if !strings.Contains(m.note, "--lang") || !strings.Contains(m.note, "GLOSS_LANG") {
+		t.Fatalf("note %q", m.note)
+	}
+	// No note where nothing is saved.
+	m.opts.SaveLang = nil
+	pressF2(t, m)
+	drainAnimation(t, m, m.langPickerKey("down"))
+	drainAnimation(t, m, m.langPickerKey("enter"))
+	if m.note != "" {
+		t.Fatalf("note %q without saving", m.note)
+	}
 }
 
 func TestLangPickerSystemFollowsTheEnvironment(t *testing.T) {
 	m, saved := langModel(t)
 	// Started with a saved Spanish over a Chinese environment.
-	m.opts.Lang, m.opts.SystemLang = "es", "zh-CN"
+	m.opts.Lang, m.opts.SystemLang, m.opts.SavedLang = "es", "zh-CN", "es"
 	i18n.SetLanguage("es")
 	pressF2(t, m)
 	p := m.langPicker

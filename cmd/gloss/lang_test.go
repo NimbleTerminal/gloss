@@ -97,6 +97,33 @@ func TestLanguageResolution(t *testing.T) {
 	language(opts, true, spanish, read)
 }
 
+func TestLangFixed(t *testing.T) {
+	for _, tt := range []struct {
+		args []string
+		env  string
+		want bool
+	}{
+		{[]string{"x.png"}, "", false},
+		{[]string{"--lang", "es", "x.png"}, "", true},
+		{[]string{"x.png"}, "zh_CN.UTF-8", true},
+		{[]string{"x.png"}, "!!", false},
+	} {
+		opts, _, err := parse(tt.args, &bytes.Buffer{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		getenv := func(name string) string {
+			if name == "GLOSS_LANG" {
+				return tt.env
+			}
+			return "es_ES"
+		}
+		if got := langFixed(opts, getenv); got != tt.want {
+			t.Errorf("%v GLOSS_LANG=%q: %v, want %v", tt.args, tt.env, got, tt.want)
+		}
+	}
+}
+
 func TestLangPreferences(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "gloss")
 	if err := writeLangChoice(dir, "zh-Hans"); err != nil {

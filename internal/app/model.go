@@ -55,6 +55,8 @@ type Options struct {
 	Lang                   string             // The user's language tag, as es-MX; "" is English, and leaves handoff pages to the browser.
 	SystemLang             string             // The language without a saved choice, which the picker's System stands for; "" is Lang.
 	SaveLang               func(string) error // Keeps the picker's choice; "" is System. Nil where nothing is saved.
+	SavedLang              string             // The kept choice the picker opens on; "" is System.
+	LangFixed              bool               // --lang or GLOSS_LANG decided the language, over any saved choice.
 	Font, Mono             string
 	SaveFont               func(string, string) error
 	ThemeChoices           []theme.Choice
@@ -626,7 +628,7 @@ func (m *Model) graphicsTick(msg tea.Msg) tea.Cmd {
 // it on every path.
 func (m *Model) handle(msg tea.Msg) tea.Cmd {
 	cw, ch := m.lastCellW, m.lastCellH
-	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil) {
+	if _, mouse := msg.(tea.MouseMsg); mouse && (m.qr != nil || m.themePicker != nil || m.fontPicker != nil || m.langPicker != nil) {
 		return nil
 	}
 	if cmd, handled := m.openWithBrowse(msg); handled {

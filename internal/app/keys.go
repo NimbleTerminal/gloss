@@ -31,13 +31,14 @@ func (m *Model) key(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 	if m.themePicker != nil {
 		return m.themePickerKey(k), true
 	}
-	if k == "T" && m.screen == screenDocument && !m.help && m.layer == layerNone {
+	prompt := m.lineInput != nil || m.placeInput != nil
+	if k == "T" && m.screen == screenDocument && !m.help && m.layer == layerNone && !prompt {
 		return m.openThemePicker(), true
 	}
 	if m.langPicker != nil {
 		return m.langPickerKey(k), true
 	}
-	if k == "f2" && m.screen == screenDocument && !m.help && m.layer == layerNone {
+	if k == "f2" && m.screen == screenDocument && !m.help && m.layer == layerNone && !prompt {
 		return m.openLangPicker(), true
 	}
 	if m.lineInput != nil {

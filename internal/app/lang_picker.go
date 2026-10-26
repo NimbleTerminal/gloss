@@ -13,17 +13,27 @@ import (
 // language gloss starts in without a saved choice.
 type langChoice struct{ Tag, Label string }
 
+// label is the row's text. System's is in the language previewed; each
+// language's is in its own.
+func (c langChoice) label() string {
+	if c.Tag == "" {
+		return i18n.T("app.lang.system", "System (from LANG)")
+	}
+	return c.Label
+}
+
 type langPicker struct {
 	choices  []langChoice
 	cursor   int
 	original string // opts.Lang when the picker opened
+	saved    string // opts.SavedLang when the picker opened
 }
 type langSaved struct{ err error }
 
 // langChoices are System, then each catalog by its own name, with the
 // English one beside it.
 func langChoices() []langChoice {
-	choices := []langChoice{{"", i18n.T("app.lang.system", "System (from LANG)")}}
+	choices := []langChoice{{Tag: ""}}
 	for _, l := range i18n.Languages() {
 		label := l.Name
 		if l.English != l.Name {
@@ -52,8 +62,11 @@ func (m *Model) langTag(c langChoice) string {
 }
 
 func (m *Model) openLangPicker() tea.Cmd {
-	p := &langPicker{choices: langChoices(), original: m.opts.Lang}
-	if current := i18n.Match(m.opts.Lang); current != i18n.Match(m.opts.SystemLang) {
+	// The cursor starts on the kept choice, not on the language shown: a
+	// saved Spanish under LANG=es_ES is still a choice, and Enter keeps it.
+	p := &langPicker{choices: langChoices(), original: m.opts.Lang, saved: m.opts.SavedLang}
+	if m.opts.SavedLang != "" {
+		current := i18n.Match(m.opts.SavedLang)
 		for i, c := range p.choices {
 			if c.Tag == current {
 				p.cursor = i
@@ -92,10 +105,18 @@ func (m *Model) langPickerKey(k string) tea.Cmd {
 		if i18n.Match(m.opts.Lang) != i18n.Match(p.original) {
 			cmd = m.reloadForLang()
 		}
-		if save := m.opts.SaveLang; save != nil {
-			return tea.Batch(cmd, func() tea.Msg { return langSaved{save(choice.Tag)} })
+		if choice.Tag == p.saved || p.saved != "" && choice.Tag != "" && i18n.Match(p.saved) == choice.Tag {
+			return cmd // The choice kept is the one already saved.
 		}
-		return cmd
+		m.opts.SavedLang = choice.Tag
+		save := m.opts.SaveLang
+		if save == nil {
+			return cmd
+		}
+		if m.opts.LangFixed {
+			m.note = i18n.T("app.lang.fixed", "Saved; it applies when neither --lang nor GLOSS_LANG is set")
+		}
+		return tea.Batch(cmd, func() tea.Msg { return langSaved{save(choice.Tag)} })
 	default:
 		return nil
 	}
@@ -120,18 +141,16 @@ func (m *Model) langPickerView(w, h int) string {
 	if p == nil || w < 24 || h < 8 {
 		return ""
 	}
-	// The labels are made again, so System is in the language previewed.
-	p.choices = langChoices()
 	width := max(1, min(46, w-4))
 	rows := max(1, h-6)
 	start := max(0, min(p.cursor-rows/2, len(p.choices)-rows))
 	var b strings.Builder
 	b.WriteString(ansi.Truncate(i18n.T("app.lang.title", "Languages"), width, "…") + "\n")
 	for i := start; i < min(len(p.choices), start+rows); i++ {
-		label := "  " + p.choices[i].Label
+		label := "  " + p.choices[i].label()
 		style := lipgloss.NewStyle().Foreground(m.palette().Foreground)
 		if i == p.cursor {
-			label = "› " + p.choices[i].Label
+			label = "› " + p.choices[i].label()
 			style = style.Foreground(m.palette().Accent).Bold(true)
 		}
 		b.WriteString(style.Render(ansi.Truncate(label, width, "…")) + "\n")
