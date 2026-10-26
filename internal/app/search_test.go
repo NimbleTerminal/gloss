@@ -314,8 +314,13 @@ func TestSearchStatusFitsInChinese(t *testing.T) {
 	for _, query := range []string{"needle", "missing"} {
 		queryDocument(t, m, query)
 		for _, width := range []int{20, 40, 80} {
-			// The view truncates the status line as this does.
-			line := ansi.Truncate(m.search.status(width), width, "…")
+			// The status line is the screen's last row, as the view draws it.
+			m.width = width
+			rows := strings.Split(m.View().Content, "\n")
+			line := ansi.Strip(rows[len(rows)-1])
+			if len(rows) != m.height {
+				t.Fatalf("%q at %d: the status wrapped to %d rows, want %d", query, width, len(rows), m.height)
+			}
 			if ansi.StringWidth(line) > width {
 				t.Fatalf("%q at %d is %d cells: %q", query, width, ansi.StringWidth(line), line)
 			}
