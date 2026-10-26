@@ -85,7 +85,8 @@ or video that fills the screen.
 In rendered Markdown, in the text and typeset views, and in the documents shown
 as Markdown (Word, HTML, notebooks), `Tab` and `Shift-Tab` move between the
 pictures, links and tables, highlighting each one: reverse video in text, an
-outline in typeset. A far one scrolls into view, and the outline is in an
+outline in typeset. On an HTML page as its CSS lays it out (`t`), they move
+between its links. A far one scrolls into view, and the outline is in an
 `e` export of the viewport. With none, a note says `No pictures, links or tables
 here · [/] files`. A table is one stop, not one per cell. Everywhere else (plain text,
 source, JSON, the source view of Markdown, pictures, PDFs, sheets, meshes,
@@ -96,7 +97,7 @@ What a menu offers:
 | On | Entries |
 | --- | --- |
 | A picture or video (an image in a document, an image file, a PDF page, an SVG, a diagram, a GIF) | **Open with…**, **Edit with…**, **Copy image**, **Copy path**; a video has no **Edit with…** and adds **Save frame as PNG** |
-| A link | **Open** (the default browser, as a click does) and **Copy address**. With `--fetch`, a web link also offers **Open in gloss**, which downloads it and shows it after the document (`Esc` closes it), and **Save linked file**, which downloads it into the current folder, numbering the name rather than replacing a file. Links that are not web addresses, such as a relative file, offer **Copy address** only. A picture that is also a link has the picture's entries, then these, with **Open** reading **Open link**. Footnote references keep their click jumps |
+| A link | **Open** (the default browser, as a click does) and **Copy address**. With `--fetch`, a web link also offers **Open in gloss**, which downloads it and shows it after the document (`Esc` closes it), and **Save linked file**, which downloads it into the current folder, numbering the name rather than replacing a file. Links that are not web addresses, such as a relative file, offer **Copy address** only. A picture that is also a link has the picture's entries, then these, with **Open** reading **Open link**. Footnote references keep their click jumps. On an HTML page as its CSS lays it out, a link to a place on the page (`#name`) offers **Go to** first |
 | A web address written out in text | The same as a link, whole even where it wraps: in plain text, source, JSON and Markdown, text or typeset, on a right-click. It is no Tab stop |
 | A Markdown table | **Open table with…** (gloss first, then the apps that open CSV), **Copy as TSV**, **Copy as Markdown** |
 | A spreadsheet cell | **Copy value**, **Copy row** (TSV); on a cell with an address also **Open in gloss** and **Save linked file** (with `--fetch`), **Open in browser**, and **Show QR** |

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	nthtml "nimbleterminal.dev/nthtml/document"
+	"nimbleterminal.dev/nttypeset"
 )
 
 // htmlScale is typeset pixels, at the 150-DPI reading scale, to a CSS pixel.
@@ -199,11 +200,35 @@ func (l *Loader) renderHTMLView(q Request) (out Result) {
 			}
 		}
 	}
-	// The page has no items yet: what was asked is answered as it was
+	// Its items are its links, the whole page's at once.
+	out.TypesetItems, out.TypesetItemsAll = h.items(), true
+	if len(q.TypesetFocus) > 0 {
+		out.TypesetFocus = append([]image.Rectangle(nil), q.TypesetFocus...)
+		outlineFocus(canvas, nttypeset.View{Top: top, Left: left, Scale: scale}, q.TypesetFocus, q.Theme.Palette)
+	}
+	// Its links have no marks to tint: what was asked is answered as it was
 	// asked, so the viewer does not ask again.
-	out.TypesetFocus = append([]image.Rectangle(nil), q.TypesetFocus...)
 	out.TypesetMarks = append([]TypesetMark(nil), q.TypesetMarks...)
 	return out
+}
+
+// items are the page's links in reading order, as typeset items: each
+// line of a link in page pixels at the reading scale.
+func (h *htmlView) items() []TypesetItem {
+	var items []TypesetItem
+	for _, link := range h.result.Links {
+		var rects []image.Rectangle
+		for _, r := range link.Regions {
+			if !r.Empty() {
+				rects = append(rects, image.Rect(int(math.Floor(float64(r.Min.X)*htmlScale)), int(math.Floor(float64(r.Min.Y)*htmlScale)),
+					int(math.Ceil(float64(r.Max.X)*htmlScale)), int(math.Ceil(float64(r.Max.Y)*htmlScale))))
+			}
+		}
+		if len(rects) > 0 {
+			items = append(items, TypesetItem{Kind: TypesetLinkItem, Rects: rects, URL: link.Href})
+		}
+	}
+	return items
 }
 
 // selection places the ends of a selection in the page's text: a point

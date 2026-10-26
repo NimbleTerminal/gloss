@@ -344,8 +344,8 @@ func (v *markdownView) itemAt(x, y int) (pageItem, bool) {
 }
 
 // tabItems reports whether Tab moves between the page's items rather than
-// files: rendered Markdown, in the text view or typeset, on the document
-// screen. Typeset text, source and JSON keep Tab for files.
+// files: rendered Markdown, in the text view or typeset, and an HTML page,
+// on the document screen. Typeset text, source and JSON keep Tab for files.
 func (m *Model) tabItems() bool {
 	if m.screen != screenDocument || m.isPreview {
 		return false
@@ -353,7 +353,7 @@ func (m *Model) tabItems() bool {
 	if v := m.markdown; v != nil {
 		return !v.raw && !v.fenced
 	}
-	return m.typeset != nil && m.kind == "markdown"
+	return m.typeset != nil && (m.kind == "markdown" || m.kind == "html")
 }
 
 // moveFocus moves the highlight step items on, wrapping, and scrolls the

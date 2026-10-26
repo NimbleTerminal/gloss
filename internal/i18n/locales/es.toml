@@ -1183,6 +1183,9 @@ other = "no disponible en el navegador"
 [app.error.nothingToCopy]
 other = "nada que copiar"
 
+[app.actions.goTo]
+other = "Ir allí"
+
 [app.actions.copyAddress]
 other = "Copiar dirección"
 

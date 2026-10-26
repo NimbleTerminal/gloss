@@ -1176,6 +1176,9 @@ other = "浏览器中不可用"
 [app.error.nothingToCopy]
 other = "没有可复制的内容"
 
+[app.actions.goTo]
+other = "转到"
+
 [app.actions.copyAddress]
 other = "复制网址"
 

@@ -339,7 +339,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   mapped to `TypesetLink`s. A drag's ends are hit to characters of nthtml's
   `TextIndex` and come back placed as byte offsets of that layout
   (`Place.Block` is `htmlView.serial`, `Para`/`Rune` the character's range),
-  so a relayout drops them. No items for Tab yet. The Markdown rides along as `Result.Typeset` for `s` and `/`;
+  so a relayout drops them. Its items are its links (`htmlView.items`,
+  `TypesetItemsAll`), outlined by `outlineFocus` like Markdown's; a `#id`
+  link (`pageFragment` in `links.go`) is not handed to `OpenLink`: a click
+  or the menu's Go to sets `typesetGoLink`, which `renderHTMLView` scrolls to
+  through `Result.Anchors` (an unknown id stays put). The Markdown rides along as `Result.Typeset` for `s` and `/`;
   a page over nthtml's limits is shown as that text, the reason under `i`.
 - **Word** (.docx/.docm): converted to Markdown.
 - **Excel** (.xlsx/.xlsm): sheets as scrollable grids (`n`/`p` switch sheets);

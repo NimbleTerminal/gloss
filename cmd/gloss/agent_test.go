@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image/color"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
@@ -91,6 +93,50 @@ func TestExportLaysOutHTML(t *testing.T) {
 	}
 	if m := manifest[0]; m["kind"] != "html" || m["pages"] != 1.0 || m["width"] != 800.0 || m["error"] != nil {
 		t.Fatalf("manifest: %v", m)
+	}
+}
+
+// Nested sections keep their own backgrounds in an export, and --text
+// still gives the page as Markdown, its links between them as they are.
+func TestExportKeepsHTMLSections(t *testing.T) {
+	dir := t.TempDir()
+	var stdout, stderr bytes.Buffer
+	opts := options{Options: app.Options{Files: []string{"../../examples/sections.html"}, OutputDir: dir, MaxEdge: 2048, Page: 1, DPI: 72}, JSON: true}
+	if err := exportFiles(opts, &stdout, &stderr); err != nil {
+		t.Fatalf("%v: %s", err, stderr.String())
+	}
+	var manifest []map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &manifest); err != nil || len(manifest) != 1 || manifest[0]["kind"] != "html" {
+		t.Fatalf("manifest: %v %s", err, stdout.String())
+	}
+	f, err := os.Open(manifest[0]["output"].(string))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	img, err := png.Decode(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := map[color.RGBA]bool{}
+	b := img.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			seen[color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)] = true
+		}
+	}
+	// The page, a day, its note, the note in that, and the stormy day's rule.
+	for _, c := range []color.RGBA{{0xf4, 0xef, 0xe6, 0xff}, {0xff, 0xfa, 0xf2, 0xff}, {0xe9, 0xf2, 0xf3, 0xff}, {0xff, 0xff, 0xff, 0xff}, {0xa8, 0x48, 0x3b, 0xff}} {
+		if !seen[c] {
+			t.Errorf("no %v in the export", c)
+		}
+	}
+	stdout.Reset()
+	if err := textFiles(options{Options: app.Options{Files: []string{"../../examples/sections.html"}, Page: 1, DPI: 72}, Text: true}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if got := stdout.String(); !strings.HasPrefix(got, "# Harbour log, in sections") || !strings.Contains(got, "[Wednesday](#wednesday)") || strings.Contains(got, "<section") {
+		t.Errorf("text: %q", got)
 	}
 }
 

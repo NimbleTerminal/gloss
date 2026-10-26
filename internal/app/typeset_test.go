@@ -156,6 +156,58 @@ func TestHTMLPageView(t *testing.T) {
 	}
 }
 
+// On an HTML page as its CSS lays it out, Tab moves between its links, and
+// a link to a place on the page goes there, clicked or from its menu.
+func TestHTMLPageFragments(t *testing.T) {
+	page := `<html><body><p>Go to <a href="#end">the end</a> or <a href="https://example.com/">away</a>.</p>` +
+		strings.Repeat("<p>A line of the report that goes on long enough to wrap.</p>", 120) +
+		`<h2 id="end">The end</h2><p>Back to <a href="#nowhere">nowhere</a>.</p></body></html>`
+	m := New(Options{Files: []string{"page.html"}, FilesFS: fstest.MapFS{"page.html": &fstest.MapFile{Data: []byte(page)}}, Render: "glyph", MarkdownMode: "typeset", Page: 1})
+	t.Cleanup(func() { _ = m.Close() })
+	m.width, m.height = 80, 24
+	drainAnimation(t, m, m.load(false))
+	if m.typeset == nil || m.markdown != nil || !m.tabItems() {
+		t.Fatal("expected the page view, with Tab on its items")
+	}
+	if len(m.typesetItems) != 3 || m.typesetItems[0].URL != "#end" || m.typesetItems[1].URL != "https://example.com/" {
+		t.Fatalf("items %+v", m.typesetItems)
+	}
+	_, cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyTab})
+	drainAnimation(t, m, cmd)
+	if m.typesetFocused() != 0 || len(m.typesetFocusShown) == 0 {
+		t.Fatalf("Tab focused %d, outlined %v", m.typesetFocused(), m.typesetFocusShown)
+	}
+	entries := m.itemEntries(m.typesetPageItem(m.typesetItems[0]))
+	if len(entries) == 0 || entries[0].id != "go-to" {
+		t.Fatalf("entries %+v", entries)
+	}
+	drainAnimation(t, m, entries[0].do(m))
+	end := m.typesetTop
+	if end == 0 || m.typesetShown == nil || m.typesetShown.Top != end {
+		t.Fatalf("Go to left the page at %d", end)
+	}
+	// A place the page does not have leaves it where it is.
+	drainAnimation(t, m, m.goToFragment("#nowhere"))
+	if m.typesetTop != end {
+		t.Fatalf("an unknown place moved the page to %d", m.typesetTop)
+	}
+	// Clicked, with no browser to open links in, it goes there too.
+	cmd, _ = m.documentKey("home")
+	drainAnimation(t, m, cmd)
+	r := m.typesetRaster(m.typesetItems[0].Rects[0])
+	at := m.typesetCellAt(r.Min.Add(r.Max).Div(2))
+	if m.typesetTop != 0 || m.linkAt(at.X, at.Y) != "#end" {
+		t.Fatalf("top %d, link at %v is %q", m.typesetTop, at, m.linkAt(at.X, at.Y))
+	}
+	_, cmd = m.Update(tea.MouseClickMsg{X: at.X, Y: at.Y, Button: tea.MouseLeft})
+	drainAnimation(t, m, cmd)
+	_, cmd = m.Update(tea.MouseReleaseMsg{X: at.X, Y: at.Y, Button: tea.MouseLeft})
+	drainAnimation(t, m, cmd)
+	if m.typesetTop != end {
+		t.Fatalf("the click left the page at %d, not %d", m.typesetTop, end)
+	}
+}
+
 func TestTypesetToggleFailureCanReturnToText(t *testing.T) {
 	m := New(Options{Files: []string{"page.md"}, Render: "glyph", Page: 1})
 	t.Cleanup(func() { _ = m.Close() })

@@ -216,8 +216,13 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
   [nthtml](https://github.com/NimbleTerminal/nthtml), at the reading width,
   with its local pictures and data: URLs. Its own fonts and colours are kept;
   where it sets none, it takes the font look (`--font`, `f`) and the theme's
-  colours. It scrolls and zooms as a typeset page does, its web links open on
-  a click, and a drag selects text for `y` to copy; `s` and `/` go back to its text. Exported as a picture (`--output`), a page is drawn the
+  colours. `--typeset` opens it so. It scrolls and zooms as a typeset page
+  does, `Tab` and `Shift-Tab` move between its links, a link to a place on
+  the page (`#name`) goes there on a click or the menu's **Go to**, web links
+  open on a click, and a drag selects text for `y` to copy; `s` and `/` go
+  back to its text, where search is. No script runs, and only the pictures
+  beside the page are read. `examples/sections.html` shows nested sections
+  and links between them. Exported as a picture (`--output`), a page is drawn the
   same way, 800 pixels wide, as a narrow browser window would show it, in
   slices up to 1125 pixels high that end between lines (`--page` picks one,
   `--page all` with `--output-dir` makes them all). nthtml takes a subset of

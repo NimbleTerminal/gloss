@@ -250,3 +250,48 @@ func TestHTMLViewCanvas(t *testing.T) {
 		}
 	}
 }
+
+// A page's links are its items, outlined when focused, and one to a place
+// on the page scrolls there.
+func TestHTMLViewSections(t *testing.T) {
+	path, err := filepath.Abs("../../examples/sections.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	l := &Loader{}
+	defer l.Close()
+	ask := func(v TypesetViewport, focus []image.Rectangle) Result {
+		t.Helper()
+		r := l.Load(Request{Path: path, MarkdownMode: "typeset", TypesetView: &v, TypesetWidth: 600, TypesetFocus: focus, Theme: testTheme("light"), Page: 1})
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		return r
+	}
+	r := ask(TypesetViewport{Height: 600}, nil)
+	if len(r.TypesetItems) != 2 || !r.TypesetItemsAll || r.TypesetItems[0].URL != "#wednesday" || r.TypesetItems[1].URL != "#monday-tide" {
+		t.Fatalf("items %+v, all %v", r.TypesetItems, r.TypesetItemsAll)
+	}
+	for _, it := range r.TypesetItems {
+		if it.Kind != TypesetLinkItem || len(it.Rects) == 0 || it.Rects[0].Max.Y > r.TypesetExtent {
+			t.Fatalf("item %+v", it)
+		}
+	}
+	// Focused, a link is outlined in the theme's accent.
+	focus := r.TypesetItems[0].Rects
+	accent := testTheme("light").Palette.Accent
+	outlined := ask(TypesetViewport{Height: 1000}, focus)
+	if len(outlined.TypesetFocus) == 0 {
+		t.Fatal("focus not answered")
+	}
+	edge := focus[0].Min.Sub(image.Pt(1, 1))
+	if got := color.RGBAModel.Convert(outlined.Image.At(edge.X, edge.Y)).(color.RGBA); got != accent {
+		t.Fatalf("outline at %v is %v, not %v", edge, got, accent)
+	}
+	// Wednesday is below the first screen; Monday's tide is on it.
+	at := ask(TypesetViewport{Height: 600, Link: "#wednesday"}, nil)
+	back := ask(TypesetViewport{Height: 600, Link: "#monday-tide"}, nil)
+	if at.TypesetView.Top <= 600 || back.TypesetView.Top >= at.TypesetView.Top {
+		t.Fatalf("wednesday at %d, monday's tide at %d", at.TypesetView.Top, back.TypesetView.Top)
+	}
+}

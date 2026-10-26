@@ -90,6 +90,9 @@ func (m *Model) linkAt(x, y int) string {
 	}
 	for _, link := range m.typesetLinks {
 		if at.In(link.Rect) {
+			if m.pageFragment(link.URL) {
+				return link.URL
+			}
 			return documentLink(link.URL)
 		}
 	}
@@ -113,7 +116,7 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 			return nil, false
 		}
 		m.pressedLink = m.linkAt(v.X, v.Y)
-		if _, internal := document.FootnotePeer(m.pressedLink); !internal && m.opts.OpenLink == nil {
+		if _, internal := document.FootnotePeer(m.pressedLink); !internal && !m.pageFragment(m.pressedLink) && m.opts.OpenLink == nil {
 			m.pressedLink = ""
 		}
 		m.linkPoint = image.Pt(v.X, v.Y)
@@ -136,15 +139,18 @@ func (m *Model) linkMouse(msg tea.Msg) (tea.Cmd, bool) {
 		if target, internal := document.FootnotePeer(address); internal {
 			return m.jumpFootnote(target), true
 		}
+		if m.pageFragment(address) {
+			return m.goToFragment(address), true
+		}
 		open, generation := m.opts.OpenLink, m.generation
 		return func() tea.Msg { return linkOpened{generation, open(address)} }, true
 	}
 	return nil, false
 }
 
-// linkEntries lists what can be done with a link: open it in the browser,
-// called label, when it is a web address and the host has one, and copy
-// its address.
+// linkEntries lists what can be done with a link: go to the place on an
+// HTML page it names, open it in the browser, called label, when it is a
+// web address and the host has one, and copy its address.
 // fetchEntries are what --fetch allows with a web address: downloading it
 // to show in gloss, or to keep.
 func fetchEntries(m *Model, address string) []menuEntry {
@@ -228,6 +234,9 @@ func (m *Model) bareLinkActions(at image.Point) tea.Cmd {
 
 func linkEntries(m *Model, url string, label string) []menuEntry {
 	var entries []menuEntry
+	if m.pageFragment(url) {
+		entries = append(entries, menuEntry{"go-to", i18n.T("app.actions.goTo", "Go to"), func(m *Model) tea.Cmd { return m.goToFragment(url) }})
+	}
 	if webLink(url) != "" && m.opts.OpenLink != nil {
 		entries = append(entries, menuEntry{"open-link", label, func(m *Model) tea.Cmd {
 			open, generation := m.opts.OpenLink, m.generation
@@ -292,4 +301,18 @@ func (m *Model) jumpFootnote(target string) tea.Cmd {
 		return m.queueTypesetReflow()
 	}
 	return nil
+}
+
+// pageFragment says address names a place on the HTML page shown as its
+// CSS lays it out, "#" and an element's id.
+func (m *Model) pageFragment(address string) bool {
+	return m.kind == "html" && m.typeset != nil && m.markdown == nil && len(address) > 1 && address[0] == '#'
+}
+
+// goToFragment scrolls the HTML page to the element its fragment names;
+// a name the page does not have leaves it where it is.
+func (m *Model) goToFragment(address string) tea.Cmd {
+	m.clearTypesetSelection()
+	m.typesetGoLink, m.typesetEnd = address, false
+	return m.queueTypesetReflow()
 }
