@@ -64,7 +64,7 @@ func (m *Model) updatePreview() tea.Cmd {
 		m.preview = New(opts)
 		m.preview.theme = m.theme
 		m.preview.isPreview, m.preview.index = true, m.selection
-		m.preview.opts.OpenWith = nil
+		m.preview.opts.OpenWith, m.preview.opts.SaveLang = nil, nil
 		_, resize := m.preview.Update(tea.WindowSizeMsg{Width: max(1, m.previewWidth()), Height: m.bodyHeight()})
 		return tea.Sequence(cleanup, tea.Batch(resize, m.preview.Init()))
 	}

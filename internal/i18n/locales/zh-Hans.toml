@@ -43,7 +43,22 @@ other = "导出 · 详情 · 重新加载"
 other = "搜索 · 下一个 / 上一个匹配"
 
 [app.help.everywhere.theme]
-other = "配色主题 · 条目操作"
+other = "主题 · 语言 · 条目操作"
+
+[app.lang.title]
+other = "语言"
+
+[app.lang.system]
+other = "系统（来自 LANG）"
+
+[app.lang.hint]
+other = "%d/%d · ↑/↓ 预览 · Enter 保留"
+
+[app.lang.restore]
+other = "Esc 恢复原来的语言"
+
+[app.lang.status]
+other = "↑/↓ 预览语言 · Enter 保留 · Esc 取消"
 
 [app.help.everywhere.drop]
 other = "拖入文件或粘贴路径即可打开"

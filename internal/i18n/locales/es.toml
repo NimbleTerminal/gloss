@@ -43,7 +43,22 @@ other = "exportar · info · recargar"
 other = "buscar · sig. / anterior"
 
 [app.help.everywhere.theme]
-other = "tema de color · acciones"
+other = "tema · idioma · acciones"
+
+[app.lang.title]
+other = "Idiomas"
+
+[app.lang.system]
+other = "Sistema (de LANG)"
+
+[app.lang.hint]
+other = "%d/%d · ↑/↓ probar · Enter conservar"
+
+[app.lang.restore]
+other = "Esc vuelve al idioma anterior"
+
+[app.lang.status]
+other = "↑/↓ probar idioma · Enter conservar · Esc cancelar"
 
 [app.help.everywhere.drop]
 other = "Arrastre archivos o pegue rutas"

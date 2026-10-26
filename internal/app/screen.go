@@ -26,6 +26,7 @@ const (
 	layerColor   // The mesh's color picker.
 	layerFont    // Typeset font pairs.
 	layerTheme   // Theme selection over the document.
+	layerLang    // Language selection over the document.
 	layerQR      // The selected table URL, as a QR code.
 	layerActions // The menu of what can be done with the thing under the pointer.
 )
@@ -60,6 +61,12 @@ func (m *Model) closeLayer() tea.Cmd {
 		if p != nil {
 			m.opts.Theme = p.option
 			return m.applyTheme(p.original)
+		}
+	case layerLang:
+		p := m.langPicker
+		m.langPicker = nil
+		if p != nil {
+			m.setLang(p.original)
 		}
 	case layerQR:
 		return m.clearQR()

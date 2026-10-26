@@ -33,7 +33,7 @@ func helpLeft() []helpSection {
 			{"", i18n.T("app.help.everywhere.chooser", "Tab in the app chooser: open / edit")},
 			{"e  i  R", i18n.T("app.help.everywhere.export", "export · details · reload")},
 			{"/  n  N", i18n.T("app.help.everywhere.search", "search · next / prev match")},
-			{"T  a", i18n.T("app.help.everywhere.theme", "color theme · item actions")},
+			{"T  F2  a", i18n.T("app.help.everywhere.theme", "theme · language · actions")},
 			{"", i18n.T("app.help.everywhere.drop", "Drop files or paste paths to open")},
 		}},
 		{i18n.T("app.help.text.title", "Text"), []helpRow{

@@ -37,7 +37,7 @@ func Languages() []Lang {
 	return []Lang{
 		{"en", "English", "English"},
 		{"es", "Español", "Spanish"},
-		{"zh-Hans", "简体中文", "Chinese (Simplified)"},
+		{"zh-Hans", "简体中文", "Chinese, Simplified"},
 	}
 }
 

@@ -52,7 +52,9 @@ type Options struct {
 	LineNumbers            bool // Show file line numbers in text and typeset views of line-based documents.
 	ChopLines              bool // Cut long lines at the right edge instead of wrapping them, as less -S does.
 	Theme                  string
-	Lang                   string // The user's language tag, as es-MX; "" is English, and leaves handoff pages to the browser.
+	Lang                   string             // The user's language tag, as es-MX; "" is English, and leaves handoff pages to the browser.
+	SystemLang             string             // The language without a saved choice, which the picker's System stands for; "" is Lang.
+	SaveLang               func(string) error // Keeps the picker's choice; "" is System. Nil where nothing is saved.
 	Font, Mono             string
 	SaveFont               func(string, string) error
 	ThemeChoices           []theme.Choice
@@ -224,6 +226,7 @@ type Model struct {
 	theme                    string
 	detectedTheme            string
 	themePicker              *themePicker
+	langPicker               *langPicker
 	diagramsDark             bool // The palette the last request drew Mermaid diagrams in.
 	fontPicker               *fontPicker
 	err                      error
@@ -260,6 +263,9 @@ func nextOwnerID() int { return int(nextMessageOwner.Add(1)) }
 func New(opts Options) *Model {
 	if opts.Version == "" {
 		opts.Version = "dev"
+	}
+	if opts.SystemLang == "" {
+		opts.SystemLang = opts.Lang
 	}
 	ownTerminal := opts.terminal == nil
 	if ownTerminal {
@@ -704,6 +710,11 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 	case themeSaved:
 		if v.err != nil {
 			m.note = "save theme: " + safe(v.err.Error())
+		}
+		return nil
+	case langSaved:
+		if v.err != nil {
+			m.note = "save language: " + safe(v.err.Error())
 		}
 		return nil
 	case linkOpened:
