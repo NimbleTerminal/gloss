@@ -30,18 +30,18 @@ enableGitInfo = false
 [languages]
   [languages.en]
     weight = 1
-    languageName = "English"
-    languageCode = "en"
+    label = "English"
+    locale = "en"
   [languages.es]
     weight = 2
-    languageName = "Español"
-    languageCode = "es"
+    label = "Español"
+    locale = "es"
     [languages.es.params]
       description = "Un paginador visual para la terminal: como less, para imágenes, PDF, mallas 3D y documentos"
   [languages.zh-hans]
     weight = 3
-    languageName = "简体中文"
-    languageCode = "zh-Hans"
+    label = "简体中文"
+    locale = "zh-Hans"
     [languages.zh-hans.params]
       description = "终端里的可视化分页器：像 less 一样，可查看图片、PDF、三维网格和各类文档"
 
