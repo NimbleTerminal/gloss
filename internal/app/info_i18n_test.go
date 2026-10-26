@@ -132,7 +132,7 @@ func TestInfoLabelKnowsEveryDocumentLabel(t *testing.T) {
 			}
 		}
 	}
-	for _, file := range append(parse("../document/*.go"), parse("info.go")...) {
+	for _, file := range append(append(parse("../document/*.go"), parse("info.go")...), parse("chart_pane.go")...) {
 		ast.Inspect(file, func(n ast.Node) bool {
 			switch n := n.(type) {
 			case *ast.CallExpr:

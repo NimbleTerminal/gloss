@@ -89,7 +89,7 @@ func (m *Model) export() tea.Cmd {
 		if m.chartGraphics && p.img != nil && p.compiled != nil {
 			graphics = p.compiled
 		}
-		m.note = "exporting…"
+		m.note = i18n.T("app.export.running", "exporting…")
 		return func() tea.Msg {
 			var img image.Image
 			if graphics != nil {

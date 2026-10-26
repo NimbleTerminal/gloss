@@ -630,10 +630,12 @@ everywhere.
 **Known gaps.**
 
 - Libraries gloss builds on take no locale yet, so their words stay English:
-  ntcharts/Flint, ntmaps, nttypeset, ntvideo, ntfilepicker (the file browser,
-  its help and menus) and ntopenwith. Typeset fonts have no CJK glyphs, so
-  Chinese text in a typeset page is not drawn; the terminal text view is
-  unaffected.
+  ntcharts/Flint (a chart's notes and warnings from its compiler, and the
+  chart page that `ctrl+o` opens and `GET /<token>/chart` serves, English as
+  the `POST /<token>/chart` reply is), ntmaps, nttypeset, ntvideo,
+  ntfilepicker (the file browser, its help and menus) and ntopenwith. Typeset
+  fonts have no CJK glyphs, so Chinese text in a typeset page is not drawn;
+  the terminal text view is unaffected.
 - The browser demo is English, as are the details box labels (JSON keys),
   `http.Error` bodies, and the drop, upload, picker and `remote.mjs` strings in
   the pages.

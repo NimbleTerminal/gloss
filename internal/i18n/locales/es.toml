@@ -99,11 +99,11 @@ other = "pág. o archivo sig. / ant."
 [app.help.pictures.ends]
 other = "primera / última pág. PDF"
 
-[app.help.pictures.graphics]
-other = "gráficos Kitty / glifos"
+[app.help.pictures.graphicsQR]
+other = "Kitty/glifos · QR de tabla"
 
-[app.help.pictures.qr]
-other = "código QR de URL de tabla"
+[app.help.pictures.chart]
+other = "gráf. · tipo · web · imagen"
 
 [app.help.meshes.title]
 other = "Mallas"
@@ -224,6 +224,12 @@ other = "Abrir otro archivo"
 
 [web.serve.keep]
 other = "Seguir viendo"
+
+[web.serve.chartLink]
+other = "Gráfico en este navegador"
+
+[web.serve.chartAbout]
+other = "el gráfico que muestra el visor, tras pulsar C en una tabla"
 
 [web.serve.formats]
 other = "Formatos requeridos:"
@@ -570,8 +576,17 @@ other = "B color de fondo"
 [app.keys.browse]
 other = "o explorar"
 
+[app.keys.browser]
+other = "^o navegador"
+
 [app.keys.cancel]
 other = "q cancelar"
+
+[app.keys.chart]
+other = "C gráfico"
+
+[app.keys.chartType]
+other = "t tipo de gráfico"
 
 [app.keys.chop]
 other = "S cortar"
@@ -680,6 +695,9 @@ other = "Esc/u cerrar QR · g gráficos · e exportar QR · q salir"
 
 [app.keys.quit]
 other = "q salir"
+
+[app.keys.reload]
+other = "R recargar"
 
 [app.keys.screen]
 other = "Space/b pantalla"
@@ -1186,6 +1204,12 @@ other = "nada que copiar"
 [app.actions.goTo]
 other = "Ir allí"
 
+[app.actions.chart]
+other = "Graficar estas columnas"
+
+[app.actions.chartBrowser]
+other = "Abrir gráfico en el navegador"
+
 [app.actions.copyAddress]
 other = "Copiar dirección"
 
@@ -1209,6 +1233,9 @@ other = "Copiar valor"
 
 [app.actions.editWith]
 other = "Editar con…"
+
+[app.actions.hideChart]
+other = "Ocultar el gráfico"
 
 [app.actions.open]
 other = "Abrir"
@@ -1555,6 +1582,9 @@ other = "Cambiado"
 [app.info.label.changedBy]
 other = "Cambiado por"
 
+[app.info.label.chart]
+other = "Gráfico"
+
 [app.info.label.characters]
 other = "Caracteres"
 
@@ -1578,6 +1608,9 @@ other = "Creado"
 
 [app.info.label.creator]
 other = "Creador"
+
+[app.info.label.data]
+other = "Datos"
 
 [app.info.label.declaredSize]
 other = "Tamaño declarado"
@@ -1753,6 +1786,9 @@ other = "Puntos"
 [app.info.label.positions]
 other = "Posiciones"
 
+[app.info.label.problem]
+other = "Problema"
+
 [app.info.label.producer]
 other = "Productor"
 
@@ -1779,6 +1815,9 @@ other = "Pantalla"
 
 [app.info.label.sheets]
 other = "Hojas"
+
+[app.info.label.series]
+other = "Series"
 
 [app.info.label.shown]
 other = "Se muestra"
@@ -1869,3 +1908,128 @@ other = " (la app guardada no está disponible)"
 
 [app.actions.picture]
 other = "imagen"
+
+[app.chart.chart]
+other = "gráfico"
+
+[app.chart.graphics]
+other = "imagen"
+
+[app.chart.graphicsOn]
+other = "gráfico como imagen: g alterna Kitty / glifos"
+
+[app.chart.text]
+other = "gráfico como texto"
+
+[app.chart.nextType]
+other = "t tipo siguiente"
+
+[app.chart.showingText]
+other = "%s: se muestra como texto"
+
+[app.chart.rasterHint]
+other = "ctrl+g lo dibuja como imagen."
+
+[app.chart.tooSmall]
+other = "la terminal es demasiado pequeña para un gráfico"
+
+[app.chart.nothing]
+other = "nada que graficar: muestre una columna de fecha o categoría y una columna numérica"
+
+[app.chart.noRows]
+other = "el gráfico no tiene filas y no hay ninguna tabla abierta"
+
+[app.chart.noTable]
+other = "no hay ninguna tabla abierta para graficar"
+
+[app.chart.noChart]
+other = "no se muestra ningún gráfico: pulse C en una tabla o abra un archivo de gráfico"
+
+[app.chart.page]
+other = "página del gráfico: %s"
+
+[app.chart.noBrowser]
+other = "Abrir en un navegador no está disponible en este host"
+
+[app.chart.opening]
+other = "abriendo…"
+
+[app.chart.rows]
+one = "{{.Count}} fila"
+other = "{{.Count}} filas"
+
+[app.chart.series]
+one = "{{.Count}} serie"
+other = "{{.Count}} series"
+
+[app.chart.title.bar]
+other = "gráfico de barras"
+
+[app.chart.title.stackedBar]
+other = "gráfico de barras apiladas"
+
+[app.chart.title.lollipop]
+other = "gráfico de piruletas"
+
+[app.chart.title.line]
+other = "gráfico de líneas"
+
+[app.chart.title.area]
+other = "gráfico de áreas"
+
+[app.chart.title.scatter]
+other = "gráfico de dispersión"
+
+[app.chart.title.connectedScatter]
+other = "dispersión conectada"
+
+[app.chart.title.heatmap]
+other = "mapa de calor"
+
+[app.chart.title.histogram]
+other = "histograma"
+
+[app.chart.title.ecdf]
+other = "gráfico ECDF"
+
+[app.chart.title.sparkline]
+other = "minigráfico"
+
+[app.chart.title.candlestick]
+other = "gráfico de velas"
+
+[app.chart.short.bar]
+other = "barras"
+
+[app.chart.short.stackedBar]
+other = "barras apiladas"
+
+[app.chart.short.lollipop]
+other = "piruletas"
+
+[app.chart.short.line]
+other = "líneas"
+
+[app.chart.short.area]
+other = "áreas"
+
+[app.chart.short.scatter]
+other = "dispersión"
+
+[app.chart.short.connectedScatter]
+other = "dispersión conectada"
+
+[app.chart.short.heatmap]
+other = "mapa de calor"
+
+[app.chart.short.histogram]
+other = "histograma"
+
+[app.chart.short.ecdf]
+other = "ECDF"
+
+[app.chart.short.sparkline]
+other = "minigráfico"
+
+[app.chart.short.candlestick]
+other = "velas"

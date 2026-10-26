@@ -34,6 +34,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.changed", "Changed")
 	case "Changed by":
 		return i18n.T("app.info.label.changedBy", "Changed by")
+	case "Chart":
+		return i18n.T("app.info.label.chart", "Chart")
 	case "Characters":
 		return i18n.T("app.info.label.characters", "Characters")
 	case "Code font":
@@ -50,6 +52,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.created", "Created")
 	case "Creator":
 		return i18n.T("app.info.label.creator", "Creator")
+	case "Data":
+		return i18n.T("app.info.label.data", "Data")
 	case "Declared size":
 		return i18n.T("app.info.label.declaredSize", "Declared size")
 	case "Description":
@@ -172,6 +176,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.points", "Points")
 	case "Positions":
 		return i18n.T("app.info.label.positions", "Positions")
+	case "Problem":
+		return i18n.T("app.info.label.problem", "Problem")
 	case "Producer":
 		return i18n.T("app.info.label.producer", "Producer")
 	case "Program":
@@ -190,6 +196,8 @@ func infoLabel(label string) string {
 		return i18n.T("app.info.label.screen", "Screen")
 	case "Sheets":
 		return i18n.T("app.info.label.sheets", "Sheets")
+	case "Series":
+		return i18n.T("app.info.label.series", "Series")
 	case "Shown":
 		return i18n.T("app.info.label.shown", "Shown")
 	case "Size":

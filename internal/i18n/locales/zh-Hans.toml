@@ -99,11 +99,11 @@ other = "下一 / 上一页或文件"
 [app.help.pictures.ends]
 other = "PDF 首页 / 末页"
 
-[app.help.pictures.graphics]
-other = "Kitty / 字符图形"
+[app.help.pictures.graphicsQR]
+other = "Kitty/字符 · 表格网址二维码"
 
-[app.help.pictures.qr]
-other = "表格网址的二维码"
+[app.help.pictures.chart]
+other = "图表 · 类型 · 网页 · 图像"
 
 [app.help.meshes.title]
 other = "网格模型"
@@ -224,6 +224,12 @@ other = "打开其他文件"
 
 [web.serve.keep]
 other = "继续查看"
+
+[web.serve.chartLink]
+other = "在此浏览器中查看图表"
+
+[web.serve.chartAbout]
+other = "查看器显示的图表（在表格上按 C 之后）"
 
 [web.serve.formats]
 other = "所需格式:"
@@ -570,8 +576,17 @@ other = "B 背景色"
 [app.keys.browse]
 other = "o 浏览"
 
+[app.keys.browser]
+other = "^o 浏览器"
+
 [app.keys.cancel]
 other = "q 取消"
+
+[app.keys.chart]
+other = "C 图表"
+
+[app.keys.chartType]
+other = "t 图表类型"
 
 [app.keys.chop]
 other = "S 截断"
@@ -680,6 +695,9 @@ other = "Esc/u 关闭二维码 · g 图形 · e 导出二维码 · q 退出"
 
 [app.keys.quit]
 other = "q 退出"
+
+[app.keys.reload]
+other = "R 重新加载"
 
 [app.keys.screen]
 other = "Space/b 翻屏"
@@ -1179,6 +1197,12 @@ other = "没有可复制的内容"
 [app.actions.goTo]
 other = "转到"
 
+[app.actions.chart]
+other = "为这些列绘制图表"
+
+[app.actions.chartBrowser]
+other = "在浏览器中打开图表"
+
 [app.actions.copyAddress]
 other = "复制网址"
 
@@ -1202,6 +1226,9 @@ other = "复制值"
 
 [app.actions.editWith]
 other = "编辑方式…"
+
+[app.actions.hideChart]
+other = "隐藏图表"
 
 [app.actions.open]
 other = "打开"
@@ -1548,6 +1575,9 @@ other = "更改时间"
 [app.info.label.changedBy]
 other = "修改者"
 
+[app.info.label.chart]
+other = "图表"
+
 [app.info.label.characters]
 other = "字符数"
 
@@ -1571,6 +1601,9 @@ other = "创建时间"
 
 [app.info.label.creator]
 other = "创建者"
+
+[app.info.label.data]
+other = "数据"
 
 [app.info.label.declaredSize]
 other = "声明尺寸"
@@ -1746,6 +1779,9 @@ other = "点数"
 [app.info.label.positions]
 other = "位置点"
 
+[app.info.label.problem]
+other = "问题"
+
 [app.info.label.producer]
 other = "生成工具"
 
@@ -1772,6 +1808,9 @@ other = "屏幕"
 
 [app.info.label.sheets]
 other = "工作表"
+
+[app.info.label.series]
+other = "系列"
 
 [app.info.label.shown]
 other = "已显示"
@@ -1862,3 +1901,126 @@ other = "（已保存的应用不可用）"
 
 [app.actions.picture]
 other = "图片"
+
+[app.chart.chart]
+other = "图表"
+
+[app.chart.graphics]
+other = "图形"
+
+[app.chart.graphicsOn]
+other = "图表图形：g 切换 Kitty / 字符"
+
+[app.chart.text]
+other = "文本图表"
+
+[app.chart.nextType]
+other = "t 下一类型"
+
+[app.chart.showingText]
+other = "%s：显示为文本"
+
+[app.chart.rasterHint]
+other = "按 ctrl+g 可绘制为图形。"
+
+[app.chart.tooSmall]
+other = "终端太小，无法显示图表"
+
+[app.chart.nothing]
+other = "没有可绘制的数据：请显示一个日期或类别列和一个数字列"
+
+[app.chart.noRows]
+other = "图表没有数据行，也没有打开的表格"
+
+[app.chart.noTable]
+other = "没有打开可绘制图表的表格"
+
+[app.chart.noChart]
+other = "未显示图表：请在表格上按 C，或打开图表文件"
+
+[app.chart.page]
+other = "图表页面：%s"
+
+[app.chart.noBrowser]
+other = "此主机不支持在浏览器中打开"
+
+[app.chart.opening]
+other = "正在打开…"
+
+[app.chart.rows]
+other = "{{.Count}} 行"
+
+[app.chart.series]
+other = "{{.Count}} 个系列"
+
+[app.chart.title.bar]
+other = "柱状图"
+
+[app.chart.title.stackedBar]
+other = "堆叠柱状图"
+
+[app.chart.title.lollipop]
+other = "棒棒糖图"
+
+[app.chart.title.line]
+other = "折线图"
+
+[app.chart.title.area]
+other = "面积图"
+
+[app.chart.title.scatter]
+other = "散点图"
+
+[app.chart.title.connectedScatter]
+other = "连线散点图"
+
+[app.chart.title.heatmap]
+other = "热力图"
+
+[app.chart.title.histogram]
+other = "直方图"
+
+[app.chart.title.ecdf]
+other = "ECDF 图"
+
+[app.chart.title.sparkline]
+other = "迷你图"
+
+[app.chart.title.candlestick]
+other = "K 线图"
+
+[app.chart.short.bar]
+other = "柱状图"
+
+[app.chart.short.stackedBar]
+other = "堆叠柱状图"
+
+[app.chart.short.lollipop]
+other = "棒棒糖图"
+
+[app.chart.short.line]
+other = "折线图"
+
+[app.chart.short.area]
+other = "面积图"
+
+[app.chart.short.scatter]
+other = "散点图"
+
+[app.chart.short.connectedScatter]
+other = "连线散点图"
+
+[app.chart.short.heatmap]
+other = "热力图"
+
+[app.chart.short.histogram]
+other = "直方图"
+
+[app.chart.short.ecdf]
+other = "ECDF 图"
+
+[app.chart.short.sparkline]
+other = "迷你图"
+
+[app.chart.short.candlestick]
+other = "K 线图"

@@ -1,10 +1,12 @@
 package app
 
 import (
+	"errors"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	ntpicture "nimbleterminal.dev/ntpicture"
 )
 
@@ -16,9 +18,9 @@ func (m *Model) toggleChartGraphics() tea.Cmd {
 		p.img, p.imgErr = nil, nil
 	}
 	if m.chartGraphics {
-		m.note = "chart graphics: g switches Kitty / half-blocks"
+		m.note = i18n.T("app.chart.graphicsOn", "chart graphics: g switches Kitty / half-blocks")
 	} else {
-		m.note = "chart text"
+		m.note = i18n.T("app.chart.text", "chart text")
 	}
 	return m.layoutChartPane()
 }
@@ -78,8 +80,19 @@ func (m *Model) clearChartPicture() tea.Cmd {
 // renderer, which gloss offers as ctrl+g.
 const rasterHint = `To draw other chart types as an image, add "renderer": "raster" to the input.`
 
-// chartError is a chart's error as the pane says it: the compiler's raster
-// hint becomes the key that gives it.
+// chartError is a chart's error as the pane says it, in the language in
+// use: gloss's own reasons translated, and in the compiler's text, which is
+// left as it is, the raster hint becomes the key that gives it.
 func chartError(err error) string {
-	return strings.Replace(err.Error(), rasterHint, "ctrl+g draws it as graphics.", 1)
+	switch {
+	case errors.Is(err, errChartTooSmall):
+		return i18n.T("app.chart.tooSmall", "the terminal is too small for a chart")
+	case errors.Is(err, errNothingToChart):
+		return i18n.T("app.chart.nothing", "nothing to chart: show a date or category column and a number column")
+	case errors.Is(err, errChartNoRows):
+		return i18n.T("app.chart.noRows", "the chart has no rows and no table is open")
+	case errors.Is(err, errNoTableToChart):
+		return i18n.T("app.chart.noTable", "no table is open to chart")
+	}
+	return strings.Replace(err.Error(), rasterHint, i18n.T("app.chart.rasterHint", "ctrl+g draws it as graphics."), 1)
 }

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -13,6 +14,16 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/chart"
 	"nimbleterminal.dev/gloss/internal/document"
+	"nimbleterminal.dev/gloss/internal/i18n"
+)
+
+// What stands in a chart's way, in English for whoever pushed it; the
+// pane says them in the language in use (chartError).
+var (
+	errChartTooSmall  = errors.New("the terminal is too small for a chart")
+	errNothingToChart = errors.New("nothing to chart: show a date or category column and a number column")
+	errChartNoRows    = errors.New("the chart has no rows and no table is open")
+	errNoTableToChart = errors.New("no table is open to chart")
 )
 
 // chartSplitWidth is the terminal width from which the chart stands beside
@@ -120,9 +131,13 @@ func (m *Model) pushed(push chartPushMsg) tea.Cmd {
 		return nil
 	}
 	doc := push.Doc
-	cmd := m.applyChart(&doc)
+	cmd, refused := m.placeChart(&doc)
 	if cmd == nil {
-		reason := m.note
+		// The reply is English, for a program; the note is for the screen.
+		reason := ""
+		if refused != nil {
+			reason = refused.Error()
+		}
 		if p := m.chartPane; p != nil && p.err != nil {
 			reason = p.err.Error()
 		}
@@ -188,26 +203,34 @@ func (m *Model) rereadChart() {
 	m.note = "--chart: " + safe(err.Error())
 }
 
-// applyChart draws doc over the sheet, or as a page when no sheet is open.
+// applyChart draws doc over the sheet, or as a page when no sheet is open;
+// when it cannot, it notes why.
 func (m *Model) applyChart(doc *chart.Document) tea.Cmd {
+	cmd, _ := m.placeChart(doc)
+	return cmd
+}
+
+// placeChart is applyChart that also returns, in English for a pusher,
+// why it could not draw doc.
+func (m *Model) placeChart(doc *chart.Document) (tea.Cmd, error) {
 	switch {
 	case m.sheet != nil && !m.suspended:
 		m.chartWanted = true
 		m.closeChartPane()
 		m.chartPane = &chartPane{source: doc}
-		return m.layoutChartPane()
+		return m.layoutChartPane(), nil
 	case doc.Unbound:
-		m.note = "the chart has no rows and no table is open"
-		return nil
+		m.note = chartError(errChartNoRows)
+		return nil, errChartNoRows
 	case m.chartPane == nil || m.chartPane.doc == nil || m.suspended:
 		// Over a picture, a mesh or a text the chart would not be seen:
 		// say so rather than report it drawn.
-		m.note = "no table is open to chart"
-		return nil
+		m.note = chartError(errNoTableToChart)
+		return nil, errNoTableToChart
 	}
 	m.closeChartPane()
 	m.chartPane = &chartPane{doc: doc}
-	return m.layoutChartPane()
+	return m.layoutChartPane(), nil
 }
 
 func (m *Model) closeChartPane() {
@@ -280,7 +303,7 @@ func (m *Model) layoutChartPane() tea.Cmd {
 	}
 	p.revision++ // Whatever was compiling answers to the old revision now.
 	if w < 10 || h < 4 {
-		p.err = fmt.Errorf("the terminal is too small for a chart")
+		p.err = errChartTooSmall
 		return nil
 	}
 	var doc chart.Document
@@ -301,7 +324,7 @@ func (m *Model) layoutChartPane() tea.Cmd {
 		}
 		doc, p.bound, p.boundRows = bound, notes, min(len(rows), chart.MaxRows)
 	case len(p.templates) == 0:
-		p.view, p.err = "", fmt.Errorf("nothing to chart: show a date or category column and a number column")
+		p.view, p.err = "", errNothingToChart
 		m.reportChart()
 		return nil
 	default:
@@ -424,8 +447,25 @@ func (p *chartPane) rows() int {
 	return p.shape.Rows
 }
 
-// chartTitle names what the pane draws.
+// chartTitle names what the pane draws, in the language in use.
 func (m *Model) chartTitle() string {
+	p := m.chartPane
+	switch {
+	case p == nil:
+		return ""
+	case p.doc != nil:
+		return chartWord() + " · " + p.doc.Kind.String()
+	case p.source != nil:
+		return chartWord() + " · " + p.source.Kind.String()
+	case len(p.templates) > 0:
+		return templateTitle(p.templates[p.template])
+	}
+	return chartWord()
+}
+
+// chartPageTitle names the chart for its browser page, which stays
+// English as the page around it does.
+func (m *Model) chartPageTitle() string {
 	p := m.chartPane
 	switch {
 	case p == nil:
@@ -440,17 +480,19 @@ func (m *Model) chartTitle() string {
 	return "chart"
 }
 
+func chartWord() string { return i18n.T("app.chart.chart", "chart") }
+
 // chartPaneView draws the pane: a title line, then the chart or what
 // stands in its way.
 func (m *Model) chartPaneView(w, h int) string {
 	p := m.chartPane
 	title := m.chartTitle()
 	if p.doc == nil && p.source == nil && len(p.templates) > 1 {
-		title += " · t next type"
+		title += " · " + i18n.T("app.chart.nextType", "t next type")
 	}
 	body := p.view
 	if pic := m.chartPicView(); pic != "" {
-		title += " · graphics"
+		title += " · " + chartGraphicsWord()
 		body = pic
 	}
 	if body == "" && p.err != nil {
@@ -475,17 +517,17 @@ func (m *Model) chartStatus() string {
 	out := m.chartTitle()
 	switch {
 	case p.source != nil:
-		out = fmt.Sprintf("%s · %d rows", out, p.rows())
+		out += " · " + chartRows(p.rows())
 	case p.doc == nil && len(p.templates) > 0:
-		out = fmt.Sprintf("chart · %s · %d series · %d rows", strings.ToLower(strings.TrimSuffix(p.templates[p.template], " Chart")), max(1, len(p.shape.Measures)), p.shape.Rows)
+		out = chartWord() + " · " + templateShort(p.templates[p.template]) + " · " + chartSeries(max(1, len(p.shape.Measures))) + " · " + chartRows(p.shape.Rows)
 	}
 	switch {
 	case p.err != nil:
 		out += " · ⚠ " + safe(chartError(p.err))
 	case m.chartGraphics && p.imgErr != nil:
-		out += " · ⚠ " + safe(p.imgErr.Error()) + ": showing text"
+		out += " · ⚠ " + i18n.Tf("app.chart.showingText", "%s: showing text", safe(p.imgErr.Error()))
 	case m.chartGraphics && p.img != nil:
-		out += " · graphics"
+		out += " · " + chartGraphicsWord()
 	case len(p.warnings) > 0:
 		out += " · ⚠ " + safe(p.warnings[0].Message)
 	case len(p.bound) > 0:
@@ -517,4 +559,77 @@ func (m *Model) chartFields() []document.Field {
 		fields = append(fields, document.Field{Label: "Warning", Value: p.warnings[0].Message})
 	}
 	return document.Section("Chart", fields...)
+}
+
+func chartGraphicsWord() string { return i18n.T("app.chart.graphics", "graphics") }
+
+func chartRows(n int) string {
+	return i18n.Tn("app.chart.rows", "{{.Count}} rows", "{{.Count}} rows", n)
+}
+
+func chartSeries(n int) string {
+	return i18n.Tn("app.chart.series", "{{.Count}} series", "{{.Count}} series", n)
+}
+
+// templateTitle is a chart template's name as the pane's title gives it.
+func templateTitle(t string) string {
+	switch t {
+	case chart.TemplateBar:
+		return i18n.T("app.chart.title.bar", "bar chart")
+	case chart.TemplateStackedBar:
+		return i18n.T("app.chart.title.stackedBar", "stacked bar chart")
+	case chart.TemplateLollipop:
+		return i18n.T("app.chart.title.lollipop", "lollipop chart")
+	case chart.TemplateLine:
+		return i18n.T("app.chart.title.line", "line chart")
+	case chart.TemplateArea:
+		return i18n.T("app.chart.title.area", "area chart")
+	case chart.TemplateScatter:
+		return i18n.T("app.chart.title.scatter", "scatter plot")
+	case chart.TemplateConnectedScatter:
+		return i18n.T("app.chart.title.connectedScatter", "connected scatter plot")
+	case chart.TemplateHeatmap:
+		return i18n.T("app.chart.title.heatmap", "heatmap")
+	case chart.TemplateHistogram:
+		return i18n.T("app.chart.title.histogram", "histogram")
+	case chart.TemplateECDF:
+		return i18n.T("app.chart.title.ecdf", "ecdf plot")
+	case chart.TemplateSparkline:
+		return i18n.T("app.chart.title.sparkline", "sparkline")
+	case chart.TemplateCandlestick:
+		return i18n.T("app.chart.title.candlestick", "candlestick chart")
+	}
+	return strings.ToLower(t)
+}
+
+// templateShort is a chart template's name as the status bar gives it,
+// after the word chart.
+func templateShort(t string) string {
+	switch t {
+	case chart.TemplateBar:
+		return i18n.T("app.chart.short.bar", "bar")
+	case chart.TemplateStackedBar:
+		return i18n.T("app.chart.short.stackedBar", "stacked bar")
+	case chart.TemplateLollipop:
+		return i18n.T("app.chart.short.lollipop", "lollipop")
+	case chart.TemplateLine:
+		return i18n.T("app.chart.short.line", "line")
+	case chart.TemplateArea:
+		return i18n.T("app.chart.short.area", "area")
+	case chart.TemplateScatter:
+		return i18n.T("app.chart.short.scatter", "scatter plot")
+	case chart.TemplateConnectedScatter:
+		return i18n.T("app.chart.short.connectedScatter", "connected scatter plot")
+	case chart.TemplateHeatmap:
+		return i18n.T("app.chart.short.heatmap", "heatmap")
+	case chart.TemplateHistogram:
+		return i18n.T("app.chart.short.histogram", "histogram")
+	case chart.TemplateECDF:
+		return i18n.T("app.chart.short.ecdf", "ecdf plot")
+	case chart.TemplateSparkline:
+		return i18n.T("app.chart.short.sparkline", "sparkline")
+	case chart.TemplateCandlestick:
+		return i18n.T("app.chart.short.candlestick", "candlestick")
+	}
+	return strings.ToLower(strings.TrimSuffix(t, " Chart"))
 }

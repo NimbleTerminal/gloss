@@ -6,6 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/chart"
+	"nimbleterminal.dev/gloss/internal/i18n"
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
@@ -23,14 +24,14 @@ type chartPageSaved struct {
 func (m *Model) openChartPage() tea.Cmd {
 	p := m.chartPane
 	if p == nil || p.compiled == nil || !p.shown() {
-		m.note = "no chart is shown: press C on a table, or open a chart file"
+		m.note = i18n.T("app.chart.noChart", "no chart is shown: press C on a table, or open a chart file")
 		return nil
 	}
 	if m.opts.OpenWith == nil || m.opts.Scratch == nil || m.isPreview {
 		if m.opts.ChartURL != "" {
-			m.note = "chart page: " + m.opts.ChartURL
+			m.note = i18n.Tf("app.chart.page", "chart page: %s", m.opts.ChartURL)
 		} else {
-			m.note = "Opening in a browser is not available in this host"
+			m.note = i18n.T("app.chart.noBrowser", "Opening in a browser is not available in this host")
 		}
 		return nil
 	}
@@ -40,8 +41,8 @@ func (m *Model) openChartPage() tea.Cmd {
 		name += "-chart"
 	}
 	name += ".html"
-	title, doc, scratch, generation := m.chartTitle(), *p.compiled, m.opts.Scratch, m.generation
-	m.note = "opening…"
+	title, doc, scratch, generation := m.chartPageTitle(), *p.compiled, m.opts.Scratch, m.generation
+	m.note = i18n.T("app.chart.opening", "opening…")
 	return func() tea.Msg {
 		option, err := chart.Default.Option(context.Background(), doc)
 		if err != nil {
@@ -59,7 +60,7 @@ func (m *Model) chartPageWritten(v chartPageSaved) tea.Cmd {
 		return nil
 	}
 	if v.err != nil {
-		m.note = "chart page: " + safe(v.err.Error())
+		m.note = i18n.Tf("app.chart.page", "chart page: %s", safe(v.err.Error()))
 		return nil
 	}
 	return m.requestOpenWith(v.path, "html", false, false, openwith.Open)
