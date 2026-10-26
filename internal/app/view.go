@@ -96,7 +96,7 @@ func (m *Model) body(w, h int) (string, tea.MouseMode) {
 	case m.loading:
 		body = i18n.Tf("app.loading", "Loading %s…", safe(filepath.Base(m.opts.Files[m.index])))
 	case m.err != nil:
-		body = "Cannot open file\n\n" + safe(m.err.Error()) + "\n\nR retry · ] next file · q quit"
+		body = i18n.Tf("app.loadError", "Cannot open file\n\n%s\n\nR retry · ] next file · q quit", safe(m.err.Error()))
 	case m.video != nil:
 		body, mouse, plain = m.video.View(), tea.MouseModeCellMotion, false
 	case m.mapView != nil:

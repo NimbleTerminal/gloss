@@ -170,3 +170,6 @@ other = "正在关闭请求…"
 
 [handoff.screen.waiting]
 other = "等待在设备上点击“发送” · g 图形 · q/Esc 取消"
+
+[app.loadError]
+other = "无法打开文件\n\n%s\n\nR 重试 · ] 下一个文件 · q 退出"

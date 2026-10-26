@@ -170,3 +170,6 @@ other = "Cerrando la solicitud…"
 
 [handoff.screen.waiting]
 other = "Esperando Enviar en su dispositivo · g gráficos · q/Esc cancelar"
+
+[app.loadError]
+other = "No se puede abrir el archivo\n\n%s\n\nR reintentar · ] siguiente archivo · q salir"
