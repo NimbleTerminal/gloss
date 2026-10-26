@@ -222,6 +222,15 @@ GLOSS_LANG=es gloss notas.md
 gloss --lang zh-Hans informe.pdf
 ```
 
+`F2` sobre un documento abre un selector de idioma: las flechas muestran el
+visor en cada idioma a medida que se mueve, Enter conserva uno y Esc vuelve
+atrás. El visor de la terminal recuerda la elección en su carpeta de
+configuración (`gloss/lang`), que entonces va antes de `LC_ALL`, `LC_MESSAGES`
+y `LANG`; `GLOSS_LANG` y `--lang` siguen teniendo prioridad. **Sistema** olvida
+la elección y vuelve a seguir la configuración regional. Un visor de `--serve`
+cambia de idioma pero no guarda nada, y ningún modo sin interfaz lee la
+elección guardada.
+
 `--lang` acepta una etiqueta BCP 47 (`es-MX`, `zh-CN`) o un nombre POSIX
 (`zh_CN.UTF-8`); cualquier otra cosa termina con un error. Un idioma sin
 traducción, como `fr` o `zh-TW`, muestra el texto en inglés pero escribe los

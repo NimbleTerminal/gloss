@@ -541,10 +541,16 @@ use `{{t "web.id" "English"}}` in Go templates and `msg('web.id', 'English')` in
 `i18n.SetLanguage`; code that serves several languages (the handoff server's
 pages) takes a `*i18n.Localizer` from `i18n.For(tag)`.
 
-**Resolution.** In the viewer, `--lang` beats `GLOSS_LANG`, `LC_ALL`,
-`LC_MESSAGES`, `LANG`, then English (`language` in `cmd/gloss/lang.go`,
+**Resolution.** In the viewer, `--lang` beats `GLOSS_LANG`, the saved choice,
+`LC_ALL`, `LC_MESSAGES`, `LANG`, then English (`language` in `cmd/gloss/lang.go`,
 `i18n.FromEnv`); an unparseable value in the environment is skipped, while a bad
-`--lang` is a usage error. `Match` serves a tag only at `language.High`
+`--lang` is a usage error. The saved choice is the language picker's (`F2`,
+`internal/app/lang_picker.go`): it previews by `i18n.SetLanguage` and
+`opts.Lang`, Enter loads the document again so `document.Locale` follows, and
+the native host's `Options.SaveLang` writes `lang` in `theme.Dir()` (removed for
+System, the language without it: `Options.SystemLang`). `language` takes it as
+a getter, called only for the terminal viewer, never headless, detached or
+`--serve`; an unreadable file counts as none. `Match` serves a tag only at `language.High`
 confidence (`es-MX` is `es`; `zh-CN`, `zh` and `zh-SG` are `zh-Hans`; `zh-TW`,
 `zh-Hant` and `fr` are `en`). A valid tag with no catalog keeps English words
 but formats numbers by the tag.

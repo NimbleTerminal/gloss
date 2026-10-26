@@ -354,8 +354,12 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   public app's persistent library.
 
 Languages: English, Spanish (`es`) and Simplified Chinese (`zh-Hans`), drafts
-awaiting native review. The viewer resolves `--lang` > `GLOSS_LANG` > `LC_ALL` >
-`LC_MESSAGES` > `LANG` > English (`language` in `cmd/gloss/lang.go`); a tag
+awaiting native review. The viewer resolves `--lang` > `GLOSS_LANG` > saved
+choice > `LC_ALL` > `LC_MESSAGES` > `LANG` > English (`language` in
+`cmd/gloss/lang.go`). `F2` opens the language picker (`lang_picker.go`: System
+first, arrows preview, Enter keeps and reloads, Esc/`q`/`F2` restore); only the
+native viewer's `Options.SaveLang` writes `gloss/lang` (System removes it), and
+only the terminal viewer reads it: never headless, detached or `--serve`. A tag
 matches a catalog only at high confidence (`zh-TW`, `fr` are English), but a
 valid tag still formats numbers (`document.Locale`). Option names and values,
 JSON keys, enums, exit codes, `--info` labels and OSC 7501 messages never

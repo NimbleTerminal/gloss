@@ -200,6 +200,14 @@ GLOSS_LANG=es gloss notes.md
 gloss --lang zh-Hans report.pdf
 ```
 
+`F2` over a document opens a language picker: the arrows show the viewer in
+each language as you move, Enter keeps one and Esc goes back. The terminal
+viewer remembers the choice in its configuration folder (`gloss/lang`), and it
+then comes before `LC_ALL`, `LC_MESSAGES` and `LANG`; `GLOSS_LANG` and `--lang`
+still win. **System** forgets the choice and follows the locale again. A
+`--serve` viewer switches but saves nothing, and nothing headless reads the
+saved choice.
+
 `--lang` takes a BCP 47 tag (`es-MX`, `zh-CN`) or a POSIX name (`zh_CN.UTF-8`);
 anything else exits with an error. A language with no translation, such as
 `fr` or `zh-TW`, shows English text but still writes numbers the way that

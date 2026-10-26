@@ -13,6 +13,7 @@ bookToC: false
 | `?`, `Esc` | Show help (including the build version) / dismiss help |
 | `f` in typeset text | Preview font pairs: arrows select, Enter keeps, Esc restores; `+`/`-` still zoom |
 | `T` over a document | Preview themes: arrows select, Enter keeps, Esc restores |
+| `F2` over a document | Preview languages: arrows select, Enter keeps, Esc, `q` or `F2` restores. **System** follows the locale |
 | `Esc` | Back to the file list, with previews, from a document |
 | `t` | In the file list, show the files as a grid of thumbnails, and back |
 | `m` | Open the file-selection menu |
