@@ -18,7 +18,7 @@ import (
 )
 
 func exportRequest(opts app.Options, path string, generation int) document.Request {
-	q := document.Request{Path: path, Type: opts.Type, MarkdownMode: opts.MarkdownMode, Typeset: opts.Typeset, TypesetLineNumbers: opts.LineNumbers, TypesetChop: opts.ChopLines, Theme: app.DocumentTheme(theme.Resolve(opts.Theme)), Font: opts.Font, Mono: opts.Mono, Page: opts.Page, DPI: opts.DPI, MaxEdge: opts.MaxEdge, Generation: uint64(generation), Parts: opts.Parts, Up: opts.Up, Color: opts.Color, Stdin: opts.IsStdin(path), Strict: true, Times: opts.Times, FrameCount: opts.FrameCount}
+	q := document.Request{Path: path, Type: opts.Type, MarkdownMode: opts.MarkdownMode, Typeset: opts.Typeset, TypesetLineNumbers: opts.LineNumbers, TypesetChop: opts.ChopLines, Theme: app.DocumentTheme(theme.Resolve(opts.Theme)), Locale: app.DocumentLocale(opts.Lang), Font: opts.Font, Mono: opts.Mono, Page: opts.Page, DPI: opts.DPI, MaxEdge: opts.MaxEdge, Generation: uint64(generation), Parts: opts.Parts, Up: opts.Up, Color: opts.Color, Stdin: opts.IsStdin(path), Strict: true, Times: opts.Times, FrameCount: opts.FrameCount}
 	if q.Stdin {
 		q.BaseDir = opts.MarkdownBase
 	}

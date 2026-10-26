@@ -102,7 +102,7 @@ func sniffDelimiter(text string) (rune, string) {
 	return best, bestName
 }
 
-func (s *Sheet) csvFields() []Field {
+func (s *Sheet) csvFields(loc Locale) []Field {
 	format := "Comma-separated values"
 	switch s.Delimiter {
 	case "tab":
@@ -112,5 +112,5 @@ func (s *Sheet) csvFields() []Field {
 	case "pipe":
 		format = "Pipe-separated values"
 	}
-	return Section("Table", Field{"Format", format}, Field{"Rows", grouped(len(s.Rows) + s.MoreRows)}, Field{"Columns", grouped(s.Columns + s.MoreColumns)})
+	return Section("Table", Field{"Format", format}, Field{"Rows", loc.Count(len(s.Rows) + s.MoreRows)}, Field{"Columns", loc.Count(s.Columns + s.MoreColumns)})
 }

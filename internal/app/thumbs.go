@@ -122,9 +122,9 @@ func (m *Model) loadThumb(path string) tea.Cmd {
 	g := m.grid
 	g.loading = path
 	g.generation++
-	loader, generation, forced := g.loader, g.generation, m.opts.Type
+	loader, generation, forced, locale := g.loader, g.generation, m.opts.Type, DocumentLocale(m.opts.Lang)
 	return func() tea.Msg {
-		r := loader.Load(document.Request{Path: path, Type: forced, Page: 1, DPI: 48, MaxEdge: thumbEdge, Preview: true, Reload: true, Generation: generation})
+		r := loader.Load(document.Request{Path: path, Type: forced, Page: 1, DPI: 48, MaxEdge: thumbEdge, Preview: true, Reload: true, Locale: locale, Generation: generation})
 		tile := document.Tile{Name: filepath.Base(path), Kind: kindWord(r.Kind)}
 		switch {
 		case r.Err != nil:

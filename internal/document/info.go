@@ -76,7 +76,7 @@ func byteSize(n int) string {
 	return exact
 }
 
-func fileFields(files fs.FS, path string, size int, stdin bool) []Field {
+func fileFields(files fs.FS, path string, size int, stdin bool, loc Locale) []Field {
 	var info fs.FileInfo
 	if files == nil {
 		info, _ = os.Stat(path)
@@ -90,7 +90,7 @@ func fileFields(files fs.FS, path string, size int, stdin bool) []Field {
 	if stdin {
 		path, modified = "stdin", ""
 	}
-	return Section("File", Field{"Path", path}, Field{"Size", byteSize(size)}, Field{"Modified", modified})
+	return Section("File", Field{"Path", path}, Field{"Size", loc.Bytes(size)}, Field{"Modified", modified})
 }
 
 func imageFields(data []byte) []Field {

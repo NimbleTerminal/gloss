@@ -141,7 +141,7 @@ func (l *Loader) loadVideo(q Request) (out Result) {
 		out.Err = statErr
 		return out
 	}
-	file := fileFields(nil, q.Path, int(min(info.Size(), int64(^uint(0)>>1))), q.Stdin)
+	file := fileFields(nil, q.Path, int(min(info.Size(), int64(^uint(0)>>1))), q.Stdin, q.Locale)
 	// ntvideo gives each tool 15 seconds of its own.
 	ctx := q.Context
 	if ctx == nil {
@@ -197,7 +197,7 @@ func (l *Loader) loadMemoryVideo(q Request) (out Result) {
 		size = int(min(info.Size(), int64(^uint(0)>>1)))
 	}
 	subs := findSubtitles(l.Files, q.Path)
-	out.Info = append(fileFields(l.Files, q.Path, size, q.Stdin), Section("Video", append([]Field{{"Format", videoFormat(q.Path)}}, subtitleFields(subs)...)...)...)
+	out.Info = append(fileFields(l.Files, q.Path, size, q.Stdin, q.Locale), Section("Video", append([]Field{{"Format", videoFormat(q.Path)}}, subtitleFields(subs)...)...)...)
 	if q.Describe {
 		return out
 	}

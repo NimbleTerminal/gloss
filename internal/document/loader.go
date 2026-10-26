@@ -159,6 +159,7 @@ type Request struct {
 	MarkdownMode  string
 	Typeset       bool
 	Theme         Theme
+	Locale        Locale // The language numbers in the details are written in; the zero Locale is English.
 	Font, Mono    string
 	TypesetWidth  int // Reading width in points; zero uses the fixed export measure.
 	// TypesetLineNumbers asks for a gutter of file line numbers on a document
@@ -382,7 +383,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		return out
 	}
 	out.Kind, out.Page, out.Pages = kind, 1, 1
-	file := fileFields(l.Files, q.Path, len(data), q.Stdin)
+	file := fileFields(l.Files, q.Path, len(data), q.Stdin, q.Locale)
 	var details func() []Field
 	// A file that cannot be shown is still described: its size or dimensions
 	// are often the reason.
@@ -472,7 +473,7 @@ func (l *Loader) Load(q Request) (out Result) {
 	case "csv":
 		out.Sheet, out.Err = ReadCSV(q.Path, data)
 		if out.Sheet != nil {
-			details = out.Sheet.csvFields
+			details = func() []Field { return out.Sheet.csvFields(q.Locale) }
 		}
 	case "json":
 		details = func() []Field { return Section("JSON", Field{"Format", "JSON"}) }

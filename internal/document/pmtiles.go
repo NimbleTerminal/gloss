@@ -92,7 +92,7 @@ func (l *Loader) loadPMTiles(q Request) (out Result) {
 	if l.archive == nil || l.path != q.Path {
 		_ = l.closePDF()
 		a, h, size, err := openPMTiles(l.Files, q.Path)
-		file := fileFields(l.Files, q.Path, int(min(size, int64(^uint(0)>>1))), q.Stdin)
+		file := fileFields(l.Files, q.Path, int(min(size, int64(^uint(0)>>1))), q.Stdin, q.Locale)
 		out.Info = append(file, pmtilesFields(h, a)...)
 		if err != nil {
 			out.Err = err

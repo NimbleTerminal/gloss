@@ -386,7 +386,7 @@ func (o Options) IsStdin(path string) bool { return o.Stdin != "" && path == o.S
 
 // request is what the loader is asked for the current file and page.
 func (m *Model) request(reload bool) document.Request {
-	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: DocumentTheme(m.theme), Font: m.opts.Font, Mono: m.opts.Mono, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
+	q := document.Request{Path: m.opts.Files[m.index], Type: m.opts.Type, MarkdownMode: m.opts.MarkdownMode, Typeset: m.opts.Typeset, Theme: DocumentTheme(m.theme), Locale: DocumentLocale(m.opts.Lang), Font: m.opts.Font, Mono: m.opts.Mono, Page: m.page, DPI: m.opts.DPI, Generation: m.generation, Reload: reload, Preview: m.isPreview, Animate: !m.isPreview,
 		Stdin: m.opts.IsStdin(m.opts.Files[m.index]), Parts: m.opts.Parts, Up: m.opts.Up, Shown: m.partsShown, Color: m.tint, PaintAll: m.tintAll}
 	m.diagramsDark = theme.Dark(m.theme)
 	q.TypesetWidth = m.typesetMeasure()

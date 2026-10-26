@@ -25,6 +25,9 @@ func DocumentTheme(name string) document.Theme {
 	return document.Theme{Name: name, Dark: theme.Dark(name), Palette: theme.Typeset(name)}
 }
 
+// DocumentLocale is the user's language as the document loader takes it.
+func DocumentLocale(tag string) document.Locale { return document.Locale{Tag: tag} }
+
 func (m *Model) pictureBackground() color.Color {
 	if m.typeset != nil {
 		return m.palette().Background
