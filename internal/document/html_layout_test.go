@@ -251,6 +251,36 @@ func TestHTMLViewCanvas(t *testing.T) {
 	}
 }
 
+// A page's prefers-color-scheme rules follow the theme, light or dark, and
+// a change of theme lays it out again.
+func TestHTMLViewColorScheme(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "scheme.html")
+	page := `<html><head><style>body{background:#fff;color:#000}
+@media (prefers-color-scheme: dark){body{background:#123;color:#eee}}</style></head><body><p>Short.</p></body></html>`
+	if err := os.WriteFile(path, []byte(page), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	l := &Loader{}
+	defer l.Close()
+	for _, c := range []struct {
+		theme string
+		want  color.Color
+	}{
+		{"light", color.RGBA{0xff, 0xff, 0xff, 0xff}},
+		{"dark", color.RGBA{0x11, 0x22, 0x33, 0xff}},
+		{"light", color.RGBA{0xff, 0xff, 0xff, 0xff}},
+	} {
+		v := TypesetViewport{Height: 900}
+		r := l.Load(Request{Path: path, MarkdownMode: "typeset", TypesetView: &v, Theme: testTheme(c.theme), Page: 1})
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		if got := r.Image.At(1, 1); got != c.want {
+			t.Errorf("%s: %v, want %v", c.theme, got, c.want)
+		}
+	}
+}
+
 // A page's links are its items, outlined when focused, and one to a place
 // on the page scrolls there.
 func TestHTMLViewSections(t *testing.T) {

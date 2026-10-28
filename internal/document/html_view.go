@@ -106,6 +106,9 @@ func layOutHTML(ctx context.Context, q Request, data []byte, width int, baseDir 
 		return nil, err
 	}
 	o := nthtml.Options{Width: width, Images: htmlImages(ctx, doc.ImageSources(), baseDir, files), NoImage: true}
+	if q.Theme.Dark {
+		o.ColorScheme = "dark"
+	}
 	if look, err := ResolveFont(q.Font, q.Mono); err == nil {
 		o.FontFamilies = nthtml.FontFamilies{Default: look.Body, Monospace: look.Code}
 	}

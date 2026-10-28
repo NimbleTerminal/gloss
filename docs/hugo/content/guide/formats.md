@@ -214,9 +214,10 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
   layout are not. Nothing is fetched. A page may be 8 MiB. `t` in the viewer
   shows the page instead as its own HTML and CSS lay it out, by
   [nthtml](https://github.com/NimbleTerminal/nthtml), at the reading width,
-  with its local pictures and data: URLs. Its own fonts and colours are kept;
-  where it sets none, it takes the font look (`--font`, `f`) and the theme's
-  colours. `--typeset` opens it so. It scrolls and zooms as a typeset page
+  with its local pictures and data: URLs, backgrounds among them. Its own fonts
+  and colours are kept, its dark ones (`prefers-color-scheme`) under a dark
+  theme; where it sets none, it takes the font look (`--font`, `f`) and the
+  theme's colours. `--typeset` opens it so. It scrolls and zooms as a typeset page
   does, `Tab` and `Shift-Tab` move between its links, a link to a place on
   the page (`#name`) goes there on a click or the menu's **Go to**, web links
   open on a click, and a drag selects text for `y` to copy; `s` and `/` go
@@ -226,7 +227,7 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
   same way, 800 pixels wide, as a narrow browser window would show it, in
   slices up to 1125 pixels high that end between lines (`--page` picks one,
   `--page all` with `--output-dir` makes them all). nthtml takes a subset of
-  CSS (floats, positioning and flexbox in part; no grid) and pages up to
+  CSS (floats, positioning, flexbox and grid in part) and pages up to
   2 MiB, 40,000 nodes (elements and runs of text) and 262,144 pixels high. A larger page is shown as its
   text, with the reason under `i`, and is an export error that points at
   `--typeset`, which exports its Markdown instead.

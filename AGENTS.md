@@ -322,8 +322,9 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   Laid out by its own CSS through `nimbleterminal.dev/nthtml/document` (the
   `document` package only, no Bubble Tea): `layOutHTML` in
   `internal/document/html_view.go` parses and lays out with
-  `Options.NoImage`, its pictures from `htmlImages` (beside the page or
-  data: URLs, Markdown's budget), and `Result.Paint` draws only what is
+  `Options.NoImage`, its pictures from `htmlImages` (`ImageSources`: img
+  and CSS `url()` backgrounds, beside the page or data: URLs, Markdown's
+  budget), `Options.ColorScheme` "dark" under a dark theme, and `Result.Paint` draws only what is
   wanted. `htmlLimits` raise nthtml's input to 2 MiB and nodes to 40,000;
   `Options.FontFamilies` takes the request's font look (body, code) and
   `Options.Colors` its theme palette (background, foreground, accent for
