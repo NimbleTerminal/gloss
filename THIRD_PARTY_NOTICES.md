@@ -1085,7 +1085,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/NimbleMarkets/go-booba v0.10.5
+## github.com/NimbleMarkets/go-booba v0.10.7
 
 ```
 MIT License
@@ -1119,7 +1119,7 @@ The following files are under their respective licenses:
   * ./etc/booba.png remains **All Rights Reserved** by Neomantra Corp.  You may use it only in unmodified form and only as part of this project (e.g., in forks or distributions of the project).  You may **not** extract it for unrelated use, modify it, or redistribute it separately without explicit permission.
 ```
 
-## github.com/NimbleMarkets/oksvg v0.1.3
+## github.com/NimbleMarkets/oksvg v0.1.4
 
 ```
 BSD 3-Clause License
@@ -2723,7 +2723,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    limitations under the License.
 ```
 
-## github.com/klippa-app/go-pdfium v1.21.3
+## github.com/klippa-app/go-pdfium v1.21.4
 
 ```
 MIT License
@@ -2749,7 +2749,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/ledongthuc/pdf v0.0.0-20260907135840-6c8c28e0e8a0
+## github.com/ledongthuc/pdf v0.0.0-20261020125853-5e46805f718e
 
 ```
 Copyright (c) 2009 The Go Authors. All rights reserved.
@@ -3469,7 +3469,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba
+## golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e
 
 ```
 Copyright 2009 The Go Authors.
@@ -3722,7 +3722,7 @@ Browser runtime licenses are in web/licenses; regenerate dependency notices with
 `task notices`. Generated runtime assets retain their upstream licenses.
 ```
 
-## nimbleterminal.dev/ntfilepicker v0.1.0
+## nimbleterminal.dev/ntfilepicker v0.2.0
 
 ```
 MIT License
@@ -3900,7 +3900,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpdf v0.5.1
+## nimbleterminal.dev/ntpdf v0.5.2
 
 ```
 MIT License
@@ -3926,7 +3926,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpicture v0.1.2
+## nimbleterminal.dev/ntpicture v0.1.3
 
 ```
 MIT License
@@ -4005,7 +4005,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntshim v0.6.0
+## nimbleterminal.dev/ntshim v0.6.1
 
 ```
 MIT License
@@ -4031,7 +4031,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntsvg v0.5.3
+## nimbleterminal.dev/ntsvg v0.5.4
 
 ```
 MIT License
