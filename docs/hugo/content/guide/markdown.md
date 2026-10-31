@@ -377,9 +377,11 @@ user-config directory. Either explicit font flag overrides the saved pair.
 Browser choices are session-only. Exports ignore saved preferences and default
 to Readable; pass the flags for reproducible output.
 
-The embedded subsets include Latin/Latin-1, combining accents, and common
-punctuation, with regular/bold/italic/bold-italic faces. Optional ligatures are
-disabled. CJK, emoji, and block-drawing glyphs are not included. Use normal
+The embedded subsets include Latin with Latin Extended and Vietnamese, Greek,
+Cyrillic, combining accents, punctuation, and common arrows, maths signs and
+shapes, with regular/bold/italic/bold-italic faces, and Noto Sans Symbols 2 for
+check marks, arrows and other symbols they lack. Optional ligatures are
+disabled. CJK and emoji are not included. Use normal
 terminal text mode for these; their appearance depends on the terminal's fonts
 and Unicode support. There is no font download, system-font
 lookup, PDF intermediate, or change to the terminal's font. Font changes reflow

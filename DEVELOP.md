@@ -193,7 +193,8 @@ for text and JSON, and the `goldmark` adapter that turns a parsed tree into a
 document. The faces come from
 [ntfonts](https://github.com/NimbleTerminal/ntfonts), imported as
 `nimbleterminal.dev/ntfonts`: `ntfonts.Embedded` is the `FaceSource` over the
-embedded Latin OFL subsets.
+embedded OFL subsets (Latin, Latin Extended and Vietnamese, Greek, Cyrillic,
+common arrows, maths and shapes), with Noto Sans Symbols 2 as a fallback.
 
 Gloss keeps Markdown parsing and normalization, asset preflight and decoding,
 the text and JSON budgets, the viewport policy in `typeset_render.go`, the

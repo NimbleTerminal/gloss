@@ -4,6 +4,9 @@
 
 - Use ntwebterm through booba v0.11.0 in browser demos and `--serve`, including
   the new `static/ntwebterm/ntwebterm.js` import path.
+- Typeset text draws Greek, Cyrillic, Vietnamese, arrows, maths signs, check
+  marks and shapes, which were blank before. SVG rectangles keep their rounded
+  corners (`rx`), Mermaid boxes included.
 
 - `F2` opens a language picker that previews as you move; the terminal viewer
   remembers the choice, which `GLOSS_LANG` and `--lang` still override.

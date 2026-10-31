@@ -569,7 +569,7 @@ must fit without truncation. `--text` keeps its usual extraction behavior.
 `--font readable|editorial|technical|compact` selects an embedded body/code pair
 for typeset text and Markdown. Readable (Literata/Iosevka) is the export default;
 `--mono jetbrains` overrides only the code face. Exports ignore saved interactive
-font choices. Fonts are local Latin subsets; unsupported CJK/emoji stay missing
+font choices. Fonts are local subsets (Latin, Greek, Cyrillic, common symbols); CJK/emoji stay missing
 and the typeset info reports encountered missing code points. No fonts are fetched.
 `--theme auto|light|dark|NAME|FILE.json` controls text and typeset colors. Headless auto always
 uses light and performs no terminal query; use `--theme dark` for dark PNGs.

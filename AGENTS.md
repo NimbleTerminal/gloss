@@ -409,8 +409,10 @@ JetBrains Mono. `--mono jetbrains` overrides the code face only. `f` opens a
 sample overlay over typeset text; arrows preview, Enter keeps, Esc restores,
 and +/- still zoom. Native confirmation saves `gloss/font` in the OS config
 directory; explicit flags override it, and exports ignore it. Seven OFL families
-ship as pinned Latin/Latin-1/combining/punctuation subsets, regular/bold/italic/
-bold-italic; no optional ligatures or runtime downloads. `i` identifies family
+ship as pinned subsets (Latin with Latin Extended and Vietnamese, Greek,
+Cyrillic, common arrows, maths and shapes), regular/bold/italic/bold-italic,
+with ntfonts' Noto Sans Symbols 2 as the last fallback (nttypeset's
+`FallbackSource`); no optional ligatures or runtime downloads. `i` identifies family
 names, used Literata/Iosevka fallbacks and up to 32 missing code points from the
 laid-out text. Font changes invalidate shaping and glyph caches and anchor the
 visible block. The chooser uses existing picture IDs/events/cleanup.
