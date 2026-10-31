@@ -1,6 +1,6 @@
 import { msg } from './i18n.mjs';
 import { BoobaTerminal, resolveBoobaURLs } from './static/booba/booba.js';
-import { parseRendererFromURL } from './static/ghostty-web/ghostty-web.js';
+import { parseRendererFromURL } from './static/ntwebterm/ntwebterm.js';
 import { installDrop } from './drop.mjs';
 import { fetchDocument } from './remote.mjs';
 import { upload } from './upload.mjs';

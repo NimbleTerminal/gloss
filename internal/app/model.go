@@ -1145,7 +1145,7 @@ var pictureBackground = color.RGBA{R: 24, G: 26, B: 30, A: 255}
 
 // showPicture puts img on screen. With Kitty graphics it goes under a new
 // image id, retaining the old placement until transmission completes.
-// ghostty-web, the browser app's terminal,
+// ntwebterm, the browser app's terminal,
 // keeps a texture for each id and keeps it for a new picture of the same size
 // that lands at the same place in its memory, so another page, file, or zoom
 // would show the last one again.

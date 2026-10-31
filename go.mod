@@ -10,7 +10,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/NimbleMarkets/flint-ntcharts v0.3.1
-	github.com/NimbleMarkets/go-booba v0.10.7
+	github.com/NimbleMarkets/go-booba v0.11.0
 	github.com/NimbleMarkets/ntcharts/spec/echarts/v2 v2.8.0
 	github.com/NimbleMarkets/ntcharts/v2 v2.8.0
 	github.com/alecthomas/chroma/v2 v2.27.0
