@@ -76,7 +76,7 @@ func TestServedPageNeedsItsToken(t *testing.T) {
 	if code != 200 || !strings.Contains(page, "Drop files") || !strings.Contains(page, "serve.mjs") {
 		t.Fatalf("page: %d\n%s", code, page)
 	}
-	for _, path := range []string{"serve.mjs", "drop.mjs", "upload.mjs", "static/booba/booba.js", "static/ghostty-web/ghostty-web.js"} {
+	for _, path := range []string{"serve.mjs", "drop.mjs", "upload.mjs", "static/booba/booba.js", "static/ntwebterm/ntwebterm.js"} {
 		if code, body := get(t, s.URL+path, nil); code != 200 || len(body) < 100 {
 			t.Errorf("GET %s: %d, %d bytes", path, code, len(body))
 		}

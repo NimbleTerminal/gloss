@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Use ntwebterm through booba v0.11.0 in browser demos and `--serve`, including
+  the new `static/ntwebterm/ntwebterm.js` import path.
+
 - `F2` opens a language picker that previews as you move; the terminal viewer
   remembers the choice, which `GLOSS_LANG` and `--lang` still override.
 - Speak Spanish and Simplified Chinese: the help, status line, the viewer's
