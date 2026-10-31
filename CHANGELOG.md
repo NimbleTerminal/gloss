@@ -2,14 +2,8 @@
 
 ## Unreleased
 
-- Use ntwebterm through booba v0.11.0 in browser demos and `--serve`, including
-  the new `static/ntwebterm/ntwebterm.js` import path.
-- Typeset text draws Greek, Cyrillic, Vietnamese, arrows, maths signs, check
-  marks and shapes, which were blank before. SVG rectangles keep their rounded
-  corners (`rx`), Mermaid boxes included.
+## `v0.6.0` (2026-10-31)
 
-- `F2` opens a language picker that previews as you move; the terminal viewer
-  remembers the choice, which `GLOSS_LANG` and `--lang` still override.
 - Speak Spanish and Simplified Chinese: the help, status line, the viewer's
   notes and messages, menus and choosers, the file browser's help, the
   details box (`i`), search, export, handoff screen and
@@ -18,18 +12,22 @@
   match. Scripts stay in English unless `--lang` is given; keys, options and
   exit codes never change. Drafts awaiting native review; the docs site has
   Spanish and Chinese guides.
+- `F2` opens a language picker that previews as you move; the terminal viewer
+  remembers the choice, which `GLOSS_LANG` and `--lang` still override.
 - See HTML pages as their own HTML and CSS lay them out (nthtml), with their
-  local pictures, in your font and theme where they set none and in their own dark colours under a dark theme: `t` in the viewer, scrolled and zoomed like a typeset page,
-  with Tab between its links, links to a place on the page that go there and web links that open on a click,
-  text to select and copy, in the thumbnail grid, and with `--output`,
-  in slices that end between lines. Exporting one was refused before; `--typeset` still exports the
+  local pictures, in your font and theme where they set none and in their own
+  dark colours under a dark theme: `t` in the viewer, scrolled and zoomed like
+  a typeset page, with Tab between its links, links to a place on the page
+  that go there and web links that open on a click, text to select and copy,
+  in the thumbnail grid, and with `--output`, in slices that end between
+  lines. Exporting one was refused before; `--typeset` still exports the
   Markdown made of it.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
   as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
   zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`
   lists what it holds. Maps are drawn on a plain background and nothing is
   fetched. `--output`, `e`, `--print` and previews draw them too;
-  `--type geojson|gpx` and `--accept maps` name them. ntmaps v0.5.1.
+  `--type geojson|gpx` and `--accept maps` name them.
 - Open raster PMTiles archives (`.pmtiles`, or by their first bytes) as maps
   of their tiles, read from the file as the map needs them, so an archive of
   any size opens; `i` gives its name, zooms, bounds and credit. Vector
@@ -41,6 +39,11 @@
   Nominatim-compatible lookup (`GLOSS_GEOCODER`). gloss names no service of
   its own; tiles are fetched only for the screen and kept in memory, each place
   is asked once a session, and headless modes stay offline.
+- Typeset text draws Greek, Cyrillic, Vietnamese, arrows, maths signs, check
+  marks and shapes, which were blank before. SVG rectangles keep their rounded
+  corners (`rx`), Mermaid boxes included.
+- The browser demo and `--serve` run on ntwebterm through booba v0.11.0; pages
+  import it from `static/ntwebterm/ntwebterm.js`.
 
 ## `v0.5.0` (2026-10-23)
 
