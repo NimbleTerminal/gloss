@@ -108,6 +108,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	view := f.String("view", "", "views of a mesh: front, back, left, right, top, bottom, iso, all; several, as front,top, export as one sheet")
 	at := f.String("at", "", "moments of a video, as 1:23, 83.5 or 1m23s, comma-separated: the frames an export draws, several as one sheet or a file each with --output-dir; the viewer starts at the first")
 	f.IntVar(&opts.FrameCount, "frames", 0, "export this many frames of a video, 1..16, spread through it: one sheet, or a file each with --output-dir")
+	f.BoolVar(&opts.VideoSandbox, "video-sandbox", false, "play video in a sandboxed helper process (silent, software decoding)")
 	camera := f.String("camera", "", "camera for a mesh, as elevation,azimuth or elevation,azimuth,distance in degrees")
 	projection := f.String("projection", "ortho", "projection of a mesh: ortho, perspective")
 	f.StringVar(&opts.Prompt, "prompt", "", "show this request to the user in a box, to say what to pick or look at")
@@ -378,7 +379,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		return opts, false, fmt.Errorf("--print-width and --print-height require --print")
 	}
 	if opts.Print {
-		if opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Info || opts.Grep != nil || opts.JSON || opts.Apps || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.FetchAllowed || opts.Prompt != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.NoOpen || opts.Timeout != 0 {
+		if opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Info || opts.Grep != nil || opts.JSON || opts.Apps || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox || opts.FetchAllowed || opts.Prompt != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.NoOpen || opts.Timeout != 0 {
 			return opts, false, fmt.Errorf("--print cannot be combined with another output mode or interactive viewer options")
 		}
 		if opts.Render == "kitty" {
@@ -386,13 +387,13 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		}
 	}
 	switch {
-	case opts.Grep != nil && (opts.Output != "" || opts.OutputDir != "" || opts.Info || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.FetchAllowed):
+	case opts.Grep != nil && (opts.Output != "" || opts.OutputDir != "" || opts.Info || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox || opts.FetchAllowed):
 		return opts, false, fmt.Errorf("--grep prints the matches and exits; it cannot be combined with an export, --info, or the viewer's options")
 	case opts.JSON && !opts.Apps && opts.Grep == nil && !opts.Info && !opts.Text && opts.Output == "" && opts.OutputDir == "" && opts.Resume == "" && !opts.PickWeb:
 		return opts, false, fmt.Errorf("--json goes with --info, --text, --grep, an export, --pick-web, or --resume")
-	case opts.Info && (opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen):
+	case opts.Info && (opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox):
 		return opts, false, fmt.Errorf("--info prints and exits; it cannot be combined with the viewer's or export's options")
-	case opts.Text && (opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.FetchAllowed):
+	case opts.Text && (opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox || opts.FetchAllowed):
 		return opts, false, fmt.Errorf("--text prints and exits; it cannot be combined with the viewer's options")
 	}
 	if opts.VisionProfile != "" {
@@ -418,6 +419,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if (opts.Output != "" || opts.OutputDir != "") && opts.KeepScreen {
 		return opts, false, fmt.Errorf("export draws nothing; it cannot be combined with --no-alt-screen")
 	}
+	if (opts.Output != "" || opts.OutputDir != "") && opts.VideoSandbox {
+		return opts, false, fmt.Errorf("export draws nothing; it cannot be combined with --video-sandbox")
+	}
 	if (opts.Output != "" || opts.OutputDir != "") && (opts.Serve || opts.Pick || opts.FetchAllowed) {
 		return opts, false, fmt.Errorf("export cannot be combined with --serve, --pick, or --fetch")
 	}
@@ -430,6 +434,9 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if opts.Serve && opts.KeepScreen {
 		return opts, false, fmt.Errorf("--serve draws on a page; it cannot be combined with --no-alt-screen")
 	}
+	if opts.Serve && opts.VideoSandbox {
+		return opts, false, fmt.Errorf("--serve draws on a page; it cannot be combined with --video-sandbox")
+	}
 	if opts.NoOpen && !opts.Serve {
 		return opts, false, fmt.Errorf("--no-open requires --serve")
 	}
@@ -437,17 +444,17 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		return opts, false, fmt.Errorf("--timeout must be positive, and requires --serve, --pick, or --resume")
 	}
 	switch {
-	case opts.Resume != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || len(opts.Globs) > 0):
+	case opts.Resume != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || opts.VideoSandbox || len(opts.Globs) > 0):
 		return opts, false, fmt.Errorf("--resume only asks what a pick came to: it takes no files and no other mode (--json, --timeout excepted)")
-	case opts.Status != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.JSON || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || opts.Resume != "" || opts.Timeout > 0 || opts.Prompt != "" || len(opts.Globs) > 0):
+	case opts.Status != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.JSON || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || opts.Resume != "" || opts.Timeout > 0 || opts.Prompt != "" || opts.VideoSandbox || len(opts.Globs) > 0):
 		return opts, false, fmt.Errorf("--status only asks how a pick stands: it takes no files, no timeout, and no other mode")
-	case opts.Cancel != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.JSON || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || opts.Resume != "" || opts.Status != "" || opts.Timeout > 0 || opts.Prompt != "" || len(opts.Globs) > 0):
+	case opts.Cancel != "" && (len(opts.Files) > 0 || opts.Serve || opts.Pick || opts.Info || opts.Text || opts.JSON || opts.Output != "" || opts.OutputDir != "" || opts.Detached != "" || opts.Resume != "" || opts.Status != "" || opts.Timeout > 0 || opts.Prompt != "" || opts.VideoSandbox || len(opts.Globs) > 0):
 		return opts, false, fmt.Errorf("--cancel only ends a session: it takes no files, no timeout, and no other mode")
 	case opts.Detached != "" && (!opts.Serve || !handoff.ValidToken(opts.Detached)):
 		return opts, false, fmt.Errorf("--detached is for gloss's own use")
 	}
 
-	if opts.Apps && (len(opts.Files) > 0 || len(opts.Globs) > 0 || opts.Serve || opts.Pick || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != "" || opts.Menu || opts.Preview || opts.FetchAllowed) {
+	if opts.Apps && (len(opts.Files) > 0 || len(opts.Globs) > 0 || opts.Serve || opts.Pick || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != "" || opts.Menu || opts.Preview || opts.VideoSandbox || opts.FetchAllowed) {
 		return opts, false, fmt.Errorf("--apps lists applications; it takes no files or other mode")
 	}
 	return opts, false, nil

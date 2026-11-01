@@ -34,7 +34,7 @@ func (m *Model) showVideo(v document.Result, cleanup tea.Cmd) tea.Cmd {
 		}
 		media.Captions = append(media.Captions, ntvideo.Caption{Source: file, Label: sub.Label(), Language: sub.Language, Default: i == 0})
 	}
-	m.video = ntvideo.New(
+	videoOpts := []ntvideo.Option{
 		ntvideo.WithMedia(media),
 		// In the browser, the page's host lays a <video> over the cells;
 		// gloss keeps the keys and draws the scrub bar, so it has no
@@ -52,7 +52,13 @@ func (m *Model) showVideo(v document.Result, cleanup tea.Cmd) tea.Cmd {
 		ntvideo.WithImageIDAllocator(ntpicture.NextImageID),
 		ntvideo.WithKittyMedium(ntpicture.KittyMediumSharedMemory),
 		ntvideo.WithWidth(m.width), ntvideo.WithHeight(m.bodyHeight()),
-	)
+	}
+	if m.opts.VideoSandbox && v.Video.URL == "" {
+		if opt := videoWorkerOption(); opt != nil {
+			videoOpts = append(videoOpts, opt)
+		}
+	}
+	m.video = ntvideo.New(videoOpts...)
 	m.keepLayer()
 	if at := m.savedVideoAt; at > 0 {
 		m.video.Seek(at) // Where the menu, a reload or --at left it.

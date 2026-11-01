@@ -150,6 +150,10 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   and off; the status line names the shown track; `i` lists the files.
   Under glyphs, `WithNativeCaptionOverlay` draws them as terminal text
   (`updateVideo` follows `Transport()`); `g` sets the video's render mode.
+  `--video-sandbox` (`Options.VideoSandbox`, `internal/app/video_worker_native.go`)
+  decodes native video out of process through `ntvideo.WithWorker` and
+  `nimbleterminal.dev/ntmediabox` (`--gloss-media-worker`, silent software
+  decoding, `AllowUnsandboxed: false`; paired with `ntmediabox-stage` on Linux).
 - **GIF and animated WebP**: automatic animation; Space pauses/resumes or restarts a finished
   loop sequence, `<`/`>` slow down/speed up (0.25×–4×), Backspace resets to 1×,
   `,`/`.` step frames, Home/End select endpoints, and the bottom frame bar

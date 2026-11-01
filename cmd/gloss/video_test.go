@@ -30,6 +30,7 @@ func TestVideoOptions(t *testing.T) {
 		bad  string
 	}{
 		{[]string{"--at", "1:23", "clip.mp4"}, ""},
+		{[]string{"--video-sandbox", "clip.mp4"}, ""},
 		{[]string{"--at", "1,2", "-o", "sheet.png", "clip.mp4"}, ""},
 		{[]string{"--frames", "9", "--print", "clip.mp4"}, ""},
 		{[]string{"--at", "1,2", "clip.mp4"}, "several frames need"},
@@ -37,6 +38,11 @@ func TestVideoOptions(t *testing.T) {
 		{[]string{"--frames", "17", "-o", "x.png", "clip.mp4"}, "1..16"},
 		{[]string{"--at", "1", "--frames", "2", "-o", "x.png", "clip.mp4"}, "choose --at or --frames"},
 		{[]string{"--at", "1", "--text", "clip.mp4"}, "--text gives"},
+		{[]string{"--video-sandbox", "-o", "x.png", "clip.mp4"}, "cannot be combined with --video-sandbox"},
+		{[]string{"--video-sandbox", "--serve", "clip.mp4"}, "cannot be combined with --video-sandbox"},
+		{[]string{"--video-sandbox", "--info", "clip.mp4"}, "cannot be combined"},
+		{[]string{"--video-sandbox", "--text", "clip.mp4"}, "cannot be combined"},
+		{[]string{"--video-sandbox", "--print", "clip.mp4"}, "cannot be combined"},
 	} {
 		opts, _, err := parse(tc.args, io.Discard)
 		switch {
@@ -46,6 +52,8 @@ func TestVideoOptions(t *testing.T) {
 			t.Errorf("%v: err=%v, want %q", tc.args, err, tc.bad)
 		case tc.bad == "" && tc.args[0] == "--at" && len(opts.Times) == 0:
 			t.Errorf("%v: no times", tc.args)
+		case tc.bad == "" && tc.args[0] == "--video-sandbox" && !opts.VideoSandbox:
+			t.Errorf("%v: VideoSandbox not set", tc.args)
 		}
 	}
 }

@@ -34,6 +34,18 @@ builds:
     ldflags:
       - -s -w -X main.version=v{{.Version}}
     mod_timestamp: "{{ .CommitTimestamp }}"
+  - id: ntmediabox-stage
+    main: nimbleterminal.dev/ntmediabox/cmd/ntmediabox-stage
+    binary: ntmediabox-stage
+    env: [CGO_ENABLED=0]
+    goos: [linux]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+      - -mod=readonly
+    ldflags:
+      - -s -w
+    mod_timestamp: "{{ .CommitTimestamp }}"
   # Without cgo, macOS links two copies of the runtime glue that stands in
   # for it, purego's (ntopenwith's Launch Services) and goffi's (nt3d's GPU
   # renderer), and both define _cgo_init. With cgo neither is linked. The
@@ -59,6 +71,7 @@ archives:
   - id: default
     ids:
       - gloss
+      - ntmediabox-stage
       - gloss-darwin
     formats:
       - tar.gz
@@ -81,6 +94,7 @@ nfpms:
   - id: packages
     ids:
       - gloss
+      - ntmediabox-stage
     package_name: gloss
     formats:
       - deb

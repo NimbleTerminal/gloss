@@ -76,6 +76,7 @@ require (
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
 	nimbleterminal.dev/nthtml v0.2.2 // indirect
 	nimbleterminal.dev/ntmaps v0.6.1 // indirect
+	nimbleterminal.dev/ntmediabox v0.0.0 // indirect
 	nimbleterminal.dev/ntopenwith v0.1.1 // indirect
 	nimbleterminal.dev/ntpdf v0.5.3 // indirect
 	nimbleterminal.dev/ntpicture v0.1.4 // indirect
@@ -83,10 +84,14 @@ require (
 	nimbleterminal.dev/ntshim v0.6.1 // indirect
 	nimbleterminal.dev/ntsvg v0.5.5 // indirect
 	nimbleterminal.dev/nttypeset v0.1.8 // indirect
-	nimbleterminal.dev/ntvideo v0.3.0 // indirect
+	nimbleterminal.dev/ntvideo v0.4.0 // indirect
 )
 
 replace nimbleterminal.dev/gloss => ../..
+
+replace nimbleterminal.dev/ntmediabox => ../../../ntmediabox
+
+replace nimbleterminal.dev/ntvideo => ../../../ntvideo
 
 replace charm.land/bubbletea/v2 => github.com/neomantra/bubbletea/v2 v2.0.0-20261020122444-536722b0bdb6
 

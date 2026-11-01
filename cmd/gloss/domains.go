@@ -69,7 +69,7 @@ var domains = []domain{
 	{
 		ID: "video", Title: "Videos",
 		Summary: "Frames of a video for a model to look at, drawn by ffmpeg without playing it: at the times named, or a number spread through it, as one labelled sheet or a file each. With `--json` each frame comes with its time and the subtitle shown then. `--text` gives a video's subtitles, with their times: an SRT or WebVTT file named after it beside it, or its own text subtitles.",
-		Flags:   []string{"at", "frames"},
+		Flags:   []string{"at", "frames", "video-sandbox"},
 		Examples: []example{
 			{"The frame at 1:23, as a PNG", "gloss --at 1:23 --output frame.png clip.mp4"},
 			{"Nine frames through a video, as one sheet", "gloss --frames 9 --output sheet.png clip.mp4"},

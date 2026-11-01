@@ -34,13 +34,14 @@ require (
 	nimbleterminal.dev/ntfonts v0.2.1
 	nimbleterminal.dev/nthtml v0.2.2
 	nimbleterminal.dev/ntmaps v0.6.1
+	nimbleterminal.dev/ntmediabox v0.0.0
 	nimbleterminal.dev/ntopenwith v0.1.1
 	nimbleterminal.dev/ntpdf v0.5.3
 	nimbleterminal.dev/ntpicture v0.1.4
 	nimbleterminal.dev/ntqrcode v0.3.2
 	nimbleterminal.dev/ntsvg v0.5.5
 	nimbleterminal.dev/nttypeset v0.1.8
-	nimbleterminal.dev/ntvideo v0.3.0
+	nimbleterminal.dev/ntvideo v0.4.0
 )
 
 require (
@@ -97,3 +98,7 @@ require (
 )
 
 replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2
+
+replace nimbleterminal.dev/ntmediabox => ../ntmediabox
+
+replace nimbleterminal.dev/ntvideo => ../ntvideo

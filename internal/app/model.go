@@ -44,6 +44,7 @@ type Options struct {
 	Views                  []document.View // Views of a mesh asked for: the first is where the viewer starts.
 	Times                  []time.Duration // Moments of a video asked for: an export draws them, the viewer starts at the first.
 	FrameCount             int             // Frames of a video to export, spread through it.
+	VideoSandbox           bool            // Decode video in a sandboxed helper process (silent, software decoding).
 	FilesFS                fs.FS           // Optional embedded files for the browser demo.
 	Files                  []string
 	Stdin                  string // The file standard input was read into, if one of Files is it.
