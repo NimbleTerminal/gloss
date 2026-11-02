@@ -180,3 +180,47 @@ func TestPDFRenderStopsWithTheContext(t *testing.T) {
 		t.Fatalf("draw after a stop: %v", r.Err)
 	}
 }
+
+func TestParserWorkerSandboxedImageAndPDFRender(t *testing.T) {
+	started := countWorkers(t)
+	svgOut, err := runParser(parserRequest{
+		Kind: "svg",
+		Name: "icon.svg",
+		Edge: 16,
+		Data: []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#336699"/></svg>`),
+	})
+	if err != nil || len(svgOut.PNG) == 0 {
+		t.Fatalf("svg worker: %v", err)
+	}
+
+	imgOut, err := runParser(parserRequest{
+		Kind: "image",
+		Name: "icon.png",
+		Data: svgOut.PNG,
+	})
+	if err != nil || len(imgOut.PNG) == 0 || imgOut.Width != 16 || imgOut.Height != 16 {
+		t.Fatalf("image worker: err=%v len=%d %vx%v", err, len(imgOut.PNG), imgOut.Width, imgOut.Height)
+	}
+
+	pdfBytes := pagesPDF("BT /F1 12 Tf 10 10 Td (sandbox) Tj ET")
+	pdfOut, err := runParser(parserRequest{
+		Kind: "pdf-render",
+		Name: "one.pdf",
+		Page: 1,
+		Edge: 72,
+		Data: pdfBytes,
+	})
+	if err != nil || len(pdfOut.PNG) == 0 || pdfOut.Page != 1 {
+		t.Fatalf("pdf-render worker: err=%v len=%d page=%d", err, len(pdfOut.PNG), pdfOut.Page)
+	}
+
+	if len(*started) != 3 {
+		t.Fatalf("started %d workers, want 3", len(*started))
+	}
+	for i, cmd := range *started {
+		if len(cmd.Env) != 0 {
+			t.Fatalf("worker %d env = %v, want empty", i, cmd.Env)
+		}
+		reaped(t, cmd)
+	}
+}

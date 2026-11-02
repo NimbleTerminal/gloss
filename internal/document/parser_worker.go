@@ -12,6 +12,7 @@ import (
 	"io"
 	"math"
 
+	"nimbleterminal.dev/ntpdf"
 	"nimbleterminal.dev/ntpdf/pdfdoc"
 )
 
@@ -86,6 +87,40 @@ func (s *parserServer) work(q parserRequest) (parserReply, error) {
 			return out, err
 		}
 		out.PNG = b.Bytes()
+	case q.Kind == "image" && s.doc == nil:
+		img, err := decodeRaster(q.Data)
+		if err != nil {
+			return out, err
+		}
+		var b bytes.Buffer
+		if err := png.Encode(&b, img); err != nil {
+			return out, err
+		}
+		out.PNG = b.Bytes()
+		out.Width = float64(img.Bounds().Dx())
+		out.Height = float64(img.Bounds().Dy())
+	case q.Kind == "pdf-render" && s.doc == nil:
+		dpi := q.Edge
+		if dpi <= 0 {
+			dpi = 144
+		}
+		r, err := ntpdf.DefaultRendererFactoryWithLimits(ntpdf.Limits{MaxRenderPixels: MaxPixels})(q.Name, q.Data)
+		if err != nil {
+			return out, err
+		}
+		defer r.Close()
+		out.Page = max(1, q.Page)
+		img, err := r.RenderPage(out.Page, max(36, min(dpi, 600)))
+		if err != nil {
+			return out, err
+		}
+		var b bytes.Buffer
+		if err := png.Encode(&b, img); err != nil {
+			return out, err
+		}
+		out.PNG = b.Bytes()
+		out.Width = float64(img.Bounds().Dx())
+		out.Height = float64(img.Bounds().Dy())
 	case q.Kind == "pdf" && s.doc == nil:
 		if q.Limits == nil {
 			return out, errors.New("PDF request without limits")

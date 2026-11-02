@@ -12,10 +12,30 @@ import (
 	"os/exec"
 	"sync"
 	"time"
+
+	"nimbleterminal.dev/ntmediabox"
 )
 
 var parserSlots = make(chan struct{}, 2)
-var parserCommand = func(exe string) *exec.Cmd { return exec.Command(exe, parserWorkerArg) }
+var parserCommand = defaultParserCommand
+
+func defaultParserCommand(exe string) *exec.Cmd {
+	cmd, _, err := ntmediabox.Command(ntmediabox.HelperConfig{
+		WorkerPath: exe,
+		WorkerArgs: []string{parserWorkerArg},
+		Policy: ntmediabox.Policy{
+			ReadPaths:        ntmediabox.DefaultLibPaths(),
+			ExecPaths:        []string{exe},
+			AllowUnsandboxed: true,
+		},
+	})
+	if err == nil {
+		return cmd
+	}
+	fallback := exec.Command(exe, parserWorkerArg)
+	fallback.Env = []string{}
+	return fallback
+}
 
 func init() {
 	if len(os.Args) == 2 && os.Args[1] == parserWorkerArg {
