@@ -94,6 +94,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.3 // indirect
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
+	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.0.0 // indirect
 	nimbleterminal.dev/ntshim v0.6.1 // indirect
 )
 
@@ -101,4 +102,14 @@ replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet
 
 replace nimbleterminal.dev/ntmediabox => ../ntmediabox
 
+replace nimbleterminal.dev/ntmediabox/pkg/mediabox => ../ntmediabox/pkg/mediabox
+
 replace nimbleterminal.dev/ntvideo => ../ntvideo
+
+replace nimbleterminal.dev/ntpdf => ../ntpdf
+
+replace nimbleterminal.dev/ntsvg => ../ntsvg
+
+replace nimbleterminal.dev/ntpicture => ../ntpicture
+
+replace nimbleterminal.dev/nttypeset => ../nttypeset
