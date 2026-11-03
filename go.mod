@@ -93,6 +93,8 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.3 // indirect
+	nimbleterminal.dev/ntconfine v0.1.0 // indirect
+	nimbleterminal.dev/ntconfine/pkg/confine v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
 	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.1.0 // indirect
 	nimbleterminal.dev/ntshim v0.6.1 // indirect
@@ -113,3 +115,7 @@ replace nimbleterminal.dev/ntsvg => ../ntsvg
 replace nimbleterminal.dev/ntpicture => ../ntpicture
 
 replace nimbleterminal.dev/nttypeset => ../nttypeset
+
+replace nimbleterminal.dev/ntconfine => ../ntconfine
+
+replace nimbleterminal.dev/ntconfine/pkg/confine => ../ntconfine/pkg/confine

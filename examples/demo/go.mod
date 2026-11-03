@@ -71,12 +71,15 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 	nimbleterminal.dev/nt3d v0.8.0 // indirect
 	nimbleterminal.dev/ntcanvas v0.1.3 // indirect
+	nimbleterminal.dev/ntconfine v0.1.0 // indirect
+	nimbleterminal.dev/ntconfine/pkg/confine v0.1.0 // indirect
 	nimbleterminal.dev/ntfilepicker v0.2.0 // indirect
 	nimbleterminal.dev/ntfonts v0.2.1 // indirect
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
 	nimbleterminal.dev/nthtml v0.2.2 // indirect
 	nimbleterminal.dev/ntmaps v0.6.1 // indirect
 	nimbleterminal.dev/ntmediabox v0.0.0 // indirect
+	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.1.0 // indirect
 	nimbleterminal.dev/ntopenwith v0.1.1 // indirect
 	nimbleterminal.dev/ntpdf v0.5.3 // indirect
 	nimbleterminal.dev/ntpicture v0.1.4 // indirect
@@ -100,3 +103,9 @@ tool (
 	nimbleterminal.dev/ntshim/cmd/ntshim-assets
 	nimbleterminal.dev/ntvideo/cmd/ntvideo-assets
 )
+
+replace nimbleterminal.dev/ntconfine => ../../../ntconfine
+
+replace nimbleterminal.dev/ntconfine/pkg/confine => ../../../ntconfine/pkg/confine
+
+replace nimbleterminal.dev/ntmediabox/pkg/mediabox => ../../../ntmediabox/pkg/mediabox

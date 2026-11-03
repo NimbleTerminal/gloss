@@ -34,9 +34,9 @@ builds:
     ldflags:
       - -s -w -X main.version=v{{.Version}}
     mod_timestamp: "{{ .CommitTimestamp }}"
-  - id: ntmediabox-stage
-    main: nimbleterminal.dev/ntmediabox/cmd/ntmediabox-stage
-    binary: ntmediabox-stage
+  - id: ntconfine-stage
+    main: nimbleterminal.dev/ntconfine/cmd/ntconfine-stage
+    binary: ntconfine-stage
     env: [CGO_ENABLED=0]
     goos: [linux]
     goarch: [amd64, arm64]
@@ -71,7 +71,7 @@ archives:
   - id: default
     ids:
       - gloss
-      - ntmediabox-stage
+      - ntconfine-stage
       - gloss-darwin
     formats:
       - tar.gz
@@ -94,7 +94,7 @@ nfpms:
   - id: packages
     ids:
       - gloss
-      - ntmediabox-stage
+      - ntconfine-stage
     package_name: gloss
     formats:
       - deb

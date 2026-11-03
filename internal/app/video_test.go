@@ -65,11 +65,11 @@ func TestVideoSandboxPlayback(t *testing.T) {
 	}
 
 	if runtime.GOOS == "linux" {
-		stageBin := filepath.Join(t.TempDir(), "ntmediabox-stage")
-		cmd := exec.Command("go", "build", "-o", stageBin, "nimbleterminal.dev/ntmediabox/cmd/ntmediabox-stage")
+		stageBin := filepath.Join(t.TempDir(), "ntconfine-stage")
+		cmd := exec.Command("go", "build", "-o", stageBin, "nimbleterminal.dev/ntconfine/cmd/ntconfine-stage")
 		cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 		if out, err := cmd.CombinedOutput(); err != nil {
-			t.Fatalf("build ntmediabox-stage: %v\n%s", err, out)
+			t.Fatalf("build ntconfine-stage: %v\n%s", err, out)
 		}
 		prev := videoStagePath
 		videoStagePath = stageBin
