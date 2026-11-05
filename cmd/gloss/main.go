@@ -108,6 +108,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	view := f.String("view", "", "views of a mesh: front, back, left, right, top, bottom, iso, all; several, as front,top, export as one sheet")
 	at := f.String("at", "", "moments of a video, as 1:23, 83.5 or 1m23s, comma-separated: the frames an export draws, several as one sheet or a file each with --output-dir; the viewer starts at the first")
 	f.IntVar(&opts.FrameCount, "frames", 0, "export this many frames of a video, 1..16, spread through it: one sheet, or a file each with --output-dir")
+	f.BoolVar(&opts.StrictMode, "strict", false, "require OS confinement for supported document loads (still images, SVG, Mermaid, PDF)")
 	f.BoolVar(&opts.VideoSandbox, "video-sandbox", false, "play video in a sandboxed helper process (silent, software decoding)")
 	camera := f.String("camera", "", "camera for a mesh, as elevation,azimuth or elevation,azimuth,distance in degrees")
 	projection := f.String("projection", "ortho", "projection of a mesh: ortho, perspective")
@@ -457,6 +458,16 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	if opts.Apps && (len(opts.Files) > 0 || len(opts.Globs) > 0 || opts.Serve || opts.Pick || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != "" || opts.Menu || opts.Preview || opts.VideoSandbox || opts.FetchAllowed) {
 		return opts, false, fmt.Errorf("--apps lists applications; it takes no files or other mode")
 	}
+	if opts.StrictMode {
+		if opts.Serve || opts.Pick || opts.PickWeb || opts.Resume != "" || opts.Detached != "" || opts.FetchAllowed || opts.QR != "" {
+			return opts, false, fmt.Errorf("--strict currently supports local native document loads, not remote, browser, or QR modes")
+		}
+		for _, name := range opts.Files {
+			if webAddress(name) {
+				return opts, false, fmt.Errorf("--strict currently requires local inputs")
+			}
+		}
+	}
 	return opts, false, nil
 }
 
@@ -612,11 +623,11 @@ func run(args []string) (err error) {
 		if info, e := os.Stat(path); e == nil && info.IsDir() {
 			continue
 		}
-		if err := opts.Accept.CheckFile(nil, path); err != nil {
+		if err := opts.Accept.CheckFile(nil, path, opts.StrictMode); err != nil {
 			return fmt.Errorf("%q: %w", path, err)
 		}
 	}
-	opts.Browse, opts.Files, err = inputs(opts.Files, opts.Type, exporting, os.Stderr)
+	opts.Browse, opts.Files, err = inputs(opts.Files, opts.Type, exporting, os.Stderr, opts.StrictMode)
 	if err != nil {
 		return err
 	}
@@ -862,25 +873,25 @@ var errNoInputs = errors.New("no supported input files")
 // Given files, folders are skipped, as a glob needs. A folder is browsed only
 // when there is nothing else to show, and with no arguments at all the viewer
 // opens empty.
-func inputs(paths []string, forced string, exporting bool, stderr io.Writer) (string, []string, error) {
+func inputs(paths []string, forced string, exporting bool, stderr io.Writer, strict ...bool) (string, []string, error) {
 	if exporting {
 		if len(paths) == 0 {
 			return "", nil, fmt.Errorf("no input: name a file to export")
 		}
-		files, err := supportedFiles(paths, forced, stderr)
+		files, err := supportedFiles(paths, forced, stderr, strict...)
 		return "", files, err
 	}
 	if len(paths) == 0 {
 		return "", nil, nil
 	}
 	var skipped bytes.Buffer
-	files, err := supportedFiles(paths, forced, &skipped)
+	files, err := supportedFiles(paths, forced, &skipped, strict...)
 	if errors.Is(err, errNoInputs) {
 		for i, path := range paths {
 			if info, statErr := os.Stat(path); statErr == nil && info.IsDir() {
 				// Report the rest, but not the folder that is put to use.
 				if rest := slices.Delete(slices.Clone(paths), i, i+1); len(rest) > 0 {
-					_, _ = supportedFiles(rest, forced, stderr)
+					_, _ = supportedFiles(rest, forced, stderr, strict...)
 				}
 				return path, nil, nil
 			}
@@ -922,10 +933,10 @@ func expandGlobs(paths, patterns []string, stderr io.Writer) ([]string, error) {
 }
 
 // Unsupported arguments are skipped so shell globs can contain unrelated files.
-func supportedFiles(paths []string, forced string, stderr io.Writer) ([]string, error) {
+func supportedFiles(paths []string, forced string, stderr io.Writer, strict ...bool) ([]string, error) {
 	files := make([]string, 0, len(paths))
 	for _, path := range paths {
-		_, err := document.Probe(path, forced)
+		_, err := document.Probe(path, forced, strict...)
 		if errors.Is(err, document.ErrUnsupported) || errors.Is(err, document.ErrNotRegular) || errors.Is(err, document.ErrDirectory) {
 			fmt.Fprintln(stderr, document.Skipped(path, err))
 			continue

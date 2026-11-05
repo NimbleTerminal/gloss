@@ -55,7 +55,7 @@ func (g *grid) next(files []string) string {
 func (m *Model) openGrid() tea.Cmd {
 	m.screen, m.thumbs = screenGrid, true
 	if m.grid == nil {
-		m.grid = &grid{tiles: map[string]*document.Tile{}, loader: &document.Loader{Files: m.opts.FilesFS}}
+		m.grid = &grid{tiles: map[string]*document.Tile{}, loader: &document.Loader{Files: m.opts.FilesFS, RequireConfinement: m.opts.StrictMode}}
 	}
 	return tea.Sequence(m.disposePreview(), m.layoutGrid())
 }

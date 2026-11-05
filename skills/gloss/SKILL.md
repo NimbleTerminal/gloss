@@ -37,6 +37,19 @@ it alone does not inspect its contents.
 | `--cancel TOKEN` | Nothing; exit 0 means the session is ended and its folder deleted |
 | `gloss skill schema` | The JSON Schema of every object above |
 
+For untrusted supported native documents, add `--strict` to require OS
+confinement for detection, metadata, text, and rendering: for example,
+`gloss --strict --info --json report.pdf` or
+`gloss --strict --output page.png report.pdf`. It supports still images,
+SVG, Mermaid, and PDF. Unsupported formats, animation playback, typesetting,
+unavailable confinement, and remote/handoff/browser modes fail without a
+weaker retry. Use a still export for an animation. Do not automatically remove
+`--strict` after failure. Normal mode remains portable and has in-process
+loaders for other formats. This flag confines document workers, not the entire
+viewer or external apps the user explicitly opens. Native worker replies have
+an 8192-pixel side limit and a 16 MiB JSON metadata/text budget including
+encoding overhead. See the guide's formats page for the complete boundary.
+
 Exit status 1 means an error; in a batch, at least one input failed: inspect
 and use the successful results. Pick/resume also use 2 for decline and 124 for
 timeout, as described below. `--status` exits 0 whenever it reports a state

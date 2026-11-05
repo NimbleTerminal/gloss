@@ -153,7 +153,10 @@ func SkipReason(err error) string {
 }
 
 // ProbeFS is Probe for an embedded filesystem; nil probes the host.
-func ProbeFS(files fs.FS, path, forced string) (string, error) {
+func ProbeFS(files fs.FS, path, forced string, strict ...bool) (string, error) {
+	if len(strict) > 0 && strict[0] {
+		return confinedProbe(files, path, forced, "")
+	}
 	if files == nil {
 		return Probe(path, forced)
 	}

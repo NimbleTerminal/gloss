@@ -430,10 +430,11 @@ func (m *Model) browse(msg tea.Msg) tea.Cmd {
 	}
 	o.picker.ClearChosen()
 	path, forced, accept := filepath.FromSlash(chosen), m.opts.Type, m.opts.Accept
+	strict := m.opts.StrictMode
 	return tea.Batch(cmd, func() tea.Msg {
-		_, err := document.Probe(path, forced)
+		_, err := document.Probe(path, forced, strict)
 		if err == nil {
-			err = accept.CheckFile(nil, path)
+			err = accept.CheckFile(nil, path, strict)
 		}
 		return openResult{path: path, err: err}
 	})

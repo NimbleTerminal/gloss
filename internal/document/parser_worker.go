@@ -1,15 +1,12 @@
 package document
 
 import (
-	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
 	"image/png"
-	"io"
 	"math"
 
 	"nimbleterminal.dev/ntpdf"
@@ -17,10 +14,10 @@ import (
 )
 
 const parserWorkerArg = "--gloss-parser-worker"
-const maxParserMessage = 256 << 20
 
 type parserRequest struct {
 	Kind, Name string
+	Load       *confinedRequest `json:",omitempty"`
 	Data       []byte
 	Page, Edge int
 	Text       bool
@@ -28,6 +25,8 @@ type parserRequest struct {
 	Limits     *pdfdoc.Limits // What a PDF may cost, sent with its bytes.
 }
 type parserReply struct {
+	Image         *image.RGBA `json:"-"`
+	Kind          string
 	Error         string
 	PNG           []byte
 	Pages, Page   int
@@ -72,6 +71,8 @@ func (s *parserServer) work(q parserRequest) (parserReply, error) {
 		return out, ErrTooLarge
 	}
 	switch {
+	case q.Kind == "document":
+		return confinedWork(q)
 	case q.Kind == "mermaid" && s.doc == nil:
 		return mermaidWork(q)
 	case q.Kind == "svg" && s.doc == nil:
@@ -176,58 +177,12 @@ func pdfLimits() *pdfdoc.Limits {
 	}
 }
 
-// Messages each way are one JSON value on a line of their own.
-func writeMessage(w io.Writer, v any) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write(append(b, '\n'))
-	return err
-}
-
-func readMessage(r *bufio.Reader, v any) error {
-	var line []byte
-	for {
-		part, err := r.ReadSlice('\n')
-		if len(line)+len(part) > maxParserMessage {
-			return errors.New("parser message exceeds limit")
-		}
-		line = append(line, part...)
-		if err == bufio.ErrBufferFull {
-			continue
-		}
-		if err != nil && (err != io.EOF || len(line) == 0) {
-			return err
-		}
-		return json.Unmarshal(line, v)
-	}
-}
-
-func serveParser(input io.Reader, output io.Writer) error {
-	in := bufio.NewReader(input)
-	var s parserServer
-	for {
-		var q parserRequest
-		if err := readMessage(in, &q); err != nil {
-			if err == io.EOF && s.doc != nil {
-				return nil
-			}
-			return err
-		}
-		reply := s.answer(q)
-		if err := writeMessage(output, reply); err != nil || reply.Ended {
-			return err
-		}
-	}
-}
-
 func renderSVGWithin(name string, data []byte, edge int) (image.Image, error) {
 	out, err := runParser(parserRequest{Kind: "svg", Name: name, Data: data, Edge: edge})
 	if err != nil {
 		return nil, err
 	}
-	return decodeRaster(out.PNG)
+	return parserImage(out)
 }
 
 // Only the worker holds a PDF parser. The viewer keeps the validated bytes,
@@ -309,3 +264,21 @@ func runParser(q parserRequest) (parserReply, error) {
 	defer worker.close()
 	return worker.ask(context.Background(), q)
 }
+
+func parserImage(out parserReply) (image.Image, error) {
+	if out.Image != nil {
+		return out.Image, nil
+	}
+	return decodeRaster(out.PNG)
+}
+
+type localParser struct{ server parserServer }
+
+func (p *localParser) ask(_ context.Context, q parserRequest) (parserReply, error) {
+	r := p.server.answer(q)
+	if r.Error != "" {
+		return r, errors.New(r.Error)
+	}
+	return r, nil
+}
+func (*localParser) close() {}

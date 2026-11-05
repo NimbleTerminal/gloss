@@ -29,11 +29,12 @@ func (m *Model) probeDrop(paths []string) tea.Cmd {
 		return nil
 	}
 	files, forced, accept := m.opts.FilesFS, m.opts.Type, m.opts.Accept
+	strict := m.opts.StrictMode
 	return func() tea.Msg {
 		var r dropResult
 		var folders []string
 		for _, path := range paths {
-			if _, err := document.ProbeFS(files, path, forced); err != nil {
+			if _, err := document.ProbeFS(files, path, forced, strict); err != nil {
 				if errors.Is(err, document.ErrDirectory) && files == nil {
 					folders = append(folders, path)
 					continue
@@ -41,7 +42,7 @@ func (m *Model) probeDrop(paths []string) tea.Cmd {
 				r.skipped = append(r.skipped, document.Skipped(path, err))
 				continue
 			}
-			if err := accept.CheckFile(files, path); err != nil {
+			if err := accept.CheckFile(files, path, strict); err != nil {
 				r.skipped = append(r.skipped, document.Skipped(path, err))
 				continue
 			}

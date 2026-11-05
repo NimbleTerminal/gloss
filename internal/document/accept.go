@@ -74,7 +74,11 @@ func (a AcceptFilter) Check(name string, data []byte) error {
 	return fmt.Errorf("received %s; required --accept %s", kind, a)
 }
 
-func (a AcceptFilter) CheckFile(files fs.FS, name string) error {
+func (a AcceptFilter) CheckFile(files fs.FS, name string, strict ...bool) error {
+	if a != "" && len(strict) > 0 && strict[0] {
+		_, err := confinedProbe(files, name, "", a)
+		return err
+	}
 	if a == "" {
 		return nil
 	}

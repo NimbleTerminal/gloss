@@ -44,6 +44,7 @@ type Options struct {
 	Views                  []document.View // Views of a mesh asked for: the first is where the viewer starts.
 	Times                  []time.Duration // Moments of a video asked for: an export draws them, the viewer starts at the first.
 	FrameCount             int             // Frames of a video to export, spread through it.
+	StrictMode             bool            // Require OS-confined document loads.
 	VideoSandbox           bool            // Decode video in a sandboxed helper process (silent, software decoding).
 	FilesFS                fs.FS           // Optional embedded files for the browser demo.
 	Files                  []string
@@ -276,7 +277,7 @@ func New(opts Options) *Model {
 		opts.terminal = newTerminalSession(opts.Render)
 	}
 	id := nextOwnerID()
-	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS}, ownerID: id, kitty: opts.Render != "glyph" && opts.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
+	m := &Model{opts: opts, terminal: opts.terminal, ownTerminal: ownTerminal, meshState: meshState{tint: opts.Color, bg: opts.Background}, loader: &document.Loader{Files: opts.FilesFS, RequireConfinement: opts.StrictMode}, ownerID: id, kitty: opts.Render != "glyph" && opts.terminal.Snapshot().Kitty == ntpicture.KittyCapabilitySupported, page: opts.Page, pages: 1, autoKitty: opts.Render != "glyph"}
 	if len(opts.Times) > 0 {
 		m.savedVideoAt = opts.Times[0] // The first video opened starts there.
 	}

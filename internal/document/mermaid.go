@@ -142,7 +142,7 @@ func renderMermaid(code string, edge int, dark bool) (image.Image, float64, floa
 	if err != nil {
 		return nil, 0, 0, err
 	}
-	img, err := decodeRaster(out.PNG)
+	img, err := parserImage(out)
 	return img, out.Width, out.Height, err
 }
 

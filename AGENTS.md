@@ -48,6 +48,11 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   Typeset layout, raster, selection and highlighting come from
   `nimbleterminal.dev/nttypeset` and its faces from `nimbleterminal.dev/ntfonts`;
   gloss owns Markdown parsing, assets, viewport policy and compositing.
+  Opt-in `--strict` routes supported detection, metadata, text and rendering
+  through OS-confined one-shot workers (`confined.go`); unsupported paths fail.
+  Native parser transport uses ntmediabox RGBA and validates metadata in
+  `parser_render.go`. Browser workers retain JSON/PNG. Normal mode permits
+  unavailable-OS subprocess fallback, never a broad retry after launch errors.
   PDF metadata/text, SVG rasterization and Mermaid diagrams run in parser workers:
   the current executable on native hosts, Web Workers in the browser. SVG and
   Mermaid get one worker per request. A PDF's worker (`safePDF`) is sent the

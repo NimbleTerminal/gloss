@@ -101,7 +101,7 @@ func once(err error) error {
 // written, one to a line, or the manifest with --json. A file that fails
 // is reported and the rest go on; the error is the first one's.
 func exportFiles(opts options, stdout, stderr io.Writer) error {
-	loader := &document.Loader{}
+	loader := &document.Loader{RequireConfinement: opts.StrictMode}
 	defer loader.Close()
 	if opts.OutputDir != "" {
 		if err := os.MkdirAll(opts.OutputDir, 0755); err != nil {
@@ -186,7 +186,7 @@ func standinLoses(opts options) string {
 // --output-dir, whose paths are then the answer, or to a manifest with
 // --json.
 func textFiles(opts options, stdout, stderr io.Writer) error {
-	loader := &document.Loader{}
+	loader := &document.Loader{RequireConfinement: opts.StrictMode}
 	defer loader.Close()
 	if opts.OutputDir != "" {
 		if err := os.MkdirAll(opts.OutputDir, 0755); err != nil {

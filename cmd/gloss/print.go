@@ -28,7 +28,7 @@ func printSize(opts options, stdout *os.File) (int, int) {
 // printFiles shares the bounded loaders with exports, but writes terminal
 // content rather than a PNG. It starts no Tea program and probes no terminal.
 func printFiles(opts options, stdout io.Writer, width, height int) error {
-	loader := &document.Loader{}
+	loader := &document.Loader{RequireConfinement: opts.StrictMode}
 	defer loader.Close()
 	for i, path := range opts.Files {
 		q := exportRequest(opts.Options, path, i+1)

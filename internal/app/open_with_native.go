@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func openWithTarget(path, kind string, directory bool) (openwith.Target, error) {
+func openWithTarget(path, kind string, directory bool, strict ...bool) (openwith.Target, error) {
 	absolute, err := filepath.Abs(path)
 	if err != nil {
 		return openwith.Target{}, err
@@ -24,7 +24,7 @@ func openWithTarget(path, kind string, directory bool) (openwith.Target, error) 
 		return openwith.Target{}, errNotRegular
 	}
 	if kind == "" && !directory {
-		kind, _ = document.Probe(absolute, "")
+		kind, _ = document.Probe(absolute, "", strict...)
 	}
 	return openwith.Target{Path: filepath.Clean(absolute), Kind: openwith.Kind(kind), Directory: directory}, nil
 }

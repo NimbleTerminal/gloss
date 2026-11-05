@@ -68,7 +68,10 @@ var ErrEmpty = errors.New("empty input")
 
 // Probe identifies files using a bounded prefix before applying the size limit.
 // The total size lets binary STL detection work without reading the whole mesh.
-func Probe(path, forced string) (string, error) {
+func Probe(path, forced string, strict ...bool) (string, error) {
+	if len(strict) > 0 && strict[0] {
+		return confinedProbe(nil, path, forced, "")
+	}
 	// Check before opening: a FIFO would otherwise block waiting for a writer.
 	info, err := os.Stat(path)
 	if err != nil {
@@ -252,36 +255,37 @@ type Result struct {
 // Loader serializes renderer access and shutdown. Commands that complete out of
 // order cannot replace a newer document; Close also covers in-flight loads.
 type Loader struct {
-	Files           fs.FS // Optional read-only embedded assets; nil uses the host filesystem.
-	mu              sync.Mutex
-	closed          bool
-	generation      uint64
-	path            string
-	pdf             ntpdf.Renderer // Made when the first page is drawn: text alone never needs it.
-	pdfData         []byte
-	typeset         *Markdown
-	typesetEngine   *nttypeset.Engine
-	typesetDocument *nttypeset.Document
-	direct          *nttypeset.Layout
-	directOptions   nttypeset.LayoutOptions // The options direct was laid out with.
-	typesetBase     string
-	typesetAnimate  bool
-	typesetDark     bool // The palette its Mermaid diagrams were drawn in.
-	typesetKind     string
-	typesetText     string
-	typesetInfo     []Field
-	typesetType     string
-	typesetHash     [32]byte
-	html            *htmlView // An HTML page laid out for the viewer.
-	htmlSerial      int       // Layouts of HTML pages made, to tell them apart.
-	pdfReader       *safePDF
-	pdfVersion      string
-	file            []Field
-	pages           int
-	book            book             // Kept, like the PDF, for turning between sheets.
-	bookKind        string           // xlsx or grist.
-	archive         *pmtiles.Archive // A PMTiles archive, kept open while its map is shown.
-	archiveInfo     []Field
+	RequireConfinement bool  // Refuse document parsing outside an OS-confined worker.
+	Files              fs.FS // Optional read-only embedded assets; nil uses the host filesystem.
+	mu                 sync.Mutex
+	closed             bool
+	generation         uint64
+	path               string
+	pdf                ntpdf.Renderer // Made when the first page is drawn: text alone never needs it.
+	pdfData            []byte
+	typeset            *Markdown
+	typesetEngine      *nttypeset.Engine
+	typesetDocument    *nttypeset.Document
+	direct             *nttypeset.Layout
+	directOptions      nttypeset.LayoutOptions // The options direct was laid out with.
+	typesetBase        string
+	typesetAnimate     bool
+	typesetDark        bool // The palette its Mermaid diagrams were drawn in.
+	typesetKind        string
+	typesetText        string
+	typesetInfo        []Field
+	typesetType        string
+	typesetHash        [32]byte
+	html               *htmlView // An HTML page laid out for the viewer.
+	htmlSerial         int       // Layouts of HTML pages made, to tell them apart.
+	pdfReader          *safePDF
+	pdfVersion         string
+	file               []Field
+	pages              int
+	book               book             // Kept, like the PDF, for turning between sheets.
+	bookKind           string           // xlsx or grist.
+	archive            *pmtiles.Archive // A PMTiles archive, kept open while its map is shown.
+	archiveInfo        []Field
 
 	// The typeset document's decoded images, and its animation players, by
 	// image destination. The layout knows only which images are animated.
@@ -356,6 +360,9 @@ func (l *Loader) Load(q Request) (out Result) {
 		return out
 	}
 	l.generation = q.Generation
+	if l.RequireConfinement {
+		return l.loadConfined(q)
+	}
 	if l.path != q.Path || q.Reload {
 		_ = l.closePDF()
 	}

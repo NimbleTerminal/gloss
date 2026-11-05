@@ -30,7 +30,7 @@ func describe(opts options, stdout, stderr io.Writer) error {
 	if len(opts.Files) == 0 {
 		return fmt.Errorf("--info needs a file to describe")
 	}
-	loader := &document.Loader{}
+	loader := &document.Loader{RequireConfinement: opts.StrictMode}
 	defer loader.Close()
 	files, failed := make([]described, 0, len(opts.Files)), 0
 	for i, path := range opts.Files {
@@ -43,9 +43,9 @@ func describe(opts options, stdout, stderr io.Writer) error {
 		}
 		if why, ok := opts.Failed[path]; ok {
 			d.Error = why
-		} else if err := opts.Accept.CheckFile(nil, path); err != nil {
+		} else if err := opts.Accept.CheckFile(nil, path, opts.StrictMode); err != nil {
 			d.Error = document.SkipReason(err)
-		} else if kind, err := document.Probe(path, opts.Type); err != nil {
+		} else if kind, err := document.Probe(path, opts.Type, opts.StrictMode); err != nil {
 			d.Error = document.SkipReason(err)
 		} else {
 			r := loader.Load(document.Request{Path: path, Type: opts.Type, Page: opts.Page, DPI: opts.DPI, Describe: true, Locale: app.DocumentLocale(opts.Lang), Generation: uint64(i + 1), Parts: opts.Parts, Up: opts.Up, Stdin: opts.IsStdin(path)})

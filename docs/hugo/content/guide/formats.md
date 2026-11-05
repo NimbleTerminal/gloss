@@ -284,3 +284,35 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
   use a higher PDF DPI for more detail. There is no file watching, and no
   fetching but of an address named on the command line or, with `--fetch`,
   chosen by `Enter` on a cell or an explicit URL drop/paste.
+
+## Opt-in strict document loading
+
+`gloss --strict file.pdf` requires OS confinement for document detection,
+metadata, text extraction, and rendering. It supports still images, SVG,
+Mermaid, and PDF in the native viewer, thumbnails, `--info`, `--text`,
+`--grep`, `--print`, and PNG exports. The host admits a bounded file and sends
+its bytes to a worker; it receives validated RGBA and bounded metadata, never
+an encoded image to decode. PDF pages are reopened per request in this mode.
+
+Strict mode refuses unavailable confinement, unsupported formats, animation
+playback, and typeset/HTML layout. It currently requires local files or stdin;
+remote inputs, `--fetch`, handoff/pick/browser modes, and QR mode are refused.
+An animation can still be inspected as a still export or preview. There is no
+fallback to an in-process or unconfined decoder. A worker startup failure is an
+error, including a missing Linux `ntconfine-stage` executable.
+
+Normal mode remains the default. Its SVG/Mermaid/PDF parser workers use OS
+confinement when available and may use plain subprocess isolation when the OS
+cannot enforce it. Policy/stage/startup errors are not retried with direct exec.
+Normal mode still has in-process image, animation, office, mesh, and layout
+paths; `--video-sandbox` remains a separate playback option.
+
+Native parser transport limits are 128 MiB input, 32 Mi pixels, 8192 pixels per
+raster side, and 16 MiB for the whole JSON metadata/text reply (including JSON
+encoding overhead). Each request has a 15-second deadline. Worker output is
+still untrusted; existing terminal sanitization and output handling apply.
+Confinement grants the worker the executable and standard library/font read
+paths, without the source directory, network access, or writable paths.
+It does not sandbox the whole viewer, protect the kernel, or impose a hard
+memory ceiling on macOS. Explicit actions such as opening an external app are
+outside the document-loading boundary.

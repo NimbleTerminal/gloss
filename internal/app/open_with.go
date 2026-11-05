@@ -178,9 +178,10 @@ func (m *Model) requestOpenWith(path, kind string, directory, chooser bool, verb
 		m.layer = layerOpenWith
 	}
 	host, op, generation := m.opts.OpenWith, p.operation, p.generation
+	strict := m.opts.StrictMode
 	temporary := m.opts.IsStdin(path) || (m.opts.IsTemporary != nil && m.opts.IsTemporary(path))
 	return func() tea.Msg {
-		target, err := openWithTarget(path, kind, directory)
+		target, err := openWithTarget(path, kind, directory, strict)
 		target.Temporary = temporary
 		if err != nil {
 			return openWithLoaded{operation: op, generation: generation, verb: verb, err: err}

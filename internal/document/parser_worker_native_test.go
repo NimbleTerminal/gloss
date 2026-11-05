@@ -3,8 +3,11 @@
 package document
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"image"
+	"image/png"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,10 +22,13 @@ func countWorkers(t *testing.T) *[]*exec.Cmd {
 	old := parserCommand
 	t.Cleanup(func() { parserCommand = old })
 	var started []*exec.Cmd
-	parserCommand = func(exe string) *exec.Cmd {
-		cmd := old(exe)
+	parserCommand = func(exe string, required bool) (*exec.Cmd, error) {
+		cmd, err := old(exe, required)
+		if err != nil {
+			return nil, err
+		}
 		started = append(started, cmd)
-		return cmd
+		return cmd, nil
 	}
 	return &started
 }
@@ -32,10 +38,10 @@ func hangingWorker(t *testing.T) **exec.Cmd {
 	oldCommand, oldDeadline := parserCommand, parseDeadline
 	t.Cleanup(func() { parserCommand = oldCommand; parseDeadline = oldDeadline })
 	var child *exec.Cmd
-	parserCommand = func(exe string) *exec.Cmd {
+	parserCommand = func(exe string, required bool) (*exec.Cmd, error) {
 		child = exec.Command(exe, "-test.run=^TestParserHangHelper$")
 		child.Env = append(os.Environ(), "GLOSS_TEST_HANG=1")
-		return child
+		return child, nil
 	}
 	return &child
 }
@@ -72,7 +78,7 @@ func TestParserRecoversAfterATimeout(t *testing.T) {
 	}
 	parserCommand, parseDeadline = real, 15*time.Second
 	out, err := runParser(parserRequest{Kind: "svg", Name: "test.svg", Edge: 16, Data: []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>`)})
-	if err != nil || len(out.PNG) == 0 {
+	if err != nil || out.Image == nil {
 		t.Fatalf("recovery: %v", err)
 	}
 }
@@ -189,16 +195,16 @@ func TestParserWorkerSandboxedImageAndPDFRender(t *testing.T) {
 		Edge: 16,
 		Data: []byte(`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#336699"/></svg>`),
 	})
-	if err != nil || len(svgOut.PNG) == 0 {
+	if err != nil || svgOut.Image == nil {
 		t.Fatalf("svg worker: %v", err)
 	}
 
 	imgOut, err := runParser(parserRequest{
 		Kind: "image",
 		Name: "icon.png",
-		Data: svgOut.PNG,
+		Data: encodeTestPNG(t, svgOut.Image),
 	})
-	if err != nil || len(imgOut.PNG) == 0 || imgOut.Width != 16 || imgOut.Height != 16 {
+	if err != nil || imgOut.Image == nil || imgOut.Width != 16 || imgOut.Height != 16 {
 		t.Fatalf("image worker: err=%v len=%d %vx%v", err, len(imgOut.PNG), imgOut.Width, imgOut.Height)
 	}
 
@@ -210,7 +216,7 @@ func TestParserWorkerSandboxedImageAndPDFRender(t *testing.T) {
 		Edge: 72,
 		Data: pdfBytes,
 	})
-	if err != nil || len(pdfOut.PNG) == 0 || pdfOut.Page != 1 {
+	if err != nil || pdfOut.Image == nil || pdfOut.Page != 1 {
 		t.Fatalf("pdf-render worker: err=%v len=%d page=%d", err, len(pdfOut.PNG), pdfOut.Page)
 	}
 
@@ -222,5 +228,37 @@ func TestParserWorkerSandboxedImageAndPDFRender(t *testing.T) {
 			t.Fatalf("worker %d env = %v, want empty", i, cmd.Env)
 		}
 		reaped(t, cmd)
+	}
+}
+
+func encodeTestPNG(t *testing.T, img image.Image) []byte {
+	t.Helper()
+	var b bytes.Buffer
+	if err := png.Encode(&b, img); err != nil {
+		t.Fatal(err)
+	}
+	return b.Bytes()
+}
+
+func TestParserLaunchFailureClosesStageDescriptors(t *testing.T) {
+	old := parserCommand
+	t.Cleanup(func() { parserCommand = old })
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reader.Close()
+	defer writer.Close()
+	parserCommand = func(string, bool) (*exec.Cmd, error) {
+		cmd := exec.Command(filepath.Join(t.TempDir(), "missing-worker"))
+		cmd.ExtraFiles = []*os.File{reader}
+		return cmd, nil
+	}
+	if w, err := dialParserPolicy(true); err == nil {
+		w.close()
+		t.Fatal("unexpected launch success")
+	}
+	if _, err := reader.Stat(); !errors.Is(err, os.ErrClosed) {
+		t.Fatalf("stage descriptor left open: %v", err)
 	}
 }

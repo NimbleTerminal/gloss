@@ -7,7 +7,7 @@ import (
 	"nimbleterminal.dev/gloss/internal/openwith"
 )
 
-func openWithTarget(string, string, bool) (openwith.Target, error) {
+func openWithTarget(string, string, bool, ...bool) (openwith.Target, error) {
 	return openwith.Target{}, errNoBrowserOpenWith
 }
 func (m *Model) openWithBrowse(tea.Msg) (tea.Cmd, bool) { return nil, false }

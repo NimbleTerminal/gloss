@@ -25,7 +25,7 @@ const (
 // Pages with no text layer cannot be searched, and stderr names them; an
 // input that is not a PDF is an error among the others.
 func grepFiles(opts options, stdout, stderr io.Writer) error {
-	loader := &document.Loader{}
+	loader := &document.Loader{RequireConfinement: opts.StrictMode}
 	defer loader.Close()
 	hits := []made{}
 	var failed error

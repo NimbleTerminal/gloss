@@ -1023,3 +1023,32 @@ learns how its request settled from the CLI (`HandoffEnd`, `handoffEnd` in
 replies. There is no support probe: terminals ignore what they do not know.
 Detached servers keep their JSON protocol and report nothing. ntrecord can
 check it: `Wait+Status blocked app=gloss id=`.
+
+## Document worker boundary
+
+Native parser workers use ntmediabox RenderClient/ServeRender. The application
+adapter retains gloss's PDF text-layer/metadata semantics and limits; it
+validates reply metadata separately from ntmediabox's framing and RGBA checks.
+Browser Web Workers retain their JSON/PNG transport and cannot enforce native
+`--strict` mode. The native kill hook owns process-group termination and Wait,
+including protocol errors, cancellation, and timeouts.
+
+`Loader.RequireConfinement` sends the whole supported load to a fresh worker.
+Strict probes and accept filters also run there. Nested parser calls run locally
+inside that already-confined worker. No file-content sniffing or metadata
+extraction is permitted before that boundary in strict entry paths. Supported
+results carry only raster, bounded fields/text, page information, and text-layer
+counts; complex layout/animation/office/mesh results are deliberately refused.
+See `confined.go`, `parser_render.go`, and the native strict integration tests.
+
+On Linux, install the trusted `ntconfine-stage` beside the gloss executable
+(ntconfine never searches PATH for it). Release packaging
+already includes it. A missing stage is an error even in normal mode when
+confinement is available. Strict integration tests exercise real confinement
+where available; the unavailable-policy refusal test runs on every platform.
+
+`task build` also builds the stage on Linux. `task test` and `task test-race`
+copy it beside each temporary Go test executable through `scripts/test-exec.sh`.
+For a direct Linux `go test`, build the stage first and pass
+`-exec 'sh /absolute/path/to/gloss/scripts/test-exec.sh /absolute/path/to/gloss/ntconfine-stage'`.
+The wrapper only installs a trusted test fixture; it does not weaken worker policy.

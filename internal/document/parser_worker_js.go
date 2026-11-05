@@ -12,6 +12,8 @@ import (
 	"syscall/js"
 )
 
+const maxParserMessage = 256 << 20
+
 // In a Web Worker, gloss answers the request it was started with. For a PDF
 // that opens, it then stays, answering what the page posts to
 // glossParserNext, until the page terminates the worker.
@@ -110,4 +112,11 @@ func (w *pageWorker) ask(ctx context.Context, q parserRequest) (parserReply, err
 
 func (w *pageWorker) close() {
 	w.once.Do(func() { w.session.Call("close") })
+}
+
+func dialParserPolicy(required bool) (parserConn, error) {
+	if required {
+		return nil, errors.New("strict mode requires native OS confinement")
+	}
+	return dialParser()
 }

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add opt-in `--strict` loading for native still images, SVG, Mermaid, and
+  PDF, including detection, metadata, text, previews, and exports. Unsupported
+  paths or unavailable OS confinement fail without a weaker retry.
+- Native parser workers now return bounded RGBA through ntmediabox; the viewer
+  no longer decodes their PNG replies. Worker startup errors are no longer
+  retried as unrestricted processes.
+
 - Refresh the native rendering libraries and the browser terminal (Booba 0.12.1),
   including its input, paste, and Arabic shaping fixes.
 

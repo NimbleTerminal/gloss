@@ -2,6 +2,7 @@ version: '3'
 
 vars:
   VERSION: '{{default "dev" .VERSION}}'
+  TEST_EXEC: '{{if eq OS "linux"}}-exec ''sh "{{.ROOT_DIR}}/scripts/test-exec.sh" "{{.ROOT_DIR}}/ntconfine-stage"''{{end}}'
 
 tasks:
   default:
@@ -10,6 +11,7 @@ tasks:
     desc: List available tasks
     cmds: [task --list]
   build:
+    deps: [worker-stage]
     desc: Build ./gloss (skipped when nothing it is built from has changed)
     env:
       GLOSS_VERSION: '{{.VERSION}}'
@@ -73,11 +75,13 @@ tasks:
   go-verify:
     cmds: [go mod verify]
   test:
+    deps: [worker-stage]
     desc: Run tests
-    cmds: [go test -mod=readonly ./...]
+    cmds: ['go test -mod=readonly {{.TEST_EXEC}} ./...']
   test-race:
+    deps: [worker-stage]
     desc: Run tests with race detection
-    cmds: [go test -mod=readonly -race ./...]
+    cmds: ['go test -mod=readonly -race {{.TEST_EXEC}} ./...']
   i18n:coverage:
     desc: Fail when a translation is missing, stale, or has different format verbs
     cmds: ['go test -mod=readonly ./internal/i18n/ -run Catalog -v']
@@ -247,3 +251,13 @@ tasks:
       - python3 scripts/gen-grist.py
       # The video sample is gloss's own demo recording, as H.264 (needs ffmpeg).
       - ffmpeg -loglevel error -y -i docs/assets/gloss-demo.gif -movflags +faststart -pix_fmt yuv420p -vf 'scale=trunc(iw/2)*2:trunc(ih/2)*2' -c:v libx264 -crf 28 -preset slow -an examples/recording.mp4
+
+  worker-stage:
+    desc: Build the trusted Linux worker stage beside gloss
+    platforms: [linux]
+    env:
+      CGO_ENABLED: '0'
+    sources: [go.mod, go.sum]
+    generates: [ntconfine-stage]
+    cmds:
+      - go build -mod=readonly -o ntconfine-stage nimbleterminal.dev/ntconfine/cmd/ntconfine-stage
