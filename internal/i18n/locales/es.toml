@@ -794,7 +794,7 @@ other = "leídas las primeras %s filas"
 other = "fila %d/%s"
 
 [app.sheet.rows]
-other = "fila %d–%d/%s"
+other = "filas %d–%d/%s"
 
 [app.sheet.shown]
 other = "cols %d/%d"
@@ -1442,7 +1442,7 @@ other = "no compatible"
 other = "WebGPU, o software sin él"
 
 [app.info.wireframe]
-other = "alambre (solicitado)"
+other = "modo alámbrico (solicitado)"
 
 [app.openWith.closeKey]
 other = "Esc cerrar"
@@ -1469,7 +1469,7 @@ other = " (no disponible)"
 other = "m apps"
 
 [app.openWith.manageKeys]
-other = "↑/↓ elegir · Space activar (se guarda) · Enter/Esc volver"
+other = "↑/↓ elegir · Space mostrar/ocultar (se guarda) · Enter/Esc volver"
 
 [app.openWith.manageTitle]
 other = "Gestionar apps — todos los formatos"

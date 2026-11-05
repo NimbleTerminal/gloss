@@ -373,10 +373,10 @@ other = "文件已发送。"
 other = "已拒绝请求。"
 
 [web.pick.sentOne]
-other = "1 个文件已交给请求者。可以关闭此标签页。"
+other = "1 个文件已为请求者准备好。可以关闭此标签页。"
 
 [web.pick.sentMany]
-other = "{{.Count}} 个文件已交给请求者。可以关闭此标签页。"
+other = "{{.Count}} 个文件已为请求者准备好。可以关闭此标签页。"
 
 [web.pick.declinedDetail]
 other = "没有交出任何文件。可以关闭此标签页。"
@@ -1201,7 +1201,7 @@ other = "复制为 TSV"
 other = "复制值"
 
 [app.actions.editWith]
-other = "编辑方式…"
+other = "选择编辑应用…"
 
 [app.actions.open]
 other = "打开"
@@ -1444,7 +1444,7 @@ other = "Esc 关闭"
 other = "↑/↓ 选择 · Enter 编辑 · Tab 打开方式 · d 设为默认"
 
 [app.openWith.editTitle]
-other = "编辑方式"
+other = "选择编辑应用"
 
 [app.openWith.enlarge]
 other = "%s：请放大终端"
@@ -1846,7 +1846,7 @@ other = "向上轴"
 other = "视频"
 
 [app.info.label.viewBox]
-other = "视图框"
+other = "viewBox"
 
 [app.info.label.words]
 other = "字数"
