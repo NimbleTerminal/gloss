@@ -25,7 +25,9 @@ type confinedRequest struct {
 
 func (l *Loader) loadConfined(q Request) Result {
 	out := Result{Generation: q.Generation}
-	if q.Typeset || q.MarkdownMode == "typeset" || q.Layout {
+	// Layout is a generic export/thumbnail hint. Supported formats do not
+	// use HTML layout, and confinedWork rejects HTML after format detection.
+	if q.Typeset || q.MarkdownMode == "typeset" {
 		out.Err = errors.New("strict mode does not yet support typesetting or HTML layout")
 		return out
 	}

@@ -117,7 +117,10 @@ func (w *processWorker) ask(ctx context.Context, q parserRequest) (parserReply, 
 		return parserReply{}, err
 	}
 	resp, err := w.client.Do(ctx, ntmediabox.RenderRequest{Kind: "gloss-parser", Data: data, Meta: meta, Width: ntmediabox.MaxRenderSide, Height: ntmediabox.MaxRenderSide, MaxPixels: MaxPixels})
-	if err != nil {
+	// Do returns a validated wire response AND an error for document errors.
+	// Only transport/protocol failures return no document-error response. Its
+	// metadata still needs our semantic validation before any field is used.
+	if err != nil && resp.Err == "" {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return parserReply{}, fmt.Errorf("%s parsing timed out; worker stopped: %w", q.Kind, err)
 		}

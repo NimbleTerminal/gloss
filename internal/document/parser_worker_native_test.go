@@ -8,12 +8,15 @@ import (
 	"errors"
 	"image"
 	"image/png"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"nimbleterminal.dev/ntmediabox"
 )
 
 // countWorkers records the workers started until the test ends.
@@ -260,5 +263,25 @@ func TestParserLaunchFailureClosesStageDescriptors(t *testing.T) {
 	}
 	if _, err := reader.Stat(); !errors.Is(err, os.ErrClosed) {
 		t.Fatalf("stage descriptor left open: %v", err)
+	}
+}
+
+func TestParserDocumentErrorStillValidatesMetadata(t *testing.T) {
+	host, worker := net.Pipe()
+	defer worker.Close()
+	w := &processWorker{client: ntmediabox.NewRenderClient(host)}
+	defer w.close()
+	done := make(chan error, 1)
+	go func() {
+		done <- ntmediabox.ServeRender(worker, ntmediabox.RenderFunc(func(ntmediabox.RenderRequest) (ntmediabox.RenderResponse, error) {
+			return ntmediabox.RenderResponse{Err: "document failed", Meta: []byte(`{"NoText":true,"Pages":10001}`), Ended: true}, nil
+		}))
+	}()
+	reply, err := w.ask(context.Background(), parserRequest{Kind: "document"})
+	if err == nil || !strings.Contains(err.Error(), "invalid parser response metadata") || reply.NoText || reply.Pages != 0 {
+		t.Fatalf("trusted invalid error metadata: %+v %v", reply, err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
 	}
 }

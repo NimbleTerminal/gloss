@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fix strict PNG exports and thumbnails being rejected by a generic HTML
+  layout hint. Preserve PDF metadata and no-text errors so extraction and
+  search continue past scanned pages.
+
 - Add opt-in `--strict` loading for native still images, SVG, Mermaid, and
   PDF, including detection, metadata, text, previews, and exports. Unsupported
   paths or unavailable OS confinement fail without a weaker retry.

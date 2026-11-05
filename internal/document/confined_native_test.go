@@ -126,3 +126,31 @@ func TestStrictProbeAndAccept(t *testing.T) {
 		t.Fatal("accepted image as PDF")
 	}
 }
+
+func TestStrictNoTextPreservesPDFMetadata(t *testing.T) {
+	if !ntmediabox.Available() {
+		t.Skip("OS confinement unavailable")
+	}
+	l := &Loader{RequireConfinement: true, Files: fstest.MapFS{"scan.pdf": &fstest.MapFile{Data: pagesPDF("", "BT /F1 12 Tf 10 10 Td (later text) Tj ET")}}}
+	defer l.Close()
+	r := l.Load(Request{Path: "scan.pdf", Page: 1, TextOnly: true})
+	if !errors.Is(r.Err, ErrNoTextLayer) || r.Kind != "pdf" || r.Page != 1 || r.Pages != 2 || r.Layer == nil || len(r.Info) == 0 {
+		t.Fatalf("document error lost: %+v", r)
+	}
+	r = l.Load(Request{Path: "scan.pdf", Page: 2, TextOnly: true})
+	if r.Err != nil || !strings.Contains(r.Text, "later text") {
+		t.Fatalf("later page: %+v", r)
+	}
+}
+
+func TestStrictLayoutStillRejectsHTML(t *testing.T) {
+	if !ntmediabox.Available() {
+		t.Skip("OS confinement unavailable")
+	}
+	l := &Loader{RequireConfinement: true, Files: fstest.MapFS{"page.html": &fstest.MapFile{Data: []byte("<!doctype html><html><body>untrusted</body></html>")}}}
+	defer l.Close()
+	r := l.Load(Request{Path: "page.html", Layout: true})
+	if r.Err == nil || !strings.Contains(r.Err.Error(), "strict mode does not yet support html") || r.Image != nil {
+		t.Fatalf("HTML escaped strict format gate: %+v", r)
+	}
+}

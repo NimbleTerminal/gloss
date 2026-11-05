@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"nimbleterminal.dev/ntmediabox"
+
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -68,5 +70,20 @@ func TestThumbnailsShowTheListAsAGrid(t *testing.T) {
 	send(m, press("t"))
 	if m.thumbs {
 		t.Fatal("t did not return to the list")
+	}
+}
+
+func TestStrictThumbnails(t *testing.T) {
+	if !ntmediabox.Available() {
+		t.Skip("OS confinement unavailable")
+	}
+	m := New(Options{StrictMode: true, Files: []string{samples + "landscape.png", samples + "shapes.svg", samples + "field-guide.pdf"}, Render: "glyph"})
+	t.Cleanup(func() { _ = m.Close() })
+	m.openGrid()
+	for _, path := range m.opts.Files {
+		result := m.loadThumb(path)().(thumbResult)
+		if result.tile.Failed || result.tile.Image == nil {
+			t.Fatalf("%s: %+v", path, result.tile)
+		}
 	}
 }

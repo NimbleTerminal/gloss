@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"
+	"nimbleterminal.dev/ntmediabox"
 )
 
 func searchDocument(t *testing.T, text string) *Model {
@@ -334,5 +335,41 @@ func TestSearchStatusFitsInChinese(t *testing.T) {
 	}
 	if s := m.search.status(80); strings.Contains(s, "no matches") || strings.Contains(s, "Esc clear") {
 		t.Fatalf("English left in %q", s)
+	}
+}
+
+func TestStrictSearchContinuesAfterScan(t *testing.T) {
+	if !ntmediabox.Available() {
+		t.Skip("OS confinement unavailable")
+	}
+	var pdf strings.Builder
+	var offsets []int
+	pdf.WriteString("%PDF-1.4\n")
+	content := "BT /F1 12 Tf 10 10 Td (needle after scan) Tj ET"
+	for i, body := range []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>",
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>",
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Resources << /Font << /F1 5 0 R >> >> /Contents 6 0 R >>",
+		"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+		fmt.Sprintf("<< /Length %d >>\nstream\n%s\nendstream", len(content), content),
+	} {
+		offsets = append(offsets, pdf.Len())
+		fmt.Fprintf(&pdf, "%d 0 obj\n%s\nendobj\n", i+1, body)
+	}
+	start := pdf.Len()
+	fmt.Fprintf(&pdf, "xref\n0 %d\n0000000000 65535 f \n", len(offsets)+1)
+	for _, offset := range offsets {
+		fmt.Fprintf(&pdf, "%010d 00000 n \n", offset)
+	}
+	fmt.Fprintf(&pdf, "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n", len(offsets)+1, start)
+	m := New(Options{StrictMode: true, Files: []string{"scan.pdf"}, FilesFS: fstest.MapFS{"scan.pdf": &fstest.MapFile{Data: []byte(pdf.String())}}, Render: "glyph", Page: 1})
+	t.Cleanup(func() { _ = m.Close() })
+	m.kind, m.pages = "pdf", 2
+	m.editSearch()
+	m.search.query, m.search.pattern = "needle", regexp.MustCompile("needle")
+	result := m.startSearch()().(searchResult)
+	if len(result.matches) != 1 || result.matches[0].page != 2 || !strings.Contains(result.note, "1 page without text skipped") {
+		t.Fatalf("search stopped at scan: %+v", result)
 	}
 }
