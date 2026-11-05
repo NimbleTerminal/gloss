@@ -1,7 +1,7 @@
 charm.land/bubbles/v2 v2.2.1 h1:Fq1+qm5hV6GkvzLQDhCBpXXE5tLgvh1PRriCLwSvIQU=
 charm.land/bubbles/v2 v2.2.1/go.mod h1:wdMgn+sje1KNXdwFizIWjbf328fIUBxqEmJ/vYPo8yc=
-charm.land/bubbletea/v2 v2.1.0 h1:A9fj9h5LFrvQhQHFNggp8K8rvY6CUfgn9dMbb6p2HIw=
-charm.land/bubbletea/v2 v2.1.0/go.mod h1:xWHeyxIX9/wiFU2kgPW04ojOZyTzrWf+8lGjUCaftiU=
+charm.land/bubbletea/v2 v2.1.1 h1:S1S9l37pCZGrj1JexBcr9x4Nr3MVeM42InqCYM/tDpU=
+charm.land/bubbletea/v2 v2.1.1/go.mod h1:xWHeyxIX9/wiFU2kgPW04ojOZyTzrWf+8lGjUCaftiU=
 charm.land/glamour/v2 v2.0.1 h1:xl+r00A4aJWU0z8fgwKd9fQQ4rsphqGUzuEiXZP5n+c=
 charm.land/glamour/v2 v2.0.1/go.mod h1:jo9z8XqVKPeEFMVdvCRLGk++RyJ3CdUwgNr7EvXLw3k=
 charm.land/lipgloss/v2 v2.0.6 h1:EaGKeuA8FvF+v2BT5VmZd2LoYLaMZJXA5n34th8nCIQ=
@@ -38,8 +38,8 @@ github.com/charmbracelet/x/ansi v0.11.9 h1:kIrqLBxtTVbLyyHO2Evoi93EjQo1mylWmpNEs
 github.com/charmbracelet/x/ansi v0.11.9/go.mod h1:DG/hpOnaI2QJ/KMMqLL2h0KVhluuJLazf8973P+Vy5w=
 github.com/charmbracelet/x/conpty v0.2.0 h1:eKtA2hm34qNfgJCDp/M6Dc0gLy7e07YEK4qAdNGOvVY=
 github.com/charmbracelet/x/conpty v0.2.0/go.mod h1:fexgUnVrZgw8scD49f6VSi0Ggj9GWYIrpedRthAwW/8=
-github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f h1:pk6gmGpCE7F3FcjaOEKYriCvpmIN4+6OS/RD0vm4uIA=
-github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f/go.mod h1:IfZAMTHB6XkZSeXUqriemErjAWCCzT0LwjKFYCZyw0I=
+github.com/charmbracelet/x/exp/golden v0.1.0 h1:qgUxGaHX4I8Fg077vD+54+qFmDWrgO19lTCQLblHWko=
+github.com/charmbracelet/x/exp/golden v0.1.0/go.mod h1:6fMpcW6iwN/kX+xJ52eqVWsDiBTe0UJD24JLoHFe+P0=
 github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf h1:rLG0Yb6MQSDKdB52aGX55JT1oi0P0Kuaj7wi1bLUpnI=
 github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf/go.mod h1:B3UgsnsBZS/eX42BlaNiJkD1pPOUa+oF1IYC6Yd2CEU=
 github.com/charmbracelet/x/term v0.2.2 h1:xVRT/S2ZcKdhhOuSP4t5cLi5o+JxklsoEObBSgfgZRk=
@@ -173,8 +173,8 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/tetratelabs/wazero v1.12.0 h1:DuWcpNu/FzgEXgGBDp8J1Spc+CWOvvtvVyjKlaZopYU=
 github.com/tetratelabs/wazero v1.12.0/go.mod h1:LvKtzl2RqO4gyF27BiXU+nKAjcV8f38U+kP/q2vgxh0=
-github.com/xo/terminfo v1.2.0 h1:d0ZTOCpuGE0lwSAOs0zcJjwz3jWQyqcRt9XbGJpCOl4=
-github.com/xo/terminfo v1.2.0/go.mod h1:lGzkSo8Fe7IRh/w+Gqz7n5mDog4FVXCj3gy/DYTBqio=
+github.com/xo/terminfo v1.3.0 h1:KstyePbNW6UaLq9y12+544VK4aTP3Eku/sym3a9+UgQ=
+github.com/xo/terminfo v1.3.0/go.mod h1:lGzkSo8Fe7IRh/w+Gqz7n5mDog4FVXCj3gy/DYTBqio=
 github.com/yuin/goldmark v1.8.6 h1:d0VcaP1sx9GkFVkoW+KtggpGi2KZ965i14b0+bDQST4=
 github.com/yuin/goldmark v1.8.6/go.mod h1:ip/1k0VRfGynBgxOz0yCqHrbZXhcjxyuS66Brc7iBKg=
 github.com/yuin/goldmark-emoji v1.0.6 h1:QWfF2FYaXwL74tfGOW5izeiZepUDroDJfWubQI9HTHs=
@@ -223,8 +223,8 @@ nimbleterminal.dev/ntopenwith v0.1.1 h1:BX/bZGeQQvKjbDM22FTMpsPeck2LsmE3sBH+0nuX
 nimbleterminal.dev/ntopenwith v0.1.1/go.mod h1:MvWxw+kwx733Q23dTDoW2BHwSU3C29G2jxKQ/mS/DxE=
 nimbleterminal.dev/ntpdf v0.5.1 h1:IerC2cA2YU72twl4XSESp13DiLtUfOreRyd47ZRBWsM=
 nimbleterminal.dev/ntpdf v0.5.1/go.mod h1:FWMvjnh94q0A29+qF9AQm49P4pehB/t6CPgP+XWEYyI=
-nimbleterminal.dev/ntpicture v0.1.1 h1:OxR7AHgYy60HKOATocQolLlJwe2s/ZDhGQh5QOW9HaU=
-nimbleterminal.dev/ntpicture v0.1.1/go.mod h1:87798EJw9zvJoD1sdT6wzbGBpY+Vwco9U4NVf5Cv0tw=
+nimbleterminal.dev/ntpicture v0.1.4 h1:uuQcLosD+fmxYR3DuXEkAcXJxZ15U/nyt9QRd3H6hdY=
+nimbleterminal.dev/ntpicture v0.1.4/go.mod h1:RNLYJAZ7Bakb9WdOXRvsL+xsbpREAQGPGeXLlDrpUMI=
 nimbleterminal.dev/ntqrcode v0.3.1 h1:Dp8qWEkkgMjVpRpro8kLqzceaOm/ndVRQl3sJjdMVJs=
 nimbleterminal.dev/ntqrcode v0.3.1/go.mod h1:PI2hdrDho+xDQEn8ogM1GwcofAoEdO1SzXJrli7I+iQ=
 nimbleterminal.dev/ntshim v0.6.0 h1:0m7g3laU1cxwVZLz+yY/c2acHuyQKrd3Bi9cvVS6w3c=

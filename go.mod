@@ -4,14 +4,14 @@ go 1.26.10
 
 require (
 	charm.land/bubbles/v2 v2.2.1
-	charm.land/bubbletea/v2 v2.1.0
+	charm.land/bubbletea/v2 v2.1.1
 	charm.land/glamour/v2 v2.0.1
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/NimbleMarkets/go-booba v0.10.4
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/colorprofile v0.4.3
-	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4
+	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f
 	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/term v0.2.2
 	github.com/coder/websocket v1.8.15
@@ -32,7 +32,7 @@ require (
 	nimbleterminal.dev/ntmaps v0.5.1
 	nimbleterminal.dev/ntopenwith v0.1.1
 	nimbleterminal.dev/ntpdf v0.5.1
-	nimbleterminal.dev/ntpicture v0.1.1
+	nimbleterminal.dev/ntpicture v0.1.4
 	nimbleterminal.dev/ntqrcode v0.3.1
 	nimbleterminal.dev/ntsvg v0.5.1
 	nimbleterminal.dev/nttypeset v0.1.3
@@ -83,7 +83,7 @@ require (
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
-	github.com/xo/terminfo v1.2.0 // indirect
+	github.com/xo/terminfo v1.3.0 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sync v0.24.0 // indirect
