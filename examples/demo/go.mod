@@ -3,8 +3,8 @@ module nimbleterminal.dev/gloss/examples/demo
 go 1.26.10
 
 require (
-	charm.land/bubbletea/v2 v2.1.0
-	github.com/NimbleMarkets/go-booba v0.10.4
+	charm.land/bubbletea/v2 v2.1.1
+	github.com/NimbleMarkets/go-booba v0.11.0
 	github.com/spf13/pflag v1.0.10
 	nimbleterminal.dev/gloss v0.0.0
 )
@@ -21,7 +21,7 @@ require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f // indirect
 	github.com/charmbracelet/x/ansi v0.11.9 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/zkrebbekx/go-mermaid v0.1.6 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/image v0.47.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
