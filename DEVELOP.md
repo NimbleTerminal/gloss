@@ -131,8 +131,8 @@ separate browser-demo module:
   and end. Parent-side deadlines and cancellation stop and reap/terminate
   workers; two slots bound the requests in progress. Under the race
   detector the worker, which is the test binary run again, is several times
-  slower, so `race_test.go` lengthens the deadline for the package's tests;
-  tests of the deadline itself set their own. The worker protocol
+  slower, so `race.go` lengthens the deadline in all race builds, including
+  importing packages; tests of the deadline itself set their own. The worker protocol
   accepts bounded bytes, never paths to read or shell commands. PDFium rendering
   retains its existing backend after stream preflight. The worker reads a PDF
   only through ntpdf's `pdfdoc.Open`, which follows declared lengths, resolves
