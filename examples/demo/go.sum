@@ -221,5 +221,5 @@ nimbleterminal.dev/ntsvg v0.6.0 h1:2PHBYsic0rrXCPC1BLn/1La+f+U8dcprJ0iqUI+0JzE=
 nimbleterminal.dev/ntsvg v0.6.0/go.mod h1:AYdN3abB25Fw8/O+kj1YRBw/3DS7hnvb04BgpzVOREg=
 nimbleterminal.dev/nttypeset v0.1.9 h1:BUcT4h6CtdOKekZ5ZYeCJyN9PMcpnSQhFTAGpRADNx4=
 nimbleterminal.dev/nttypeset v0.1.9/go.mod h1:SJzPcfWdfd8DF3wsFBU0VZy61PEw4+3A9+SYJ17QKfc=
-nimbleterminal.dev/ntvideo v0.5.0 h1:gYzvRXIsjds1ETbrCtj1uHVzRknJq5elZ/8vGjF4XNA=
-nimbleterminal.dev/ntvideo v0.5.0/go.mod h1:Sm7NzmDgxisQwITZojGb1UzyZol3F6o6d4Zca1ZhJdE=
+nimbleterminal.dev/ntvideo v0.5.1 h1:tmUIiZRY8exznR8Ca7VthEQkBJdF5k3fWHG2f4pkO9A=
+nimbleterminal.dev/ntvideo v0.5.1/go.mod h1:Sm7NzmDgxisQwITZojGb1UzyZol3F6o6d4Zca1ZhJdE=
