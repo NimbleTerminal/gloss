@@ -132,10 +132,13 @@ func (m *Model) findKey(msg tea.KeyPressMsg) (tea.Cmd, bool) {
 			return f.search(), true
 		}
 		if path := f.current(); path != "" {
-			forced := m.opts.Type
+			forced, accept := m.opts.Type, m.opts.Accept
 			strict := m.opts.StrictMode
 			return func() tea.Msg {
 				_, err := document.Probe(path, forced, strict)
+				if err == nil {
+					err = accept.CheckFile(nil, path, strict)
+				}
 				return openResult{path: path, err: err}
 			}, true
 		}

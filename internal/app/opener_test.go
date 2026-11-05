@@ -962,3 +962,27 @@ func TestBrowserScopedHelpPreservesFilter(t *testing.T) {
 		t.Fatal("help changed filter or selection")
 	}
 }
+
+func TestFinderEnterRequiresSessionFormat(t *testing.T) {
+	dir := folder(t)
+	path := filepath.Join(dir, "fake.png")
+	if err := os.WriteFile(path, []byte("<!doctype html><html>login</html>"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	m := browsing(t, dir)
+	m.opts.Accept, m.opts.Type = "image/*", "image"
+	before := append([]string(nil), m.opts.Files...)
+	send(m, press("/"))
+	send(m, typed("fake.png")...)
+	send(m, enter, enter)
+	if m.opener == nil || !reflect.DeepEqual(m.opts.Files, before) || !strings.Contains(m.note, "received html") {
+		t.Fatalf("opener=%v files=%v note=%q", m.opener != nil, m.opts.Files, m.note)
+	}
+	// A rejected result leaves the finder usable for an accepted image.
+	send(m, escape, press("/"))
+	send(m, typed("coast.png")...)
+	send(m, enter, enter)
+	if m.opener != nil || len(m.opts.Files) != len(before)+1 || filepath.Base(m.opts.Files[len(before)]) != "coast.png" {
+		t.Fatalf("opener=%v files=%v", m.opener != nil, m.opts.Files)
+	}
+}
