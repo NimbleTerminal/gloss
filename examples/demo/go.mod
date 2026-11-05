@@ -76,7 +76,7 @@ require (
 	nimbleterminal.dev/ntfilepicker v0.2.1 // indirect
 	nimbleterminal.dev/ntfonts v0.3.1 // indirect
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
-	nimbleterminal.dev/nthtml v0.2.2 // indirect
+	nimbleterminal.dev/nthtml v0.2.3 // indirect
 	nimbleterminal.dev/ntmaps v0.6.3 // indirect
 	nimbleterminal.dev/ntmediabox v0.1.0 // indirect
 	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.1.0 // indirect
@@ -86,7 +86,7 @@ require (
 	nimbleterminal.dev/ntqrcode v0.4.0 // indirect
 	nimbleterminal.dev/ntshim v0.6.1 // indirect
 	nimbleterminal.dev/ntsvg v0.6.0 // indirect
-	nimbleterminal.dev/nttypeset v0.1.8 // indirect
+	nimbleterminal.dev/nttypeset v0.1.9 // indirect
 	nimbleterminal.dev/ntvideo v0.5.0 // indirect
 )
 
