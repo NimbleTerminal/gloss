@@ -337,3 +337,37 @@ func TestTypesetRastersToKittyCellArea(t *testing.T) {
 		t.Fatalf("glyph rendering asked for device pixels: %+v", glyph.typesetShown)
 	}
 }
+
+func TestTypesetFineZoom(t *testing.T) {
+	for _, name := range []string{"page.md", "page.html"} {
+		t.Run(name, func(t *testing.T) {
+			source := strings.Repeat("A paragraph for zooming.\n\n", 100)
+			if strings.HasSuffix(name, ".html") {
+				source = "<html><body>" + strings.Repeat("<p>A paragraph for zooming.</p>", 100) + "</body></html>"
+			}
+			m := New(Options{Files: []string{name}, FilesFS: fstest.MapFS{name: {Data: []byte(source)}}, Typeset: true, Render: "glyph", DPI: 150, Page: 1})
+			t.Cleanup(func() { _ = m.Close() })
+			m.width, m.height = 80, 30
+			drainAnimation(t, m, m.load(false))
+			first := *m.typesetShown
+			for _, key := range []string{"+", "+", "-"} {
+				cmd, _ := m.documentKey(key)
+				drainAnimation(t, m, cmd)
+			}
+			shown := m.typesetShown
+			if shown.Width != first.Width*10/11 || shown.Height != first.Height*10/11 || !m.typesetMatches() {
+				t.Fatalf("110%% viewport: first %+v, shown %+v, matches %v", first, shown, m.typesetMatches())
+			}
+			cmd, _ := m.documentKey("space")
+			drainAnimation(t, m, cmd)
+			if m.typesetTop != shown.Height {
+				t.Fatalf("page scroll = %d, want %d", m.typesetTop, shown.Height)
+			}
+			cmd, _ = m.documentKey("0")
+			drainAnimation(t, m, cmd)
+			if m.zoom != 0 || m.typesetTop != 0 || m.typesetShown.Width != first.Width {
+				t.Fatal("reset did not restore original viewport")
+			}
+		})
+	}
+}

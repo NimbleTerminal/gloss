@@ -106,7 +106,7 @@ func (m *Model) typesetViewMatches() bool {
 // theme, is the one the viewer's state asks for now.
 func (m *Model) viewportAsked(shown *document.TypesetViewport, width int, theme string) bool {
 	v := m.typesetViewport()
-	return shown != nil && theme == m.theme && !v.End && !v.Ahead && !v.Last && v.Line == 0 && v.Link == "" && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && max(1, v.Height>>v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+	return shown != nil && theme == m.theme && !v.End && !v.Ahead && !v.Last && v.Line == 0 && v.Link == "" && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && document.TypesetZoomSize(v.Height, v.Zoom) == shown.Height && v.Pixels == shown.Pixels
 }
 
 // queueTypesetReflow asks for the page as the viewer's state now wants it,
@@ -236,8 +236,8 @@ func (m *Model) typesetSettled(msg typesetSettled) tea.Cmd {
 	return nil
 }
 func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
-	step := max(1, 75>>m.zoom)
-	page := max(1, m.typesetViewport().Height>>m.zoom)
+	step := document.TypesetZoomSize(75, m.zoom)
+	page := document.TypesetZoomSize(m.typesetViewport().Height, m.zoom)
 	switch k {
 	case "up", "k":
 		m.typesetTop = max(0, m.typesetTop-step)
@@ -256,7 +256,7 @@ func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
 	case "right", "l":
 		m.typesetLeft += step
 	case "+", "=":
-		m.zoom = min(4, m.zoom+1)
+		m.zoom = min(document.MaxTypesetZoom, m.zoom+1)
 	case "-", "_":
 		m.zoom = max(0, m.zoom-1)
 	default:

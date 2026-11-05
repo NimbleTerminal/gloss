@@ -420,7 +420,8 @@ Typeset fonts: `--font readable|editorial|technical|compact`, default Readable,
 pairs Literata/Iosevka, Newsreader/Iosevka, IBM Plex Sans/Mono, or Source Serif 4/
 JetBrains Mono. `--mono jetbrains` overrides the code face only. `f` opens a
 sample overlay over typeset text; arrows preview, Enter keeps, Esc restores,
-and +/- still zoom. Native confirmation saves `gloss/font` in the OS config
+and +/- still zoom. Typeset and HTML page zoom uses 10-percentage-point steps
+from 100% to 1600%. Native confirmation saves `gloss/font` in the OS config
 directory; explicit flags override it, and exports ignore it. Seven OFL families
 ship as pinned subsets (Latin with Latin Extended and Vietnamese, Greek,
 Cyrillic, common arrows, maths and shapes), regular/bold/italic/bold-italic,

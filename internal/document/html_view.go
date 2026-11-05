@@ -135,8 +135,8 @@ func (l *Loader) renderHTMLView(q Request) (out Result) {
 	v := *q.TypesetView
 	bounds := h.result.Bounds()
 	pageWidth, extent := int(math.Round(float64(bounds.Dx())*htmlScale)), int(math.Round(float64(bounds.Dy())*htmlScale))
-	zoom := max(0, min(v.Zoom, 4))
-	width, height := max(1, pageWidth>>zoom), max(1, max(1, min(v.Height, 4096))>>zoom)
+	zoom := max(0, min(v.Zoom, MaxTypesetZoom))
+	width, height := TypesetZoomSize(pageWidth, zoom), TypesetZoomSize(max(1, min(v.Height, 4096)), zoom)
 	top := max(0, v.Top)
 	if v.End {
 		top = extent - height

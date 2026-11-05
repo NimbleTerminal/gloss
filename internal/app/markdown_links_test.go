@@ -174,7 +174,7 @@ func TestTypesetLinkHitGeometry(t *testing.T) {
 	m.typeset = &document.Markdown{}
 	m.typesetWidth = m.typesetMeasure()
 	v := m.typesetViewport()
-	v.Height = max(1, v.Height>>v.Zoom)
+	v.Height = document.TypesetZoomSize(v.Height, v.Zoom)
 	m.typesetShown = &v
 	m.typesetTheme = m.theme
 	m.source = image.NewRGBA(image.Rect(0, 0, 320, 160))
@@ -205,7 +205,7 @@ func TestTypesetLinkHover(t *testing.T) {
 	m.typeset = &document.Markdown{}
 	m.typesetWidth = m.typesetMeasure()
 	v := m.typesetViewport()
-	v.Height = max(1, v.Height>>v.Zoom)
+	v.Height = document.TypesetZoomSize(v.Height, v.Zoom)
 	m.typesetShown, m.typesetTheme = &v, m.theme
 	m.source = image.NewRGBA(image.Rect(0, 0, 320, 160))
 	m.typesetLinks = []document.TypesetLink{{Rect: image.Rect(40, 16, 80, 48), URL: address}}
@@ -300,7 +300,7 @@ func TestQuittingSettlesTheMouse(t *testing.T) {
 	m.typeset = &document.Markdown{}
 	m.typesetWidth = m.typesetMeasure()
 	v := m.typesetViewport()
-	v.Height = max(1, v.Height>>v.Zoom)
+	v.Height = document.TypesetZoomSize(v.Height, v.Zoom)
 	m.typesetShown, m.typesetTheme = &v, m.theme
 	m.source = image.NewRGBA(image.Rect(0, 0, 320, 160))
 	m.typesetLinks = []document.TypesetLink{{Rect: image.Rect(40, 16, 80, 48), URL: "https://example.org/"}}

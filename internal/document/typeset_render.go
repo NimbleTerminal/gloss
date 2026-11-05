@@ -33,14 +33,24 @@ type TypesetPlace = nttypeset.Place
 // TypesetSelection is the text between two places, in either order.
 type TypesetSelection = nttypeset.Selection
 
+// MaxTypesetZoom preserves the 16× magnification limit in 10-percentage-point steps.
+const MaxTypesetZoom = 150
+
+// TypesetZoomSize converts a viewport dimension to page pixels at the zoom step.
+func TypesetZoomSize(size, zoom int) int {
+	return max(1, size*10/(10+max(0, min(zoom, MaxTypesetZoom))))
+}
+
 // TypesetViewport uses pixels at the 150-DPI reading scale. Nil on Request
 // selects a numbered 800×1125 export slice instead of a continuous viewport.
 type TypesetViewport struct {
 	// Link asks to reveal the first occurrence of this document-local link.
 	// Layout progresses only as far as its target, under the usual budget.
-	Link                    string
-	Top, Height, Left, Zoom int
-	End                     bool
+	Link              string
+	Top, Height, Left int
+	// Zoom counts 10-percentage-point steps above 100%.
+	Zoom int
+	End  bool
 	// Ahead asks the layout to go on past the view to the next block with a
 	// picture, a link or a table in it, or to the end, without moving the
 	// view: the next item is then among the result's TypesetItems.
@@ -112,7 +122,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	top, height, left, zoom := 0, 1125, 0, 0
 	if q.TypesetView != nil {
 		v := q.TypesetView
-		top, height, left, zoom = max(0, min(v.Top, 1125*MaxPages)), max(1, min(v.Height, 4096)), max(0, v.Left), max(0, min(v.Zoom, 4))
+		top, height, left, zoom = max(0, min(v.Top, 1125*MaxPages)), max(1, min(v.Height, 4096)), max(0, v.Left), max(0, min(v.Zoom, MaxTypesetZoom))
 		if old != nil && old != lay && top > 0 {
 			// Anchor the visible block when line wrapping changes above it.
 			was := old.Starts()
@@ -142,7 +152,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 			if err := lay.Complete(ctx); err != nil {
 				return fail(err)
 			}
-			top = max(0, lay.Extent()-max(1, height>>zoom))
+			top = max(0, lay.Extent()-TypesetZoomSize(height, zoom))
 		}
 		if v.Ahead {
 			if err := lay.EnsureBlock(ctx, nextItemBlock(doc.Blocks, lay.Laid())); err != nil {
@@ -175,8 +185,8 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 		out.Page = max(1, min(q.Page, out.Pages))
 		top = (out.Page - 1) * 1125
 	}
-	width = max(1, width>>zoom)
-	height = max(1, height>>zoom)
+	width = TypesetZoomSize(width, zoom)
+	height = TypesetZoomSize(height, zoom)
 	if err := lay.Ensure(ctx, top+height); err != nil {
 		return fail(err)
 	}

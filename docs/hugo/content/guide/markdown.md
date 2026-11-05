@@ -191,7 +191,7 @@ Reload with `R` after editing the source or its pictures.
 | `S` | Chop long lines at the right edge instead of wrapping them, and back; arrows scroll sideways |
 | Up / Down, wheel | Scroll vertically |
 | Space / `b`, PageDown / PageUp, `n` / `p` | Scroll one screen |
-| `+` / `-`, Left / Right | Zoom / pan horizontally |
+| `+` / `-`, Left / Right | Zoom in 10-percentage-point steps / pan horizontally |
 | Home, `0` | Fit width and return to the top |
 | `f` | Preview font pairs; Enter keeps, Esc restores |
 | `T` | Preview color themes; Enter keeps, Esc restores |

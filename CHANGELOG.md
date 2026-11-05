@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Use finer zoom steps in typeset and HTML page views: 100%, 110%, 120%,
+  instead of doubling with each press of `+`.
+
 - Fix strict PNG exports and thumbnails being rejected by a generic HTML
   layout hint. Preserve PDF metadata and no-text errors so extraction and
   search continue past scanned pages.
