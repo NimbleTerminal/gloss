@@ -90,6 +90,10 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   capability, cell geometry, and fresh image IDs. `u` opens, `Esc` closes,
   and `e` exports. The library owns encoding, the four-module quiet zone,
   Kitty rendering, direct half-block fallback, fit errors, and image cleanup.
+- Booba uses `nimbleterminal.dev/booba` (`NimbleTerminal/booba`), including
+  `serve` and the demo's `cmd/booba-assets` tool. NT dependencies use published
+  pins; sibling overrides belong in ignored workspaces. Keep `quic-go` v0.64.1
+  until `webtransport-go` supports v0.65's changed HTTPStream API.
 - `web`: the browser demo site and the page `--serve` shows; has its own
   Node-tested helpers (`node --test web/*.test.mjs`).
 - `examples`: small original runnable fixtures; `examples/demo` is a separate

@@ -490,8 +490,12 @@ requirements and replacements, not workspace overrides. CI also forces a build s
 binary cannot be reused. GoReleaser disables workspaces as well.
 Run `GOWORK=off task ci` and `GOWORK=off task demo-check` before tagging.
 When updating the library, update both module pins (prefer a published tag),
-regenerate notices, and validate with workspaces disabled. Replace the temporary
-filesystem replacements with published versions for the coordinated release.
+regenerate notices, and validate with workspaces disabled. NT libraries use
+published versions; keep sibling checkout overrides in the ignored workspaces.
+Booba is published as `nimbleterminal.dev/booba` from
+[`NimbleTerminal/booba`](https://github.com/NimbleTerminal/booba), including its
+`serve` package and `cmd/booba-assets` tool. Keep `quic-go` at v0.64.1 until
+Booba's `webtransport-go` supports the changed HTTPStream API in v0.65.0.
 
 The standalone library's `examples/qrcode` demonstrates two components and
 has native and WASM builds. Real terminal/font/tmux and phone-camera checks

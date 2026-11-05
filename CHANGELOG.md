@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Refresh the native rendering libraries and the browser terminal (Booba 0.12.1),
+  including its input, paste, and Arabic shaping fixes.
+
 ## `v0.6.0` (2026-10-31)
 
 - Speak Spanish and Simplified Chinese: the help, status line, the viewer's

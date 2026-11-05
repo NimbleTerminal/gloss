@@ -29,7 +29,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	booba "github.com/NimbleMarkets/go-booba/serve"
+	booba "nimbleterminal.dev/booba/serve"
 	"nimbleterminal.dev/gloss/internal/app"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"

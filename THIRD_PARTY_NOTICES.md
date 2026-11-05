@@ -1279,40 +1279,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/NimbleMarkets/go-booba v0.11.0
-
-```
-MIT License
-
-Copyright (c) 2026 Neomantra Corp
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-----
-
-The following files are under their respective licenses:
-
-  * ./etc/booba.png remains **All Rights Reserved** by Neomantra Corp.  You may use it only in unmodified form and only as part of this project (e.g., in forks or distributions of the project).  You may **not** extract it for unrelated use, modify it, or redistribute it separately without explicit permission.
-```
-
 ## github.com/NimbleMarkets/oksvg v0.1.6
 
 ```
@@ -1971,7 +1937,7 @@ SOFTWARE.
 <http://www.opensource.org/licenses/mit-license.php>
 ```
 
-## github.com/ebitengine/purego v0.11.2
+## github.com/ebitengine/purego v0.11.3
 
 ```
                                  Apache License
@@ -2296,7 +2262,7 @@ For more information, please refer to <https://unlicense.org/>
 ---
 ```
 
-## github.com/go-webgpu/goffi v0.6.7
+## github.com/go-webgpu/goffi v0.6.8
 
 ```
 MIT License
@@ -2362,7 +2328,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/gogpu/gputypes v0.8.0
+## github.com/gogpu/gputypes v0.8.2
 
 ```
 MIT License
@@ -2388,7 +2354,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/gogpu/naga v0.20.5
+## github.com/gogpu/naga v0.21.2
 
 ```
 MIT License
@@ -2414,7 +2380,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/gogpu/wgpu v0.34.5
+## github.com/gogpu/wgpu v0.34.7
 
 ```
 MIT License
@@ -3527,7 +3493,7 @@ wazero
 Copyright 2020-2023 wazero authors
 ```
 
-## github.com/xo/terminfo v1.3.0
+## github.com/xo/terminfo v1.3.1
 
 ```
 The MIT License (MIT)
@@ -3855,7 +3821,41 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## nimbleterminal.dev/nt3d v0.8.0
+## nimbleterminal.dev/booba v0.12.1
+
+```
+MIT License
+
+Copyright (c) 2026 Neomantra Corp
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+----
+
+The following files are under their respective licenses:
+
+  * ./etc/booba.png remains **All Rights Reserved** by Neomantra Corp.  You may use it only in unmodified form and only as part of this project (e.g., in forks or distributions of the project).  You may **not** extract it for unrelated use, modify it, or redistribute it separately without explicit permission.
+```
+
+## nimbleterminal.dev/nt3d v0.8.1
 
 ```
 MIT License
@@ -3881,7 +3881,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntcanvas v0.1.3
+## nimbleterminal.dev/ntcanvas v0.1.4
 
 ```
 MIT License
@@ -3916,7 +3916,7 @@ Browser runtime licenses are in web/licenses; regenerate dependency notices with
 `task notices`. Generated runtime assets retain their upstream licenses.
 ```
 
-## nimbleterminal.dev/ntconfine v0.1.0
+## nimbleterminal.dev/ntconfine v0.1.1
 
 ```
 Copyright (c) 2026 Neomantra Corp. All rights reserved.
@@ -4646,7 +4646,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntfilepicker v0.2.0
+## nimbleterminal.dev/ntfilepicker v0.2.1
 
 ```
 MIT License
@@ -4672,7 +4672,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntfonts v0.2.1
+## nimbleterminal.dev/ntfonts v0.3.1
 
 ```
 MIT License
@@ -4719,8 +4719,9 @@ license is in `<family>.OFL.txt` and in THIRD_PARTY_NOTICES.md, generated with
 The symbol fallback combines Noto Sans Symbols 2 with missing arrows/math from
 Noto Sans Math, both pinned to the Google Fonts commit above. Their licenses
 are `notosanssymbols2.OFL.txt` and `notosansmath.OFL.txt`; `Licenses()` includes
-both texts in the fallback entry. The separate `cjk/` module ships its own OFL
-and generated notices for Noto Sans CJK SC.
+both texts in the fallback entry. The separate `cjk/`, `packs/`, `packs/emoji/`
+and `packs/emoji/sbix/` modules ship their own `sources.json`, OFL texts and
+generated `THIRD_PARTY_NOTICES.md` for their Noto fonts.
 
 The Go reference fonts (`Go-*.ttf`, `GoMono-*.ttf`) are unused and carry their
 own license in `LICENSE.gofont`.
@@ -4778,7 +4779,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntmaps v0.6.1
+## nimbleterminal.dev/ntmaps v0.6.3
 
 ```
 MIT License
@@ -4804,7 +4805,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntmediabox v0.0.0
+## nimbleterminal.dev/ntmediabox v0.1.0
 
 ```
 Copyright (c) 2026 Neomantra Corp. All rights reserved.
@@ -5534,7 +5535,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntopenwith v0.1.1
+## nimbleterminal.dev/ntopenwith v0.1.2
 
 ```
 MIT License
@@ -5560,7 +5561,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpdf v0.5.3
+## nimbleterminal.dev/ntpdf v0.6.0
 
 ```
 MIT License
@@ -5586,7 +5587,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpicture v0.1.4
+## nimbleterminal.dev/ntpicture v0.1.5
 
 ```
 MIT License
@@ -5627,7 +5628,7 @@ The artwork is embedded in the simple demo binary, including its WASM build.
 The generated demo site includes booba and ghostty-web runtime assets.
 Go dependency and browser runtime license texts are collected in
 THIRD_PARTY_NOTICES.md, generated with `task notices` and copied into the site.
-The browser licenses in `web/licenses/` were copied from go-booba's local
+The browser licenses in `web/licenses/` were copied from booba's local
 vendored ghostty-web, Ghostty, and pako sources; review them when updating the
 pinned booba runtime. `wasm_exec.js` retains its Go BSD license header.
 
@@ -5639,7 +5640,7 @@ these two fixtures. Animation decoder/player source and baseline tests are
 also adapted from Gloss under the same MIT license.
 ```
 
-## nimbleterminal.dev/ntqrcode v0.3.2
+## nimbleterminal.dev/ntqrcode v0.4.0
 
 ```
 MIT License
@@ -5691,7 +5692,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntsvg v0.5.5
+## nimbleterminal.dev/ntsvg v0.6.0
 
 ```
 MIT License
@@ -5767,7 +5768,7 @@ pako sources; review it when updating the pinned booba runtime.
 for gloss, Copyright (c) 2026 Neomantra Corp. It carries no third-party notice.
 ```
 
-## nimbleterminal.dev/ntvideo v0.4.0
+## nimbleterminal.dev/ntvideo v0.5.0
 
 ```
 MIT License

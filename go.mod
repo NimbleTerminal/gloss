@@ -9,7 +9,6 @@ require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/BurntSushi/toml v1.6.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
-	github.com/NimbleMarkets/go-booba v0.11.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f
@@ -29,19 +28,20 @@ require (
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.62.0
 	golang.org/x/text v0.43.0
-	nimbleterminal.dev/nt3d v0.8.0
-	nimbleterminal.dev/ntfilepicker v0.2.0
-	nimbleterminal.dev/ntfonts v0.2.1
+	nimbleterminal.dev/booba v0.12.1
+	nimbleterminal.dev/nt3d v0.8.1
+	nimbleterminal.dev/ntfilepicker v0.2.1
+	nimbleterminal.dev/ntfonts v0.3.1
 	nimbleterminal.dev/nthtml v0.2.2
-	nimbleterminal.dev/ntmaps v0.6.1
-	nimbleterminal.dev/ntmediabox v0.0.0
-	nimbleterminal.dev/ntopenwith v0.1.1
-	nimbleterminal.dev/ntpdf v0.5.3
-	nimbleterminal.dev/ntpicture v0.1.4
-	nimbleterminal.dev/ntqrcode v0.3.2
-	nimbleterminal.dev/ntsvg v0.5.5
+	nimbleterminal.dev/ntmaps v0.6.3
+	nimbleterminal.dev/ntmediabox v0.1.0
+	nimbleterminal.dev/ntopenwith v0.1.2
+	nimbleterminal.dev/ntpdf v0.6.0
+	nimbleterminal.dev/ntpicture v0.1.5
+	nimbleterminal.dev/ntqrcode v0.4.0
+	nimbleterminal.dev/ntsvg v0.6.0
 	nimbleterminal.dev/nttypeset v0.1.8
-	nimbleterminal.dev/ntvideo v0.4.0
+	nimbleterminal.dev/ntvideo v0.5.0
 )
 
 require (
@@ -61,13 +61,13 @@ require (
 	github.com/dlclark/regexp2/v2 v2.12.0 // indirect
 	github.com/dunglas/httpsfv v1.1.2 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/ebitengine/purego v0.11.2 // indirect
-	github.com/go-webgpu/goffi v0.6.7 // indirect
+	github.com/ebitengine/purego v0.11.3 // indirect
+	github.com/go-webgpu/goffi v0.6.8 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
-	github.com/gogpu/gputypes v0.8.0 // indirect
-	github.com/gogpu/naga v0.20.5 // indirect
-	github.com/gogpu/wgpu v0.34.5 // indirect
+	github.com/gogpu/gputypes v0.8.2 // indirect
+	github.com/gogpu/naga v0.21.2 // indirect
+	github.com/gogpu/wgpu v0.34.7 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
@@ -86,14 +86,14 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
-	github.com/xo/terminfo v1.3.0 // indirect
+	github.com/xo/terminfo v1.3.1 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	nimbleterminal.dev/ntcanvas v0.1.3 // indirect
-	nimbleterminal.dev/ntconfine v0.1.0 // indirect
+	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
+	nimbleterminal.dev/ntcanvas v0.1.4 // indirect
+	nimbleterminal.dev/ntconfine v0.1.1 // indirect
 	nimbleterminal.dev/ntconfine/pkg/confine v0.1.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
 	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.1.0 // indirect
@@ -101,21 +101,3 @@ require (
 )
 
 replace github.com/charmbracelet/ultraviolet => github.com/neomantra/ultraviolet v0.0.0-20261010224022-03d7c04fc2d2
-
-replace nimbleterminal.dev/ntmediabox => ../ntmediabox
-
-replace nimbleterminal.dev/ntmediabox/pkg/mediabox => ../ntmediabox/pkg/mediabox
-
-replace nimbleterminal.dev/ntvideo => ../ntvideo
-
-replace nimbleterminal.dev/ntpdf => ../ntpdf
-
-replace nimbleterminal.dev/ntsvg => ../ntsvg
-
-replace nimbleterminal.dev/ntpicture => ../ntpicture
-
-replace nimbleterminal.dev/nttypeset => ../nttypeset
-
-replace nimbleterminal.dev/ntconfine => ../ntconfine
-
-replace nimbleterminal.dev/ntconfine/pkg/confine => ../ntconfine/pkg/confine
