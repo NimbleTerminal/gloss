@@ -1,25 +1,20 @@
 # `gloss` CHANGELOG
 
-## Unreleased
+## `v0.6.0` (2026-11-05)
 
 - Use finer zoom steps in typeset and HTML page views: 100%, 110%, 120%,
   instead of doubling with each press of `+`.
 
-- Fix strict PNG exports and thumbnails being rejected by a generic HTML
-  layout hint. Preserve PDF metadata and no-text errors so extraction and
-  search continue past scanned pages.
-
 - Add opt-in `--strict` loading for native still images, SVG, Mermaid, and
   PDF, including detection, metadata, text, previews, and exports. Unsupported
   paths or unavailable OS confinement fail without a weaker retry.
-- Native parser workers now return bounded RGBA through ntmediabox; the viewer
-  no longer decodes their PNG replies. Worker startup errors are no longer
-  retried as unrestricted processes.
+- Add `--video-sandbox` for native video playback decoded in a confined
+  subprocess, using silent software decoding.
+- Enforce `--accept` when opening a file from the browser's `/` finder.
 
-- Refresh the native rendering libraries and the browser terminal (Booba 0.12.1),
-  including its input, paste, and Arabic shaping fixes.
-
-## `v0.6.0` (2026-10-31)
+- Refresh the native rendering libraries. The browser demo and `--serve` use
+  ntwebterm through Booba 0.12.1, including input, paste, and Arabic shaping
+  fixes.
 
 - Speak Spanish and Simplified Chinese: the help, status line, the viewer's
   notes and messages, menus and choosers, the file browser's help, the
@@ -59,8 +54,6 @@
 - Typeset text draws Greek, Cyrillic, Vietnamese, arrows, maths signs, check
   marks and shapes, which were blank before. SVG rectangles keep their rounded
   corners (`rx`), Mermaid boxes included.
-- The browser demo and `--serve` run on ntwebterm through booba v0.11.0; pages
-  import it from `static/ntwebterm/ntwebterm.js`.
 
 ## `v0.5.0` (2026-10-23)
 

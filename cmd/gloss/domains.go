@@ -114,11 +114,11 @@ var domains = []domain{
 	},
 	{
 		ID: "agents", Title: "Teaching agents: gloss skill",
-		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints it, as `gloss skill show` does; `gloss skill install` writes it where the agents on this machine look, or into the skills folder named.",
+		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints help; `gloss skill show` prints the skill; `gloss skill install` writes it where the agents on this machine look, or into the skills folder named.",
 		Examples: []example{
 			{"Install it for the agents found on this machine", "gloss skill install"},
 			{"Or into the skills folder named", "gloss skill install ~/.claude/skills"},
-			{"Print it, to place by hand", "gloss skill"},
+			{"Print it, to place by hand", "gloss skill show"},
 		},
 	},
 	{

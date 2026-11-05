@@ -18,7 +18,7 @@ Press `w` to open a file in its native app, `W` to choose an app and save a defa
 
 For local images, SVG, Mermaid, and PDF, `--strict` requires OS-confined
 loading and refuses unsupported paths or unavailable confinement. See the
-[formats guide](docs/hugo/content/guide/formats.md#opt-in-strict-document-loading)
+[formats guide](https://nimbleterminal.github.io/gloss/docs/guide/formats/#opt-in-strict-document-loading)
 for its scope; normal mode remains the default.
 
 ## Install
