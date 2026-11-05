@@ -21,11 +21,11 @@ require (
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
 	github.com/spf13/pflag v1.0.10
-	github.com/yuin/goldmark v1.8.6
+	github.com/yuin/goldmark v1.8.7
 	github.com/yuin/goldmark-emoji v1.0.6
 	github.com/zkrebbekx/go-mermaid v0.1.6
 	golang.org/x/image v0.47.0
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 	nimbleterminal.dev/nt3d v0.2.0
 	nimbleterminal.dev/ntfilepicker v0.1.0
 	nimbleterminal.dev/ntfonts v0.1.0
@@ -35,13 +35,13 @@ require (
 	nimbleterminal.dev/ntpicture v0.1.1
 	nimbleterminal.dev/ntqrcode v0.3.1
 	nimbleterminal.dev/ntsvg v0.5.1
-	nimbleterminal.dev/nttypeset v0.1.3
+	nimbleterminal.dev/nttypeset v0.1.8
 	nimbleterminal.dev/ntvideo v0.3.0
 )
 
 require (
 	github.com/JohannesKaufmann/dom v0.3.1 // indirect
-	github.com/NimbleMarkets/oksvg v0.1.2 // indirect
+	github.com/NimbleMarkets/oksvg v0.1.4 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
@@ -53,11 +53,10 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/creack/pty v1.1.24 // indirect
-	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
+	github.com/dlclark/regexp2/v2 v2.12.0 // indirect
 	github.com/dunglas/httpsfv v1.1.2 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/ebitengine/purego v0.11.2 // indirect
-	github.com/go-text/render v0.2.1 // indirect
 	github.com/go-webgpu/goffi v0.6.7 // indirect
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
@@ -80,7 +79,6 @@ require (
 	github.com/quic-go/quic-go v0.63.0 // indirect
 	github.com/quic-go/webtransport-go v0.13.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
