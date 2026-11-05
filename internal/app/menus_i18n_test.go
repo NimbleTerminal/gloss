@@ -46,7 +46,7 @@ func TestActionMenusSpeakTheLanguage(t *testing.T) {
 	}{
 		{"es", []string{"Abrir con…", "Editar con…", "Copiar imagen", "Copiar ruta"},
 			[]string{"Abrir tabla con…", "Copiar como TSV", "Copiar como Markdown"}, "Ruta copiada", "Tabla copiada"},
-		{"zh-Hans", []string{"打开方式…", "编辑方式…", "复制图片", "复制路径"},
+		{"zh-Hans", []string{"打开方式…", "选择编辑应用…", "复制图片", "复制路径"},
 			[]string{"用应用打开表格…", "复制为 TSV", "复制为 Markdown"}, "路径已复制", "表格已复制"},
 	} {
 		t.Run(c.tag, func(t *testing.T) {
@@ -113,7 +113,7 @@ func TestOpenWithChooserSpeaksTheLanguage(t *testing.T) {
 	}{
 		{"es", "Abrir con — note.md", "Editar con — note.md", "Predeterminada del sistema (predeterminada)", "Mostrar en Finder",
 			"Copiar ruta", "Tab editar con", "Editar en la terminal", "Gestionar apps — todos los formatos", "No hay apps instaladas que gestionar", "Esc cerrar"},
-		{"zh-Hans", "打开方式 — note.md", "编辑方式 — note.md", "系统默认（默认）", "在 Finder 中显示",
+		{"zh-Hans", "打开方式 — note.md", "选择编辑应用 — note.md", "系统默认（默认）", "在 Finder 中显示",
 			"复制路径", "Enter 打开", "在终端中编辑", "管理应用 — 所有格式", "没有可管理的已安装应用", "Esc 关闭"},
 	} {
 		t.Run(c.tag, func(t *testing.T) {

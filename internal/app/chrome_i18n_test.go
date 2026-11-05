@@ -111,7 +111,7 @@ func TestSheetStatusAndHintsSpeakTheLanguage(t *testing.T) {
 		tag        string
 		bar, hints []string
 	}{
-		{"es", []string{"celda A1", "fila 1–2/2", "col A–B/B"}, []string{"q salir", "m archivos", "mover", "n/p archivos"}},
+		{"es", []string{"celda A1", "filas 1–2/2", "col A–B/B"}, []string{"q salir", "m archivos", "mover", "n/p archivos"}},
 		{"zh-Hans", []string{"单元格 A1", "行 1–2/2", "列 A–B/B"}, []string{"q 退出", "移动", "n/p 文件", "c 列"}},
 	} {
 		t.Run(c.tag, func(t *testing.T) {
