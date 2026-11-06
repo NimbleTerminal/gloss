@@ -129,9 +129,9 @@ func bashCompletion(f *pflag.FlagSet) string {
     fi
     COMPREPLY=()
     if [[ ${COMP_WORDS[1]} == skill && ${COMP_CWORD} -ge 2 ]]; then
-        # gloss skill show | install [agent | rex] [FOLDER]
+        # gloss skill show | install [agent | rex] [FOLDER] | schema
         if [[ ${COMP_CWORD} -eq 2 ]]; then
-            COMPREPLY=( $(compgen -W "show install" -- "$cur") )
+            COMPREPLY=( $(compgen -W "show install schema" -- "$cur") )
         elif [[ ${COMP_CWORD} -eq 3 && ${COMP_WORDS[2]} == install ]]; then
             compopt -o filenames 2>/dev/null
             COMPREPLY=( $(compgen -W "agent rex" -- "$cur") $(compgen -d -- "$cur") )
@@ -269,7 +269,7 @@ end
 	for _, v := range verbs {
 		b.WriteString("complete -c gloss -n __fish_use_subcommand -a " + v.Name + " -d " + fishQuote(v.Summary) + "\n")
 	}
-	b.WriteString("complete -c gloss -n '__fish_seen_subcommand_from skill; and not __fish_seen_subcommand_from show install' -f -a 'show install'\n")
+	b.WriteString("complete -c gloss -n '__fish_seen_subcommand_from skill; and not __fish_seen_subcommand_from show install schema' -f -a 'show install schema'\n")
 	b.WriteString("complete -c gloss -n '__fish_seen_subcommand_from skill; and __fish_seen_subcommand_from install; and not __fish_seen_subcommand_from agent rex' -x -a 'agent rex (__fish_complete_directories)'\n")
 	b.WriteString("complete -c gloss -n '__fish_seen_subcommand_from skill; and __fish_seen_subcommand_from install; and __fish_seen_subcommand_from agent rex' -x -a '(__fish_complete_directories)'\n")
 	b.WriteString("complete -c gloss -n '__fish_seen_subcommand_from help' -f -a '" + verbWords + "'\n\n")

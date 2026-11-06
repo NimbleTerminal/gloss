@@ -13,6 +13,7 @@ bookToC: false
 - [按键](/gloss/docs/guide/controls/)（英文）
 - [文件浏览器](/gloss/docs/guide/browser/)（英文）
 - [索取文件](/gloss/docs/guide/handoff/)（英文）
+- [操控运行中的查看器](/gloss/docs/guide/remote/)（英文）
 - [Markdown](/gloss/docs/guide/markdown/)（英文）
 - [面向智能体](/gloss/docs/guide/agents/)（英文）
 - [格式与限制](/gloss/docs/guide/formats/)（英文）

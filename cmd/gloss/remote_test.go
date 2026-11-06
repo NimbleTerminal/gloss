@@ -57,6 +57,9 @@ func TestRemoteFlags(t *testing.T) {
 	if opts, _, err = parse([]string{"--socket", "preview", "--pick", "a.pdf"}, &bytes.Buffer{}); err != nil || opts.Socket != "preview" || !opts.Pick {
 		t.Fatalf("%+v %v", opts, err)
 	}
+	if err := run([]string{"--socket", "preview", "--pick", "a.pdf"}); err == nil || !strings.Contains(err.Error(), "--socket is the terminal viewer's") {
+		t.Fatalf("--socket --pick without a terminal: %v", err)
+	}
 	for _, args := range [][]string{
 		{"--remote", "preview", "--serve"}, {"--remote", "preview", "--pick"}, {"--remote", "preview", "--output", "x.png", "a.pdf"},
 		{"--remote", "preview", "--info", "a.pdf"}, {"--remote", "preview", "--text", "a.pdf"}, {"--remote", "preview", "--print", "a.pdf"},

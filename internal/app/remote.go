@@ -72,25 +72,29 @@ func (m *Model) remoteOpen(v RemoteMsg) tea.Cmd {
 			paths[i] = filepath.Clean(path)
 		}
 	}
-	dismissed := m.dismissOverlays()
 	if len(paths) == 1 && isAddress(paths[0]) {
 		if m.opts.Fetch == nil {
 			v.answer(remote.Response{Error: "the viewer was not run with --fetch, so it opens no addresses"})
-			return dismissed
+			return nil
 		}
 		cmd := m.open(paths[0])
 		if cmd == nil {
 			v.answer(remote.Response{Error: m.note})
-			return dismissed
+			return nil
 		}
+		var resume tea.Cmd
+		if m.listing() {
+			resume = m.closeMenu(false)
+		}
+		dismissed := m.dismissOverlays()
 		v.answer(m.remoteStatus(remote.Response{OK: true}))
-		return tea.Batch(dismissed, cmd)
+		return tea.Batch(resume, dismissed, cmd)
 	}
 	if slices.ContainsFunc(paths, isAddress) {
 		v.answer(remote.Response{Error: "open takes one address at a time, by itself"})
-		return dismissed
+		return nil
 	}
-	return tea.Batch(dismissed, m.probeInto(paths, dropResult{page: v.Request.Page, reply: v.Reply}))
+	return m.probeInto(paths, dropResult{remote: true, page: v.Request.Page, reply: v.Reply})
 }
 
 func isAddress(s string) bool {
@@ -132,6 +136,7 @@ func (m *Model) answerDrop(r dropResult, added int, opened bool) {
 // menu, which is left for the file it set aside.
 func (m *Model) dismissOverlays() tea.Cmd {
 	m.help, m.helpOffset = false, 0
+	m.lineInput, m.placeInput = nil, nil
 	cmd := m.closeLayer()
 	m.clearSearch()
 	if m.typeset != nil {
@@ -142,7 +147,7 @@ func (m *Model) dismissOverlays() tea.Cmd {
 	if m.browsing() {
 		m.showDocument()
 	}
-	if m.listing() {
+	if m.listing() || m.suspended {
 		// As closeMenu, without loading: the request loads what it wants.
 		m.selection = m.index
 		m.screen, m.suspended = screenDocument, false

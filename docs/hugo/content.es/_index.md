@@ -26,7 +26,7 @@ gloss --info --json model.3mf             # what a file says about itself
 ## Dónde mirar
 
 - **[Guía](guide/)**: instalación, las teclas, cómo pedirle un archivo al usuario, los formatos que abre gloss y sus límites, y cómo usarlo desde un agente.
-- **[Referencia de comandos](/gloss/docs/command/)** (English): todas las opciones, agrupadas según su función. gloss no tiene subcomandos; es un solo comando con grupos de opciones.
+- **[Referencia de comandos](/gloss/docs/command/)** (English): todas las opciones, agrupadas según su función, y los comandos `skill` y `help`.
 - **[Para LLM](/gloss/docs/guide/for-llms/)** (English): la skill que gloss incluye para enseñar a un agente su superficie sin interfaz (`gloss skill show`).
 
 La página de manual, `gloss(1)`, se incluye en los archivos de cada versión y en el paquete Debian.

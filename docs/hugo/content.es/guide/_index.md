@@ -13,6 +13,7 @@ Cómo instalar gloss, cómo usarlo, qué hacen sus teclas, qué abre y cómo lo 
 - [Controles](/gloss/docs/guide/controls/) (English)
 - [El explorador de archivos](/gloss/docs/guide/browser/) (English)
 - [Pedir un archivo](/gloss/docs/guide/handoff/) (English)
+- [Dirigir un visor en ejecución](/gloss/docs/guide/remote/) (English)
 - [Markdown](/gloss/docs/guide/markdown/) (English)
 - [Para agentes](/gloss/docs/guide/agents/) (English)
 - [Formatos y límites](/gloss/docs/guide/formats/) (English)

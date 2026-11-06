@@ -26,7 +26,7 @@ gloss --info --json model.3mf             # what a file says about itself
 ## 从哪里看起
 
 - **[指南](guide/)**：安装、按键、向用户索取文件、gloss 能打开的格式及其限制，以及如何在智能体中使用。
-- **[命令参考](/gloss/docs/command/)**（英文）：所有选项，按用途分组。gloss 没有子命令；它是一个命令，带有成组的选项。
+- **[命令参考](/gloss/docs/command/)**（英文）：所有选项，按用途分组，以及 `skill` 和 `help` 命令。
 - **[面向 LLM](/gloss/docs/guide/for-llms/)**（英文）：gloss 自带的 skill，用来教智能体了解它的无界面功能（`gloss skill show`）。
 
 手册页 `gloss(1)` 随发布压缩包和 Debian 软件包一起提供。

@@ -44,7 +44,7 @@ func (m *Model) showingInfo() bool  { return m.layer == layerInfo }
 // color still being chosen.
 func (m *Model) closeLayer() tea.Cmd {
 	was := m.layer
-	m.layer, m.actions = layerNone, nil
+	m.layer, m.actions, m.openWithPicker = layerNone, nil, nil
 	switch was {
 	case layerOpenWith:
 		return m.closeOpenWith()

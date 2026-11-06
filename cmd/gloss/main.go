@@ -574,6 +574,9 @@ func run(args []string) (err error) {
 	// With no terminal to answer, a pick or a page must not hold its
 	// caller: the server runs apart and the start says where it is.
 	if (opts.Pick || opts.Serve) && !stdinTTY && opts.Detached == "" && !exporting && !opts.Info {
+		if opts.Socket != "" {
+			return fmt.Errorf("--socket is the terminal viewer's: without a terminal on standard input, --pick runs --serve")
+		}
 		return handoff.Detach(args, handoffConfig(opts), os.Stdout, os.Stderr)
 	}
 	// System, in the language picker, is the language without a saved choice.

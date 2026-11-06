@@ -21,8 +21,9 @@ type dropResult struct {
 	folder  string // The first folder dropped, to browse when no file came.
 	// A request from outside says where to start and waits to hear what
 	// became of its files; a drop does neither.
-	page  int
-	reply chan<- remote.Response
+	remote bool
+	page   int
+	reply  chan<- remote.Response
 }
 
 // Skipped lists the dropped files that could not be added.
@@ -117,32 +118,47 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	if first < 0 {
 		m.answerDrop(r, added, r.folder != "")
 		if r.folder != "" {
-			return m.browseFrom(r.folder)
+			var dismissed tea.Cmd
+			if r.remote {
+				dismissed = m.dismissOverlays()
+			}
+			return tea.Batch(dismissed, m.browseFrom(r.folder))
 		}
 		return nil
+	}
+	var dismissed tea.Cmd
+	if r.remote {
+		dismissed = m.dismissOverlays()
 	}
 	m.help = false
 	if m.browsing() {
 		m.showDocument()
 	}
 	defer m.answerDrop(r, added, true)
+	var cmd tea.Cmd
 	switch {
 	case added > 1 && m.listing():
 		m.selection = first
-		return tea.Batch(m.updatePreview(), m.layoutGrid())
+		cmd = tea.Batch(m.updatePreview(), m.layoutGrid())
 	case added > 1:
-		return m.openMenu(first)
+		cmd = m.openMenu(first)
 	case m.listing():
 		m.selection = first
-		return m.closeMenu(true)
-	case r.page > 0:
-		// Asked to start on a page: the file starts over there, even the
-		// one on screen.
-		return m.showRestoring(first, func() { m.page = r.page })
+		cmd = m.closeMenu(true)
+	case r.remote || r.page > 0:
+		// Asked from outside, or to start on a page: the file starts over,
+		// even the one on screen.
+		cmd = m.showRestoring(first, func() {
+			if r.page > 0 {
+				m.page = r.page
+			}
+		})
 	case first == m.index:
-		return m.load(true)
+		cmd = m.load(true)
+	default:
+		cmd = m.switchFile(first - m.index)
 	}
-	return m.switchFile(first - m.index)
+	return tea.Batch(dismissed, cmd)
 }
 
 type outsideDrop struct{ paths []string }
