@@ -1,6 +1,29 @@
 # `gloss` CHANGELOG
 
-## Unreleased
+## `v0.6.0` (2026-11-06)
+
+- Steer a running viewer from another program: `gloss --socket NAME` listens,
+  `gloss --remote NAME FILE` shows the file in it, whatever it is doing.
+- Join gloss to the Rex terminal multiplexer: `gloss skill install rex`, then
+  `cmd+shift+g` for a gloss split that follows your shell and editor.
+- Name what `gloss skill install` installs: `agent` (the default, as before)
+  and `rex`.
+- See HTML pages as their own HTML and CSS lay them out, and export them.
+- Open GeoJSON, GPX and PMTiles files as maps; with `--fetch`, name a tile
+  service and a place lookup of your own.
+- Speak Spanish and Simplified Chinese; `F2` picks a language.
+- Reflow typeset text and HTML pages when zooming, in finer steps, down to 20%.
+- Open large text faster, typeset long files in chunks, and highlight patches
+  piped from git.
+- Load pictures, SVG, Mermaid and PDF in OS-confined workers with `--strict`,
+  and decode video out of process with `--video-sandbox`.
+- Draw Greek, Cyrillic, Vietnamese, arrows, maths signs and shapes in typeset
+  text; keep SVG rounded corners.
+- Enforce `--accept` in the browser's finder; refresh the rendering libraries
+  and the web terminal.
+
+<details>
+<summary>Steering a viewer, and Rex</summary>
 
 - Steer a running viewer from another program: `gloss --socket NAME FILE`
   listens on a Unix socket, and `gloss --remote NAME FILE [--page N]` shows the
@@ -14,50 +37,21 @@
 - Join gloss to the Rex terminal multiplexer: `gloss skill install rex` writes
   `gloss.lua` and `gloss-companion.lua` into Rex's config folder, adds
   `require("gloss")` to `init.lua` once, and has Rex reload its config.
-  `cmd+shift+g` (`gloss_companion`) opens a
-  gloss split beside the block at hand that follows the shell's folder and the
-  editor's file over the socket, and `rex do gloss_push file=PATH` shows a
-  file in it. `gloss skill install` now has a name for what it installs:
-  `gloss skill install agent` is the former `gloss skill install`.
+  `cmd+shift+g` (`gloss_companion`) opens a gloss split beside the block at
+  hand, starting on the file the editor there shows or the folder's README,
+  and follows the shell's folder and the editor's file over the socket;
+  `rex do gloss_push file=PATH [page=N]` shows a file in it. The actions find
+  `gloss` and `rex` through the login shell, taking a gloss that knows
+  `--socket` over an older one.
+- `gloss skill install` now has a name for what it installs: `gloss skill
+  install agent` is the former `gloss skill install`, and `rex` is new. A
+  folder named like one of them is `./agent` or `./rex`.
 
-## `v0.6.0` (2026-11-05)
+</details>
 
-- Reflow typeset text and HTML pages when zooming, fitting wrapped text to
-  the viewport. Zoom out to 20%; `0` restores 100%.
+<details>
+<summary>HTML pages and maps</summary>
 
-- Export HTML with `--typeset` through the shared reading typesetter, preserving
-  supported CSS styles and local images. Reuse HTML page painting resources
-  while scrolling.
-
-- Open large text and source views faster, and highlight patches piped from
-  `git log --patch` or `git diff` without needing a filename.
-- Typeset long text and source files in chunks, with full-file Home/End,
-  go-to-line and line numbering beyond the former 2 MiB limit.
-
-- Use finer zoom steps in typeset and HTML page views: 100%, 110%, 120%,
-  instead of doubling with each press of `+`.
-
-- Add opt-in `--strict` loading for native still images, SVG, Mermaid, and
-  PDF, including detection, metadata, text, previews, and exports. Unsupported
-  paths or unavailable OS confinement fail without a weaker retry.
-- Add `--video-sandbox` for native video playback decoded in a confined
-  subprocess, using silent software decoding.
-- Enforce `--accept` when opening a file from the browser's `/` finder.
-
-- Refresh the native rendering libraries. The browser demo and `--serve` use
-  ntwebterm through Booba 0.12.1, including input, paste, and Arabic shaping
-  fixes.
-
-- Speak Spanish and Simplified Chinese: the help, status line, the viewer's
-  notes and messages, menus and choosers, the file browser's help, the
-  details box (`i`), search, export, handoff screen and
-  `--serve`/`--pick-web` pages follow `--lang`, `GLOSS_LANG` or the terminal's
-  locale (a detached page follows the browser), and numbers are written to
-  match. Scripts stay in English unless `--lang` is given; keys, options and
-  exit codes never change. Drafts awaiting native review; the docs site has
-  Spanish and Chinese guides.
-- `F2` opens a language picker that previews as you move; the terminal viewer
-  remembers the choice, which `GLOSS_LANG` and `--lang` still override.
 - See HTML pages as their own HTML and CSS lay them out (nthtml), with their
   local pictures, in your font and theme where they set none and in their own
   dark colours under a dark theme: `t` in the viewer, scrolled and zoomed like
@@ -66,6 +60,9 @@
   in the thumbnail grid, and with `--output`, in slices that end between
   lines. Exporting one was refused before; `--typeset` still exports the
   Markdown made of it.
+- Export HTML with `--typeset` through the shared reading typesetter, preserving
+  supported CSS styles and local images. Reuse HTML page painting resources
+  while scrolling.
 - Open GeoJSON and GPX files as maps: places as pins, tracks, routes and lines
   as lines, areas as outlines, framed to fit. Pan with the arrows or a drag,
   zoom with `+`/`-` or the wheel, `f` frames the whole file again, and `i`
@@ -83,9 +80,56 @@
   Nominatim-compatible lookup (`GLOSS_GEOCODER`). gloss names no service of
   its own; tiles are fetched only for the screen and kept in memory, each place
   is asked once a session, and headless modes stay offline.
+
+</details>
+
+<details>
+<summary>Languages</summary>
+
+- Speak Spanish and Simplified Chinese: the help, status line, the viewer's
+  notes and messages, menus and choosers, the file browser's help, the
+  details box (`i`), search, export, handoff screen and
+  `--serve`/`--pick-web` pages follow `--lang`, `GLOSS_LANG` or the terminal's
+  locale (a detached page follows the browser), and numbers are written to
+  match. Scripts stay in English unless `--lang` is given; keys, options and
+  exit codes never change. Drafts awaiting native review; the docs site has
+  Spanish and Chinese guides.
+- `F2` opens a language picker that previews as you move; the terminal viewer
+  remembers the choice, which `GLOSS_LANG` and `--lang` still override.
+
+</details>
+
+<details>
+<summary>Typeset text and zoom</summary>
+
+- Reflow typeset text and HTML pages when zooming, fitting wrapped text to
+  the viewport. Zoom out to 20%; `0` restores 100%.
+- Use finer zoom steps in typeset and HTML page views: 100%, 110%, 120%,
+  instead of doubling with each press of `+`.
+- Open large text and source views faster, and highlight patches piped from
+  `git log --patch` or `git diff` without needing a filename.
+- Typeset long text and source files in chunks, with full-file Home/End,
+  go-to-line and line numbering beyond the former 2 MiB limit.
 - Typeset text draws Greek, Cyrillic, Vietnamese, arrows, maths signs, check
   marks and shapes, which were blank before. SVG rectangles keep their rounded
   corners (`rx`), Mermaid boxes included.
+
+</details>
+
+<details>
+<summary>Confined loading, accept, and libraries</summary>
+
+- Add opt-in `--strict` loading for native still images, SVG, Mermaid, and
+  PDF, including detection, metadata, text, previews, and exports. Unsupported
+  paths or unavailable OS confinement fail without a weaker retry.
+- Add `--video-sandbox` for native video playback decoded in a confined
+  subprocess, using silent software decoding.
+- Enforce `--accept` when opening a file from the browser's `/` finder.
+- Refresh the native rendering libraries. The browser demo and `--serve` use
+  ntwebterm through Booba 0.12.1, including input, paste, and Arabic shaping
+  fixes.
+
+</details>
 
 ## `v0.5.0` (2026-10-23)
 
