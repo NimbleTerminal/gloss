@@ -20,10 +20,13 @@ var parserSlots = make(chan struct{}, 2)
 var parserCommand = defaultParserCommand
 var inParserWorker bool
 
+// defaultParserCommand confines the worker, this executable, to the library
+// paths, its own binary and, on Linux, the dynamic loaders: a gloss built with
+// cgo is dynamically linked, and execve needs the loader as well as the binary.
 func defaultParserCommand(exe string, required bool) (*exec.Cmd, error) {
 	cmd, _, err := ntmediabox.Command(ntmediabox.HelperConfig{
 		WorkerPath: exe, WorkerArgs: []string{parserWorkerArg},
-		Policy: ntmediabox.Policy{ReadPaths: ntmediabox.DefaultLibPaths(), ExecPaths: []string{exe}, AllowUnsandboxed: !required},
+		Policy: ntmediabox.Policy{ReadPaths: ntmediabox.DefaultLibPaths(), ExecPaths: append(ntmediabox.DefaultExecPaths(), exe), AllowUnsandboxed: !required},
 	})
 	return cmd, err // A policy or stage error never triggers a direct-exec retry.
 }
