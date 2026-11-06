@@ -14,8 +14,9 @@
 -- Arguments: source_block (default: the block this runs in), label (default
 -- gloss-preview), socket (default: derived from the session and label, as
 -- gloss.lua derives it), gloss (the binary to run; default: gloss on the PATH),
--- file (what to show first; default: the folder's README or the folder itself),
--- page (the page of that first file).
+-- file (what to show first; default: the file an editor in the pane names in
+-- its title, else the folder's README or the folder itself), page (the page of
+-- that first file).
 
 local TERMINAL = "com.superlogical.terminal"
 local SHELL_FLAVOR = "com.superlogical.terminal.shell"
@@ -195,7 +196,23 @@ local function schedule(target)
   end)
 end
 
-open_split(rex.args.file)
+-- source_title is the title the source block's program last set, or nil.
+local function source_title()
+  local res = rex.block.call(TERMINAL, "title", { block_id = source_block_id })
+  local title = res and res.title
+  if title and title ~= "" then
+    return title
+  end
+  return nil
+end
+
+-- The first target: the file asked for; else the file an editor already open
+-- in the pane names in its title; else the folder's landing (open_split's own).
+local first = rex.args.file
+if not first then
+  first = file_in_title(source_title(), source_dir())
+end
+open_split(first)
 
 rex.on("terminal.pwd_changed", function(ctx, ev)
   if ctx.block_id ~= source_block_id then
