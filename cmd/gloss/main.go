@@ -93,7 +93,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringVar(&opts.Mono, "mono", "", "Override typeset code face: jetbrains")
 	f.StringVar(&opts.Theme, "theme", "auto", "Colors: "+strings.Join(themeNames(), ", ")+", or theme JSON file")
 	f.StringVar(&opts.Lang, "lang", "", "language of gloss's own words and number formats (BCP 47 or POSIX, e.g. es, zh-Hans, de_DE); options stay English")
-	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, plain text, source code, and JSON as graphics")
+	f.BoolVar(&opts.Typeset, "typeset", false, "Typeset Markdown, HTML, plain text, source code, and JSON as graphics")
 	f.BoolVarP(&opts.LineNumbers, "line-numbers", "N", false, "number the lines of plain text, source code, JSON and Markdown source (# toggles, : goes to a line)")
 	f.BoolVarP(&opts.ChopLines, "chop-long-lines", "S", false, "cut long lines at the right edge instead of wrapping them, as less -S does (S toggles, arrows scroll sideways)")
 	f.StringVar(&opts.MarkdownMode, "markdown", "text", "Markdown renderer: text, typeset (direct graphics)")

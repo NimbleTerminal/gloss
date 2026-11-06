@@ -29,6 +29,7 @@ var htmlLimits = nthtml.Limits{Bytes: 2 << 20, Nodes: 40000}
 // htmlView is an HTML page laid out by its own CSS for the viewer, kept
 // while it is shown: a scroll paints another band of it.
 type htmlView struct {
+	painter   *nthtml.Painter
 	result    *nthtml.Result
 	index     *nthtml.TextIndex // Its painted text, for selecting.
 	serial    int               // Which layout this is, as placed selection ends say.
@@ -82,8 +83,13 @@ func (l *Loader) layHTMLView(q Request, data []byte, page *Page, baseDir string,
 	for _, w := range res.Warnings {
 		info = append(info, Field{"Warning", w})
 	}
+	painter, err := res.NewPainter(q.Context)
+	if err != nil {
+		out.Err = err
+		return
+	}
 	l.htmlSerial++
-	l.html = &htmlView{result: res, index: res.TextIndex(), serial: l.htmlSerial, markdown: md, info: append(file, info...), width: width, hash: sha256.Sum256(data), base: q.BaseDir, typ: q.Type, font: FontKey(q.Font, q.Mono), theme: q.Theme.Name}
+	l.html = &htmlView{painter: painter, result: res, index: res.TextIndex(), serial: l.htmlSerial, markdown: md, info: append(file, info...), width: width, hash: sha256.Sum256(data), base: q.BaseDir, typ: q.Type, font: FontKey(q.Font, q.Mono), theme: q.Theme.Name}
 	l.path = q.Path
 	*out = l.renderHTMLView(q)
 }
@@ -98,22 +104,9 @@ func layOutHTML(ctx context.Context, q Request, data []byte, width int, baseDir 
 	}
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	doc, err := nthtml.Parse(ctx, bytes.NewReader(data), htmlLimits)
-	if errors.Is(err, nthtml.ErrLimit) {
-		return nil, fmt.Errorf("the page is too large to lay out (%w)", err)
-	}
+	doc, o, err := prepareHTML(ctx, q, data, width, baseDir, files)
 	if err != nil {
 		return nil, err
-	}
-	o := nthtml.Options{Width: width, Images: htmlImages(ctx, doc.ImageSources(), baseDir, files), NoImage: true}
-	if q.Theme.Dark {
-		o.ColorScheme = "dark"
-	}
-	if look, err := ResolveFont(q.Font, q.Mono); err == nil {
-		o.FontFamilies = nthtml.FontFamilies{Default: look.Body, Monospace: look.Code}
-	}
-	if p := q.Theme.Palette; p.Background.A > 0 {
-		o.Colors = nthtml.Colors{Background: p.Background, Text: p.Foreground, Link: p.Accent}
 	}
 	res, err := doc.Render(ctx, o)
 	if errors.Is(err, nthtml.ErrLimit) {
@@ -167,7 +160,7 @@ func (l *Loader) renderHTMLView(q Request) (out Result) {
 		return image.Pt(int(math.Round((float64(p.X)*htmlScale-float64(left))*scale)), int(math.Round((float64(p.Y)*htmlScale-float64(top))*scale)))
 	}
 	if !area.Empty() {
-		painted, err := h.result.Paint(ctx, area, htmlScale*scale)
+		painted, err := h.painter.Paint(ctx, area, htmlScale*scale)
 		if err != nil {
 			out.Err = err
 			return
@@ -254,4 +247,27 @@ func (h *htmlView) selection(asked TypesetSelection) (TypesetSelection, string, 
 	}
 	start, end := min(a.Start, f.Start), max(a.End, f.End)
 	return TypesetSelection{Anchor: anchor, Focus: focus}, h.index.Selected(start, end), start, end
+}
+
+// prepareHTML shares bounded parsing, local assets and style defaults between
+// CSS page layout and the HTML-to-nttypeset reading adapter.
+func prepareHTML(ctx context.Context, q Request, data []byte, width int, baseDir string, files fs.FS) (*nthtml.Document, nthtml.Options, error) {
+	doc, err := nthtml.Parse(ctx, bytes.NewReader(data), htmlLimits)
+	if errors.Is(err, nthtml.ErrLimit) {
+		return nil, nthtml.Options{}, fmt.Errorf("the page is too large to lay out (%w)", err)
+	}
+	if err != nil {
+		return nil, nthtml.Options{}, err
+	}
+	o := nthtml.Options{Width: width, Images: htmlImages(ctx, doc.ImageSources(), baseDir, files), NoImage: true}
+	if q.Theme.Dark {
+		o.ColorScheme = "dark"
+	}
+	if look, err := ResolveFont(q.Font, q.Mono); err == nil {
+		o.FontFamilies = nthtml.FontFamilies{Default: look.Body, Monospace: look.Code}
+	}
+	if p := q.Theme.Palette; p.Background.A > 0 {
+		o.Colors = nthtml.Colors{Background: p.Background, Text: p.Foreground, Link: p.Accent}
+	}
+	return doc, o, nil
 }

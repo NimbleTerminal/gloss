@@ -30,7 +30,7 @@ func layoutHTML(q Request, data []byte, baseDir string, files fs.FS, out *Result
 	res, err := layOutHTML(ctx, q, data, htmlLayoutWidth, baseDir, files)
 	if err != nil {
 		if errors.Is(err, nthtml.ErrLimit) {
-			return fmt.Errorf("%w: export it with --typeset", err)
+			return fmt.Errorf("%w: read it with --text", err)
 		}
 		return err
 	}

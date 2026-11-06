@@ -2,6 +2,10 @@
 
 ## `v0.6.0` (2026-11-05)
 
+- Export HTML with `--typeset` through the shared reading typesetter, preserving
+  supported CSS styles and local images. Reuse HTML page painting resources
+  while scrolling.
+
 - Open large text and source views faster, and highlight patches piped from
   `git log --patch` or `git diff` without needing a filename.
 - Typeset long text and source files in chunks, with full-file Home/End,

@@ -343,12 +343,12 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   including PNG/JPEG/GIF/SVG picture outputs.
 - **HTML**: converted to Markdown via html-to-markdown; nothing is fetched.
   Laid out by its own CSS through `nimbleterminal.dev/nthtml/document` (the
-  `document` package only, no Bubble Tea): `layOutHTML` in
+  `document` and `typeset` packages, no Bubble Tea): `layOutHTML` in
   `internal/document/html_view.go` parses and lays out with
   `Options.NoImage`, its pictures from `htmlImages` (`ImageSources`: img
   and CSS `url()` backgrounds, beside the page or data: URLs, Markdown's
-  budget), `Options.ColorScheme` "dark" under a dark theme, and `Result.Paint` draws only what is
-  wanted. `htmlLimits` raise nthtml's input to 2 MiB and nodes to 40,000;
+  budget), `Options.ColorScheme` "dark" under a dark theme, and a retained `Result.NewPainter` draws only what is
+  wanted, closed when the layout is replaced or the document leaves. `htmlLimits` raise nthtml's input to 2 MiB and nodes to 40,000;
   `Options.FontFamilies` takes the request's font look (body, code) and
   `Options.Colors` its theme palette (background, foreground, accent for
   links); fonts where an element names none, colors only when the page sets
@@ -367,7 +367,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   `TypesetItemsAll`), outlined by `outlineFocus` like Markdown's; a `#id`
   link (`pageFragment` in `links.go`) is not handed to `OpenLink`: a click
   or the menu's Go to sets `typesetGoLink`, which `renderHTMLView` scrolls to
-  through `Result.Anchors` (an unknown id stays put). The Markdown rides along as `Result.Typeset` for `s` and `/`;
+  through `Result.Anchors` (an unknown id stays put). Headless `--typeset` exports use `nthtml/typeset.BuildWithSources` directly
+  through the shared typeset renderer (`html_typeset.go`), with the documented
+  reading CSS subset and its canvas palette; no Markdown conversion. Parsing,
+  local assets and theme/font defaults are shared in `prepareHTML`.
+  The Markdown rides along as `Result.Typeset` for `s` and `/`;
   a page over nthtml's limits is shown as that text, the reason under `i`.
 - **Word** (.docx/.docm): converted to Markdown.
 - **Excel** (.xlsx/.xlsm): sheets as scrollable grids (`n`/`p` switch sheets);

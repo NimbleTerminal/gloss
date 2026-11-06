@@ -233,8 +233,14 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
   `--page all` with `--output-dir` makes them all). nthtml takes a subset of
   CSS (floats, positioning, flexbox and grid in part) and pages up to
   2 MiB, 40,000 nodes (elements and runs of text) and 262,144 pixels high. A larger page is shown as its
-  text, with the reason under `i`, and is an export error that points at
-  `--typeset`, which exports its Markdown instead.
+  text, with the reason under `i`; export limits are errors (`--text` remains
+  available). With `--typeset --output`, HTML goes directly through nthtml’s
+  [reading subset](https://github.com/NimbleTerminal/nthtml/blob/v0.5.0/docs/typeset-subset.md)
+  into the shared text/Markdown typesetter: headings, text styles, spacing,
+  local images and supported tables retain their documented CSS. This is a
+  reading layout, with unsupported CSS simplified; use ordinary `--output`
+  for the broader CSS page layout. Both paths limit HTML to 2 MiB and 40,000
+  nodes; reading exports also use the typesetter’s layout and raster limits.
 - Word (`.docx`, `.docm`): turned into Markdown and shown as such, so `s` shows
   the Markdown. Headings, lists, tables, links, pictures, and bold, italic, and
   struck text are kept; page layout, headers and footers, footnotes, comments,

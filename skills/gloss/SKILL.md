@@ -161,8 +161,11 @@ cat drawing.svg | gloss --output - --max-edge 1024 > diagram.png
 - An HTML page is drawn as its HTML and CSS lay it out (800 pixels wide, a
   subset of CSS, local pictures only, nothing fetched), in slices of up to 1125
   pixels that end between lines; `pages` in the manifest counts them. A page
-  over 1 MiB or 16,384 pixels high is an error: add `--typeset` to export its
-  Markdown, or read it with `--text`.
+  over 2 MiB, 40,000 nodes or 262,144 pixels high is an error; use `--text`
+  for text extraction. `--typeset --output` exports nthtml’s documented HTML/CSS
+  reading subset through the shared text/Markdown typesetter, preserving
+  supported styles and local images while simplifying unsupported CSS. It
+  has the same HTML input/node limits and the typesetter’s layout limits.
 - Size is a pixel budget: **pass `--max-edge`** (1–4096, default 1536) set from
   what your model accepts. Aspect ratio is preserved, transparency flattened
   to white, small sources not enlarged.

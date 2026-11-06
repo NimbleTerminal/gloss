@@ -316,6 +316,9 @@ func (l *Loader) Close() error {
 }
 
 func (l *Loader) closePDF() error {
+	if l.html != nil {
+		l.html.painter.Close()
+	}
 	l.path, l.pages = "", 0
 	l.typeset, l.typesetBase, l.html = nil, "", nil
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
@@ -543,6 +546,9 @@ func (l *Loader) Load(q Request) (out Result) {
 		out.Text = doc.Plain
 		details = func() []Field { return doc.fields(q.Locale) }
 	case "html":
+		if q.MarkdownMode == "typeset" && q.TypesetView == nil && !q.TextOnly {
+			return typesetHTML(q, data, cmp.Or(q.BaseDir, filepath.Dir(q.Path)), l.Files, file)
+		}
 		details = func() []Field { return Section("Page", Field{"Format", "HTML"}) }
 		page, err := ReadHTML(data)
 		if err != nil {

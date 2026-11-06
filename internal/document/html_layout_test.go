@@ -2,6 +2,7 @@ package document
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"image/color"
 	"image/png"
@@ -76,7 +77,7 @@ func TestHTMLLayoutExport(t *testing.T) {
 	if past := l.Load(Request{Path: path, Layout: true, Page: r.Pages + 1, Strict: true}); past.Err == nil || !strings.Contains(past.Err.Error(), "past the end") {
 		t.Fatalf("past the end: %v", past.Err)
 	}
-	// Text and typeset still take the Markdown.
+	// Text still takes the Markdown.
 	if md := l.Load(Request{Path: path, Layout: true, TextOnly: true}); md.Err != nil || md.Markdown == nil {
 		t.Fatalf("text: %v", md.Err)
 	}
@@ -89,7 +90,7 @@ func TestHTMLLayoutTooLarge(t *testing.T) {
 	}
 	l := &Loader{}
 	defer l.Close()
-	if r := l.Load(Request{Path: path, Layout: true, Page: 1}); r.Err == nil || !strings.Contains(r.Err.Error(), "--typeset") {
+	if r := l.Load(Request{Path: path, Layout: true, Page: 1}); r.Err == nil || !strings.Contains(r.Err.Error(), "--text") {
 		t.Fatalf("err = %v", r.Err)
 	}
 }
@@ -165,6 +166,9 @@ func TestHTMLView(t *testing.T) {
 	narrow := selected(*first.TypesetSelection, 384)
 	if l.html == kept || narrow.TypesetView.Width != 800 || narrow.TypesetExtent <= r.TypesetExtent {
 		t.Fatalf("narrow: relaid %v width %d extent %d", l.html != kept, narrow.TypesetView.Width, narrow.TypesetExtent)
+	}
+	if _, err := kept.painter.Paint(context.Background(), kept.result.Bounds(), 1); err == nil {
+		t.Fatal("reflow left the old painter open")
 	}
 	if narrow.TypesetSelection != nil || narrow.TypesetSelected != "" || narrow.TypesetAsked == nil {
 		t.Fatalf("stale selection: %q", narrow.TypesetSelected)
@@ -323,5 +327,72 @@ func TestHTMLViewSections(t *testing.T) {
 	back := ask(TypesetViewport{Height: 600, Link: "#monday-tide"}, nil)
 	if at.TypesetView.Top <= 600 || back.TypesetView.Top >= at.TypesetView.Top {
 		t.Fatalf("wednesday at %d, monday's tide at %d", at.TypesetView.Top, back.TypesetView.Top)
+	}
+}
+
+// Reading exports use the shared typesetter directly: CSS heading colors and
+// local pictures survive, with the normal export pagination and size policy.
+func TestHTMLTypesetExport(t *testing.T) {
+	dir := t.TempDir()
+	pic := image.NewRGBA(image.Rect(0, 0, 40, 20))
+	for i := 0; i < len(pic.Pix); i += 4 {
+		copy(pic.Pix[i:], []byte{16, 128, 240, 255})
+	}
+	var pngData bytes.Buffer
+	if err := png.Encode(&pngData, pic); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "pic.png"), pngData.Bytes(), 0600); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "page.html")
+	page := `<html><body style="background:#ffffff"><h1 style="color:#ff0000">Reading export</h1><img src="pic.png"><p style="display:none">Hidden text</p>` + strings.Repeat(`<p>Another paragraph in the long report.</p>`, 70) + `</body></html>`
+	if err := os.WriteFile(path, []byte(page), 0600); err != nil {
+		t.Fatal(err)
+	}
+	l := &Loader{}
+	defer l.Close()
+	q := Request{Path: path, Typeset: true, Layout: true, Theme: testTheme("light"), Page: 1, Strict: true}
+	r := l.Load(q)
+	if r.Err != nil {
+		t.Fatal(r.Err)
+	}
+	if r.Kind != "html" || r.Markdown != nil || r.Image == nil || r.Pages < 2 {
+		t.Fatalf("unexpected reading export: kind=%s image=%v pages=%d", r.Kind, r.Image != nil, r.Pages)
+	}
+	red, blue := 0, 0
+	for y := r.Image.Bounds().Min.Y; y < r.Image.Bounds().Max.Y; y++ {
+		for x := r.Image.Bounds().Min.X; x < r.Image.Bounds().Max.X; x++ {
+			c := color.RGBAModel.Convert(r.Image.At(x, y)).(color.RGBA)
+			if c.R > 200 && c.G < 60 && c.B < 60 {
+				red++
+			}
+			if c.R == 16 && c.G == 128 && c.B == 240 {
+				blue++
+			}
+		}
+	}
+	if red == 0 || blue == 0 {
+		t.Fatalf("CSS heading/local image missing: red=%d blue=%d", red, blue)
+	}
+	if _, err := ExportImage(r, 1024); err != nil {
+		t.Fatal(err)
+	}
+	q.Page = r.Pages
+	if last := l.Load(q); last.Err != nil || last.Image == nil || last.Page != q.Page {
+		t.Fatalf("last page: %v", last.Err)
+	}
+	q.Page++
+	if past := l.Load(q); past.Err == nil {
+		t.Fatal("accepted page past end")
+	}
+	q.Page = 1
+	q.TypesetView = &TypesetViewport{Height: 300}
+	if view := l.Load(q); view.Err != nil || view.Image == nil || l.html == nil {
+		t.Fatalf("CSS view after export: %v", view.Err)
+	}
+	q.TextOnly = true
+	if text := l.Load(q); text.Err != nil || text.Markdown == nil {
+		t.Fatalf("text after CSS view: %v", text.Err)
 	}
 }
