@@ -4753,7 +4753,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nthtml v0.2.3
+## nimbleterminal.dev/nthtml v0.5.0
 
 ```
 MIT License
@@ -5718,7 +5718,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/nttypeset v0.1.9
+## nimbleterminal.dev/nttypeset v0.3.0
 
 ```
 MIT License
