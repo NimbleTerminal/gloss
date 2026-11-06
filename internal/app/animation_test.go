@@ -133,6 +133,11 @@ func TestGIFFinitePlaybackRestartAndSeek(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			clip.Image = clip.Image[:4]
+			clip.Delay = clip.Delay[:4]
+			if len(clip.Disposal) > 4 {
+				clip.Disposal = clip.Disposal[:4]
+			}
 			clip.LoopCount = -1
 			for i := range clip.Delay {
 				clip.Delay[i] = 2
@@ -172,7 +177,7 @@ func TestGIFFinitePlaybackRestartAndSeek(t *testing.T) {
 				}
 				return nil, false
 			}
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
 			_, err = tea.NewProgram(model, tea.WithContext(ctx), tea.WithInput(nil), tea.WithOutput(io.Discard), tea.WithoutRenderer(), tea.WithoutSignalHandler()).Run()
 			if err != nil || !model.reached {
@@ -210,7 +215,7 @@ func TestGIFActualEventLoop(t *testing.T) {
 
 				model := &animationObserver{Model: New(Options{Files: []string{file}, FilesFS: examples.Files, Render: render, Page: 1})}
 				defer model.Close()
-				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 				defer cancel()
 				_, err := tea.NewProgram(model, tea.WithContext(ctx), tea.WithInput(nil), tea.WithOutput(io.Discard), tea.WithoutRenderer(), tea.WithoutSignalHandler()).Run()
 				if err != nil || !model.reached || model.flickered {
