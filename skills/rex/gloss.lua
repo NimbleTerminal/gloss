@@ -89,11 +89,36 @@ local function file_exists(path)
   return false
 end
 
--- gloss_bin is the gloss binary. Rex runs these actions in its server, whose
--- PATH is the system's (/usr/bin:/bin:...), not the shell's, so gloss is asked
--- of the login shell once, then the usual places; GLOSS in the server's
--- environment names it outright.
+-- Rex runs these actions in its server, whose PATH is the system's
+-- (/usr/bin:/bin:...), not the shell's: neither gloss nor rex itself is on it.
+-- Each is asked of the login shell once, then looked for in the usual places.
+
+-- from_shell is what the login shell finds for `command -v name`, or nil.
+local function from_shell(name)
+  local shell = os.getenv("SHELL")
+  if not shell or shell == "" then
+    shell = "/bin/sh"
+  end
+  local res = rex.exec({ shell, "-lc", "command -v " .. name }, { timeout = 10 })
+  local found = res and res.ok and trim(res.stdout) or ""
+  if found ~= "" then
+    return found
+  end
+  return nil
+end
+
+-- has_socket is whether the gloss at path knows --socket: one from before
+-- 0.7, such as a Homebrew install not yet upgraded, does not, and the shell
+-- may well find that one ahead of a newer build.
+local function has_socket(path)
+  local res = rex.exec({ path, "--help" }, { timeout = 10 })
+  return res ~= nil and res.ok and res.stdout:find("--socket", 1, true) ~= nil
+end
+
+-- gloss is the gloss binary: GLOSS in the server's environment, else the first
+-- of the shell's and the usual places that knows --socket, else the shell's.
 local gloss_bin = nil
+local gloss_old = nil -- A gloss found but too old, to say so.
 local function gloss()
   if gloss_bin then
     return gloss_bin
@@ -103,23 +128,46 @@ local function gloss()
     gloss_bin = named
     return gloss_bin
   end
-  local shell = os.getenv("SHELL")
-  if not shell or shell == "" then
-    shell = "/bin/sh"
-  end
-  local res = rex.exec({ shell, "-lc", "command -v gloss" }, { timeout = 10 })
-  local found = res and res.ok and trim(res.stdout) or ""
-  if found == "" then
-    local home = os.getenv("HOME") or ""
-    for _, path in ipairs({ "/opt/homebrew/bin/gloss", "/usr/local/bin/gloss", home .. "/go/bin/gloss", home .. "/.local/bin/gloss" }) do
-      if file_exists(path) then
-        found = path
-        break
+  local home = os.getenv("HOME") or ""
+  local candidates = { from_shell("gloss"), home .. "/go/bin/gloss", home .. "/.local/bin/gloss", "/opt/homebrew/bin/gloss", "/usr/local/bin/gloss" }
+  for _, path in ipairs(candidates) do
+    if path and file_exists(path) then
+      if has_socket(path) then
+        gloss_bin = path
+        return gloss_bin
       end
+      gloss_old = gloss_old or path
     end
   end
-  gloss_bin = found ~= "" and found or "gloss"
+  gloss_bin = gloss_old or "gloss"
   return gloss_bin
+end
+
+-- rex_bin is the rex command: REX_BIN_DIR when the server passes it on, else
+-- the shell's, else where the macOS app keeps it, else the name alone.
+local rex_cmd = nil
+local function rex_bin()
+  if rex_cmd then
+    return rex_cmd
+  end
+  local dir = os.getenv("REX_BIN_DIR")
+  if dir and dir ~= "" and file_exists(dir .. "/rex") then
+    rex_cmd = dir .. "/rex"
+    return rex_cmd
+  end
+  local home = os.getenv("HOME") or ""
+  local app = home .. "/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+  rex_cmd = from_shell("rex") or (file_exists(app) and app) or "rex"
+  return rex_cmd
+end
+
+-- check_gloss stops with a clear word when the only gloss found is too old.
+local function check_gloss()
+  local bin = gloss()
+  if gloss_old and bin == gloss_old then
+    error(bin .. " is a gloss without --socket; install gloss 0.7 or later, or set GLOSS to one in Rex's environment", 0)
+  end
+  return bin
 end
 
 rex.action{
@@ -143,11 +191,11 @@ rex.action{
       error("gloss_companion needs a block to sit beside; run it from a terminal", 0)
     end
     local argv = {
-      "rex", "do", "-s", ctx.session_id, "-b", ctx.block_id, COMPANION,
+      rex_bin(), "do", "-s", ctx.session_id, "-b", ctx.block_id, COMPANION,
       "source_block=" .. ctx.block_id,
       "label=" .. label,
       "socket=" .. socket_name(ctx.session_id, label),
-      "gloss=" .. gloss(),
+      "gloss=" .. check_gloss(),
     }
     if args.file then
       table.insert(argv, "file=" .. args.file)
@@ -174,7 +222,7 @@ rex.action{
   args = { file = "string", page = "integer?", label = "string?" },
   run = function(ctx, args)
     local label = args.label or LABEL
-    local argv = { gloss(), "--remote", socket_name(ctx.session_id, label), args.file }
+    local argv = { check_gloss(), "--remote", socket_name(ctx.session_id, label), args.file }
     if args.page then
       table.insert(argv, "--page")
       table.insert(argv, tostring(args.page))

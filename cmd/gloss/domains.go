@@ -125,7 +125,7 @@ var domains = []domain{
 	},
 	{
 		ID: "agents", Title: "Teaching agents: gloss skill",
-		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints help; `gloss skill show` prints the skill; `gloss skill install`, or `gloss skill install agent`, writes it where the agents on this machine look, or into the skills folder named. `gloss skill install rex` writes the Lua that joins gloss to the Rex terminal multiplexer into Rex's config folder: the `gloss_companion` action (`cmd+shift+g`), a gloss split that follows the shell and editor beside it over `--socket`, and `gloss_push`; add `require(\"gloss\")` to `init.lua`.",
+		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints help; `gloss skill show` prints the skill; `gloss skill install`, or `gloss skill install agent`, writes it where the agents on this machine look, or into the skills folder named. `gloss skill install rex` writes the Lua that joins gloss to the Rex terminal multiplexer into Rex's config folder: the `gloss_companion` action (`cmd+shift+g`), a gloss split that follows the shell and editor beside it over `--socket`, and `gloss_push`; it adds `require(\"gloss\")` to `init.lua` once and has Rex reload.",
 		Examples: []example{
 			{"Install it for the agents found on this machine", "gloss skill install"},
 			{"Or into the skills folder named", "gloss skill install agent ~/.claude/skills"},

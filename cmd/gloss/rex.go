@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
+	"time"
 
 	"nimbleterminal.dev/gloss/skills"
 )
@@ -72,10 +76,65 @@ func installRex(where string, stdout, stderr io.Writer) error {
 		fmt.Fprintln(stdout, path)
 	}
 	init := filepath.Join(dir, "init.lua")
-	if content, err := os.ReadFile(init); err == nil && requiresGloss.Match(content) {
-		fmt.Fprintln(stderr, "gloss: run `rex config reload` to pick up the change")
-		return nil
+	added, err := requireGloss(init)
+	if err != nil {
+		return err
 	}
-	fmt.Fprintf(stderr, "gloss: add this line to %s, then run `rex config reload`:\n  require(\"gloss\")\n", init)
+	if added {
+		fmt.Fprintf(stderr, "gloss: added require(\"gloss\") to %s\n", init)
+		fmt.Fprintln(stdout, init)
+	}
+	reloadRex(stderr)
 	return nil
+}
+
+// requireGloss adds the line that loads gloss.lua to the end of init.lua, when
+// no line does yet, making the file when there is none. The file is the user's:
+// nothing in it is changed, and the line is added once.
+func requireGloss(init string) (added bool, err error) {
+	content, err := os.ReadFile(init)
+	if err != nil && !os.IsNotExist(err) {
+		return false, err
+	}
+	if requiresGloss.Match(content) {
+		return false, nil
+	}
+	f, err := os.OpenFile(init, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
+	if err != nil {
+		return false, err
+	}
+	var line string
+	if len(content) > 0 && content[len(content)-1] != '\n' {
+		line = "\n"
+	}
+	if len(content) > 0 {
+		line += "\n"
+	}
+	line += "-- gloss: the actions and key that gloss skill install rex wrote, in gloss.lua.\nrequire(\"gloss\")\n"
+	_, err = f.WriteString(line)
+	return true, errors.Join(err, f.Close())
+}
+
+// reloadRex has a running Rex read its config again, when the rex command is
+// here to ask; otherwise, or when it cannot, it says what to run. Rex is not
+// started for it.
+func reloadRex(stderr io.Writer) {
+	rex, err := exec.LookPath("rex")
+	if err != nil {
+		fmt.Fprintln(stderr, "gloss: run `rex config reload` for Rex to pick this up")
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, rex, "config", "reload", "--autostart=false").CombinedOutput()
+	if err != nil {
+		reason := strings.TrimSpace(string(out))
+		if reason == "" {
+			reason = err.Error()
+		}
+		fmt.Fprintf(stderr, "gloss: rex config reload: %s\n", reason)
+		fmt.Fprintln(stderr, "gloss: run `rex config reload` once Rex is running")
+		return
+	}
+	fmt.Fprintln(stderr, "gloss: Rex reloaded its config (rex config reload)")
 }

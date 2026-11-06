@@ -45,8 +45,10 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   matches the binary (`cmd/gloss/verbs.go` `parseSkillInstall`, `skillKinds`;
   a folder named like a kind is `./rex`). `agent` (the default; `skill.go`):
   `skills/gloss/SKILL.md`. `rex` (`rex.go`): `skills/rex/gloss.lua` (actions
-  `gloss_companion`, `cmd+shift+g`, and `gloss_push`; `require("gloss")` from
-  `init.lua`, which gloss never writes, only hints at) and
+  `gloss_companion`, `cmd+shift+g`, and `gloss_push`; `requireGloss` appends
+  `require("gloss")` to `init.lua` once, by `requiresGloss`, making the file
+  when missing and changing nothing else in it; `reloadRex` runs `rex config
+  reload --autostart=false` when `rex` is on the PATH, never starting Rex) and
   `gloss-companion.lua` (a `rex do` script: opens a split running `gloss
   --socket`, follows `terminal.pwd_changed`/`terminal.title_changed` with
   `gloss --remote`, reopens the split when the viewer is gone, stops on

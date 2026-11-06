@@ -74,16 +74,16 @@ gloss skill install rex          # into ~/.config/rex ($XDG_CONFIG_HOME/rex, or 
 gloss skill install rex FOLDER   # or into the folder named
 ```
 
-It writes two files and touches nothing else. Add one line to your `init.lua`,
-which gloss leaves to you, and reload:
+It writes two files, `gloss.lua` and `gloss-companion.lua`, adds one line to
+the end of your `init.lua` (making the file when there is none), once:
 
 ```lua
 require("gloss")
 ```
 
-```sh
-rex config check && rex config reload
-```
+and has a running Rex reload its config, as `rex config reload` does. Nothing
+else in `init.lua` is touched. Without the `rex` command, or with Rex not
+running, it says to run the reload yourself.
 
 `gloss.lua` defines two actions and binds one key:
 
@@ -105,6 +105,8 @@ named after the session and the label. When a viewer was quit by hand, the next
 change opens the split again.
 
 The actions run inside Rex's server, whose `PATH` is the system's, so they ask
-your login shell where `gloss` is, once, and then look in the usual places;
-`GLOSS=/path/to/gloss` in the server's environment names it outright. The split
-itself runs in your shell, which finds `gloss` as a terminal would.
+your login shell where `gloss` and `rex` are, once, and then look in the usual
+places, taking the first `gloss` that knows `--socket` (an older install on the
+`PATH` is passed over for a newer build in `~/go/bin`, say);
+`GLOSS=/path/to/gloss` in the server's environment names it outright. The
+split runs that same binary.

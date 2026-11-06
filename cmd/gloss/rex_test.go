@@ -57,16 +57,17 @@ func TestSkillInstallNames(t *testing.T) {
 	}
 }
 
-// The Rex integration is two Lua files in Rex's config folder, and a line for
-// init.lua that gloss does not write itself.
+// The Rex integration is two Lua files in Rex's config folder, and one line
+// added to init.lua, once, which is made when it is missing.
 func TestInstallRex(t *testing.T) {
+	t.Setenv("PATH", t.TempDir()) // No rex here: the reload is left to the user.
 	dir := filepath.Join(t.TempDir(), "rex")
 	var stdout, stderr bytes.Buffer
 	if err := installRex(dir, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	actions, companion := filepath.Join(dir, "gloss.lua"), filepath.Join(dir, "gloss-companion.lua")
-	if stdout.String() != actions+"\n"+companion+"\n" {
+	actions, companion, init := filepath.Join(dir, "gloss.lua"), filepath.Join(dir, "gloss-companion.lua"), filepath.Join(dir, "init.lua")
+	if stdout.String() != actions+"\n"+companion+"\n"+init+"\n" {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
 	for path, want := range map[string]string{actions: skills.RexActions, companion: skills.RexCompanion} {
@@ -74,14 +75,15 @@ func TestInstallRex(t *testing.T) {
 			t.Fatalf("%s: %v", path, err)
 		}
 	}
-	init := filepath.Join(dir, "init.lua")
+	made, err := os.ReadFile(init)
+	if err != nil || !requiresGloss.Match(made) || !strings.HasSuffix(string(made), "\n") {
+		t.Fatalf("init.lua = %q, %v", made, err)
+	}
 	if !strings.Contains(stderr.String(), `require("gloss")`) || !strings.Contains(stderr.String(), init) || !strings.Contains(stderr.String(), "rex config reload") {
-		t.Fatalf("stderr does not say what to add to init.lua: %q", stderr.String())
+		t.Fatalf("stderr does not say what was added or what to run: %q", stderr.String())
 	}
-	if _, err := os.Stat(init); !os.IsNotExist(err) {
-		t.Fatalf("init.lua was written: %v", err)
-	}
-	// An init.lua that loads it already gets no hint, however it is spelled.
+	// An init.lua that loads it already is left as it is, however it spells
+	// the require, and only the update of the two files is reported.
 	for _, line := range []string{"require(\"gloss\")\n", "require 'gloss'\n", "local g = require( \"gloss\" ) -- gloss\n"} {
 		if err := os.WriteFile(init, []byte("-- mine\n"+line), 0o644); err != nil {
 			t.Fatal(err)
@@ -91,20 +93,66 @@ func TestInstallRex(t *testing.T) {
 		if err := installRex(dir, &stdout, &stderr); err != nil {
 			t.Fatal(err)
 		}
-		if strings.Contains(stderr.String(), "require") || !strings.Contains(stderr.String(), "updated") {
-			t.Fatalf("%q: stderr = %q", line, stderr.String())
+		if strings.Contains(stderr.String(), "require") || !strings.Contains(stderr.String(), "updated") || strings.Contains(stdout.String(), init) {
+			t.Fatalf("%q: stdout = %q stderr = %q", line, stdout.String(), stderr.String())
 		}
 		if got, _ := os.ReadFile(init); string(got) != "-- mine\n"+line {
 			t.Fatalf("init.lua changed: %q", got)
 		}
 	}
-	// One that mentions gloss without loading it still gets the hint.
-	if err := os.WriteFile(init, []byte("-- gloss is nice\n"), 0o644); err != nil {
+	// One with other content, mentioning gloss or not, and no final newline,
+	// gets the line added after what is there, which stays whole.
+	if err := os.WriteFile(init, []byte("-- gloss is nice\nrex.bind(\"cmd+d\", \"pane.split\")"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	stderr.Reset()
 	if err := installRex(dir, &stdout, &stderr); err != nil || !strings.Contains(stderr.String(), `require("gloss")`) {
 		t.Fatalf("err=%v stderr=%q", err, stderr.String())
+	}
+	got, _ := os.ReadFile(init)
+	if !strings.HasPrefix(string(got), "-- gloss is nice\nrex.bind(\"cmd+d\", \"pane.split\")\n") || !requiresGloss.Match(got) || strings.Count(string(got), "require") != 1 {
+		t.Fatalf("init.lua = %q", got)
+	}
+	// Once more, and nothing is added again.
+	if err := installRex(dir, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := os.ReadFile(init); string(again) != string(got) {
+		t.Fatalf("init.lua changed again: %q", again)
+	}
+}
+
+// With rex on the PATH, the config is reloaded for the user; what rex says
+// when that fails is passed on, and the install still succeeds.
+func TestInstallRexReloads(t *testing.T) {
+	bin := t.TempDir()
+	t.Setenv("PATH", bin)
+	calls := filepath.Join(bin, "calls")
+	fake := "#!/bin/sh\necho \"$@\" >> " + calls + "\n"
+	if err := os.WriteFile(filepath.Join(bin, "rex"), []byte(fake), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Join(t.TempDir(), "rex")
+	var stdout, stderr bytes.Buffer
+	if err := installRex(dir, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := os.ReadFile(calls); string(got) != "config reload --autostart=false\n" {
+		t.Fatalf("rex was run with %q", got)
+	}
+	if !strings.Contains(stderr.String(), "reloaded") || strings.Contains(stderr.String(), "then run") {
+		t.Fatalf("stderr = %q", stderr.String())
+	}
+	// A rex that fails, as when no server runs, is quoted, and the user told.
+	if err := os.WriteFile(filepath.Join(bin, "rex"), []byte("#!/bin/sh\necho 'Error: no server is running' >&2\nexit 1\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	stderr.Reset()
+	if err := installRex(dir, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(stderr.String(), "no server is running") || !strings.Contains(stderr.String(), "rex config reload") {
+		t.Fatalf("stderr = %q", stderr.String())
 	}
 }
 

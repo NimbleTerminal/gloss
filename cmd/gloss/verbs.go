@@ -50,9 +50,10 @@ paths it wrote.
 install rex writes gloss.lua and gloss-companion.lua into the Rex terminal
 multiplexer's config folder (~/.config/rex, $XDG_CONFIG_HOME/rex, or the folder
 of $REX_CONFIG), or under FOLDER: the actions gloss_companion (cmd+shift+g: a
-gloss split that follows the block beside it) and gloss_push. Add
-require("gloss") to init.lua, which gloss leaves to you, and run rex config
-reload. A folder named agent or rex is ./agent or ./rex.
+gloss split that follows the block beside it) and gloss_push. It adds
+require("gloss") to init.lua, once, making the file when there is none, and
+has a running Rex reload its config. A folder named agent or rex is ./agent or
+./rex.
 
 schema prints the JSON Schema of the objects gloss writes for a program:
 the --json results of an export, --text, --grep, and --info, and the objects
