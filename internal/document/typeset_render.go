@@ -50,7 +50,10 @@ type TypesetViewport struct {
 	Top, Height, Left int
 	// Zoom counts 10-percentage-point steps above 100%.
 	Zoom int
-	End  bool
+	// Chunk is a zero-based position in a long text document. Chunks is its
+	// total chunk count on a result; Top remains local to that chunk.
+	Chunk, Chunks int
+	End           bool
 	// Ahead asks the layout to go on past the view to the next block with a
 	// picture, a link or a table in it, or to the end, without moving the
 	// view: the next item is then among the result's TypesetItems.
@@ -76,7 +79,14 @@ type TypesetViewport struct {
 	Width int
 }
 
-func (l *Loader) renderTypeset(q Request) (out Result) {
+func (l *Loader) renderTypeset(q Request) Result {
+	if l.typesetChunks != nil {
+		return l.renderTypesetChunks(q)
+	}
+	return l.renderTypesetPage(q)
+}
+
+func (l *Loader) renderTypesetPage(q Request) (out Result) {
 	out = Result{FontKey: FontKey(q.Font, q.Mono), Theme: q.Theme.Name, Generation: q.Generation, Kind: l.typesetKind, Text: l.typesetText, Typeset: l.typeset, TypesetWidth: typesetMeasure(q.TypesetWidth), Page: 1, Pages: 1}
 	if q.Theme.Palette.Background.A == 0 {
 		// Every theme's background is opaque: no palette is a caller's mistake,
@@ -109,7 +119,7 @@ func (l *Loader) renderTypeset(q Request) (out Result) {
 	width := int(math.Round(float64(out.TypesetWidth) * 150 / 72))
 	numbers := q.TypesetLineNumbers && doc.Lines
 	chop := q.TypesetChop && doc.Lines
-	options := nttypeset.LayoutOptions{Numbers: numbers, Chop: chop}
+	options := nttypeset.LayoutOptions{Numbers: numbers, Chop: chop, LineOffset: l.typesetLineOffset, LineCount: l.typesetLineCount}
 	old := l.direct
 	if old == nil || old.Width() != width || changed || l.directOptions != options {
 		l.direct, err = l.typesetEngine.Layout(doc, width, options)

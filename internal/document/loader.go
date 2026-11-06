@@ -266,6 +266,11 @@ type Loader struct {
 	typeset            *Markdown
 	typesetEngine      *nttypeset.Engine
 	typesetDocument    *nttypeset.Document
+	typesetChunks      *nttypeset.Chunked
+	typesetChunkShown  *TypesetViewport
+	typesetLineChunks  *nttypeset.LineChunks
+	typesetLineOffset  int
+	typesetLineCount   int
 	direct             *nttypeset.Layout
 	directOptions      nttypeset.LayoutOptions // The options direct was laid out with.
 	typesetBase        string
@@ -315,6 +320,9 @@ func (l *Loader) closePDF() error {
 	l.typeset, l.typesetBase, l.html = nil, "", nil
 	l.typesetKind, l.typesetText, l.typesetInfo = "", "", nil
 	l.direct, l.directOptions, l.typesetDocument, l.typesetEngine = nil, nttypeset.LayoutOptions{}, nil, nil
+	l.typesetChunks, l.typesetLineChunks = nil, nil
+	l.typesetChunkShown = nil
+	l.typesetLineOffset, l.typesetLineCount = 0, 0
 	l.typesetImages, l.typesetAnimations, l.typesetPaths, l.typesetAlts = nil, nil, nil, nil
 	l.pdfReader.close()
 	l.pdfReader, l.pdfData, l.pdfVersion, l.file, l.book = nil, nil, "", nil, nil

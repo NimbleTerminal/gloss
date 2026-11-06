@@ -187,12 +187,16 @@ service for anything heavier. `GLOSS_NO_FETCH` turns all of this off.
 - Plain text (`.txt`, `.text`, `.log`, and any file that is not binary):
   shown as it is, in the document view, so that no line of it is read as a
   heading, a list, or emphasis. Returns and a byte order mark are dropped,
-  bytes that are not UTF-8 stand as �, and a file longer than 2 MiB is cut.
+  bytes that are not UTF-8 stand as �, and the normal text view is cut at 2 MiB.
+  In the viewer, `t` typesets the full UTF-8 file in bounded chunks, up to
+  128 MiB; see [long text and source](../markdown/).
   A file of no known kind is read as text when its first 8 KiB hold no NUL
   byte, are UTF-8, and are mostly printable, as `less` would show it; source
   code and configuration open that way, highlighted by
   [chroma](https://github.com/alecthomas/chroma) in the language its name or
-  first line says. Only binary files are unsupported.
+  first line says. Piped Git logs with patches and unified diffs are highlighted
+  from their patch headers, detected within the first 64 KiB. Only binary
+  files are unsupported.
 - JSON (`.json`, `.jsonl`, `.ndjson`): pretty-printed and highlighted as a
   fenced block; `s` shows it as it is in the file. A file with one value to a
   line, such as a training set, a batch request, or a log export, is shown as

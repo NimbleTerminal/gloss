@@ -47,7 +47,8 @@ func TestLineNumberKeysAndGoTo(t *testing.T) {
 	if !handled || !m.lineNumbers || m.markdown.gutter == 0 {
 		t.Fatal("# did not show line numbers")
 	}
-	if rows := strings.Split(ansi.Strip(m.markdown.view()), "\n"); !strings.Contains(strings.Join(rows, "\n"), "1   x line") {
+	// Direct file rendering starts at line one, without Markdown margins.
+	if rows := strings.Split(ansi.Strip(m.markdown.view()), "\n"); strings.TrimSpace(rows[0]) != "1 x line" {
 		t.Fatalf("gutter rows %q", rows)
 	}
 	// : takes a number; Enter goes there and the status says so.

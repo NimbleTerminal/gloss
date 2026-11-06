@@ -240,6 +240,7 @@ type Model struct {
 	playback                 *playback.Controller
 	still                    *stillPicture
 	zoom                     int
+	typesetChunk             int
 	panX, panY               float64
 	screen                   screen // What fills the body.
 	layer                    layer  // What floats over a document.
@@ -526,6 +527,7 @@ func (m *Model) clearChart() tea.Cmd {
 func (m *Model) clearGraphics() tea.Cmd {
 	m.stopTypeset()
 	m.typesetTop, m.typesetLeft, m.typesetEnd, m.typesetShown = 0, 0, false, nil
+	m.typesetChunk = 0
 	m.typesetGoLine, m.lineInput = 0, nil
 	m.typesetGoLink, m.typesetGoTop = "", -1
 	m.typeset = nil

@@ -2,6 +2,11 @@
 
 ## `v0.6.0` (2026-11-05)
 
+- Open large text and source views faster, and highlight patches piped from
+  `git log --patch` or `git diff` without needing a filename.
+- Typeset long text and source files in chunks, with full-file Home/End,
+  go-to-line and line numbering beyond the former 2 MiB limit.
+
 - Use finer zoom steps in typeset and HTML page views: 100%, 110%, 120%,
   instead of doubling with each press of `+`.
 

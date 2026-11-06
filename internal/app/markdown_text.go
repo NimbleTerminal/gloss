@@ -34,6 +34,7 @@ type textTable struct {
 	alignments []east.Alignment
 }
 type markdownContent struct {
+	fileLines  int // File lines in a directly rendered fenced text/source document.
 	imageLinks map[int]string
 	units      []textUnit
 	blocks     []textBlock

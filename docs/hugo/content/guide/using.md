@@ -155,6 +155,11 @@ into a temporary file, removed on exit; keyboard input comes from the controllin
 terminal. Interactive output must be a terminal; image export works in scripts.
 `gloss --help` lists flags.
 
+For example, `git log --patch | gloss` highlights patches from their contents.
+Use `git log --patch | gloss -S` to start with long lines chopped; uppercase
+`S` toggles wrapping while reading, and Left/Right scroll sideways when chopped.
+Piped text still uses the text view's 2 MiB display limit.
+
 Unsupported files, directories, and other non-regular entries are reported on
 stderr and skipped, so globs can include unrelated entries. Directories are not
 traversed. If none remain, gloss exits with an error, unless a folder was

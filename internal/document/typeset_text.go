@@ -14,6 +14,9 @@ import (
 // The fenced representation is only for the existing terminal text view.
 func (l *Loader) loadTypesetText(q Request, data []byte, file []Field, kind string) Result {
 	fail := func(err error) Result { return Result{Generation: q.Generation, Kind: kind, Err: err} }
+	if kind == "text" && q.TypesetView != nil && utf8.Valid(data) && (len(data) > 64<<10 || strings.Count(string(data), "\n") > 256) {
+		return l.loadTypesetChunks(q, data, file)
+	}
 	if len(data) > MaxMarkdownBytes || !utf8.Valid(data) {
 		return fail(fmt.Errorf("typeset text requires at most 2 MiB of UTF-8 input"))
 	}

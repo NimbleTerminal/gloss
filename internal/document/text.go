@@ -24,7 +24,7 @@ type TextDoc struct {
 
 // ReadText takes text as it comes: returns are dropped, a byte order mark
 // too, and bytes that are not UTF-8 stand as U+FFFD. Source is fenced in
-// its language, told by the file's name or its first line, so that the
+// its language, told by the file's name, shebang, or patch headers, so that the
 // viewer highlights it.
 func ReadText(path string, data []byte) (*TextDoc, error) {
 	data = bytes.TrimPrefix(data, []byte("\ufeff"))
@@ -54,9 +54,12 @@ func ReadText(path string, data []byte) (*TextDoc, error) {
 }
 
 // language is the name chroma gives the language a file is in, by its
-// name, or by its first line when that says. Prose has none.
+// name, shebang, or recognizable patch headers. Prose has none.
 func language(path, text string) string {
 	lexer := lexers.Match(filepath.Base(path))
+	if lexer == nil && patchText(text) {
+		return "diff"
+	}
 	if lexer == nil && strings.HasPrefix(text, "#!") {
 		lexer = lexers.Analyse(text)
 	}
@@ -113,4 +116,29 @@ func (doc *TextDoc) fields(loc Locale) []Field {
 		fields = append(fields, Field{"Shown", loc.Count(doc.shown) + " lines"})
 	}
 	return Section("Text", append(fields, Field{"Words", loc.Count(doc.words)}, Field{"Characters", loc.Count(doc.characters)})...)
+}
+
+// patchText recognizes patch headers in bounded input, including the commit
+// metadata before a git log --patch diff. Require adjacent structural lines so
+// prose that merely mentions "diff --git" does not select a source lexer.
+func patchText(text string) bool {
+	const sniff = 64 << 10
+	if len(text) > sniff {
+		text = text[:sniff]
+	}
+	previous := ""
+	for line := range strings.SplitSeq(text, "\n") {
+		if strings.HasPrefix(previous, "diff --git ") || strings.HasPrefix(previous, "diff --cc ") || strings.HasPrefix(previous, "diff --combined ") {
+			for _, prefix := range []string{"index ", "new file mode ", "deleted file mode ", "old mode ", "similarity index ", "dissimilarity index "} {
+				if strings.HasPrefix(line, prefix) {
+					return true
+				}
+			}
+		}
+		if strings.HasPrefix(previous, "--- ") && strings.HasPrefix(line, "+++ ") {
+			return true
+		}
+		previous = line
+	}
+	return false
 }

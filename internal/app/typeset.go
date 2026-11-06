@@ -78,7 +78,7 @@ func (m *Model) typesetViewport() document.TypesetViewport {
 	cw, ch := m.typesetCell()
 	width := float64(m.typesetMeasure()) * 150 / 72
 	h := int(math.Round(width * float64(m.bodyHeight()*max(1, ch)) / float64(max(1, m.width)*max(1, cw))))
-	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, End: m.typesetEnd, Line: m.typesetGoLine}
+	v := document.TypesetViewport{Top: m.typesetTop, Height: max(1, min(4096, h)), Left: m.typesetLeft, Zoom: m.zoom, Chunk: m.typesetChunk, End: m.typesetEnd, Line: m.typesetGoLine}
 	// A Tab lays on to the next item; a Shift-Tab, round to the last.
 	v.Link, v.Ahead, v.Last = m.typesetGoLink, m.typesetAhead && m.typesetTabPending > 0, m.typesetAhead && m.typesetTabPending < 0
 	if m.typesetGoTop >= 0 {
@@ -106,7 +106,7 @@ func (m *Model) typesetViewMatches() bool {
 // theme, is the one the viewer's state asks for now.
 func (m *Model) viewportAsked(shown *document.TypesetViewport, width int, theme string) bool {
 	v := m.typesetViewport()
-	return shown != nil && theme == m.theme && !v.End && !v.Ahead && !v.Last && v.Line == 0 && v.Link == "" && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && document.TypesetZoomSize(v.Height, v.Zoom) == shown.Height && v.Pixels == shown.Pixels
+	return shown != nil && theme == m.theme && !v.End && !v.Ahead && !v.Last && v.Line == 0 && v.Link == "" && shown.Numbers == m.lineNumbers && shown.Chop == m.chopLines && m.typesetMeasure() == width && v.Top == shown.Top && v.Left == shown.Left && v.Zoom == shown.Zoom && v.Chunk == shown.Chunk && document.TypesetZoomSize(v.Height, v.Zoom) == shown.Height && v.Pixels == shown.Pixels
 }
 
 // queueTypesetReflow asks for the page as the viewer's state now wants it,
@@ -216,6 +216,7 @@ func (m *Model) acceptTypesetView(v document.Result) tea.Cmd {
 	m.typesetFont = v.FontKey
 	if v.TypesetView != nil {
 		m.typesetTop, m.typesetLeft = v.TypesetView.Top, v.TypesetView.Left
+		m.typesetChunk = v.TypesetView.Chunk
 		m.typesetEnd, m.typesetGoLine = false, 0
 		m.typesetGoLink, m.typesetGoTop, m.typesetAhead = "", -1, false
 		m.typesetDone = v.TypesetDone || v.TypesetItemsAll
@@ -240,15 +241,21 @@ func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
 	page := document.TypesetZoomSize(m.typesetViewport().Height, m.zoom)
 	switch k {
 	case "up", "k":
-		m.typesetTop = max(0, m.typesetTop-step)
+		m.typesetTop -= step
+		if m.typesetChunk == 0 {
+			m.typesetTop = max(0, m.typesetTop)
+		}
 	case "down", "j":
 		m.typesetTop += step
 	case "space", "pgdown", "n":
 		m.typesetTop += page
 	case "b", "pgup", "p":
-		m.typesetTop = max(0, m.typesetTop-page)
+		m.typesetTop -= page
+		if m.typesetChunk == 0 {
+			m.typesetTop = max(0, m.typesetTop)
+		}
 	case "home", "0", "f":
-		m.typesetTop, m.typesetLeft, m.zoom = 0, 0, 0
+		m.typesetTop, m.typesetLeft, m.zoom, m.typesetChunk = 0, 0, 0, 0
 	case "end", "G":
 		m.typesetEnd = true
 	case "left", "h":

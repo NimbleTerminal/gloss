@@ -159,10 +159,21 @@ it, and `←`/`→` pan across the widest line; `--chop-long-lines` (`-S`) start
 that way. A Markdown page's blocks are not lines, so there the keys point at
 the source view, which has all three.
 
-Text and JSON keep their original `kind` in export manifests. Typeset text
-requires valid UTF-8, at most 2 MiB of source and formatted text, and at most
-8,192 lines; the existing bounded source view must also fit without truncation.
-The per-line shaping, raster and total layout limits below also apply.
+Long plain text and source files (including piped Git patches) are typeset in
+chunks of at most 256 lines and 64 KiB. Scrolling moves between chunks; Home,
+End and `:` navigate the full file, and the gutter keeps global line numbers.
+The viewer accepts up to the normal 128 MiB input limit, with valid UTF-8.
+Each line must fit 64 KiB and 16,384 runes, and each chunk still obeys the
+shaping and layout limits below. Only two chunk layouts are cached. Selection
+stays within a chunk and clears when moving to another. Syntax highlighting
+restarts at each chunk, so multiline language constructs can lose their color
+across a boundary. `s` and `/` use the bounded terminal text view.
+
+Text and JSON keep their original `kind` in export manifests. Headless typeset
+text exports and typeset JSON still require at most 2 MiB of valid UTF-8 source
+and formatted text, at most 8,192 lines, and an untruncated bounded source view.
+Rendered Markdown and HTML retain their own limits. Exporting the current
+viewport with `e` works for long text too.
 
 Typeset Markdown uses Goldmark, go-text shaping and rasterization, repo-embedded
 paired font subsets, and theme-selected Chroma syntax colors. No PDF is generated and PDFium is

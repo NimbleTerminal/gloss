@@ -124,7 +124,12 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 		m.content = m.sourceText
 	} else {
 		if m.renderedText == nil {
-			m.renderedText = renderedContent(m.doc, m.theme)
+			if m.fenced {
+				m.renderedText = fencedFileContent(m.doc, m.theme)
+			}
+			if m.renderedText == nil {
+				m.renderedText = renderedContent(m.doc, m.theme)
+			}
 		}
 		m.content = m.renderedText
 	}
@@ -183,7 +188,12 @@ func (m *markdownView) layout(width, height, cw, ch int) tea.Cmd {
 				m.lines = append(m.lines, markdownLine{image: i, row: row, inset: inset})
 			}
 		default:
-			rows := wrapTextUnit(m.content.units[block.unit], block.unit, wrap, m.raw)
+			var rows []markdownLine
+			if block.unit < m.content.fileLines {
+				rows = wrapFileUnit(m.content.units[block.unit], block.unit, wrap)
+			} else {
+				rows = wrapTextUnit(m.content.units[block.unit], block.unit, wrap, m.raw)
+			}
 			if lineOf != nil {
 				for i := range rows {
 					rows[i].line = lineOf(block.unit)
@@ -236,6 +246,14 @@ func (m *markdownView) lineMap() (func(unit int) int, int) {
 	}
 	if !m.fenced {
 		return nil, 0
+	}
+	if n := m.content.fileLines; n > 0 {
+		return func(unit int) int {
+			if unit >= n {
+				return 0
+			}
+			return unit + 1
+		}, n
 	}
 	lines := strings.Split(strings.TrimSuffix(string(m.doc.Source), "\n"), "\n")
 	if len(lines) < 3 || !strings.HasPrefix(lines[0], "```") {

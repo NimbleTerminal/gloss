@@ -130,3 +130,31 @@ func TestSourceIsFencedInItsLanguage(t *testing.T) {
 		t.Errorf("shebang: %q", strings.SplitN(string(doc.Markdown), "\n", 2)[0])
 	}
 }
+
+func TestPipedPatchesSelectDiffHighlighting(t *testing.T) {
+	for _, source := range []string{
+		"diff --git a/x b/x\nindex 123..456 100644\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n-old\n+new\n",
+		"commit 0123456789abcdef\nAuthor: Example\n\n    Message\n\ndiff --git a/x b/x\nnew file mode 100644\n",
+		"diff --cc x\nindex 123,456..789\n",
+		"--- old.txt\n+++ new.txt\n@@ -1 +1 @@\n-old\n+new\n",
+	} {
+		doc, err := ReadText("gloss-stdin-123", []byte(source))
+		if err != nil || doc.language != "diff" {
+			t.Fatalf("language = %q, err %v for %q", doc.language, err, source)
+		}
+	}
+	for _, source := range []string{
+		"Some prose about diff --git a/x b/x\nindex 123..456\n",
+		"diff --git is a command\nThis is an explanation.\n",
+		strings.Repeat("x", 64<<10) + "\ndiff --git a/x b/x\nindex 123..456\n",
+	} {
+		doc, _ := ReadText("stdin", []byte(source))
+		if doc.language != "" {
+			t.Fatalf("prose selected %q", doc.language)
+		}
+	}
+	doc, _ := ReadText("source.go", []byte("diff --git a/x b/x\nindex 123..456\n"))
+	if doc.language != "go" {
+		t.Fatalf("content overrode file language: %q", doc.language)
+	}
+}

@@ -308,7 +308,11 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   masks in nttypeset's `raster` another 32 MiB. See the Markdown guide
   for the supported subset and limits.
 - **Plain text and source**: readable text is accepted even without a known
-  extension; source is syntax-highlighted. `--typeset` or `t` switches text, source
+  extension; source is syntax-highlighted. Git patches (including piped logs)
+  and unified diffs are identified from headers within the first 64 KiB.
+  Terminal text/source and single JSON values use `fencedFileContent` in
+  `internal/app/text_content.go` to highlight directly, without Glamour
+  processing the full code block; Markdown prose and JSON records keep it. `--typeset` or `t` switches text, source
   and JSON to the direct graphical typesetter; normal terminal text is the default.
   Plain text stays literal and proportional; source/JSON are highlighted monospace.
   `s` and `/` return to normal text for reading/search. `#` toggles a gutter of
@@ -320,9 +324,15 @@ limits" page, `docs/hugo/content/guide/formats.md`):
   lines instead of wrapping them, as `less -S` does, with the arrows scrolling
   sideways: any text view, and typeset text/source/JSON pages
   (`Request.TypesetChop`, `TypesetViewport.Chop`); `--chop-long-lines` (`-S`)
-  starts chopped. Typeset text requires valid
-  UTF-8, at most 2 MiB of source/formatted text, 8,192 lines and an untruncated
-  bounded source view; Markdown shaping/raster limits also apply. Export kinds
+  starts chopped. Large interactive plain/source text uses nttypeset's
+  `LineChunks` and `Chunked` (`internal/document/typeset_chunks.go`): at most
+  256 lines / 64 KiB per AST, two cached layouts, global line navigation and
+  numbering, chunk-local selection. `TypesetViewport.Chunk` accompanies local
+  `Top`. UTF-8 input stays within 128 MiB; lines within 64 KiB / 16,384 runes.
+  Lexing restarts per chunk. Normal text/search remain bounded. Typeset JSON
+  and headless text exports require valid UTF-8, at most 2 MiB of source/formatted
+  text, 8,192 lines and an untruncated bounded source view; Markdown
+  shaping/raster limits also apply per layout. Export kinds
   remain text/json. `--markdown typeset` remains a compatibility alias.
 - **JSON / JSONL / NDJSON**: pretty-printed and highlighted, numbered records
   for line-delimited files, syntax errors reported with line number. Content
