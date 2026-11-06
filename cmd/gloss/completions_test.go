@@ -34,7 +34,10 @@ func helpUsage(t *testing.T) map[string]string {
 		if strings.HasPrefix(trimmed, "-") {
 			for _, word := range strings.Fields(trimmed) {
 				if strings.HasPrefix(word, "--") {
-					name = strings.TrimSuffix(strings.SplitN(strings.TrimPrefix(word, "--"), "=", 2)[0], ",")
+					name = strings.TrimPrefix(word, "--")
+					name, _, _ = strings.Cut(name, "[")
+					name, _, _ = strings.Cut(name, "=")
+					name = strings.TrimSuffix(name, ",")
 					break
 				}
 			}

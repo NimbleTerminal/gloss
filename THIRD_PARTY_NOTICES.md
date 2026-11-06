@@ -2354,7 +2354,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/gogpu/naga v0.21.2
+## github.com/gogpu/naga v0.21.3
 
 ```
 MIT License
@@ -3216,7 +3216,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## github.com/spf13/pflag v1.0.10
+## github.com/spf13/pflag v1.1.0
 
 ```
 Copyright (c) 2012 Alex Ogier. All rights reserved.
@@ -3629,7 +3629,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e
+## golang.org/x/exp v0.0.0-20261106192419-47ce03d25ef0
 
 ```
 Copyright 2009 The Go Authors.
@@ -5561,7 +5561,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## nimbleterminal.dev/ntpdf v0.6.0
+## nimbleterminal.dev/ntpdf v0.6.1
 
 ```
 MIT License

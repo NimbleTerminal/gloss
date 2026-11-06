@@ -4,7 +4,7 @@ go 1.26.10
 
 require (
 	charm.land/bubbletea/v2 v2.1.1
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	nimbleterminal.dev/booba v0.12.1
 	nimbleterminal.dev/gloss v0.0.0
 )
@@ -40,7 +40,7 @@ require (
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.2 // indirect
-	github.com/gogpu/naga v0.21.2 // indirect
+	github.com/gogpu/naga v0.21.3 // indirect
 	github.com/gogpu/wgpu v0.34.7 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/yuin/goldmark v1.8.7 // indirect
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
 	github.com/zkrebbekx/go-mermaid v0.1.6 // indirect
-	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
+	golang.org/x/exp v0.0.0-20261106192419-47ce03d25ef0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
@@ -81,7 +81,7 @@ require (
 	nimbleterminal.dev/ntmediabox v0.1.0 // indirect
 	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.1.0 // indirect
 	nimbleterminal.dev/ntopenwith v0.1.2 // indirect
-	nimbleterminal.dev/ntpdf v0.6.0 // indirect
+	nimbleterminal.dev/ntpdf v0.6.1 // indirect
 	nimbleterminal.dev/ntpicture v0.1.5 // indirect
 	nimbleterminal.dev/ntqrcode v0.4.0 // indirect
 	nimbleterminal.dev/ntshim v0.6.1 // indirect

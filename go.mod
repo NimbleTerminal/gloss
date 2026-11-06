@@ -21,7 +21,7 @@ require (
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/neomantra/sqlittle v0.0.0-20261001025832-4a4bc3e212fa
 	github.com/nicksnyder/go-i18n/v2 v2.7.0
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/yuin/goldmark v1.8.7
 	github.com/yuin/goldmark-emoji v1.0.6
 	github.com/zkrebbekx/go-mermaid v0.1.6
@@ -36,7 +36,7 @@ require (
 	nimbleterminal.dev/ntmaps v0.6.3
 	nimbleterminal.dev/ntmediabox v0.1.0
 	nimbleterminal.dev/ntopenwith v0.1.2
-	nimbleterminal.dev/ntpdf v0.6.0
+	nimbleterminal.dev/ntpdf v0.6.1
 	nimbleterminal.dev/ntpicture v0.1.5
 	nimbleterminal.dev/ntqrcode v0.4.0
 	nimbleterminal.dev/ntsvg v0.6.0
@@ -66,7 +66,7 @@ require (
 	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.2 // indirect
-	github.com/gogpu/naga v0.21.2 // indirect
+	github.com/gogpu/naga v0.21.3 // indirect
 	github.com/gogpu/wgpu v0.34.7 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -88,7 +88,7 @@ require (
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/xo/terminfo v1.3.1 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
+	golang.org/x/exp v0.0.0-20261106192419-47ce03d25ef0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect

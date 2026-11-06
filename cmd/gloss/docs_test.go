@@ -27,7 +27,10 @@ func visibleFlags(t *testing.T) []string {
 		}
 		for _, word := range strings.Fields(line) {
 			if strings.HasPrefix(word, "--") {
-				names = append(names, strings.TrimSuffix(strings.SplitN(strings.TrimPrefix(word, "--"), "=", 2)[0], ","))
+				name := strings.TrimPrefix(word, "--")
+				name, _, _ = strings.Cut(name, "[")
+				name, _, _ = strings.Cut(name, "=")
+				names = append(names, strings.TrimSuffix(name, ","))
 				break
 			}
 		}
