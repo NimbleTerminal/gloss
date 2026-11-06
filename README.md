@@ -148,7 +148,25 @@ To work on gloss, see [DEVELOP.md](DEVELOP.md).
 
 ## License
 
-This `gloss` project is released under the [MIT License](https://en.wikipedia.org/wiki/MIT_License), see [LICENSE](./LICENSE). The licenses of the modules gloss links are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Gloss’s own source code is licensed under the [MIT License](LICENSE).
+Distributed builds also include dependencies with separate license terms:
+
+- [ntmediabox](https://github.com/NimbleTerminal/ntmediabox):
+  [AGPL-3.0-only with the NimbleTerminal linking exception](https://github.com/NimbleTerminal/ntmediabox/blob/main/LICENSE),
+  or a [commercial license](https://github.com/NimbleTerminal/ntmediabox/blob/main/LICENSE-COMMERCIAL.md).
+- [ntconfine](https://github.com/NimbleTerminal/ntconfine), including the
+  `ntconfine-stage` helper shipped on Linux:
+  [AGPL-3.0-only with the NimbleTerminal linking exception](https://github.com/NimbleTerminal/ntconfine/blob/main/LICENSE),
+  or a [commercial license](https://github.com/NimbleTerminal/ntconfine/blob/main/LICENSE-COMMERCIAL.md).
+
+The exceptions permit qualifying local, non-hosted CLI/desktop use and
+redistribution under the importing modules’ licenses. The specified hosted,
+cloud/SaaS and closed-source commercial uses fall outside those exceptions
+and require compliance with the applicable AGPL terms or a commercial license.
+The linked pages describe the projects’ current licensing. For the license
+terms included with this version of Gloss and other dependencies’ notices, see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). For commercial licensing, contact
+[Neomantra Corp.](mailto:licensing@nimbleterminal.com).
 
 Copyright (c) 2026 [Neomantra Corp](https://www.neomantra.com).
 

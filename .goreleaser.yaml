@@ -105,7 +105,7 @@ nfpms:
       Visual pager for the terminal
       Like less, for images, SVG, PDF, STL and 3MF meshes, Markdown, HTML,
       JSON, notebooks, Word, Excel, Grist, and CSV files.
-    license: MIT
+    license: "MIT (Gloss source); bundled dependencies have separate terms; see THIRD_PARTY_NOTICES.md"
     section: utils
     bindir: /usr/bin
     contents:
@@ -177,9 +177,14 @@ homebrew_casks:
       email: goreleaserbot@nimbleterminal.com
     homepage: https://nimbleterminal.github.io/gloss/
     description: Visual pager for the terminal, like less with pictures
-    license: MIT
+    # Casks have no license stanza; describe bundled terms in the caveats.
     skip_upload: auto
     caveats: |
+      Gloss source is MIT-licensed. Bundled ntmediabox and ntconfine use
+      AGPL-3.0-only with a local CLI/desktop linking exception, or a commercial
+      license. Hosted services and proprietary integrations have separate terms:
+        https://github.com/NimbleTerminal/gloss#license
+
       To teach your AI agents how to use gloss:
         gloss skill install
 
