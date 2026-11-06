@@ -265,7 +265,7 @@ func (m *Model) typesetKey(k string) (tea.Cmd, bool) {
 	case "+", "=":
 		m.zoom = min(document.MaxTypesetZoom, m.zoom+1)
 	case "-", "_":
-		m.zoom = max(0, m.zoom-1)
+		m.zoom = max(document.MinTypesetZoom, m.zoom-1)
 	default:
 		return nil, false
 	}

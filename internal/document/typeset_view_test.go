@@ -3,6 +3,7 @@ package document
 import (
 	"context"
 	"errors"
+	"fmt"
 	"image"
 	"strings"
 	"testing"
@@ -74,7 +75,7 @@ func TestTypesetViewportRastersToRequestedPixels(t *testing.T) {
 	for _, tc := range []struct {
 		pixels image.Point
 		zoom   int
-	}{{image.Pt(2400, 1234), 0}, {image.Pt(1001, 333), 0}, {image.Pt(2400, 1234), 1}} {
+	}{{image.Pt(2400, 1234), 0}, {image.Pt(1001, 333), 0}, {image.Pt(2400, 1234), 1}, {image.Pt(1001, 333), MinTypesetZoom}} {
 		q := Request{Theme: testTheme("light"), Path: "x.md", MarkdownMode: "typeset", TypesetWidth: 960, DPI: 150, TypesetView: &TypesetViewport{Top: 100, Height: 1000, Zoom: tc.zoom, Pixels: tc.pixels}}
 		r := l.Load(q)
 		if r.Err != nil {
@@ -94,5 +95,69 @@ func TestTypesetViewportRastersToRequestedPixels(t *testing.T) {
 	q.TypesetView.Pixels = image.Pt(8000, 8000)
 	if r := l.Load(q); r.Err == nil {
 		t.Fatal("raster over the pixel budget was accepted")
+	}
+}
+
+// Zoom changes the line measure before layout, while the device viewport stays
+// fixed. Chopped lines keep their shape and the current source line is anchored.
+func TestTypesetZoomReflows(t *testing.T) {
+	for _, lines := range []int{40, 400} {
+		for _, chop := range []bool{false, true} {
+			t.Run(fmt.Sprintf("lines=%d/chop=%v", lines, chop), func(t *testing.T) {
+				source := strings.Repeat(strings.Repeat("words to wrap ", 12)+"\n", lines)
+				l := &Loader{Files: fstest.MapFS{"x.txt": {Data: []byte(source)}}}
+				defer l.Close()
+				q := Request{Path: "x.txt", Typeset: true, Theme: testTheme("light"), TypesetChop: chop, TypesetView: &TypesetViewport{Height: 300, Pixels: image.Pt(800, 300)}}
+				load := func() Result {
+					t.Helper()
+					r := l.Load(q)
+					if r.Err != nil {
+						t.Fatal(r.Err)
+					}
+					if r.Image.Bounds().Size() != image.Pt(800, 300) {
+						t.Fatal("zoom changed device viewport")
+					}
+					return r
+				}
+				load()
+				old := l.direct
+				if err := old.EnsureBlock(context.Background(), 12); err != nil {
+					t.Fatal(err)
+				}
+				oldHeight := old.Bounds()[5].Dy()
+				top := old.Starts()[5]
+				q.TypesetView.Top = top
+				load()
+				q.TypesetView.Zoom = 5
+				r := load()
+				if l.direct == old || l.direct.Width() != r.TypesetView.Width {
+					t.Fatal("zoom did not change layout measure")
+				}
+				larger := l.direct.Bounds()[5].Dy()
+				if r.TypesetView.Top != l.direct.Starts()[5] {
+					t.Fatalf("lost source line: top=%d want=%d", r.TypesetView.Top, l.direct.Starts()[5])
+				}
+				// Zoom out while deep in a wrapped source line. Reflow must
+				// not reinterpret that old pixel offset as a later file line.
+				if !chop {
+					q.TypesetView.Top = l.direct.Bounds()[5].Max.Y - 2
+				} else {
+					q.TypesetView.Top = r.TypesetView.Top
+				}
+				q.TypesetView.Zoom = -5
+				r = load()
+				smaller := l.direct.Bounds()[5].Dy()
+				if r.TypesetView.Top < l.direct.Starts()[5] || r.TypesetView.Top >= l.direct.Starts()[6] {
+					t.Fatal("zoom-out lost source line")
+				}
+				if chop {
+					if larger != oldHeight || smaller != oldHeight {
+						t.Fatalf("chopped line wrapped: %d %d %d", smaller, oldHeight, larger)
+					}
+				} else if !(smaller < oldHeight && oldHeight < larger) {
+					t.Fatalf("zoom did not rewrap: %d %d %d", smaller, oldHeight, larger)
+				}
+			})
+		}
 	}
 }

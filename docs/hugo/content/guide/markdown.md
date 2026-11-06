@@ -193,6 +193,13 @@ source and assets; layout then advances through blocks as needed for the
 viewport. A large paragraph or table still needs to finish before it appears.
 Reload with `R` after editing the source or its pictures.
 
+Changing zoom reflows wrapped text to fill the viewport: smaller type fits more
+words per line, and larger type wraps sooner. Chopped text stays unwrapped.
+Reflow keeps the visible source line or Markdown block anchored. HTML page zoom
+likewise recomputes CSS layout at the new width, preserving visible text when the
+page’s content is unchanged. Fixed-width HTML content can still need horizontal
+scrolling.
+
 | Key | Typeset mode |
 | --- | --- |
 | `t` | Switch to normal terminal text |
@@ -202,8 +209,8 @@ Reload with `R` after editing the source or its pictures.
 | `S` | Chop long lines at the right edge instead of wrapping them, and back; arrows scroll sideways |
 | Up / Down, wheel | Scroll vertically |
 | Space / `b`, PageDown / PageUp, `n` / `p` | Scroll one screen |
-| `+` / `-`, Left / Right | Zoom in 10-percentage-point steps / pan horizontally |
-| Home, `0` | Fit width and return to the top |
+| `+` / `-`, Left / Right | Zoom from 20% to 1600% in 10-percentage-point steps / pan horizontally |
+| Home, `0` | Reset to 100% and return to the top |
 | `f` | Preview font pairs; Enter keeps, Esc restores |
 | `T` | Preview color themes; Enter keeps, Esc restores |
 | End / `G` | Lay out the remaining document and go to the bottom |

@@ -96,6 +96,15 @@ func TestLongTypesetNavigation(t *testing.T) {
 	if m.typesetChunk != chunk || m.typesetShown.Zoom != 1 {
 		t.Fatalf("zoom lost chunk: %+v", m.typesetShown)
 	}
+	for range 3 {
+		cmd, _ = m.documentKey("-")
+		_ = m.View()
+		drainAnimation(t, m, cmd)
+		_ = m.View()
+	}
+	if m.typesetChunk != chunk || m.typesetShown.Zoom != -2 || !m.typesetMatches() {
+		t.Fatalf("zoom-out lost chunk: %+v", m.typesetShown)
+	}
 	// A separate export loader must recreate and render the selected chunk.
 	loader := &document.Loader{Files: m.opts.FilesFS}
 	defer loader.Close()

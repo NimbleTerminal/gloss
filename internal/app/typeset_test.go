@@ -339,7 +339,7 @@ func TestTypesetRastersToKittyCellArea(t *testing.T) {
 }
 
 func TestTypesetFineZoom(t *testing.T) {
-	for _, name := range []string{"page.md", "page.html"} {
+	for _, name := range []string{"page.md", "page.html", "page.txt"} {
 		t.Run(name, func(t *testing.T) {
 			source := strings.Repeat("A paragraph for zooming.\n\n", 100)
 			if strings.HasSuffix(name, ".html") {
@@ -367,6 +367,21 @@ func TestTypesetFineZoom(t *testing.T) {
 			drainAnimation(t, m, cmd)
 			if m.zoom != 0 || m.typesetTop != 0 || m.typesetShown.Width != first.Width {
 				t.Fatal("reset did not restore original viewport")
+			}
+			for i := 0; i < 10; i++ {
+				cmd, _ = m.documentKey("-")
+				// Bubble Tea renders both while reflow is pending and after it.
+				_ = m.View()
+				drainAnimation(t, m, cmd)
+				_ = m.View()
+			}
+			if m.zoom != document.MinTypesetZoom || m.typesetShown.Width != first.Width*5 || !m.typesetMatches() {
+				t.Fatalf("20%% viewport: %+v, zoom %d", m.typesetShown, m.zoom)
+			}
+			cmd, _ = m.documentKey("0")
+			drainAnimation(t, m, cmd)
+			if m.zoom != 0 || m.typesetShown.Width != first.Width || !m.typesetMatches() {
+				t.Fatal("reset from zoom-out did not restore 100%")
 			}
 		})
 	}

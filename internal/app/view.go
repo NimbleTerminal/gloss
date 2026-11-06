@@ -360,7 +360,12 @@ func counted(form string, n int) string { return fmt.Sprintf(form, grouped(n)) }
 // detail says what is shown of the document. How things are drawn, the
 // renderer and the transport, is the info box's to say.
 func (m *Model) detail(w, h int) string {
-	detail := fmt.Sprintf("%s · %dx", m.kind, 1<<m.zoom)
+	detail := m.kind
+	if m.typeset == nil {
+		// Picture zoom uses powers of two. Typeset zoom uses signed steps
+		// around 100%, and gets its own status below.
+		detail = fmt.Sprintf("%s · %dx", m.kind, 1<<m.zoom)
+	}
 	if m.animation != nil {
 		state := i18n.T("app.status.playing", "playing")
 		if m.animation.Status().Paused {

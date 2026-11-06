@@ -6,10 +6,12 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 // An export of a page draws it as its own CSS lays it out, with the
@@ -394,5 +396,52 @@ func TestHTMLTypesetExport(t *testing.T) {
 	q.TextOnly = true
 	if text := l.Load(q); text.Err != nil || text.Markdown == nil {
 		t.Fatalf("text after CSS view: %v", text.Err)
+	}
+}
+
+func TestHTMLZoomReflows(t *testing.T) {
+	source := `<html><body>` + strings.Repeat(`<p>`+strings.Repeat("words to wrap ", 16)+`</p>`, 40) + `</body></html>`
+	l := &Loader{Files: fstest.MapFS{"x.html": {Data: []byte(source)}}}
+	defer l.Close()
+	q := Request{Path: "x.html", Typeset: true, Theme: testTheme("light"), TypesetView: &TypesetViewport{Height: 300, Pixels: image.Pt(800, 300)}}
+	load := func() Result {
+		t.Helper()
+		r := l.Load(q)
+		if r.Err != nil {
+			t.Fatal(r.Err)
+		}
+		if r.Image.Bounds().Size() != image.Pt(800, 300) {
+			t.Fatal("zoom changed viewport")
+		}
+		return r
+	}
+	first := load()
+	old := l.html
+	// Put a known character at the viewport top, away from either page end.
+	run := old.index.Runs[len(old.index.Runs)/3]
+	q.TypesetView.Top = int(math.Round(float64(run.Bounds.Min.Y) * htmlScale))
+	y := int(float64(q.TypesetView.Top) / htmlScale)
+	anchor, ok := old.index.Hit(image.Rect(0, y, 1, y+1))
+	if !ok {
+		t.Fatal("missing reading anchor")
+	}
+	load()
+	q.TypesetView.Zoom = 5
+	large := load()
+	if l.html == old || l.html.width >= old.width || large.TypesetExtent <= first.TypesetExtent {
+		t.Fatal("zoom-in did not rewrap HTML")
+	}
+	if l.html.index.Text != old.index.Text {
+		t.Fatal("reflow changed logical text")
+	}
+	region := l.html.index.Regions(anchor.Start, anchor.End)[0]
+	if delta := large.TypesetView.Top - int(math.Round(float64(region.Min.Y)*htmlScale)); delta < -2 || delta > 2 {
+		t.Fatalf("reading anchor moved by %d", delta)
+	}
+	q.TypesetView.Top = large.TypesetView.Top
+	q.TypesetView.Zoom = -5
+	small := load()
+	if l.html.width <= old.width || small.TypesetExtent >= first.TypesetExtent {
+		t.Fatal("zoom-out did not rewrap HTML")
 	}
 }

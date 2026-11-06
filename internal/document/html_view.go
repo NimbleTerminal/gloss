@@ -48,9 +48,18 @@ func htmlLayoutWidthFor(measure int) int {
 	return int(math.Round(float64(typesetMeasure(measure)) * 96 / 72))
 }
 
+// htmlViewWidth is the CSS viewport width after browser-style zoom.
+func htmlViewWidth(q Request) int {
+	width := htmlLayoutWidthFor(q.TypesetWidth)
+	if q.TypesetView != nil {
+		width = TypesetZoomSize(width, q.TypesetView.Zoom)
+	}
+	return width
+}
+
 // htmlViewCurrent says the kept layout answers q.
 func (l *Loader) htmlViewCurrent(q Request) bool {
-	if q.MarkdownMode != "typeset" || q.TypesetView == nil || q.TextOnly || q.BaseDir != l.html.base || q.Type != l.html.typ || htmlLayoutWidthFor(q.TypesetWidth) != l.html.width ||
+	if q.MarkdownMode != "typeset" || q.TypesetView == nil || q.TextOnly || q.BaseDir != l.html.base || q.Type != l.html.typ || htmlViewWidth(q) != l.html.width ||
 		FontKey(q.Font, q.Mono) != l.html.font || q.Theme.Name != l.html.theme {
 		return false
 	}
@@ -60,13 +69,13 @@ func (l *Loader) htmlViewCurrent(q Request) bool {
 
 // layHTMLView lays a page out for the viewer and keeps it. A page nthtml
 // cannot lay out is shown as its text, with the reason among its details.
-func (l *Loader) layHTMLView(q Request, data []byte, page *Page, baseDir string, files fs.FS, file []Field, out *Result) {
+func (l *Loader) layHTMLView(q Request, data []byte, page *Page, baseDir string, files fs.FS, file []Field, previous *htmlView, out *Result) {
 	md, err := loadMarkdownContext(context.Background(), q.Path, page.Markdown, q.BaseDir, files, false, q.Theme.Dark)
 	if err != nil {
 		out.Err = err
 		return
 	}
-	width := htmlLayoutWidthFor(q.TypesetWidth)
+	width := htmlViewWidth(q)
 	res, err := layOutHTML(q.Context, q, data, width, baseDir, files)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
@@ -91,6 +100,12 @@ func (l *Loader) layHTMLView(q Request, data []byte, page *Page, baseDir string,
 	l.htmlSerial++
 	l.html = &htmlView{painter: painter, result: res, index: res.TextIndex(), serial: l.htmlSerial, markdown: md, info: append(file, info...), width: width, hash: sha256.Sum256(data), base: q.BaseDir, typ: q.Type, font: FontKey(q.Font, q.Mono), theme: q.Theme.Name}
 	l.path = q.Path
+	if previous != nil && previous.hash == l.html.hash && previous.base == l.html.base && previous.typ == l.html.typ && !q.TypesetView.End && q.TypesetView.Link == "" && q.TypesetView.Top > 0 {
+		v := *q.TypesetView
+		v.Top = l.html.reflowTop(previous, v.Top)
+		v.Left = 0
+		q.TypesetView = &v
+	}
 	*out = l.renderHTMLView(q)
 }
 
@@ -128,8 +143,8 @@ func (l *Loader) renderHTMLView(q Request) (out Result) {
 	v := *q.TypesetView
 	bounds := h.result.Bounds()
 	pageWidth, extent := int(math.Round(float64(bounds.Dx())*htmlScale)), int(math.Round(float64(bounds.Dy())*htmlScale))
-	zoom := max(0, min(v.Zoom, MaxTypesetZoom))
-	width, height := TypesetZoomSize(pageWidth, zoom), TypesetZoomSize(max(1, min(v.Height, 4096)), zoom)
+	zoom := max(MinTypesetZoom, min(v.Zoom, MaxTypesetZoom))
+	width, height := typesetLayoutWidth(q), TypesetZoomSize(max(1, min(v.Height, 4096)), zoom)
 	top := max(0, v.Top)
 	if v.End {
 		top = extent - height
@@ -270,4 +285,22 @@ func prepareHTML(ctx context.Context, q Request, data []byte, width int, baseDir
 		o.Colors = nthtml.Colors{Background: p.Background, Text: p.Foreground, Link: p.Accent}
 	}
 	return doc, o, nil
+}
+
+// Reuse byte offsets only when the rendered text is identical in both indexes.
+// Responsive CSS may change text/order; then retain the requested scroll offset.
+func (h *htmlView) reflowTop(old *htmlView, top int) int {
+	if old.index.Text != h.index.Text {
+		return top
+	}
+	y := int(float64(top) / htmlScale)
+	hit, ok := old.index.Hit(image.Rect(0, y, 1, y+1))
+	if !ok {
+		return top
+	}
+	before, after := old.index.Regions(hit.Start, hit.End), h.index.Regions(hit.Start, hit.End)
+	if len(before) == 0 || len(after) == 0 {
+		return top
+	}
+	return max(0, top+int(math.Round(float64(after[0].Min.Y-before[0].Min.Y)*htmlScale)))
 }

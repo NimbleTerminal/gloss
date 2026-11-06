@@ -2,6 +2,9 @@
 
 ## `v0.6.0` (2026-11-05)
 
+- Reflow typeset text and HTML pages when zooming, fitting wrapped text to
+  the viewport. Zoom out to 20%; `0` restores 100%.
+
 - Export HTML with `--typeset` through the shared reading typesetter, preserving
   supported CSS styles and local images. Reuse HTML page painting resources
   while scrolling.

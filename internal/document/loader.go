@@ -391,10 +391,12 @@ func (l *Loader) Load(q Request) (out Result) {
 	if l.typeset != nil {
 		return l.renderTypeset(q)
 	}
+	var previousHTML *htmlView
 	if l.html != nil {
 		if l.htmlViewCurrent(q) {
 			return l.renderHTMLView(q)
 		}
+		previousHTML = l.html
 		_ = l.closePDF()
 	}
 	if l.pdfReader != nil {
@@ -563,7 +565,7 @@ func (l *Loader) Load(q Request) (out Result) {
 		if q.MarkdownMode == "typeset" && q.TypesetView != nil && !q.TextOnly {
 			// The viewer's graphical view of a page is the page as its CSS
 			// lays it out.
-			l.layHTMLView(q, data, page, cmp.Or(q.BaseDir, filepath.Dir(q.Path)), l.Files, file, &out)
+			l.layHTMLView(q, data, page, cmp.Or(q.BaseDir, filepath.Dir(q.Path)), l.Files, file, previousHTML, &out)
 			return out
 		}
 		// Pictures are looked for beside the page, as a browser would.

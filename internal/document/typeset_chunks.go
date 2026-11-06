@@ -3,7 +3,6 @@ package document
 import (
 	"context"
 	"fmt"
-	"math"
 
 	"github.com/alecthomas/chroma/v2/styles"
 	"nimbleterminal.dev/nttypeset"
@@ -67,7 +66,7 @@ func (l *Loader) renderTypesetChunks(q Request) Result {
 		index--
 		v.End = true
 	}
-	width := int(math.Round(float64(typesetMeasure(q.TypesetWidth)) * 150 / 72))
+	width := typesetLayoutWidth(q)
 	// At most one boundary is crossed per request. Even a large scroll delta
 	// cannot force a pass over the whole history before producing a viewport.
 	for attempt := 0; attempt < 2; attempt++ {
@@ -87,7 +86,14 @@ func (l *Loader) renderTypesetChunks(q Request) Result {
 				return fail(err)
 			}
 			if starts := chunk.Layout.Starts(); block < len(starts) && block < len(was) {
-				v.Top = max(0, starts[block]+v.Top-was[block])
+				// LineAt includes the reading margin; a negative offset keeps
+				// a go-to-line target below that margin after reflow.
+				offset := v.Top - was[block]
+				bounds := chunk.Layout.Bounds()
+				if block < len(bounds) && !bounds[block].Empty() {
+					offset = min(offset, max(0, bounds[block].Max.Y-starts[block]-1))
+				}
+				v.Top = max(0, starts[block]+offset)
 			}
 		}
 		l.typesetDocument, l.direct, l.directOptions = chunk.Document, chunk.Layout, options

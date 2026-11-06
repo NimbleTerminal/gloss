@@ -33,12 +33,25 @@ type TypesetPlace = nttypeset.Place
 // TypesetSelection is the text between two places, in either order.
 type TypesetSelection = nttypeset.Selection
 
-// MaxTypesetZoom preserves the 16× magnification limit in 10-percentage-point steps.
-const MaxTypesetZoom = 150
+// Typeset zoom uses 10-percentage-point steps from 20% to 1600%; zero is 100%.
+const (
+	MinTypesetZoom = -8
+	MaxTypesetZoom = 150
+)
 
 // TypesetZoomSize converts a viewport dimension to page pixels at the zoom step.
 func TypesetZoomSize(size, zoom int) int {
-	return max(1, size*10/(10+max(0, min(zoom, MaxTypesetZoom))))
+	return max(1, size*10/(10+max(MinTypesetZoom, min(zoom, MaxTypesetZoom))))
+}
+
+// typesetLayoutWidth keeps the viewport fixed in device pixels while zoom
+// changes the available line width in layout units. Exports retain their width.
+func typesetLayoutWidth(q Request) int {
+	width := int(math.Round(float64(typesetMeasure(q.TypesetWidth)) * 150 / 72))
+	if q.TypesetView != nil {
+		width = TypesetZoomSize(width, q.TypesetView.Zoom)
+	}
+	return width
 }
 
 // TypesetViewport uses pixels at the 150-DPI reading scale. Nil on Request
@@ -48,7 +61,7 @@ type TypesetViewport struct {
 	// Layout progresses only as far as its target, under the usual budget.
 	Link              string
 	Top, Height, Left int
-	// Zoom counts 10-percentage-point steps above 100%.
+	// Zoom counts signed 10-percentage-point steps relative to 100%.
 	Zoom int
 	// Chunk is a zero-based position in a long text document. Chunks is its
 	// total chunk count on a result; Top remains local to that chunk.
@@ -116,7 +129,7 @@ func (l *Loader) renderTypesetPage(q Request) (out Result) {
 		return
 	}
 	doc := l.typesetDocument
-	width := int(math.Round(float64(out.TypesetWidth) * 150 / 72))
+	width := typesetLayoutWidth(q)
 	numbers := q.TypesetLineNumbers && doc.Lines
 	chop := q.TypesetChop && doc.Lines
 	options := nttypeset.LayoutOptions{Numbers: numbers, Chop: chop, LineOffset: l.typesetLineOffset, LineCount: l.typesetLineCount}
@@ -132,7 +145,7 @@ func (l *Loader) renderTypesetPage(q Request) (out Result) {
 	top, height, left, zoom := 0, 1125, 0, 0
 	if q.TypesetView != nil {
 		v := q.TypesetView
-		top, height, left, zoom = max(0, min(v.Top, 1125*MaxPages)), max(1, min(v.Height, 4096)), max(0, v.Left), max(0, min(v.Zoom, MaxTypesetZoom))
+		top, height, left, zoom = max(0, min(v.Top, 1125*MaxPages)), max(1, min(v.Height, 4096)), max(0, v.Left), max(MinTypesetZoom, min(v.Zoom, MaxTypesetZoom))
 		if old != nil && old != lay && top > 0 {
 			// Anchor the visible block when line wrapping changes above it.
 			was := old.Starts()
@@ -146,7 +159,15 @@ func (l *Loader) renderTypesetPage(q Request) (out Result) {
 				return fail(err)
 			}
 			if starts := lay.Starts(); index < len(starts) && index < len(was) {
-				top = starts[index] + max(0, top-was[index])
+				offset := max(0, top-was[index])
+				// A paragraph can become much shorter after zoom-out. Keep
+				// its old offset inside the same block rather than jumping
+				// into following content.
+				bounds := lay.Bounds()
+				if index < len(bounds) && !bounds[index].Empty() {
+					offset = min(offset, max(0, bounds[index].Max.Y-starts[index]-1))
+				}
+				top = starts[index] + offset
 			}
 		}
 		if v.Line > 0 && doc.Lines {
@@ -195,7 +216,6 @@ func (l *Loader) renderTypesetPage(q Request) (out Result) {
 		out.Page = max(1, min(q.Page, out.Pages))
 		top = (out.Page - 1) * 1125
 	}
-	width = TypesetZoomSize(width, zoom)
 	height = TypesetZoomSize(height, zoom)
 	if err := lay.Ensure(ctx, top+height); err != nil {
 		return fail(err)
