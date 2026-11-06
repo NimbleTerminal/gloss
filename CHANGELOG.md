@@ -5,7 +5,8 @@
 - Steer a running viewer from another program: `gloss --socket NAME` listens,
   `gloss --remote NAME FILE` shows the file in it, whatever it is doing.
 - Join gloss to the Rex terminal multiplexer: `gloss skill install rex`, then
-  `cmd+shift+g` for a gloss split that follows your shell and editor.
+  `grex` to open a split or `cmd+shift+g` for one that follows your shell and
+  editor.
 - Name what `gloss skill install` installs: `agent` (the default, as before)
   and `rex`.
 - See HTML pages as their own HTML and CSS lay them out, and export them.
