@@ -45,17 +45,20 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   matches the binary (`cmd/gloss/verbs.go` `parseSkillInstall`, `skillKinds`;
   a folder named like a kind is `./rex`). `agent` (the default; `skill.go`):
   `skills/gloss/SKILL.md`. `rex` (`rex.go`): `skills/rex/gloss.lua` (actions
-  `gloss_companion`, `cmd+shift+g`, and `gloss_push`; `requireGloss` appends
-  `require("gloss")` to `init.lua` once, by `requiresGloss`, making the file
-  when missing and changing nothing else in it; `reloadRex` runs `rex config
-  reload --autostart=false` when `rex` is on the PATH, never starting Rex) and
-  `gloss-companion.lua` (a `rex do` script: opens a split running `gloss
+  `grex`, `gloss_companion`, `cmd+shift+g`, and `gloss_push`; `requireGloss`
+  appends `require("gloss")` to `init.lua` once, by `requiresGloss`, making the
+  file when missing and changing nothing else in it; `reloadRex` runs `rex
+  config reload --autostart=false` when `rex` is on the PATH, never starting
+  Rex), `gloss-companion.lua` (a `rex do` script: opens a split running `gloss
   --socket`, follows `terminal.pwd_changed`/`terminal.title_changed` with
   `gloss --remote`, reopens the split when the viewer is gone, stops on
-  `block_closed`) into `$REX_CONFIG`'s folder, `$XDG_CONFIG_HOME/rex` or
-  `~/.config/rex`. Both files derive the same socket name from the session
-  and label; a test checks the Lua names only real flags. Rex's API is at
-  superlogical.com/rex/docs (verified with `rex api describe METHOD`).
+  `block_closed`), and `grex` (`skills/rex/grex`, 0755, also installed into
+  `~/.local/bin/grex` on default installs: `grex [right|left|above|below]
+  [GLOSS_ARGS...]` wrapping `rex split`) into `$REX_CONFIG`'s folder,
+  `$XDG_CONFIG_HOME/rex` or `~/.config/rex`. Both Lua files derive the same
+  socket name from the session and label; a test checks the Lua names only real
+  flags. Rex's API is at superlogical.com/rex/docs (verified with `rex api
+  describe METHOD`).
 - `internal/i18n`: gloss's own words in English (source defaults), Spanish and
   Simplified Chinese (`locales/*.toml`, go-i18n): `T`/`Tf`/`Tn` with literal
   dotted IDs, `Parse`/`FromEnv`/`FromAcceptLanguage`/`Match`, `For` for a

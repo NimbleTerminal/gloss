@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -66,14 +67,17 @@ func TestInstallRex(t *testing.T) {
 	if err := installRex(dir, &stdout, &stderr); err != nil {
 		t.Fatal(err)
 	}
-	actions, companion, init := filepath.Join(dir, "gloss.lua"), filepath.Join(dir, "gloss-companion.lua"), filepath.Join(dir, "init.lua")
-	if stdout.String() != actions+"\n"+companion+"\n"+init+"\n" {
+	actions, companion, grex, init := filepath.Join(dir, "gloss.lua"), filepath.Join(dir, "gloss-companion.lua"), filepath.Join(dir, "grex"), filepath.Join(dir, "init.lua")
+	if stdout.String() != actions+"\n"+companion+"\n"+grex+"\n"+init+"\n" {
 		t.Fatalf("stdout = %q", stdout.String())
 	}
-	for path, want := range map[string]string{actions: skills.RexActions, companion: skills.RexCompanion} {
+	for path, want := range map[string]string{actions: skills.RexActions, companion: skills.RexCompanion, grex: skills.RexGrex} {
 		if got, err := os.ReadFile(path); err != nil || string(got) != want {
 			t.Fatalf("%s: %v", path, err)
 		}
+	}
+	if info, err := os.Stat(grex); err != nil || info.Mode()&0o111 == 0 {
+		t.Fatalf("grex mode = %v, %v", info, err)
 	}
 	made, err := os.ReadFile(init)
 	if err != nil || !requiresGloss.Match(made) || !strings.HasSuffix(string(made), "\n") {
@@ -201,5 +205,80 @@ func TestRexLuaMatchesTheFlags(t *testing.T) {
 	}
 	if !strings.Contains(skills.RexCompanion, "--socket") {
 		t.Error("the companion does not start the viewer with --socket")
+	}
+}
+
+// grex splits in the direction named (right by default) and passes the
+// remaining arguments to gloss.
+func TestGrexSplitsAndForwardsArguments(t *testing.T) {
+	bin := t.TempDir()
+	calls := filepath.Join(bin, "calls")
+	fake := "#!/bin/sh\nprintf '%s\\n' \"$*\" >> " + calls + "\n"
+	if err := os.WriteFile(filepath.Join(bin, "rex"), []byte(fake), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	grex := filepath.Join(bin, "grex")
+	if err := os.WriteFile(grex, []byte(skills.RexGrex), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin+":/usr/bin:/bin")
+	t.Setenv("REX", filepath.Join(bin, "rex"))
+	t.Setenv("GLOSS", "/custom/gloss")
+	wd := t.TempDir()
+	for _, tt := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"a.pdf", "--page", "3"}, "split --split=right -c " + wd + " -- /custom/gloss a.pdf --page 3"},
+		{[]string{"left", "a.pdf", "--page", "3"}, "split --split=left -c " + wd + " -- /custom/gloss a.pdf --page 3"},
+		{[]string{"below", "--menu", "a.png", "b.png"}, "split --split=below -c " + wd + " -- /custom/gloss --menu a.png b.png"},
+		{[]string{"up", "notes.md"}, "split --split=above -c " + wd + " -- /custom/gloss notes.md"},
+		{[]string{"down"}, "split --split=below -c " + wd + " -- /custom/gloss"},
+	} {
+		_ = os.Remove(calls)
+		cmd := exec.Command(grex, tt.args...)
+		cmd.Dir = wd
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("%v: %v\n%s", tt.args, err, out)
+		}
+		got, err := os.ReadFile(calls)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.TrimSpace(string(got)) != tt.want {
+			t.Errorf("%v: got %q, want %q", tt.args, strings.TrimSpace(string(got)), tt.want)
+		}
+	}
+
+	// When GLOSS is unset and PATH has a pre-0.6 gloss (without --socket),
+	// grex skips it for the 0.6+ binary in ~/go/bin/gloss, matching gloss.lua.
+	t.Setenv("GLOSS", "")
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	oldGloss := filepath.Join(bin, "gloss")
+	if err := os.WriteFile(oldGloss, []byte("#!/bin/sh\necho 'Usage: gloss [file]'\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	goBin := filepath.Join(home, "go", "bin")
+	if err := os.MkdirAll(goBin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	newGloss := filepath.Join(goBin, "gloss")
+	if err := os.WriteFile(newGloss, []byte("#!/bin/sh\necho '  --socket string'\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_ = os.Remove(calls)
+	cmd := exec.Command(grex, "model.3mf")
+	cmd.Dir = wd
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("fallback: %v\n%s", err, out)
+	}
+	got, err := os.ReadFile(calls)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "split --split=right -c " + wd + " -- " + newGloss + " model.3mf"
+	if strings.TrimSpace(string(got)) != want {
+		t.Errorf("fallback: got %q, want %q", strings.TrimSpace(string(got)), want)
 	}
 }

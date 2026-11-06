@@ -22,3 +22,10 @@ var RexActions string
 //
 //go:embed rex/gloss-companion.lua
 var RexCompanion string
+
+// RexGrex is skills/rex/grex: the shell script that opens gloss in a Rex
+// split (right, left, above, or below) and passes the remaining arguments to
+// gloss.
+//
+//go:embed rex/grex
+var RexGrex string

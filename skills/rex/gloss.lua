@@ -1,17 +1,21 @@
 -- gloss.lua: Rex actions for gloss, written by `gloss skill install rex`.
 --
 -- Load it from init.lua with require("gloss"), then run `rex config reload`.
--- It defines two actions and one key:
+-- It defines three actions and one key:
 --
---   gloss_companion [file=PATH] [label=NAME]   toggle a gloss split beside the
---                                              block at hand that follows its
---                                              shell and editor (cmd+shift+g)
---   gloss_push file=PATH [page=N] [label=NAME] show a file in that split
+--   grex [direction=DIR] [file=PATH] [args=...]  open gloss in a split
+--                                                (right, left, above, below)
+--   gloss_companion [file=PATH] [label=NAME]     toggle a gloss split beside the
+--                                                block at hand that follows its
+--                                                shell and editor (cmd+shift+g)
+--   gloss_push file=PATH [page=N] [label=NAME]   show a file in that split
 --
--- Both speak to the viewer over its Unix socket (gloss --socket / --remote),
--- never by typing into it. gloss-companion.lua, beside this file, is the
--- script that keeps the split in step; the toggle starts it detached. The
--- gloss binary is the login shell's, or GLOSS in Rex's environment.
+-- The companion and push actions speak to the viewer over its Unix socket
+-- (gloss --socket / --remote), never by typing into it. gloss-companion.lua,
+-- beside this file, is the script that keeps the split in step; the toggle
+-- starts it detached. grex, also installed by `gloss skill install rex`, wraps
+-- `rex split` for the shell: `grex [right|left|above|below] [GLOSS_ARGS...]`.
+-- The gloss binary is the login shell's, or GLOSS in Rex's environment.
 
 local LABEL = "gloss-preview"
 
@@ -108,7 +112,7 @@ local function from_shell(name)
 end
 
 -- has_socket is whether the gloss at path knows --socket: one from before
--- 0.7, such as a Homebrew install not yet upgraded, does not, and the shell
+-- 0.6, such as a Homebrew install not yet upgraded, does not, and the shell
 -- may well find that one ahead of a newer build.
 local function has_socket(path)
   local res = rex.exec({ path, "--help" }, { timeout = 10 })
@@ -165,10 +169,67 @@ end
 local function check_gloss()
   local bin = gloss()
   if gloss_old and bin == gloss_old then
-    error(bin .. " is a gloss without --socket; install gloss 0.7 or later, or set GLOSS to one in Rex's environment", 0)
+    error(bin .. " is a gloss without --socket; install gloss 0.6 or later, or set GLOSS to one in Rex's environment", 0)
   end
   return bin
 end
+
+local DIRECTIONS = {
+  right = { direction = "horizontal", side = "after" },
+  left  = { direction = "horizontal", side = "before" },
+  above = { direction = "vertical",   side = "before" },
+  below = { direction = "vertical",   side = "after" },
+  up    = { direction = "vertical",   side = "before" },
+  down  = { direction = "vertical",   side = "after" },
+}
+
+rex.action{
+  name = "grex",
+  title = "gloss: open in a split",
+  description = "Open gloss in a split (right, left, above, or below) and pass the arguments to it.",
+  category = "gloss",
+  keywords = "grex gloss split open preview",
+  args = { direction = "string?", file = "string?", page = "integer?", args = "string?" },
+  run = function(ctx, args)
+    local name = (args.direction or "right"):lower()
+    local split_dir = DIRECTIONS[name]
+    if not split_dir then
+      error("direction must be right, left, above, or below", 0)
+    end
+    local command = { gloss() }
+    if args.args then
+      for word in args.args:gmatch("%S+") do
+        table.insert(command, word)
+      end
+    end
+    if args.page then
+      table.insert(command, "--page")
+      table.insert(command, tostring(args.page))
+    end
+    if args.file then
+      table.insert(command, args.file)
+    end
+    local split, err = rex.call("session.new_split", {
+      session_id = ctx.session_id,
+      anchor_id = ctx.block_id,
+      direction = split_dir.direction,
+      side = split_dir.side,
+      focus = true,
+      layout = rex.layout.block{
+        flavor = "com.superlogical.terminal.shell",
+        options = {
+          command = command,
+          cwd = block_dir(ctx.block_id),
+          exit = { quick_exit_threshold_ms = 2000 },
+        },
+      },
+    })
+    if not split then
+      error("opening the gloss split: " .. tostring(err), 0)
+    end
+    return { status = "opened", direction = name, block_id = split.block_ids and split.block_ids[1], gloss = gloss() }
+  end,
+}
 
 rex.action{
   name = "gloss_companion",

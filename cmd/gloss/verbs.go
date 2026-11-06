@@ -47,12 +47,14 @@ agents folder (~/.agents/skills, which Codex and others read) and the skills
 folder of each agent found on this machine, or under FOLDER, and prints the
 paths it wrote.
 
-install rex writes gloss.lua and gloss-companion.lua into the Rex terminal
-multiplexer's config folder (~/.config/rex, $XDG_CONFIG_HOME/rex, or the folder
-of $REX_CONFIG), or under FOLDER: the actions gloss_companion (cmd+shift+g: a
-gloss split that follows the block beside it) and gloss_push. It adds
-require("gloss") to init.lua, once, making the file when there is none, and
-has a running Rex reload its config. A folder named agent or rex is ./agent or
+install rex writes gloss.lua, gloss-companion.lua, and grex into the Rex
+terminal multiplexer's config folder (~/.config/rex, $XDG_CONFIG_HOME/rex, or
+the folder of $REX_CONFIG, with grex also in ~/.local/bin), or under FOLDER:
+the actions grex (open gloss in a split), gloss_companion (cmd+shift+g: a gloss
+split that follows the block beside it), and gloss_push, plus the grex shell
+script (grex [right|left|above|below] [GLOSS_ARGS...]). It adds
+require("gloss") to init.lua, once, making the file when there is none, and has
+a running Rex reload its config. A folder named agent or rex is ./agent or
 ./rex.
 
 schema prints the JSON Schema of the objects gloss writes for a program:

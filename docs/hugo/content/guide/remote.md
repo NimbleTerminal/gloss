@@ -74,8 +74,9 @@ gloss skill install rex          # into ~/.config/rex ($XDG_CONFIG_HOME/rex, or 
 gloss skill install rex FOLDER   # or into the folder named
 ```
 
-It writes two files, `gloss.lua` and `gloss-companion.lua`, adds one line to
-the end of your `init.lua` (making the file when there is none), once:
+It writes `gloss.lua`, `gloss-companion.lua`, and `grex` (also placing `grex`
+in `~/.local/bin`), adds one line to the end of your `init.lua` (making the
+file when there is none), once:
 
 ```lua
 require("gloss")
@@ -85,8 +86,21 @@ and has a running Rex reload its config, as `rex config reload` does. Nothing
 else in `init.lua` is touched. Without the `rex` command, or with Rex not
 running, it says to run the reload yourself.
 
-`gloss.lua` defines two actions and binds one key:
+In a shell inside Rex, `grex` opens `gloss` in a split (to the right by
+default, or `right`, `left`, `above`, `below`) and forwards the rest of its
+arguments to `gloss`:
 
+```sh
+grex report.pdf --page 3          # open on the right
+grex left --menu *.png            # open on the left
+grex below notes.md               # open below
+```
+
+`gloss.lua` defines three actions and binds one key:
+
+- `grex` (**gloss: open in a split** in the command palette, or
+  `rex do grex [direction=right|left|above|below] [file=PATH] [page=N] [args=...]`)
+  opens `gloss` in a split in that direction.
 - `gloss_companion` (`cmd+shift+g`, or **gloss: toggle the companion preview**
   in the command palette) opens a gloss split beside the block you are in,
   running `gloss --socket`, and starts `gloss-companion.lua` in the background.

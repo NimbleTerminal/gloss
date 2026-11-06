@@ -29,6 +29,7 @@ tasks:
       - skills/*.go
       - skills/gloss/SKILL.md
       - skills/rex/*.lua
+      - skills/rex/grex
       - web/embed.go
       - web/serve.html
       - web/serve.mjs

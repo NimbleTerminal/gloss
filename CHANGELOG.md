@@ -35,11 +35,13 @@
   so an editor or multiplexer can respawn its preview pane. On Unix, `SIGUSR1`
   reloads too.
 - Join gloss to the Rex terminal multiplexer: `gloss skill install rex` writes
-  `gloss.lua` and `gloss-companion.lua` into Rex's config folder, adds
-  `require("gloss")` to `init.lua` once, and has Rex reload its config.
-  `cmd+shift+g` (`gloss_companion`) opens a gloss split beside the block at
-  hand, starting on the file the editor there shows or the folder's README,
-  and follows the shell's folder and the editor's file over the socket;
+  `gloss.lua`, `gloss-companion.lua`, and `grex` into Rex's config folder (and
+  `grex` into `~/.local/bin`), adds `require("gloss")` to `init.lua` once, and
+  has Rex reload its config. `grex [right|left|above|below] [GLOSS_ARGS...]`
+  (or `rex do grex`) opens gloss in a split in that direction; `cmd+shift+g`
+  (`gloss_companion`) opens a gloss split beside the block at hand, starting on
+  the file the editor there shows or the folder's README, and follows the
+  shell's folder and the editor's file over the socket;
   `rex do gloss_push file=PATH [page=N]` shows a file in it. The actions find
   `gloss` and `rex` through the login shell, taking a gloss that knows
   `--socket` over an older one.

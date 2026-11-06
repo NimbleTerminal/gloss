@@ -1,0 +1,70 @@
+#!/bin/sh
+# grex: open gloss in a Rex split, written by `gloss skill install rex`.
+#
+# Usage: grex [right | left | above | below] [GLOSS_ARGS...]
+
+case "${1:-}" in
+  -h|--help)
+    cat <<'EOF'
+Usage: grex [right | left | above | below] [GLOSS_ARGS...]
+
+Open gloss in a Rex split (right by default) and pass the remaining
+arguments to gloss.
+EOF
+    exit 0
+    ;;
+esac
+
+dir="right"
+case "${1:-}" in
+  right|left|above|below)
+    if [ "$#" -gt 1 ] || [ ! -e "$1" ]; then
+      dir="$1"
+      shift
+    fi
+    ;;
+  up)
+    if [ "$#" -gt 1 ] || [ ! -e "$1" ]; then
+      dir="above"
+      shift
+    fi
+    ;;
+  down)
+    if [ "$#" -gt 1 ] || [ ! -e "$1" ]; then
+      dir="below"
+      shift
+    fi
+    ;;
+esac
+
+rex_bin="${REX:-}"
+if [ -z "$rex_bin" ]; then
+  if [ -n "${REX_BIN_DIR:-}" ] && [ -x "$REX_BIN_DIR/rex" ]; then
+    rex_bin="$REX_BIN_DIR/rex"
+  elif command -v rex >/dev/null 2>&1; then
+    rex_bin="rex"
+  elif [ -x "${HOME:-}/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex" ]; then
+    rex_bin="$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+  else
+    rex_bin="rex"
+  fi
+fi
+
+# Pick the first gloss on PATH or in the usual places that knows --socket
+# (0.6+); an older Homebrew install on PATH may precede a newer build.
+gloss_bin="${GLOSS:-}"
+if [ -z "$gloss_bin" ]; then
+  gloss_old=""
+  for candidate in "$(command -v gloss 2>/dev/null || true)" "${HOME:-}/go/bin/gloss" "${HOME:-}/.local/bin/gloss" /opt/homebrew/bin/gloss /usr/local/bin/gloss; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      if "$candidate" --help 2>/dev/null | grep -q -- '--socket'; then
+        gloss_bin="$candidate"
+        break
+      fi
+      : "${gloss_old:=$candidate}"
+    fi
+  done
+  : "${gloss_bin:=${gloss_old:-gloss}}"
+fi
+
+exec "$rex_bin" split --split="$dir" -c "$PWD" -- "$gloss_bin" "$@"

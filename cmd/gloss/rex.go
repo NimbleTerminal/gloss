@@ -17,9 +17,13 @@ import (
 )
 
 // rexFiles are what gloss skill install rex writes, in the order reported.
-var rexFiles = []struct{ name, content string }{
-	{"gloss.lua", skills.RexActions},
-	{"gloss-companion.lua", skills.RexCompanion},
+var rexFiles = []struct {
+	name, content string
+	mode          os.FileMode
+}{
+	{"gloss.lua", skills.RexActions, 0o644},
+	{"gloss-companion.lua", skills.RexCompanion, 0o644},
+	{"grex", skills.RexGrex, 0o755},
 }
 
 // requiresGloss matches an init.lua line that loads gloss.lua, however the
@@ -47,11 +51,11 @@ func rexConfigDir() (string, error) {
 	return filepath.Join(home, ".config", "rex"), nil
 }
 
-// installRex writes the Rex integration, gloss.lua and gloss-companion.lua,
-// into the folder named or, when where is empty, into Rex's config folder.
-// The paths written go to stdout, one to a line; what was done goes to stderr,
-// with the line to add to init.lua when it does not load gloss.lua yet. gloss
-// never writes init.lua: it is the user's.
+// installRex writes the Rex integration, gloss.lua, gloss-companion.lua, and
+// grex, into the folder named or, when where is empty, into Rex's config folder
+// (and grex into ~/.local/bin), adds require("gloss") to init.lua once when it
+// is not there yet, and has a running Rex reload its config. The paths written
+// go to stdout, one to a line; what was done goes to stderr.
 func installRex(where string, stdout, stderr io.Writer) error {
 	dir, err := rexConfigDir()
 	if where != "" {
@@ -60,20 +64,20 @@ func installRex(where string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
 	for _, f := range rexFiles {
-		path := filepath.Join(dir, f.name)
-		verb := "installed"
-		if _, err := os.Stat(path); err == nil {
-			verb = "updated"
-		}
-		if err := writeFileAtomic(path, []byte(f.content), 0o644); err != nil {
+		if err := writeRexFile(filepath.Join(dir, f.name), f.content, f.mode, stdout, stderr); err != nil {
 			return err
 		}
-		fmt.Fprintf(stderr, "gloss: Rex integration %s: %s\n", verb, path)
-		fmt.Fprintln(stdout, path)
+	}
+	if where == "" && runtime.GOOS != "windows" {
+		if home, err := os.UserHomeDir(); err == nil && home != "" {
+			bin := filepath.Join(home, ".local", "bin", "grex")
+			if bin != filepath.Join(dir, "grex") {
+				if err := writeRexFile(bin, skills.RexGrex, 0o755, stdout, stderr); err != nil {
+					return err
+				}
+			}
+		}
 	}
 	init := filepath.Join(dir, "init.lua")
 	added, err := requireGloss(init)
@@ -85,6 +89,22 @@ func installRex(where string, stdout, stderr io.Writer) error {
 		fmt.Fprintln(stdout, init)
 	}
 	reloadRex(stderr)
+	return nil
+}
+
+func writeRexFile(path, content string, mode os.FileMode, stdout, stderr io.Writer) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	verb := "installed"
+	if _, err := os.Stat(path); err == nil {
+		verb = "updated"
+	}
+	if err := writeFileAtomic(path, []byte(content), mode); err != nil {
+		return err
+	}
+	fmt.Fprintf(stderr, "gloss: Rex integration %s: %s\n", verb, path)
+	fmt.Fprintln(stdout, path)
 	return nil
 }
 
