@@ -34,16 +34,25 @@ func splitVerb(args []string) (name string, rest []string) {
 }
 
 const skillUsage = `Usage: gloss skill show
-       gloss skill install [FOLDER]
+       gloss skill install [agent] [FOLDER]
+       gloss skill install rex [FOLDER]
        gloss skill schema
 
 show prints the skill (SKILL.md) that teaches an agent gloss's headless
 surface, so it always matches this binary. Without a command, gloss skill
 prints this help.
 
-install writes it as gloss/SKILL.md under the shared agents folder
-(~/.agents/skills, which Codex and others read) and the skills folder of each
-agent found on this machine, or under FOLDER, and prints the paths it wrote.
+install agent, the default, writes it as gloss/SKILL.md under the shared
+agents folder (~/.agents/skills, which Codex and others read) and the skills
+folder of each agent found on this machine, or under FOLDER, and prints the
+paths it wrote.
+
+install rex writes gloss.lua and gloss-companion.lua into the Rex terminal
+multiplexer's config folder (~/.config/rex, $XDG_CONFIG_HOME/rex, or the folder
+of $REX_CONFIG), or under FOLDER: the actions gloss_companion (cmd+shift+g: a
+gloss split that follows the block beside it) and gloss_push. Add
+require("gloss") to init.lua, which gloss leaves to you, and run rex config
+reload. A folder named agent or rex is ./agent or ./rex.
 
 schema prints the JSON Schema of the objects gloss writes for a program:
 the --json results of an export, --text, --grep, and --info, and the objects
@@ -74,20 +83,39 @@ func parseSkill(args []string, opts options, out io.Writer) (options, bool, erro
 	case sub == "show" && len(args) == 0:
 		fmt.Fprint(out, skills.Gloss)
 		return opts, true, nil
-	case sub == "install" && len(args) == 0:
-		opts.SkillDetect = true
-		return opts, false, nil
-	case sub == "install" && len(args) == 1 && args[0] == "":
-		return opts, false, fmt.Errorf("skill install: the folder is empty (see gloss skill --help)")
-	case sub == "install" && len(args) == 1:
-		opts.SkillInstall = args[0]
-		return opts, false, nil
+	case sub == "install":
+		return parseSkillInstall(args, opts)
 	case sub == "schema" && len(args) == 0:
 		return opts, true, writeSchema(out)
-	case sub == "show" || sub == "install" || sub == "schema":
+	case sub == "show" || sub == "schema":
 		return opts, false, fmt.Errorf("skill %s: too many arguments (see gloss skill --help)", sub)
 	}
 	return opts, false, fmt.Errorf("skill: unknown command %q: show, install, or schema (see gloss skill --help)", sub)
+}
+
+// skillKinds are what gloss skill install installs, by name; the first is the
+// default. A folder of one of these names is ./agent or ./rex.
+var skillKinds = []string{"agent", "rex"}
+
+// parseSkillInstall reads the arguments after install: a kind, a folder, both
+// or neither. With no folder, the agent skill goes where the agents found here
+// read, and the Rex files where Rex reads its config.
+func parseSkillInstall(args []string, opts options) (options, bool, error) {
+	opts.SkillKind = skillKinds[0]
+	if len(args) > 0 && slices.Contains(skillKinds, args[0]) {
+		opts.SkillKind, args = args[0], args[1:]
+	}
+	switch {
+	case len(args) == 0:
+		opts.SkillDetect = true
+	case len(args) > 1:
+		return opts, false, fmt.Errorf("skill install %s: too many arguments (see gloss skill --help)", opts.SkillKind)
+	case args[0] == "":
+		return opts, false, fmt.Errorf("skill install %s: the folder is empty (see gloss skill --help)", opts.SkillKind)
+	default:
+		opts.SkillInstall = args[0]
+	}
+	return opts, false, nil
 }
 
 // parseHelp is the help verb: with no argument, the usage of gloss; with a

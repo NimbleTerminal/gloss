@@ -11,8 +11,8 @@ headless surface, in the order an agent needs it: `--text`, a sized PNG export,
 binary carries it, so it always matches the flags it was built with:
 
 ```sh
-gloss skill install                              # install it for the agents on this machine
-gloss skill install ~/.claude/skills             # or into the skills folder named
+gloss skill install                              # install it for the agents on this machine (gloss skill install agent)
+gloss skill install agent ~/.claude/skills       # or into the skills folder named
 gloss skill show                                 # print it, to place it by hand
 ```
 

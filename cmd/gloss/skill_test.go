@@ -131,7 +131,7 @@ func TestSkillVerb(t *testing.T) {
 	for _, args := range [][]string{{"skill", "--help"}, {"skill", "-h"}, {"skill", "install", "--help"}, {"skill", "install", "-h"}, {"skill", "show", "--help"}, {"skill", "schema", "--help"}} {
 		var out bytes.Buffer
 		opts, done, err := parse(args, &out)
-		if err != nil || !done || opts.SkillInstall != "" || !strings.Contains(out.String(), "gloss skill install [FOLDER]") {
+		if err != nil || !done || opts.SkillInstall != "" || !strings.Contains(out.String(), "gloss skill install [agent] [FOLDER]") {
 			t.Fatalf("%v: done=%v err=%v opts=%+v\n%s", args, done, err, opts, out.String())
 		}
 	}

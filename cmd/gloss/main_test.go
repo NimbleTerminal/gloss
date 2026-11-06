@@ -27,7 +27,7 @@ func TestCLI(t *testing.T) {
 	// would be installed; so does the old --skill. Bare skill is help: the
 	// skill is long, so printing it takes asking.
 	var bare bytes.Buffer
-	if _, done, err := parse([]string{"skill"}, &bare); err != nil || !done || !strings.Contains(bare.String(), "gloss skill install [FOLDER]") || strings.Contains(bare.String(), "name: gloss") {
+	if _, done, err := parse([]string{"skill"}, &bare); err != nil || !done || !strings.Contains(bare.String(), "gloss skill install [agent] [FOLDER]") || strings.Contains(bare.String(), "name: gloss") {
 		t.Fatalf("bare skill: done=%v err=%v\n%s", done, err, bare.String())
 	}
 	for _, args := range [][]string{{"skill", "show"}, {"--skill"}} {

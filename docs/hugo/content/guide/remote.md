@@ -62,3 +62,49 @@ On Unix, `SIGUSR1` has a viewer reload its file too, socket or no socket:
 
 Previews, `--serve` pages and the headless modes take no socket; `--remote`
 takes no other mode.
+
+## With Rex
+
+[Rex](https://www.superlogical.com/rex/) is a terminal multiplexer with a Lua
+API. gloss carries the Lua that joins the two, and writes it from the binary so
+it matches the flags the binary has:
+
+```sh
+gloss skill install rex          # into ~/.config/rex ($XDG_CONFIG_HOME/rex, or $REX_CONFIG's folder)
+gloss skill install rex FOLDER   # or into the folder named
+```
+
+It writes two files and touches nothing else. Add one line to your `init.lua`,
+which gloss leaves to you, and reload:
+
+```lua
+require("gloss")
+```
+
+```sh
+rex config check && rex config reload
+```
+
+`gloss.lua` defines two actions and binds one key:
+
+- `gloss_companion` (`cmd+shift+g`, or **gloss: toggle the companion preview**
+  in the command palette) opens a gloss split beside the block you are in,
+  running `gloss --socket`, and starts `gloss-companion.lua` in the background.
+  That script follows the block: when the shell changes folder, the split
+  shows the folder's `README.md` or the folder itself, and when an editor with
+  its title on (Neovim: `vim.o.title = true`) moves to a file gloss can show,
+  the split shows that file. Every change goes over the socket with `gloss
+  --remote`, whatever the viewer is doing. Press the key again to close the
+  split; the script ends when either block closes.
+- `gloss_push file=PATH [page=N]` shows a file in that split, opening it first
+  when there is none. From any shell or build script: `rex do gloss_push
+  file=docs/report.pdf page=3`.
+
+Both take `label=NAME` for a second split beside another block; the socket is
+named after the session and the label. When a viewer was quit by hand, the next
+change opens the split again.
+
+The actions run inside Rex's server, whose `PATH` is the system's, so they ask
+your login shell where `gloss` is, once, and then look in the usual places;
+`GLOSS=/path/to/gloss` in the server's environment names it outright. The split
+itself runs in your shell, which finds `gloss` as a terminal would.

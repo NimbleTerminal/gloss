@@ -27,7 +27,7 @@ type example struct {
 
 // usageLines and usageAbout are the first words of --help, and of the
 // reference.
-var usageLines = []string{"gloss [view] [options] [file | folder]...", "command | gloss [options] -", "gloss skill show", "gloss skill install [folder]", "gloss help [command]"}
+var usageLines = []string{"gloss [view] [options] [file | folder]...", "command | gloss [options] -", "gloss skill show", "gloss skill install [agent | rex] [folder]", "gloss help [command]"}
 
 const usageAbout = "A visual pager for images, SVG, PDF, 3D meshes, Markdown, Word, Excel and CSV.\nWith no file, gloss opens empty: drop files on it, or press o to browse.\nA folder opens the file browser there.\nOptions may appear before or after filenames. Use -- to end options.\nA file named like a command (view, skill, help) is opened with the command spelled out: gloss view skill."
 
@@ -125,11 +125,12 @@ var domains = []domain{
 	},
 	{
 		ID: "agents", Title: "Teaching agents: gloss skill",
-		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints help; `gloss skill show` prints the skill; `gloss skill install` writes it where the agents on this machine look, or into the skills folder named.",
+		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints help; `gloss skill show` prints the skill; `gloss skill install`, or `gloss skill install agent`, writes it where the agents on this machine look, or into the skills folder named. `gloss skill install rex` writes the Lua that joins gloss to the Rex terminal multiplexer into Rex's config folder: the `gloss_companion` action (`cmd+shift+g`), a gloss split that follows the shell and editor beside it over `--socket`, and `gloss_push`; add `require(\"gloss\")` to `init.lua`.",
 		Examples: []example{
 			{"Install it for the agents found on this machine", "gloss skill install"},
-			{"Or into the skills folder named", "gloss skill install ~/.claude/skills"},
+			{"Or into the skills folder named", "gloss skill install agent ~/.claude/skills"},
 			{"Print it, to place by hand", "gloss skill show"},
+			{"Join gloss to Rex: a split that follows your shell and editor", "gloss skill install rex"},
 		},
 	},
 	{

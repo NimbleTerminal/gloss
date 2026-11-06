@@ -68,8 +68,9 @@ type options struct {
 	Detached      string         // Set on the server a detached start runs: its token.
 	VisionProfile string         // A convenience alias for a max edge; --max-edge is the stable flag.
 	EdgeReason    string         // Why the alias chose its edge, for the manifest.
+	SkillKind     string         // What gloss skill install installs: agent or rex; empty when it does not.
 	SkillInstall  string         // Where gloss skill install writes.
-	SkillDetect   bool           // gloss skill install with no folder: write for the agents found here.
+	SkillDetect   bool           // gloss skill install with no folder: write for the agents found here, or where Rex reads.
 
 	QR string // Text to show as a QR code, in place of files.
 
@@ -214,6 +215,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	}
 	if *showSkill {
 		if f.Changed("install") {
+			opts.SkillKind = "agent"
 			opts.SkillInstall = *skillInstall
 			opts.SkillDetect = *skillInstall == ""
 			return opts, false, nil
@@ -531,13 +533,17 @@ func run(args []string) (err error) {
 		}
 		return writeApps(os.Stdout, host, opts.JSON)
 	}
-	if opts.SkillDetect || opts.SkillInstall != "" {
+	if opts.SkillKind != "" {
+		// The diagnostic already includes the path. Emit bare paths only
+		// when stdout is redirected for a script to consume.
+		stdout := io.Writer(os.Stdout)
 		if term.IsTerminal(os.Stdout.Fd()) {
-			// The diagnostic already includes the path. Emit bare paths only
-			// when stdout is redirected for a script to consume.
-			return installSkill(opts.SkillInstall, io.Discard, os.Stderr)
+			stdout = io.Discard
 		}
-		return installSkill(opts.SkillInstall, os.Stdout, os.Stderr)
+		if opts.SkillKind == "rex" {
+			return installRex(opts.SkillInstall, stdout, os.Stderr)
+		}
+		return installSkill(opts.SkillInstall, stdout, os.Stderr)
 	}
 	if opts.Cancel != "" {
 		return handoff.Cancel(handoffConfig(opts))

@@ -41,6 +41,19 @@ Update source docs and regenerate the generated guide pages with `task docs`.
   browser, menu), probing paths as a drop (`probeInto`, `dropResult.page`/`reply`).
   `SIGUSR1` sends a reload (`remote_unix.go`). Shapes are in `gloss skill
   schema`. No socket in previews, `--serve` or headless modes.
+- `skills`: what `gloss skill install KIND [FOLDER]` writes, embedded so it
+  matches the binary (`cmd/gloss/verbs.go` `parseSkillInstall`, `skillKinds`;
+  a folder named like a kind is `./rex`). `agent` (the default; `skill.go`):
+  `skills/gloss/SKILL.md`. `rex` (`rex.go`): `skills/rex/gloss.lua` (actions
+  `gloss_companion`, `cmd+shift+g`, and `gloss_push`; `require("gloss")` from
+  `init.lua`, which gloss never writes, only hints at) and
+  `gloss-companion.lua` (a `rex do` script: opens a split running `gloss
+  --socket`, follows `terminal.pwd_changed`/`terminal.title_changed` with
+  `gloss --remote`, reopens the split when the viewer is gone, stops on
+  `block_closed`) into `$REX_CONFIG`'s folder, `$XDG_CONFIG_HOME/rex` or
+  `~/.config/rex`. Both files derive the same socket name from the session
+  and label; a test checks the Lua names only real flags. Rex's API is at
+  superlogical.com/rex/docs (verified with `rex api describe METHOD`).
 - `internal/i18n`: gloss's own words in English (source defaults), Spanish and
   Simplified Chinese (`locales/*.toml`, go-i18n): `T`/`Tf`/`Tn` with literal
   dotted IDs, `Parse`/`FromEnv`/`FromAcceptLanguage`/`Match`, `For` for a
@@ -751,3 +764,6 @@ pinned in `go.mod`; builds use `-mod=readonly`. Bubble Tea's renderer,
 - `skills/gloss/SKILL.md` teaches external agents gloss's headless surface
   (export, `--info`, `--pick`, `--serve`, the app link). If you change
   agent-facing flags, limits, or exit codes, update it in the same change.
+  `skills/rex/*.lua` drive gloss by its flags too: a change to `--socket`,
+  `--remote` or `--page` must keep them working, and `Taskfile.yml`'s build
+  sources list them.

@@ -28,6 +28,7 @@ tasks:
       - internal/theme/themes/*.json
       - skills/*.go
       - skills/gloss/SKILL.md
+      - skills/rex/*.lua
       - web/embed.go
       - web/serve.html
       - web/serve.mjs

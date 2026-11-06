@@ -11,6 +11,13 @@
   socket is the user's alone, and `--remote` exits 1 when no viewer answers,
   so an editor or multiplexer can respawn its preview pane. On Unix, `SIGUSR1`
   reloads too.
+- Join gloss to the Rex terminal multiplexer: `gloss skill install rex` writes
+  `gloss.lua` and `gloss-companion.lua` into Rex's config folder, for
+  `init.lua` to `require("gloss")`. `cmd+shift+g` (`gloss_companion`) opens a
+  gloss split beside the block at hand that follows the shell's folder and the
+  editor's file over the socket, and `rex do gloss_push file=PATH` shows a
+  file in it. `gloss skill install` now has a name for what it installs:
+  `gloss skill install agent` is the former `gloss skill install`.
 
 ## `v0.6.0` (2026-11-05)
 

@@ -138,6 +138,7 @@ the agents on your machine, from the binary or from the repository:
 ```sh
 gloss skill install                           # from the binary, so it matches its flags
 npx skills add NimbleTerminal/gloss            # or from the repository, for every agent it finds
+gloss skill install rex                       # and for the Rex multiplexer: a split that follows your shell and editor
 ```
 
 Read it on the site, [For LLMs](https://nimbleterminal.github.io/gloss/docs/guide/for-llms/),

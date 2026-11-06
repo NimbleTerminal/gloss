@@ -23,7 +23,7 @@ func language(opts options, stdinTTY bool, getenv func(string) string, saved fun
 	switch {
 	case opts.Lang != "":
 		return opts.Lang
-	case opts.Output != "" || opts.OutputDir != "" || opts.Info || opts.Apps || opts.Grep != nil || opts.Text || opts.Print || opts.SkillDetect || opts.SkillInstall != "":
+	case opts.Output != "" || opts.OutputDir != "" || opts.Info || opts.Apps || opts.Grep != nil || opts.Text || opts.Print || opts.SkillKind != "":
 		return ""
 	case opts.Detached != "" || (opts.Pick || opts.Serve || opts.PickWeb) && !stdinTTY:
 		return ""
