@@ -11,6 +11,7 @@ How to install gloss, use it, what its keys do, what it opens, and how an agent 
 - [Controls](controls/)
 - [The file browser](browser/)
 - [Asking for a file](handoff/)
+- [Steering a running viewer](remote/)
 - [Markdown](markdown/)
 - [For agents](agents/)
 - [Formats and limits](formats/)

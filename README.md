@@ -49,6 +49,8 @@ gloss ~/Pictures                       # browse a folder
 gloss --page 3 report.pdf              # a page of a PDF
 cat drawing.svg | gloss                # read from a pipe
 gloss -N -S main.go                    # numbered source, long lines scroll sideways
+gloss --socket preview README.md       # a viewer other programs can steer...
+gloss --remote preview notes.pdf       # ...from another pane, an editor, or a script
 ```
 
 | Key | |
@@ -116,6 +118,11 @@ looks without waiting, and `--cancel` ends the session. `gloss skill schema`
 prints the JSON Schema of everything gloss writes as JSON. Add
 `--accept 'image/*'` to require images, including SVG. See
 [handing files over](https://nimbleterminal.github.io/gloss/docs/guide/handoff/).
+
+A viewer started with `--socket NAME` takes requests over a Unix socket:
+`gloss --remote NAME FILE` shows the file in it whatever it is doing, `--reload`
+and `--quit` do as they say, and `SIGUSR1` reloads. See
+[steering a running viewer](https://nimbleterminal.github.io/gloss/docs/guide/remote/).
 
 `--pick-web` lets a person send files and an optional reply (`message` in
 status/resume JSON). Add `--listen IP:port` and, for a wildcard bind,

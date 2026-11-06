@@ -113,6 +113,17 @@ var domains = []domain{
 		},
 	},
 	{
+		ID: "remote", Title: "Steering a running viewer",
+		Summary: "A viewer started with `--socket NAME` answers other programs on a Unix socket, `gloss-NAME.sock` in the temporary folder (or at the path given). `gloss --remote NAME FILE` opens the file in that viewer, whatever it is doing: help, a search, a picker or the file browser gets out of the way. With `--reload` the viewer loads its file again, with `--quit` it ends, and with nothing it prints the file it shows; `--json` gives the viewer's whole answer. The socket is the user's alone, and the viewer treats what arrives as paths to probe, as it does a drop. On Unix, `SIGUSR1` reloads too. An editor or terminal multiplexer keeps one gloss pane and points it at each file in turn.",
+		Flags:   []string{"socket", "remote", "reload", "quit"},
+		Examples: []example{
+			{"A viewer that takes requests, in one pane", "gloss --socket preview README.md"},
+			{"Show another file in it, from another pane or a script", "gloss --remote preview notes.pdf --page 3"},
+			{"Reload after a build rewrote the file", "gloss --remote preview --reload\npkill -USR1 gloss"},
+			{"Which file is it showing? Then close it", "gloss --remote preview\ngloss --remote preview --quit"},
+		},
+	},
+	{
 		ID: "agents", Title: "Teaching agents: gloss skill",
 		Summary: "`gloss skill` has no options of its own. gloss carries a skill that teaches an agent its headless surface, so it always matches the flags this binary has. `gloss skill` prints help; `gloss skill show` prints the skill; `gloss skill install` writes it where the agents on this machine look, or into the skills folder named.",
 		Examples: []example{

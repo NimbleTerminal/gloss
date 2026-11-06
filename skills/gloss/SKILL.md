@@ -487,6 +487,23 @@ https://nimbleterminal.github.io/gloss/app.html?src=<url-encoded-address>
 The page fetches the document in the user's browser; nothing is uploaded
 anywhere. Say that when you send the link.
 
+### Show it in the viewer the human already has open: `--remote`
+
+When the human runs gloss in a terminal pane with `--socket NAME`, you can
+point that viewer at a file without a browser or a new window, whatever the
+viewer is doing. Nothing is fetched or exported; it exits at once.
+
+```sh
+gloss --remote preview report.pdf --page 3   # show this, on page 3; exit 0 when shown
+gloss --remote preview --reload              # you rewrote the file: load it again
+gloss --remote preview --json                # what is it showing? {"ok":true,"file":"/…/report.pdf","kind":"pdf","page":3,"pages":12,"files":2}
+```
+
+Exit 1 with a reason when no viewer listens on that name (the human quit it),
+or the file is not there or cannot be shown; `--json` prints the answer object
+(`remote_response` in `gloss skill schema`). Only use a name the human gave
+you: the socket is theirs, and `--remote --quit` closes their viewer.
+
 ### Hand a link to a phone or tablet: `--qr`
 
 When the human needs a URL on another device (to test a site on a phone, or
@@ -506,9 +523,10 @@ the code. The code is only as useful as the address: a `localhost` or
 ## Guardrails
 
 - **Never run the interactive pager** (none of `--text`, `--output`, `--info`,
-  `--pick`, or `--serve`) without a user's terminal: it will fail or hang. The
-  four headless modes above are your whole interface; `--pick` and `--serve`
-  are headless when stdin is not a terminal, and return at once.
+  `--pick`, `--serve`, or `--remote`) without a user's terminal: it will fail
+  or hang. The four headless modes above are your whole interface; `--pick`
+  and `--serve` are headless when stdin is not a terminal, and return at once,
+  and `--remote` only speaks to a viewer the human already runs.
 - GIFs and animated WebPs animate in the viewer (Space pauses/resumes). `--output`
   exports the first composited frame; frames are not selectable with `--page`.
   Interactive `e` exports the displayed frame. Animation is limited to 1,000

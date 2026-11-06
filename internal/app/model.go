@@ -811,6 +811,8 @@ func (m *Model) handle(msg tea.Msg) tea.Cmd {
 		return m.probeDrop(v.Paths)
 	case outsideDrop:
 		return tea.Batch(m.probeDrop(v.paths), m.awaitDrops())
+	case RemoteMsg:
+		return m.remote(v)
 	case dropResult:
 		return m.addDropped(v)
 	case exportResult:

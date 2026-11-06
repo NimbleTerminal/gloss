@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"nimbleterminal.dev/gloss/internal/handoff"
+	"nimbleterminal.dev/gloss/internal/remote"
 )
 
 // The schema of what gloss writes for a program to read is made from the very
@@ -26,6 +27,8 @@ var schemaShapes = []struct {
 	{"started", "The one object --pick or --serve prints, and exits 0, when standard input is not a terminal.", handoff.Started{}, false},
 	{"status", "The one object --status prints.", handoff.SessionStatus{}, false},
 	{"resumed", "The one object --resume --json prints; also the confirmed answer of --pick-web --json with terminal stdin.", handoff.Resumed{}, false},
+	{"remote_request", "The one line of JSON a program writes to the socket of a viewer started with --socket; gloss --remote writes it.", remote.Request{}, false},
+	{"remote_response", "The one line of JSON the viewer answers with; --remote --json prints it.", remote.Response{}, false},
 }
 
 // writeSchema prints the JSON Schema of the shapes, as one document: each in

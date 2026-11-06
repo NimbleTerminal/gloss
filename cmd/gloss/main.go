@@ -25,6 +25,7 @@ import (
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/handoff"
 	"nimbleterminal.dev/gloss/internal/i18n"
+	"nimbleterminal.dev/gloss/internal/remote"
 	"nimbleterminal.dev/gloss/internal/theme"
 	"nimbleterminal.dev/gloss/skills"
 	"nimbleterminal.dev/nt3d"
@@ -71,6 +72,11 @@ type options struct {
 	SkillDetect   bool           // gloss skill install with no folder: write for the agents found here.
 
 	QR string // Text to show as a QR code, in place of files.
+
+	Socket       string // Name or path of the socket the viewer answers requests on; see internal/remote.
+	Remote       string // Name or path of the socket of the viewer to send the files to, instead of showing them.
+	Reload, Quit bool   // What to ask that viewer, when not to open the files.
+	pageExplicit bool   // --page was given: a remote open says where to start.
 
 	// fileArgs says which of the command line's arguments name files, not
 	// options or their values: a detached start rewrites only those.
@@ -145,6 +151,10 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	f.StringVar(&opts.Resume, "resume", "", "print the answer of a pick that was started without a terminal, by the token it printed; with --timeout, stop waiting after that long")
 	f.StringVar(&opts.Status, "status", "", "print, as JSON and at once, how a pick started without a terminal stands: waiting, picked, declined, timeout, closed, or failed; it waits for nothing and changes nothing")
 	f.StringVar(&opts.Cancel, "cancel", "", "end a session started without a terminal, by its resume token: stop its server and delete its folder, dropped files and answer alike")
+	f.StringVar(&opts.Socket, "socket", "", "answer other programs on a Unix socket called NAME, $TMPDIR/gloss-NAME.sock, or at a path: gloss --remote NAME then opens files in this viewer, whatever it is doing")
+	f.StringVar(&opts.Remote, "remote", "", "send the files to the viewer started with --socket NAME, which shows them, and exit; with none, print the file it shows (--json for details)")
+	f.BoolVar(&opts.Reload, "reload", false, "with --remote, have the viewer load the file on its screen again")
+	f.BoolVar(&opts.Quit, "quit", false, "with --remote, end the viewer")
 	f.StringVar(&opts.Detached, "detached", "", "")
 	_ = f.MarkHidden("detached")
 	showVersion := f.BoolP("version", "V", false, "print version")
@@ -295,6 +305,7 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 		return opts, false, err
 	}
 	opts.Pages = pages
+	opts.pageExplicit = f.Changed("page")
 	if single, ok := opts.Pages.single(); ok {
 		opts.Page = single
 	} else if opts.OutputDir == "" && !opts.JSON && opts.Grep == nil {
@@ -390,8 +401,8 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	switch {
 	case opts.Grep != nil && (opts.Output != "" || opts.OutputDir != "" || opts.Info || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox || opts.FetchAllowed):
 		return opts, false, fmt.Errorf("--grep prints the matches and exits; it cannot be combined with an export, --info, or the viewer's options")
-	case opts.JSON && !opts.Apps && opts.Grep == nil && !opts.Info && !opts.Text && opts.Output == "" && opts.OutputDir == "" && opts.Resume == "" && !opts.PickWeb:
-		return opts, false, fmt.Errorf("--json goes with --info, --text, --grep, an export, --pick-web, or --resume")
+	case opts.JSON && !opts.Apps && opts.Grep == nil && !opts.Info && !opts.Text && opts.Output == "" && opts.OutputDir == "" && opts.Resume == "" && !opts.PickWeb && opts.Remote == "":
+		return opts, false, fmt.Errorf("--json goes with --info, --text, --grep, an export, --pick-web, --resume, or --remote")
 	case opts.Info && (opts.Output != "" || opts.OutputDir != "" || opts.Text || opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox):
 		return opts, false, fmt.Errorf("--info prints and exits; it cannot be combined with the viewer's or export's options")
 	case opts.Text && (opts.Serve || opts.Pick || opts.Menu || opts.Preview || opts.KeepScreen || opts.VideoSandbox || opts.FetchAllowed):
@@ -454,6 +465,34 @@ func parse(args []string, out io.Writer) (options, bool, error) {
 	case opts.Detached != "" && (!opts.Serve || !handoff.ValidToken(opts.Detached)):
 		return opts, false, fmt.Errorf("--detached is for gloss's own use")
 	}
+	switch {
+	case f.Changed("remote") && opts.Remote == "":
+		return opts, false, fmt.Errorf("--remote needs the name of the viewer's socket")
+	case f.Changed("socket") && opts.Socket == "":
+		return opts, false, fmt.Errorf("--socket needs a name for the socket")
+	case opts.Remote != "" && (opts.Serve || opts.Pick || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Print || opts.Apps || opts.QR != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != "" || opts.Socket != "" || len(opts.Globs) > 0 || opts.Menu || opts.Preview || opts.FetchAllowed || opts.Prompt != "" || opts.Timeout != 0):
+		return opts, false, fmt.Errorf("--remote only speaks to a running viewer: it takes files, --page, --reload, --quit and --json, and no other mode")
+	case (opts.Reload || opts.Quit) && opts.Remote == "":
+		return opts, false, fmt.Errorf("--reload and --quit go with --remote")
+	case opts.Reload && opts.Quit:
+		return opts, false, fmt.Errorf("choose --reload or --quit")
+	case (opts.Reload || opts.Quit) && len(opts.Files) > 0:
+		return opts, false, fmt.Errorf("--reload and --quit take no files")
+	case opts.Remote != "" && opts.pageExplicit && len(opts.Files) == 0:
+		return opts, false, fmt.Errorf("--page with --remote says where the file named opens")
+	case opts.Socket != "" && (opts.Serve || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Print || opts.Apps || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != ""):
+		return opts, false, fmt.Errorf("--socket is the terminal viewer's: it goes with no export, --info, --text, --grep, --print or --serve")
+	}
+	if opts.Remote != "" {
+		if _, err := remote.SocketPath(opts.Remote); err != nil {
+			return opts, false, fmt.Errorf("--remote: %w", err)
+		}
+	}
+	if opts.Socket != "" {
+		if _, err := remote.SocketPath(opts.Socket); err != nil {
+			return opts, false, fmt.Errorf("--socket: %w", err)
+		}
+	}
 
 	if opts.Apps && (len(opts.Files) > 0 || len(opts.Globs) > 0 || opts.Serve || opts.Pick || opts.PickWeb || opts.Info || opts.Text || opts.Grep != nil || opts.Output != "" || opts.OutputDir != "" || opts.Resume != "" || opts.Status != "" || opts.Cancel != "" || opts.Detached != "" || opts.Menu || opts.Preview || opts.VideoSandbox || opts.FetchAllowed) {
 		return opts, false, fmt.Errorf("--apps lists applications; it takes no files or other mode")
@@ -508,6 +547,9 @@ func run(args []string) (err error) {
 	}
 	if opts.Resume != "" {
 		return handoff.Resume(handoffConfig(opts), os.Stdout, os.Stderr)
+	}
+	if opts.Remote != "" {
+		return sendRemote(opts, os.Stdout, os.Stderr)
 	}
 	if opts.Detached != "" {
 		// The server of a detached start: it answers through its state.
@@ -700,6 +742,14 @@ func run(args []string) (err error) {
 	ended := make(chan error, 1)
 	// Bubble Tea opens the controlling TTY automatically when stdin is a pipe.
 	program := tea.NewProgram(m, drawn...)
+	if opts.Socket != "" {
+		server, err := listenRemote(opts.Socket, program.Send)
+		if err != nil {
+			return err
+		}
+		defer server.Close()
+	}
+	defer reloadOnSignal(program.Send)()
 	go func() {
 		_, err := program.Run()
 		ended <- err

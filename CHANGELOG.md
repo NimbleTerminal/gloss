@@ -1,5 +1,17 @@
 # `gloss` CHANGELOG
 
+## Unreleased
+
+- Steer a running viewer from another program: `gloss --socket NAME FILE`
+  listens on a Unix socket, and `gloss --remote NAME FILE [--page N]` shows the
+  file in it whatever it is doing, putting help, a search, a picker or the
+  file browser out of the way. `--remote NAME --reload` loads the file again,
+  `--quit` closes the viewer, and `--remote NAME` alone prints the file shown
+  (`--json` for the whole answer; `gloss skill schema` has its shape). The
+  socket is the user's alone, and `--remote` exits 1 when no viewer answers,
+  so an editor or multiplexer can respawn its preview pane. On Unix, `SIGUSR1`
+  reloads too.
+
 ## `v0.6.0` (2026-11-05)
 
 - Reflow typeset text and HTML pages when zooming, fitting wrapped text to

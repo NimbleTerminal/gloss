@@ -8,6 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"nimbleterminal.dev/gloss/internal/document"
 	"nimbleterminal.dev/gloss/internal/i18n"
+	"nimbleterminal.dev/gloss/internal/remote"
 )
 
 // DropMsg adds files to the session. Hosts without bracketed paste, such as
@@ -18,20 +19,27 @@ type dropResult struct {
 	files   []string
 	skipped []string
 	folder  string // The first folder dropped, to browse when no file came.
+	// A request from outside says where to start and waits to hear what
+	// became of its files; a drop does neither.
+	page  int
+	reply chan<- remote.Response
 }
 
 // Skipped lists the dropped files that could not be added.
 func (m *Model) Skipped() []string { return m.skipped }
 
 // Probing reads from disk, so it runs outside the update loop.
-func (m *Model) probeDrop(paths []string) tea.Cmd {
+func (m *Model) probeDrop(paths []string) tea.Cmd { return m.probeInto(paths, dropResult{}) }
+
+// probeInto probes paths into r, which keeps what the result is to carry
+// besides them.
+func (m *Model) probeInto(paths []string, r dropResult) tea.Cmd {
 	if len(paths) == 0 {
 		return nil
 	}
 	files, forced, accept := m.opts.FilesFS, m.opts.Type, m.opts.Accept
 	strict := m.opts.StrictMode
 	return func() tea.Msg {
-		var r dropResult
 		var folders []string
 		for _, path := range paths {
 			if _, err := document.ProbeFS(files, path, forced, strict); err != nil {
@@ -107,6 +115,7 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	}
 	m.note = strings.Join(notes, " · ")
 	if first < 0 {
+		m.answerDrop(r, added, r.folder != "")
 		if r.folder != "" {
 			return m.browseFrom(r.folder)
 		}
@@ -116,6 +125,7 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	if m.browsing() {
 		m.showDocument()
 	}
+	defer m.answerDrop(r, added, true)
 	switch {
 	case added > 1 && m.listing():
 		m.selection = first
@@ -125,6 +135,10 @@ func (m *Model) addDropped(r dropResult) tea.Cmd {
 	case m.listing():
 		m.selection = first
 		return m.closeMenu(true)
+	case r.page > 0:
+		// Asked to start on a page: the file starts over there, even the
+		// one on screen.
+		return m.showRestoring(first, func() { m.page = r.page })
 	case first == m.index:
 		return m.load(true)
 	}
