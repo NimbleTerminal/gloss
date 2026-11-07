@@ -101,3 +101,31 @@ func TestReleaseBuildsMacOSWithCgo(t *testing.T) {
 		t.Errorf("release.yml: %d jobs on macOS, want the snapshot and the release", n)
 	}
 }
+
+// TestReleaseConfineStageSkipsLocalMainCheck ensures the ntconfine-stage build
+// sets no_main_check: true because its main path is a module import path in
+// go.mod rather than a directory in this repository.
+func TestReleaseConfineStageSkipsLocalMainCheck(t *testing.T) {
+	root := filepath.Join("..", "..", "..")
+	config, err := os.ReadFile(filepath.Join(root, ".goreleaser.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(config)
+	start := strings.Index(text, "  - id: ntconfine-stage\n")
+	if start < 0 {
+		t.Fatal("no ntconfine-stage build")
+	}
+	build := text[start:]
+	if end := strings.Index(build[1:], "\n  - id: "); end >= 0 {
+		build = build[:end+1]
+	}
+	for _, want := range []string{
+		"main: nimbleterminal.dev/ntconfine/cmd/ntconfine-stage",
+		"no_main_check: true",
+	} {
+		if !strings.Contains(build, want) {
+			t.Errorf("the ntconfine-stage build lacks %q:\n%s", want, build)
+		}
+	}
+}

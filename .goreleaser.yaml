@@ -36,6 +36,7 @@ builds:
     mod_timestamp: "{{ .CommitTimestamp }}"
   - id: ntconfine-stage
     main: nimbleterminal.dev/ntconfine/cmd/ntconfine-stage
+    no_main_check: true
     binary: ntconfine-stage
     env: [CGO_ENABLED=0]
     goos: [linux]
