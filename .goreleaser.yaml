@@ -74,6 +74,7 @@ archives:
       - gloss
       - ntconfine-stage
       - gloss-darwin
+    allow_different_binary_count: true
     formats:
       - tar.gz
     format_overrides:

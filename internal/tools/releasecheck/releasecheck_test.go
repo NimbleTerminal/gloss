@@ -128,4 +128,7 @@ func TestReleaseConfineStageSkipsLocalMainCheck(t *testing.T) {
 			t.Errorf("the ntconfine-stage build lacks %q:\n%s", want, build)
 		}
 	}
+	if !strings.Contains(text, "allow_different_binary_count: true") {
+		t.Error("archives must set allow_different_binary_count: true because ntconfine-stage is Linux-only")
+	}
 }
