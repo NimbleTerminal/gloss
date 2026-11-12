@@ -25,9 +25,9 @@ require (
 	github.com/yuin/goldmark v1.8.7
 	github.com/yuin/goldmark-emoji v1.0.6
 	github.com/zkrebbekx/go-mermaid v0.1.6
-	golang.org/x/image v0.47.0
+	golang.org/x/image v0.48.0
 	golang.org/x/net v0.62.0
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 	nimbleterminal.dev/booba v0.12.1
 	nimbleterminal.dev/nt3d v0.8.1
 	nimbleterminal.dev/ntfilepicker v0.2.1
@@ -89,8 +89,8 @@ require (
 	github.com/xo/terminfo v1.3.1 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20261106192419-47ce03d25ef0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	nimbleterminal.dev/ntcanvas v0.1.4 // indirect
 	nimbleterminal.dev/ntconfine v0.1.1 // indirect
