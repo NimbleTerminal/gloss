@@ -25,19 +25,19 @@ require (
 	github.com/yuin/goldmark v1.8.7
 	github.com/yuin/goldmark-emoji v1.0.6
 	github.com/zkrebbekx/go-mermaid v0.1.6
-	golang.org/x/image v0.47.0
+	golang.org/x/image v0.48.0
 	golang.org/x/net v0.62.0
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 	nimbleterminal.dev/booba v0.12.1
 	nimbleterminal.dev/nt3d v0.8.1
 	nimbleterminal.dev/ntfilepicker v0.2.1
 	nimbleterminal.dev/ntfonts v0.3.1
 	nimbleterminal.dev/nthtml v0.5.0
 	nimbleterminal.dev/ntmaps v0.6.3
-	nimbleterminal.dev/ntmediabox v0.1.0
+	nimbleterminal.dev/ntmediabox v0.2.0
 	nimbleterminal.dev/ntopenwith v0.1.2
 	nimbleterminal.dev/ntpdf v0.6.1
-	nimbleterminal.dev/ntpicture v0.1.5
+	nimbleterminal.dev/ntpicture v0.2.0
 	nimbleterminal.dev/ntqrcode v0.4.0
 	nimbleterminal.dev/ntsvg v0.6.0
 	nimbleterminal.dev/nttypeset v0.3.0
@@ -89,14 +89,14 @@ require (
 	github.com/xo/terminfo v1.3.1 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20261106192419-47ce03d25ef0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	nimbleterminal.dev/ntcanvas v0.1.4 // indirect
-	nimbleterminal.dev/ntconfine v0.1.1 // indirect
-	nimbleterminal.dev/ntconfine/pkg/confine v0.1.0 // indirect
+	nimbleterminal.dev/ntconfine v0.2.0 // indirect
+	nimbleterminal.dev/ntconfine/pkg/confine v0.2.0 // indirect
 	nimbleterminal.dev/ntgpuimage v0.6.0 // indirect
-	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.1.0 // indirect
+	nimbleterminal.dev/ntmediabox/pkg/mediabox v0.2.0 // indirect
 	nimbleterminal.dev/ntshim v0.6.1 // indirect
 )
 
