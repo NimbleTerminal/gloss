@@ -5,7 +5,7 @@ go 1.26.10
 require (
 	charm.land/bubbletea/v2 v2.1.1
 	github.com/spf13/pflag v1.1.0
-	nimbleterminal.dev/booba v0.12.1
+	nimbleterminal.dev/booba v0.13.0
 	nimbleterminal.dev/gloss v0.0.0
 )
 
